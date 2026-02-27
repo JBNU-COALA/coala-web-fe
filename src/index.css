@@ -1,0 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap');
+
+:root {
+  --page-bg: #f2f5f3;
+  --text-primary: #203029;
+  --text-muted: #64756e;
+
+  font-family:
+    'Manrope', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic',
+    sans-serif;
+  line-height: 1.45;
+  font-weight: 500;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--text-primary);
+  background-color: var(--page-bg);
+}
+
+#root {
+  min-height: 100vh;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
