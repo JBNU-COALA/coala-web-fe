@@ -26,6 +26,7 @@ import { RecruitDetailPage } from './pages/recruit/RecruitDetailPage'
 import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage'
 import { ProfilePage } from './pages/profile/ProfilePage'
 import { Icon } from './shared/ui/Icon'
+import { useAuth } from './shared/auth/AuthContext'
 import './features/home/ui/home.css'
 
 const isPostBoardFilter = (value: string): value is PostBoardFilterId => {
@@ -56,6 +57,7 @@ function App() {
   const location = useLocation()
   const navigate = useNavigate()
   const [activeBoard, setActiveBoard] = useState<PostBoardFilterId>(defaultPostBoardFilter)
+  const { isLoggedIn, user, logout } = useAuth()
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup'
@@ -112,6 +114,11 @@ function App() {
     }
   }
 
+  const handleLogout = async () => {
+    await logout()
+    navigate("/")
+  }
+
   return (
     <div className="coala-app">
       <header className="coala-header">
@@ -136,20 +143,35 @@ function App() {
           </nav>
 
           <div className="coala-header-actions">
-            <button
-              type="button"
-              className="header-action-button"
-              onClick={() => navigate('/login')}
-            >
-              로그인
-            </button>
-            <button
-              type="button"
-              className="header-action-button header-action-button--primary"
-              onClick={() => navigate('/signup')}
-            >
-              회원가입
-            </button>
+            {isLoggedIn ? (
+              <>
+                <span className="header-user-name">{user?.name ?? user?.email}</span>
+                <button
+                  type="button"
+                  className="header-action-button"
+                  onClick={handleLogout}
+                >
+                  로그아웃
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  type="button"
+                  className="header-action-button"
+                  onClick={() => navigate('/login')}
+                >
+                  로그인
+                </button>
+                <button
+                  type="button"
+                  className="header-action-button header-action-button--primary"
+                  onClick={() => navigate('/signup')}
+                >
+                  회원가입
+                </button>
+              </>
+            )}
             <button type="button" className="mode-toggle" aria-label="화면 모드 전환">
               <Icon name="moon" size={15} />
             </button>
@@ -207,10 +229,14 @@ function App() {
           <Route path="/settings" element={<ProfilePage />} />
           <Route path="/service" element={<SectionPlaceholderPage title="서비스" />} />
           <Route path="/login" element={
-            <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
+            isLoggedIn
+              ? <Navigate to="/" replace />
+              : <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
           } />
           <Route path="/signup" element={
-            <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
+            isLoggedIn
+              ? <Navigate to="/" replace />
+              : <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

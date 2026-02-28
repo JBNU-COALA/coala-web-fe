@@ -1,4 +1,8 @@
-﻿type AuthMode = 'login' | 'signup'
+import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../shared/auth/AuthContext'
+
+type AuthMode = 'login' | 'signup'
 
 type AuthPageProps = {
   mode: AuthMode
@@ -7,6 +11,43 @@ type AuthPageProps = {
 
 export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
+  const { login, signup } = useAuth()
+  const navigate = useNavigate()
+
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [name, setName] = useState('')
+  const [department, setDepartment] = useState('')
+  const [studentId, setStudentId] = useState('')
+  const [academicStatus, setAcademicStatus] = useState<'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'>('ENROLLED')
+  const [error, setError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(false)
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
+    setError(null)
+
+    if (!isLogin && password !== confirmPassword) {
+      setError('비밀번호가 일치하지 않습니다.')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      if (isLogin) {
+        await login(email, password)
+      } else {
+        await signup({ email, password, name, department, studentId, academicStatus })
+      }
+      navigate('/')
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      setError(axiosError.response?.data?.message ?? '요청에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   return (
     <section className="coala-content coala-content--auth">
@@ -23,33 +64,103 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           </p>
         </div>
 
-        <form className="auth-form" onSubmit={(event) => event.preventDefault()}>
-          {!isLogin ? (
+        <form className="auth-form" onSubmit={handleSubmit}>
+          {!isLogin && (
             <label className="auth-label">
               이름
-              <input className="auth-input" type="text" placeholder="이름을 입력하세요" />
+              <input
+                className="auth-input"
+                type="text"
+                placeholder="이름을 입력하세요"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+              />
             </label>
-          ) : null}
+          )}
 
           <label className="auth-label">
             이메일
-            <input className="auth-input" type="email" placeholder="you@coala.club" />
+            <input
+              className="auth-input"
+              type="email"
+              placeholder="you@coala.club"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </label>
 
           <label className="auth-label">
             비밀번호
-            <input className="auth-input" type="password" placeholder="비밀번호를 입력하세요" />
+            <input
+              className="auth-input"
+              type="password"
+              placeholder="비밀번호를 입력하세요"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
           </label>
 
-          {!isLogin ? (
-            <label className="auth-label">
-              비밀번호 확인
-              <input className="auth-input" type="password" placeholder="비밀번호를 다시 입력하세요" />
-            </label>
-          ) : null}
+          {!isLogin && (
+            <>
+              <label className="auth-label">
+                비밀번호 확인
+                <input
+                  className="auth-input"
+                  type="password"
+                  placeholder="비밀번호를 다시 입력하세요"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  required
+                />
+              </label>
 
-          <button type="submit" className="auth-submit">
-            {isLogin ? '로그인' : '회원가입'}
+              <label className="auth-label">
+                학과
+                <input
+                  className="auth-input"
+                  type="text"
+                  placeholder="학과를 입력하세요 (예: 컴퓨터공학과)"
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="auth-label">
+                학번
+                <input
+                  className="auth-input"
+                  type="text"
+                  placeholder="학번을 입력하세요 (예: 202012345)"
+                  value={studentId}
+                  onChange={(e) => setStudentId(e.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="auth-label">
+                재학 상태
+                <select
+                  className="auth-input"
+                  value={academicStatus}
+                  onChange={(e) => setAcademicStatus(e.target.value as 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED')}
+                  required
+                >
+                  <option value="ENROLLED">재학</option>
+                  <option value="ON_LEAVE">휴학</option>
+                  <option value="GRADUATED">졸업</option>
+                </select>
+              </label>
+            </>
+          )}
+
+          {error && <p className="auth-error">{error}</p>}
+
+          <button type="submit" className="auth-submit" disabled={isLoading}>
+            {isLoading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
           </button>
 
           <button type="button" className="auth-switch" onClick={onSwitchMode}>

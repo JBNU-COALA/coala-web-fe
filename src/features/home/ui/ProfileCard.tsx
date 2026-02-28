@@ -1,5 +1,5 @@
-﻿import { Icon } from '../../../shared/ui/Icon'
-import { profileSummary } from '../model/homeData'
+import { Icon } from '../../../shared/ui/Icon'
+import { useAuth } from '../../../shared/auth/AuthContext'
 
 type ProfileCardProps = {
   onOpenSettings?: () => void
@@ -7,6 +7,12 @@ type ProfileCardProps = {
 }
 
 export function ProfileCard({ onOpenSettings, onOpenProfile }: ProfileCardProps) {
+  const { user, isLoggedIn } = useAuth()
+
+  const displayName = isLoggedIn ? (user?.name ?? user?.email ?? '사용자') : '게스트'
+  const displayRole = isLoggedIn ? (user?.department ?? '동아리 멤버') : '로그인이 필요합니다'
+  const initial = displayName.charAt(0)
+
   return (
     <section className="surface-card profile-card">
       <button
@@ -19,10 +25,10 @@ export function ProfileCard({ onOpenSettings, onOpenProfile }: ProfileCardProps)
       </button>
 
       <div className="profile-header">
-        <span className="profile-avatar">박</span>
+        <span className="profile-avatar">{initial}</span>
         <div>
-          <p className="profile-name">{profileSummary.name}</p>
-          <p className="profile-role">{profileSummary.role}</p>
+          <p className="profile-name">{displayName}</p>
+          <p className="profile-role">{displayRole}</p>
         </div>
       </div>
 
@@ -33,4 +39,3 @@ export function ProfileCard({ onOpenSettings, onOpenProfile }: ProfileCardProps)
     </section>
   )
 }
-
