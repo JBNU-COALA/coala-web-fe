@@ -1,10 +1,7 @@
-﻿import { useMemo, useState } from 'react'
-import {
-  communityPosts,
-  postCategoryMeta,
-  totalPostCountLabel,
-  type PostBoardFilterId,
-} from '../../features/posts/model/postsData'
+import { useEffect, useMemo, useState } from 'react'
+import { boardsApi, type BoardData } from '../../shared/api/boards'
+import { postsApi, type PostListItem } from '../../shared/api/posts'
+import { postCategoryMeta, type PostBoardFilterId } from '../../features/posts/model/postsData'
 import { Icon } from '../../shared/ui/Icon'
 
 type AllPostsPageProps = {
@@ -15,12 +12,18 @@ type AllPostsPageProps = {
   subtitle?: string
 }
 
-const compactToNumber = (value: string) => {
-  if (value.endsWith('k')) {
-    return Math.round(Number.parseFloat(value) * 1000)
-  }
+type EnrichedPost = PostListItem & { board?: BoardData }
 
-  return Number.parseInt(value, 10)
+function boardTypeToFilter(boardType: string): PostBoardFilterId {
+  if (boardType === 'free') return 'free'
+  if (boardType === 'alumni') return 'alumni'
+  return 'all'
+}
+
+const AVATAR_TONES = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
+
+function toAuthorTone(userId: number) {
+  return AVATAR_TONES[userId % AVATAR_TONES.length]
 }
 
 export function AllPostsPage({
@@ -28,37 +31,47 @@ export function AllPostsPage({
   onOpenPost,
   onWritePost,
   title = '전체 게시글',
-  subtitle = totalPostCountLabel,
+  subtitle,
 }: AllPostsPageProps) {
+  const [enrichedPosts, setEnrichedPosts] = useState<EnrichedPost[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
-  const currentBoardMeta = postCategoryMeta[activeBoard]
 
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      try {
+        const boards = await boardsApi.getBoards(true)
+        const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
+        const combined: EnrichedPost[] = postsArrays.flatMap((posts, i) =>
+          posts.map((p) => ({ ...p, board: boards[i] })),
+        )
+        setEnrichedPosts(combined)
+      } catch {
+        setEnrichedPosts([])
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  const currentBoardMeta = postCategoryMeta[activeBoard]
   const normalizedQuery = query.trim().toLowerCase()
 
   const visiblePosts = useMemo(() => {
     const byCategory =
       activeBoard === 'all'
-        ? communityPosts
-        : communityPosts.filter((post) => post.category === activeBoard)
+        ? enrichedPosts
+        : enrichedPosts.filter(
+            (p) => p.board && boardTypeToFilter(p.board.boardType) === activeBoard,
+          )
 
-    const byQuery = normalizedQuery
-      ? byCategory.filter((post) => {
-          const searchable = `${post.title} ${post.author}`.toLowerCase()
-          return searchable.includes(normalizedQuery)
-        })
+    return normalizedQuery
+      ? byCategory.filter((p) => p.title.toLowerCase().includes(normalizedQuery))
       : byCategory
-
-    if (sortMode === 'popular') {
-      return [...byQuery].sort((left, right) => {
-        const leftScore = compactToNumber(left.views) + left.comments * 6
-        const rightScore = compactToNumber(right.views) + right.comments * 6
-        return rightScore - leftScore
-      })
-    }
-
-    return byQuery
-  }, [activeBoard, normalizedQuery, sortMode])
+  }, [activeBoard, enrichedPosts, normalizedQuery, sortMode])
 
   return (
     <section className="coala-content coala-content--posts">
@@ -66,7 +79,9 @@ export function AllPostsPage({
         <header className="board-shell-header">
           <div>
             <h2 className="board-title">{title}</h2>
-            <p className="board-subtitle">{subtitle}</p>
+            <p className="board-subtitle">
+              {subtitle ?? `총 ${enrichedPosts.length}개의 게시글이 있습니다.`}
+            </p>
           </div>
 
           <div className="board-actions">
@@ -101,9 +116,7 @@ export function AllPostsPage({
               type="button"
               className="board-sort-button"
               onClick={() =>
-                setSortMode((currentMode) =>
-                  currentMode === 'latest' ? 'popular' : 'latest',
-                )
+                setSortMode((currentMode) => (currentMode === 'latest' ? 'popular' : 'latest'))
               }
             >
               <span>{sortMode === 'latest' ? '최신순' : '인기순'}</span>
@@ -113,79 +126,63 @@ export function AllPostsPage({
         </div>
 
         <ul className="board-post-list">
-          {visiblePosts.map((post) => {
-            const category = postCategoryMeta[post.category]
+          {isLoading ? (
+            <li className="empty-post-state">게시글을 불러오는 중...</li>
+          ) : (
+            visiblePosts.map((post) => {
+              const category = post.board ? boardTypeToFilter(post.board.boardType) : 'all'
+              const categoryMeta = postCategoryMeta[category]
+              const compositeId = `${post.boardId}-${post.postId}`
 
-            return (
-              <li key={post.id} className="board-post-row">
-                <button
-                  type="button"
-                  className="board-post-card"
-                  onClick={() => onOpenPost(post.id)}
-                >
-                  <div className="board-post-main">
-                    <div className="board-post-heading">
-                      <span className={`board-tag board-tag--${category.tone}`}>
-                        {category.label}
-                      </span>
-                      <h3 className="board-post-title">{post.title}</h3>
+              return (
+                <li key={compositeId} className="board-post-row">
+                  <button
+                    type="button"
+                    className="board-post-card"
+                    onClick={() => onOpenPost(compositeId)}
+                  >
+                    <div className="board-post-main">
+                      <div className="board-post-heading">
+                        <span className={`board-tag board-tag--${categoryMeta.tone}`}>
+                          {post.board?.boardName ?? categoryMeta.label}
+                        </span>
+                        <h3 className="board-post-title">{post.title}</h3>
+                      </div>
+
+                      <p className="board-post-meta">
+                        <span
+                          className={`board-avatar board-avatar--${toAuthorTone(post.userId)}`}
+                        >
+                          {String(post.userId)[0]}
+                        </span>
+                        <span>사용자 {post.userId}</span>
+                      </p>
                     </div>
 
-                    <p className="board-post-excerpt">{post.excerpt}</p>
-
-                    <p className="board-post-meta">
-                      <span className={`board-avatar board-avatar--${post.authorTone}`}>
-                        {post.authorInitials}
+                    <div className="board-post-stats">
+                      <span className="board-stat">
+                        <Icon name="eye" size={14} />
+                        <span>0</span>
                       </span>
-                      <span>{post.author}</span>
-                      <span className="dot-divider" />
-                      <span>{post.publishedAt}</span>
-                    </p>
-                  </div>
+                      <span className="board-stat">
+                        <Icon name="message" size={14} />
+                        <span>0</span>
+                      </span>
+                    </div>
+                  </button>
+                </li>
+              )
+            })
+          )}
 
-                  <div className="board-post-stats">
-                    <span className="board-stat">
-                      <Icon name="eye" size={14} />
-                      <span>{post.views}</span>
-                    </span>
-                    <span
-                      className={
-                        post.solved ? 'board-stat board-stat--solved' : 'board-stat'
-                      }
-                    >
-                      <Icon name="message" size={14} />
-                      <span>{post.comments}</span>
-                    </span>
-                  </div>
-                </button>
-              </li>
-            )
-          })}
-
-          {visiblePosts.length === 0 ? (
+          {!isLoading && visiblePosts.length === 0 && (
             <li className="empty-post-state">조건에 맞는 게시글이 없습니다.</li>
-          ) : null}
+          )}
         </ul>
 
         <footer className="board-pagination" aria-label="페이지네이션">
-          <button type="button" className="page-button" aria-label="이전 페이지">
-            <Icon name="chevron-left" size={14} />
-          </button>
           <button type="button" className="page-button is-active">
             1
-          </button>
-          <button type="button" className="page-button">
-            2
-          </button>
-          <button type="button" className="page-button">
-            3
-          </button>
-          <span className="page-gap">...</span>
-          <button type="button" className="page-button">
-            12
-          </button>
-          <button type="button" className="page-button" aria-label="다음 페이지">
-            <Icon name="chevron-right" size={14} />
           </button>
         </footer>
       </article>

@@ -1,138 +1,76 @@
-import { useMemo, useRef, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import TurndownService from 'turndown'
+import { boardsApi, type BoardData } from '../../shared/api/boards'
+import { postsApi } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
 
 type PostWriterPageProps = {
   onClose: () => void
 }
 
-const initialMarkdown = `## 글감 노트
-- 소개하고 싶은 이야기나 회고를 간단히 메모하세요.
-- 이미지나 링크도 함께 남겨두면 나중에 편해요.
+const turndown = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced' })
 
-### 작성 팁
-1. 문제 상황을 먼저 설명합니다.
-2. 해결 과정에서 배운 점을 정리합니다.
-3. 다음 계획이나 요청을 덧붙이면 좋아요.
-`
-
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-
-const formatInline = (text: string) => {
-  let formatted = escapeHtml(text)
-  formatted = formatted.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-  formatted = formatted.replace(/__(.+?)__/g, '<strong>$1</strong>')
-  formatted = formatted.replace(/`([^`]+)`/g, '<code>$1</code>')
-  formatted = formatted.replace(/\*(.+?)\*/g, '<em>$1</em>')
-  formatted = formatted.replace(/_(.+?)_/g, '<em>$1</em>')
-  return formatted
-}
-
-const renderMarkdown = (markdown: string) => {
-  const lines = markdown.split('\n')
-  const html: string[] = []
-  let inList = false
-  let inCode = false
-  let codeLang = ''
-  const codeBuffer: string[] = []
-
-  const closeList = () => {
-    if (inList) {
-      html.push('</ul>')
-      inList = false
-    }
-  }
-
-  const closeCode = () => {
-    if (inCode) {
-      html.push(
-        `<pre><code class="language-${codeLang}">${escapeHtml(codeBuffer.join('\n'))}</code></pre>`,
-      )
-      codeBuffer.length = 0
-      inCode = false
-      codeLang = ''
-    }
-  }
-
-  lines.forEach((rawLine) => {
-    const line = rawLine.trimEnd()
-
-    if (line.startsWith('```')) {
-      if (inCode) {
-        closeCode()
-      } else {
-        inCode = true
-        codeLang = line.replace('```', '').trim() || 'text'
-      }
-      return
-    }
-
-    if (inCode) {
-      codeBuffer.push(rawLine)
-      return
-    }
-
-    if (/^\s*[-*+]\s+/.test(line)) {
-      if (!inList) {
-        html.push('<ul>')
-        inList = true
-      }
-      html.push(`<li>${formatInline(line.replace(/^\s*[-*+]\s+/, ''))}</li>`)
-      return
-    }
-
-    closeList()
-
-    if (/^#{1,3}\s/.test(line)) {
-      const level = (line.match(/^#{1,3}/)?.[0].length ?? 1) + 1
-      const content = line.replace(/^#{1,3}\s*/, '')
-      html.push(`<h${level}>${formatInline(content)}</h${level}>`)
-      return
-    }
-
-    if (line.startsWith('&gt; ') || line.startsWith('> ')) {
-      html.push(`<blockquote>${formatInline(line.replace(/^(&gt;|>)\s*/, ''))}</blockquote>`)
-      return
-    }
-
-    if (line.trim() === '') {
-      html.push('<br />')
-      return
-    }
-
-    html.push(`<p>${formatInline(line)}</p>`)
-  })
-
-  closeList()
-  closeCode()
-
-  return html.join('')
-}
+const ToolbarButton = ({
+  onClick,
+  active,
+  label,
+}: {
+  onClick: () => void
+  active?: boolean
+  label: string
+}) => (
+  <button
+    type="button"
+    className={`pw-toolbar-btn${active ? ' pw-toolbar-btn--active' : ''}`}
+    onClick={onClick}
+  >
+    {label}
+  </button>
+)
 
 export function PostWriterPage({ onClose }: PostWriterPageProps) {
-  const [title, setTitle] = useState('새 글 제목을 입력하세요')
-  const [tagsInput, setTagsInput] = useState('커뮤니티, 회고')
-  const [body, setBody] = useState(initialMarkdown)
-  const editorRef = useRef<HTMLTextAreaElement | null>(null)
+  const [title, setTitle] = useState('')
+  const [tagsInput, setTagsInput] = useState('')
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle')
+  const [boards, setBoards] = useState<BoardData[]>([])
+  const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null)
+  const [isPublishing, setIsPublishing] = useState(false)
+  const [publishError, setPublishError] = useState<string | null>(null)
+
+  const editor = useEditor({
+    extensions: [StarterKit],
+    content: `<h2>안녕하세요!</h2><p>여기에 글을 자유롭게 작성해보세요.</p>`,
+    editorProps: {
+      attributes: {
+        class: 'pw-editor-area',
+      },
+    },
+  })
+
+  useEffect(() => {
+    boardsApi.getBoards(true).then((list) => {
+      setBoards(list)
+      if (list.length > 0) setSelectedBoardId(list[0].boardId)
+    }).catch(() => {})
+  }, [])
 
   const tags = useMemo(
     () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
     [tagsInput],
   )
 
-  const previewHtml = useMemo(() => renderMarkdown(body), [body])
-  const encodedTitle = useMemo(() => encodeURIComponent(title), [title])
-  const encodedBody = useMemo(() => encodeURIComponent(body), [body])
-  const encodedTags = useMemo(() => encodeURIComponent(tags.join(',')), [tags])
+  const getMarkdown = useCallback(() => {
+    if (!editor) return ''
+    return turndown.turndown(editor.getHTML())
+  }, [editor])
 
   const handleCopyMarkdown = async () => {
+    const markdown = getMarkdown()
     const fallbackCopy = () => {
       const textarea = document.createElement('textarea')
-      textarea.value = body
+      textarea.value = markdown
       textarea.style.position = 'fixed'
       textarea.style.opacity = '0'
       document.body.appendChild(textarea)
@@ -140,8 +78,7 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
       try {
         document.execCommand('copy')
         setCopyState('copied')
-      } catch (error) {
-        console.error(error)
+      } catch {
         setCopyState('error')
       }
       document.body.removeChild(textarea)
@@ -149,198 +86,126 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
 
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard) {
-        await navigator.clipboard.writeText(body)
+        await navigator.clipboard.writeText(markdown)
         setCopyState('copied')
       } else {
         fallbackCopy()
       }
-    } catch (error) {
-      console.error(error)
+    } catch {
       setCopyState('error')
     }
 
     setTimeout(() => setCopyState('idle'), 2000)
   }
 
-  const handleOpenShare = (url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer')
-  }
-
-  const insertSnippet = (prefix: string, suffix = '') => {
-    setBody((current) => {
-      const editor = editorRef.current
-      if (!editor) {
-        return `${current}${prefix}${suffix}`
-      }
-
-      const { selectionStart, selectionEnd, value } = editor
-      const before = value.slice(0, selectionStart)
-      const selection = value.slice(selectionStart, selectionEnd)
-      const after = value.slice(selectionEnd)
-      const placeholder = selection || (suffix ? '내용을 입력하세요' : '')
-      const nextValue = `${before}${prefix}${placeholder}${suffix}${after}`
-
-      setTimeout(() => {
-        const cursorPosition = before.length + prefix.length + placeholder.length
-        editor.selectionStart = cursorPosition
-        editor.selectionEnd = cursorPosition
-        editor.focus()
-      }, 0)
-
-      return nextValue
-    })
-  }
-
-  const handlePublish = (event: FormEvent) => {
+  const handlePublish = async (event: FormEvent) => {
     event.preventDefault()
-    console.log('새 게시글 발행 요청', { title, tags, body })
-    onClose()
+    if (!selectedBoardId) {
+      setPublishError('게시판을 선택해주세요.')
+      return
+    }
+    setIsPublishing(true)
+    setPublishError(null)
+    try {
+      const content = editor?.getHTML() ?? ''
+      await postsApi.createPost(selectedBoardId, { title, content })
+      onClose()
+    } catch {
+      setPublishError('게시글 발행에 실패했습니다. 다시 시도해주세요.')
+    } finally {
+      setIsPublishing(false)
+    }
   }
+
+  if (!editor) return null
 
   return (
     <section className="coala-content coala-content--post-writer">
       <form className="surface-card post-writer" onSubmit={handlePublish}>
         <header className="post-writer-header">
           <div>
-            <p className="post-writer-label">Community Writing</p>
-            <h2 className="post-writer-title">마크다운 에디터</h2>
-            <p className="post-writer-subtitle">
-              티스토리와 벨로그에서 쓰던 감각 그대로 글을 다듬어 보세요.
-            </p>
+            <p className="post-writer-label">새 글 작성</p>
+            <h2 className="post-writer-title">커뮤니티 글쓰기</h2>
           </div>
 
           <div className="post-writer-actions">
+            <button
+              type="button"
+              className={copyState === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
+              onClick={handleCopyMarkdown}
+            >
+              <Icon name="copy" size={15} />
+              {copyState === 'copied' ? '복사됨' : copyState === 'error' ? '복사 실패' : '마크다운으로 복사'}
+            </button>
             <button type="button" className="ghost-button" onClick={onClose}>
               나가기
             </button>
-            <button type="submit" className="write-post-button">
+            <button type="submit" className="write-post-button" disabled={isPublishing}>
               <Icon name="plus" size={16} />
-              발행하기
+              {isPublishing ? '발행 중...' : '발행하기'}
             </button>
           </div>
         </header>
 
         <div className="post-writer-fields">
+          {boards.length > 0 && (
+            <select
+              className="post-writer-input"
+              value={selectedBoardId ?? ''}
+              onChange={(e) => setSelectedBoardId(Number(e.target.value))}
+            >
+              {boards.map((b) => (
+                <option key={b.boardId} value={b.boardId}>
+                  {b.boardName}
+                </option>
+              ))}
+            </select>
+          )}
+          {publishError && <p className="auth-error">{publishError}</p>}
+
           <input
-            className="post-writer-input"
+            className="post-writer-input post-writer-title-input"
             type="text"
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
+            placeholder="제목을 입력하세요"
+            onChange={(e) => setTitle(e.target.value)}
           />
           <input
             className="post-writer-input"
             type="text"
             value={tagsInput}
-            placeholder="태그는 쉼표로 구분해서 입력하세요"
-            onChange={(event) => setTagsInput(event.target.value)}
+            placeholder="태그 (쉼표로 구분)"
+            onChange={(e) => setTagsInput(e.target.value)}
           />
-          <div className="post-writer-taglist">
-            {tags.map((tag) => (
-              <span key={tag} className="post-tag">
-                #{tag}
-              </span>
-            ))}
-          </div>
-
-          <div className="post-writer-toolbar">
-            <button type="button" onClick={() => insertSnippet('# ')}>
-              H1
-            </button>
-            <button type="button" onClick={() => insertSnippet('## ')}>
-              H2
-            </button>
-            <button type="button" onClick={() => insertSnippet('**', '**')}>
-              굵게
-            </button>
-            <button type="button" onClick={() => insertSnippet('*', '*')}>
-              기울임
-            </button>
-            <button type="button" onClick={() => insertSnippet('`', '`')}>
-              코드
-            </button>
-            <button type="button" onClick={() => insertSnippet('- ')}>
-              목록
-            </button>
-            <button type="button" onClick={() => insertSnippet('> ')}>
-              인용
-            </button>
-            <button type="button" onClick={() => insertSnippet('\n```\n', '\n```\n')}>
-              블록
-            </button>
-          </div>
-
-          <div className="post-writer-editor">
-            <label>
-              <span>마크다운</span>
-              <textarea
-                ref={editorRef}
-                value={body}
-                onChange={(event) => setBody(event.target.value)}
-              />
-            </label>
-            <div className="post-writer-preview">
-              <span>미리보기</span>
-              <div
-                className="post-writer-preview-body"
-                dangerouslySetInnerHTML={{ __html: previewHtml }}
-              />
+          {tags.length > 0 && (
+            <div className="post-writer-taglist">
+              {tags.map((tag) => (
+                <span key={tag} className="post-tag">#{tag}</span>
+              ))}
             </div>
-          </div>
+          )}
 
-          <div className="post-writer-share">
-            <div>
-              <p className="post-writer-share-title">티스토리 · 벨로그 공유</p>
-              <p className="post-writer-share-subtitle">
-                마크다운을 복사하거나, 외부 블로그 작성 화면을 새 창에서 열 수 있어요.
-              </p>
+          <div className="pw-editor-wrap">
+            <div className="pw-toolbar">
+              <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} active={editor.isActive('heading', { level: 1 })} label="H1" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} active={editor.isActive('heading', { level: 2 })} label="H2" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} active={editor.isActive('heading', { level: 3 })} label="H3" />
+              <span className="pw-toolbar-divider" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} label="B" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} label="I" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} label="S" />
+              <span className="pw-toolbar-divider" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} label="• 목록" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} label="1. 목록" />
+              <span className="pw-toolbar-divider" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive('blockquote')} label="인용" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleCode().run()} active={editor.isActive('code')} label="코드" />
+              <ToolbarButton onClick={() => editor.chain().focus().toggleCodeBlock().run()} active={editor.isActive('codeBlock')} label="코드블록" />
+              <span className="pw-toolbar-divider" />
+              <ToolbarButton onClick={() => editor.chain().focus().undo().run()} label="↩" />
+              <ToolbarButton onClick={() => editor.chain().focus().redo().run()} label="↪" />
             </div>
-
-            <div className="post-writer-share-actions">
-              <button
-                type="button"
-                className={
-                  copyState === 'copied'
-                    ? 'ghost-button ghost-button--success'
-                    : 'ghost-button'
-                }
-                onClick={handleCopyMarkdown}
-              >
-                <Icon name="copy" size={15} />
-                <span>
-                  {copyState === 'copied'
-                    ? '마크다운 복사 완료'
-                    : copyState === 'error'
-                      ? '복사 오류 다시 시도'
-                      : '마크다운 복사'}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                className="ghost-button"
-                onClick={() =>
-                  handleOpenShare(
-                    `https://www.tistory.com/write?title=${encodedTitle}&content=${encodedBody}`,
-                  )
-                }
-              >
-                <Icon name="link" size={15} />
-                티스토리 열기
-              </button>
-
-              <button
-                type="button"
-                className="ghost-button"
-                onClick={() =>
-                  handleOpenShare(
-                    `https://velog.io/write?title=${encodedTitle}&tags=${encodedTags}&body=${encodedBody}`,
-                  )
-                }
-              >
-                <Icon name="link" size={15} />
-                벨로그 열기
-              </button>
-            </div>
+            <EditorContent editor={editor} className="pw-editor-content" />
           </div>
         </div>
       </form>
