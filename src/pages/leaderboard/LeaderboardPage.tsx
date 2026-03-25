@@ -6,7 +6,7 @@ import {
   GITHUB_COMMIT_POINT,
   type ActivityMember,
   type SolvedTier,
-} from '../../features/leaderboard/model/leaderboardData'
+} from './leaderboardData'
 import { Icon } from '../../shared/ui/Icon'
 
 type TabId = 'overall' | 'baekjoon' | 'github' | 'me'

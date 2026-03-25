@@ -7,4 +7,19 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  build: {
+    outDir: 'build',
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes('node_modules/@tiptap') || id.includes('node_modules/prosemirror') || id.includes('node_modules/turndown')) {
+            return 'vendor-editor'
+          }
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) {
+            return 'vendor-react'
+          }
+        },
+      },
+    },
+  },
 })

@@ -8,7 +8,7 @@ import {
   resourceCards,
   type InfoFilterId,
   type LatestInfoTabId,
-} from '../../features/info/model/infoData'
+} from './infoData'
 import { Icon } from '../../shared/ui/Icon'
 
 export function InfoSharePage() {

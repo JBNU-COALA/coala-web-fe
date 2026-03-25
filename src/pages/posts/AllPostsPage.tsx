@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
-import { postCategoryMeta, type PostBoardFilterId } from '../../features/posts/model/postsData'
+import { postCategoryMeta, type PostBoardFilterId } from './postsData'
 import { Icon } from '../../shared/ui/Icon'
 
 type AllPostsPageProps = {

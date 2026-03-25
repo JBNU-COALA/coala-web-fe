@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { recruitItems } from '../../features/recruit/model/recruitData'
+import { recruitItems } from './recruitData'
 import { Icon } from '../../shared/ui/Icon'
 
 type RecruitDetailPageProps = {

@@ -1,5 +1,5 @@
 ﻿import { useEffect, useState } from 'react'
-import { homeHeroSlides } from '../model/homeData'
+import { homeHeroSlides } from './homeData'
 
 const AUTO_SLIDE_DELAY = 4800
 

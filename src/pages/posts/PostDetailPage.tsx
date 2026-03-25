@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { postsApi, type PostDetail, type CommentItem } from '../../shared/api/posts'
-import { postCategoryMeta } from '../../features/posts/model/postsData'
+import { postCategoryMeta } from './postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
 

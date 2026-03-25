@@ -1,5 +1,5 @@
-﻿import { Icon } from '../../../shared/ui/Icon'
-import type { ContextPanelData, ContextPanelItem } from '../model/navigationData'
+﻿import { Icon } from '../shared/ui/Icon'
+import type { ContextPanelData, ContextPanelItem } from './navigationData'
 
 type ContextPanelProps = {
   panel: ContextPanelData

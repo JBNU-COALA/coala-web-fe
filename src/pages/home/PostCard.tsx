@@ -1,5 +1,5 @@
-﻿import { Icon } from '../../../shared/ui/Icon'
-import { postItems } from '../model/homeData'
+﻿import { Icon } from '../../shared/ui/Icon'
+import { postItems } from './homeData'
 
 type PostCardProps = {
   onOpenAllPosts?: () => void

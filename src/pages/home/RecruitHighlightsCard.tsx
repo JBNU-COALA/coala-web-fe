@@ -1,5 +1,5 @@
-﻿import { Icon } from '../../../shared/ui/Icon'
-import { recruitHighlights } from '../model/homeData'
+﻿import { Icon } from '../../shared/ui/Icon'
+import { recruitHighlights } from './homeData'
 
 type RecruitHighlightsCardProps = {
   onOpenRecruit?: () => void

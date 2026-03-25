@@ -7,7 +7,7 @@ import {
   type RecruitCategory,
   type RecruitFilterId,
   type RecruitStatus,
-} from '../../features/recruit/model/recruitData'
+} from './recruitData'
 
 type RecruitPageProps = {
   onSelectRecruit: (id: string) => void

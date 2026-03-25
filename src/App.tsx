@@ -1,6 +1,6 @@
-import { useMemo, useState } from 'react'
+import { lazy, Suspense, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ProfileCard } from './features/home/ui/ProfileCard'
+import { ProfileCard } from './pages/home/ProfileCard'
 import {
   buildContextPanel,
   getRouteFromPath,
@@ -8,26 +8,27 @@ import {
   routePathById,
   type AppRoute,
   type ContextPanelItem,
-} from './features/navigation/model/navigationData'
-import { ContextPanel } from './features/navigation/ui/ContextPanel'
+} from './navigation/navigationData'
+import { ContextPanel } from './navigation/ContextPanel'
 import {
   defaultPostBoardFilter,
   type PostBoardFilterId,
-} from './features/posts/model/postsData'
-import { SectionPlaceholderPage } from './pages/common/SectionPlaceholderPage'
-import { HomePage } from './pages/home/HomePage'
-import { AllPostsPage } from './pages/posts/AllPostsPage'
-import { PostDetailPage } from './pages/posts/PostDetailPage'
-import { PostWriterPage } from './pages/posts/PostWriterPage'
-import { InfoSharePage } from './pages/info/InfoSharePage'
-import { AuthPage } from './pages/auth/AuthPage'
-import { RecruitPage } from './pages/recruit/RecruitPage'
-import { RecruitDetailPage } from './pages/recruit/RecruitDetailPage'
-import { LeaderboardPage } from './pages/leaderboard/LeaderboardPage'
-import { ProfilePage } from './pages/profile/ProfilePage'
+} from './pages/posts/postsData'
 import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
-import './features/home/ui/home.css'
+import './pages/home/home.css'
+
+const SectionPlaceholderPage = lazy(() => import('./pages/common/SectionPlaceholderPage').then(m => ({ default: m.SectionPlaceholderPage })))
+const HomePage = lazy(() => import('./pages/home/HomePage').then(m => ({ default: m.HomePage })))
+const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then(m => ({ default: m.AllPostsPage })))
+const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then(m => ({ default: m.PostDetailPage })))
+const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then(m => ({ default: m.PostWriterPage })))
+const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then(m => ({ default: m.InfoSharePage })))
+const AuthPage = lazy(() => import('./pages/auth/AuthPage').then(m => ({ default: m.AuthPage })))
+const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then(m => ({ default: m.RecruitPage })))
+const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then(m => ({ default: m.RecruitDetailPage })))
+const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })))
 
 const isPostBoardFilter = (value: string): value is PostBoardFilterId => {
   return value === 'all' || value === 'free' || value === 'alumni'
@@ -192,6 +193,7 @@ function App() {
           </aside>
         ) : null}
 
+        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>}>
         <Routes>
           <Route
             path="/"
@@ -240,6 +242,7 @@ function App() {
           } />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </main>
 
       <footer className="coala-footer">(c) 2026 동아리 코알라. All rights reserved.</footer>

@@ -1,8 +1,8 @@
-﻿import type { IconName } from '../../../shared/ui/Icon'
+﻿import type { IconName } from '../shared/ui/Icon'
 import {
   type PostBoardFilterId,
   sidebarBoardItems,
-} from '../../posts/model/postsData'
+} from '../pages/posts/postsData'
 
 export type AppRoute =
   | 'home'

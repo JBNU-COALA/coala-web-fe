@@ -1,8 +1,8 @@
-﻿import { LeaderboardCard } from '../../features/home/ui/LeaderboardCard'
-import { HeroBanner } from '../../features/home/ui/HeroBanner'
-import { PostCard } from '../../features/home/ui/PostCard'
-import { RecruitHighlightsCard } from '../../features/home/ui/RecruitHighlightsCard'
-import { ResourcesCard } from '../../features/home/ui/ResourcesCard'
+﻿import { LeaderboardCard } from './LeaderboardCard'
+import { HeroBanner } from './HeroBanner'
+import { PostCard } from './PostCard'
+import { RecruitHighlightsCard } from './RecruitHighlightsCard'
+import { ResourcesCard } from './ResourcesCard'
 
 type HomePageProps = {
   onOpenAllPosts?: () => void

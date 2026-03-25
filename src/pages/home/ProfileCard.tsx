@@ -1,5 +1,5 @@
-import { Icon } from '../../../shared/ui/Icon'
-import { useAuth } from '../../../shared/auth/AuthContext'
+import { Icon } from '../../shared/ui/Icon'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 type ProfileCardProps = {
   onOpenSettings?: () => void

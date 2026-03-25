@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { profileSummary } from '../../features/home/model/homeData'
-import { activityMembers, solvedTierMeta } from '../../features/leaderboard/model/leaderboardData'
-import { communityPosts } from '../../features/posts/model/postsData'
+import { profileSummary } from '../home/homeData'
+import { activityMembers, solvedTierMeta } from '../leaderboard/leaderboardData'
+import { communityPosts } from '../posts/postsData'
 import { Icon } from '../../shared/ui/Icon'
 
 const me = activityMembers.find((m) => m.isMe) ?? activityMembers[activityMembers.length - 1]

@@ -1,4 +1,4 @@
-﻿import type { IconName } from '../../../shared/ui/Icon'
+﻿import type { IconName } from '../shared/ui/Icon'
 
 type ProfileSummary = {
   name: string

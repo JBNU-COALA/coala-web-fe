@@ -1,5 +1,5 @@
-﻿import { Icon } from '../../../shared/ui/Icon'
-import { leaderboardMembers } from '../model/homeData'
+﻿import { Icon } from '../../shared/ui/Icon'
+import { leaderboardMembers } from './homeData'
 
 type LeaderboardCardProps = {
   onOpenLeaderboard?: () => void
