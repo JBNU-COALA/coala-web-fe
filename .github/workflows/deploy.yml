@@ -17,6 +17,10 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SERVER_PORT }}
         script: |
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
+          source ~/.bashrc
           cd /home/ubuntu/coala-web-fe
           git pull origin main
           npm install
