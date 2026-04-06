@@ -1,1 +1,0 @@
-import{c as t}from"./index-uVo2xHkD.js";const r={getBoards:a=>t.get("/api/boards",{params:a!==void 0?{isActive:a}:void 0}).then(d=>d.data),getBoardById:a=>t.get(`/api/boards/${a}`).then(d=>d.data),createBoard:a=>t.post("/api/boards",a).then(d=>d.data),updateBoard:(a,d)=>t.patch(`/api/boards/${a}`,d).then(e=>e.data),deleteBoard:a=>t.delete(`/api/boards/${a}`)};export{r as b};
