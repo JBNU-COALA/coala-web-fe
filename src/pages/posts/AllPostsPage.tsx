@@ -162,7 +162,7 @@ export function AllPostsPage({
                     <div className="board-post-stats">
                       <span className="board-stat">
                         <Icon name="eye" size={14} />
-                        <span>0</span>
+                        <span>{post.viewCount}</span>
                       </span>
                       <span className="board-stat">
                         <Icon name="message" size={14} />

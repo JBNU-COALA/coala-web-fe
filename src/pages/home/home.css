@@ -5167,3 +5167,1141 @@
     align-items: flex-start;
   }
 }
+
+/* ──────────────────────────────────────────
+   RESPONSIVE — GLOBAL IMPROVEMENTS
+────────────────────────────────────────── */
+
+/* 모바일 햄버거 토글 */
+.mobile-menu-toggle {
+  display: none;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #d5dfda;
+  border-radius: 10px;
+  background: #f4f8f6;
+  color: #5c7268;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+@media (max-width: 640px) {
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .coala-header-inner {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas: 'brand spacer actions';
+    height: 56px;
+  }
+
+  .coala-main-nav {
+    display: none;
+    position: fixed;
+    inset: 56px 0 auto 0;
+    background: rgba(246, 248, 247, 0.98);
+    backdrop-filter: blur(8px);
+    border-bottom: 1px solid #d8e1dd;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    padding: 10px 12px;
+    z-index: 30;
+  }
+
+  .coala-main-nav.is-open {
+    display: flex;
+  }
+
+  .main-nav-button {
+    border-radius: 10px;
+    text-align: left;
+    height: 44px;
+    padding: 0 14px;
+  }
+
+  .header-user-name {
+    display: none;
+  }
+
+  .coala-shell {
+    width: calc(100% - 24px);
+    margin-top: 10px;
+    gap: 10px;
+  }
+
+  /* 모바일에선 사이드바 완전 숨김 */
+  .coala-sidebar {
+    display: none;
+  }
+
+  .coala-shell:not(.coala-shell--auth) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 920px) {
+  /* 태블릿: 사이드바 가로 배치 후 숨김 처리 */
+  .coala-sidebar {
+    display: none;
+  }
+
+  .coala-shell:not(.coala-shell--auth) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ──────────────────────────────────────────
+   SERVICE PAGE — JCLOUD
+────────────────────────────────────────── */
+
+.coala-content--service {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+/* Hero */
+.jcloud-hero {
+  border-radius: 16px;
+  border: 1px solid #0f4232;
+  background: linear-gradient(118deg, #0d4534 10%, #16603f 55%, #2c865a 100%);
+  padding: 32px 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+.jcloud-hero-body {
+  max-width: 520px;
+}
+
+.jcloud-hero-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #f59e0b;
+  color: #78350f;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  padding: 4px 10px;
+  margin-bottom: 12px;
+}
+
+.jcloud-hero-title {
+  margin: 0 0 10px;
+  font-size: 26px;
+  font-weight: 800;
+  color: #f0fdf6;
+  line-height: 1.3;
+}
+
+.jcloud-hero-subtitle {
+  margin: 0 0 20px;
+  font-size: 13.5px;
+  color: #a7d4bc;
+  line-height: 1.6;
+}
+
+.jcloud-hero-stats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.jcloud-hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.jcloud-hero-stat-value {
+  font-size: 18px;
+  font-weight: 800;
+  color: #ecfbf3;
+}
+
+.jcloud-hero-stat-label {
+  font-size: 11px;
+  color: #8ec6a8;
+  font-weight: 600;
+}
+
+.jcloud-hero-stat-divider {
+  width: 1px;
+  height: 28px;
+  background: rgba(255,255,255,0.15);
+}
+
+.jcloud-hero-deco {
+  font-size: 72px;
+  opacity: 0.18;
+  position: absolute;
+  right: 36px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Tab shell */
+.jcloud-tab-shell {
+  padding: 0;
+  overflow: hidden;
+}
+
+.jcloud-tab-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 16px 0;
+  border-bottom: 1px solid #d8e4df;
+}
+
+.jcloud-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 14px;
+  border: 0;
+  background: transparent;
+  color: #6d847a;
+  font-size: 13.5px;
+  font-weight: 700;
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  transition: all 0.15s ease;
+}
+
+.jcloud-tab-btn:hover {
+  background: #eef4f0;
+  color: #2e5547;
+}
+
+.jcloud-tab-btn.is-active {
+  color: #1a5d41;
+  border-bottom-color: #1a5d41;
+  background: transparent;
+}
+
+.jcloud-tab-content {
+  padding: 24px;
+}
+
+/* Apply Form */
+.jcloud-apply-form {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.jcloud-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.jcloud-form-section-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2e4f42;
+}
+
+/* Instance type grid */
+.jcloud-instance-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.jcloud-instance-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1.5px solid #d3ddd8;
+  border-radius: 12px;
+  background: #f8fbfa;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.jcloud-instance-card:hover {
+  border-color: #8bbfaa;
+  background: #f2f8f5;
+}
+
+.jcloud-instance-card.is-selected {
+  border-color: #1a5d41;
+  background: #eaf5ef;
+  box-shadow: 0 0 0 3px rgba(26,93,65,0.1);
+}
+
+.jcloud-instance-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.jcloud-instance-badge--popular {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.jcloud-instance-badge--gpu {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.jcloud-instance-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e3d31;
+  font-family: 'Courier New', monospace;
+}
+
+.jcloud-instance-desc {
+  margin: 0;
+  font-size: 11px;
+  color: #7b9a8e;
+  line-height: 1.4;
+}
+
+.jcloud-spec-list {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.jcloud-spec-list li {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #5a7569;
+}
+
+/* Duration chips */
+.jcloud-duration-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.jcloud-duration-chip {
+  height: 36px;
+  padding: 0 18px;
+  border: 1.5px solid #d3ddd8;
+  border-radius: 999px;
+  background: #f8fbfa;
+  color: #5a7569;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jcloud-duration-chip:hover {
+  border-color: #8bbfaa;
+  color: #2e5547;
+}
+
+.jcloud-duration-chip.is-selected {
+  border-color: #1a5d41;
+  background: #1a5d41;
+  color: #effcf4;
+}
+
+/* Fields */
+.jcloud-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jcloud-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.jcloud-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jcloud-label {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #4a6358;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.jcloud-label-hint {
+  font-size: 11px;
+  font-weight: 400;
+  color: #9ab0a8;
+}
+
+.jcloud-input,
+.jcloud-textarea {
+  border: 1.5px solid #cdd8d3;
+  border-radius: 10px;
+  background: #f5f9f7;
+  color: #1e3d31;
+  font-size: 13.5px;
+  padding: 9px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.jcloud-input:focus,
+.jcloud-textarea:focus {
+  border-color: #1a5d41;
+  background: #f0f9f5;
+}
+
+/* Summary */
+.jcloud-form-section--summary {
+  background: #f0f7f3;
+  border: 1px solid #c8ddd5;
+  border-radius: 12px;
+  padding: 14px 16px;
+  gap: 8px;
+}
+
+.jcloud-summary-row {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.jcloud-summary-label {
+  color: #7b9a8e;
+  font-weight: 600;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.jcloud-summary-value {
+  color: #1e3d31;
+  font-weight: 700;
+}
+
+/* Agree + Submit */
+.jcloud-agree-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12.5px;
+  color: #5a7569;
+  cursor: pointer;
+}
+
+.jcloud-agree-row input[type='checkbox'] {
+  margin-top: 2px;
+  accent-color: #1a5d41;
+  flex-shrink: 0;
+}
+
+.jcloud-submit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  height: 44px;
+  border-radius: 12px;
+  border: 0;
+  background: #1a5d41;
+  color: #effcf4;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.jcloud-submit-button:hover:not(:disabled) {
+  background: #155339;
+}
+
+.jcloud-submit-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Success state */
+.jcloud-submit-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.jcloud-success-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  background: #e8f7ef;
+  color: #1a5d41;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jcloud-success-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #1e3d31;
+}
+
+.jcloud-success-desc {
+  margin: 0;
+  font-size: 13.5px;
+  color: #7b9a8e;
+  max-width: 360px;
+  line-height: 1.6;
+}
+
+/* List */
+.jcloud-list-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.jcloud-list-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.jcloud-filter-tabs {
+  display: flex;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  flex-wrap: wrap;
+}
+
+.jcloud-filter-tab {
+  height: 32px;
+  padding: 0 14px;
+  border: 1.5px solid #d3ddd8;
+  border-radius: 999px;
+  background: #f8fbfa;
+  color: #5a7569;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.jcloud-filter-tab:hover {
+  border-color: #8bbfaa;
+  color: #2e5547;
+}
+
+.jcloud-filter-tab.is-active {
+  border-color: #1a5d41;
+  background: #1a5d41;
+  color: #effcf4;
+}
+
+.jcloud-list-count {
+  font-size: 12px;
+  color: #9ab0a8;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.jcloud-apply-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jcloud-apply-item {
+  overflow: hidden;
+}
+
+.jcloud-apply-item-header {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.jcloud-apply-item-header:hover {
+  background: #f2f7f5;
+}
+
+.jcloud-apply-item-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jcloud-apply-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.jcloud-apply-date {
+  font-size: 12px;
+  color: #9ab0a8;
+}
+
+.jcloud-apply-chevron {
+  color: #9ab0a8;
+}
+
+.jcloud-apply-instance {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1e3d31;
+  font-family: 'Courier New', monospace;
+}
+
+.jcloud-apply-duration {
+  font-size: 12px;
+  color: #7b9a8e;
+  font-weight: 600;
+}
+
+/* Status badge */
+.jcloud-status-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+
+.status--pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+.status--approved {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.status--rejected {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+/* Expanded body */
+.jcloud-apply-item-body {
+  border-top: 1px solid #e3ede8;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #fafdfc;
+}
+
+.jcloud-apply-detail-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jcloud-apply-detail-row {
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.jcloud-detail-label {
+  color: #7b9a8e;
+  font-weight: 600;
+  min-width: 72px;
+  flex-shrink: 0;
+}
+
+.jcloud-detail-value {
+  color: #1e3d31;
+}
+
+/* Admin note */
+.jcloud-admin-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.jcloud-admin-note p {
+  margin: 0;
+}
+
+.jcloud-admin-note--approved {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.jcloud-admin-note--rejected {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.jcloud-admin-note--pending {
+  background: #fefce8;
+  color: #854d0e;
+  border: 1px solid #fef08a;
+}
+
+/* Attached files */
+.jcloud-attached-files {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jcloud-attached-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #4a6358;
+  margin: 0;
+}
+
+.jcloud-file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jcloud-file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f3f8f5;
+  border: 1px solid #d4e4dc;
+  border-radius: 8px;
+  color: #5a7569;
+}
+
+.jcloud-file-name {
+  flex: 1;
+  font-size: 12.5px;
+  color: #1e3d31;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jcloud-file-meta {
+  font-size: 11px;
+  color: #9ab0a8;
+  flex-shrink: 0;
+}
+
+.jcloud-file-download {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #1a5d41;
+  background: transparent;
+  border: 1px solid #a8d4be;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.jcloud-file-remove {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #991b1b;
+  background: transparent;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  padding: 3px 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.jcloud-file-empty {
+  font-size: 12.5px;
+  color: #9ab0a8;
+  margin: 0;
+}
+
+.jcloud-file-input {
+  display: none;
+}
+
+.jcloud-file-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  background: #f3f8f5;
+  border: 1.5px dashed #a8d4be;
+  border-radius: 8px;
+  color: #3d7a5e;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.15s;
+}
+
+.jcloud-file-upload-btn:hover {
+  background: #e8f5ee;
+  border-color: #1a5d41;
+}
+
+/* List empty */
+.jcloud-list-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 40px 24px;
+  color: #9ab0a8;
+  text-align: center;
+}
+
+.jcloud-list-empty p {
+  margin: 0;
+  font-size: 13.5px;
+}
+
+/* ── ADMIN PANEL ── */
+.jcloud-admin-shell {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+  min-height: 480px;
+}
+
+.jcloud-admin-list-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border-right: 1px solid #e0eae5;
+  padding-right: 20px;
+}
+
+.jcloud-admin-app-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 560px;
+}
+
+.jcloud-admin-app-row {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1.5px solid #d8e4df;
+  border-radius: 10px;
+  background: #f8fbfa;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+
+.jcloud-admin-app-row:hover {
+  border-color: #8bbfaa;
+  background: #f0f8f3;
+}
+
+.jcloud-admin-app-row.is-selected {
+  border-color: #1a5d41;
+  background: #eaf5ef;
+}
+
+.jcloud-admin-app-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.jcloud-admin-app-name {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e3d31;
+}
+
+.jcloud-admin-app-sid {
+  font-weight: 500;
+  color: #7b9a8e;
+}
+
+.jcloud-admin-app-date {
+  margin: 0;
+  font-size: 11px;
+  color: #9ab0a8;
+}
+
+.jcloud-admin-detail-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.jcloud-admin-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #9ab0a8;
+  text-align: center;
+  padding: 40px 24px;
+}
+
+.jcloud-admin-empty p {
+  margin: 0;
+  font-size: 13.5px;
+  max-width: 280px;
+}
+
+.jcloud-admin-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.jcloud-admin-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.jcloud-admin-detail-id {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: #9ab0a8;
+  font-family: 'Courier New', monospace;
+}
+
+.jcloud-admin-detail-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.jcloud-admin-info-grid {
+  background: #f5f9f7;
+  border: 1px solid #d8e4df;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.jcloud-admin-note-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.jcloud-admin-file-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.jcloud-admin-actions {
+  display: flex;
+  gap: 10px;
+  padding-top: 4px;
+  border-top: 1px solid #e0eae5;
+}
+
+.jcloud-action-btn {
+  flex: 1;
+  height: 42px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition: all 0.15s;
+}
+
+.jcloud-action-btn--approve {
+  background: #1a5d41;
+  color: #effcf4;
+}
+
+.jcloud-action-btn--approve:hover {
+  background: #155339;
+}
+
+.jcloud-action-btn--reject {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1.5px solid #fecaca;
+}
+
+.jcloud-action-btn--reject:hover {
+  background: #fee2e2;
+}
+
+.jcloud-decision-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.jcloud-decision-result--approved {
+  background: #f0fdf4;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+.jcloud-decision-result--rejected {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+/* ── RESPONSIVE: SERVICE PAGE ── */
+@media (max-width: 1120px) {
+  .jcloud-instance-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .jcloud-hero {
+    padding: 24px 20px;
+  }
+
+  .jcloud-hero-title {
+    font-size: 20px;
+  }
+
+  .jcloud-hero-deco {
+    display: none;
+  }
+
+  .jcloud-tab-content {
+    padding: 16px;
+  }
+
+  .jcloud-instance-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .jcloud-field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .jcloud-admin-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .jcloud-admin-list-col {
+    border-right: 0;
+    border-bottom: 1px solid #e0eae5;
+    padding-right: 0;
+    padding-bottom: 16px;
+  }
+
+  .jcloud-admin-app-list {
+    max-height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .jcloud-instance-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .jcloud-hero-stats {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .jcloud-hero-stat-divider {
+    display: none;
+  }
+
+  .jcloud-list-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

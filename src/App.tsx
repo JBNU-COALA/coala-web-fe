@@ -18,7 +18,7 @@ import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
 import './pages/home/home.css'
 
-const SectionPlaceholderPage = lazy(() => import('./pages/common/SectionPlaceholderPage').then(m => ({ default: m.SectionPlaceholderPage })))
+const ServicePage = lazy(() => import('./pages/service/ServicePage').then(m => ({ default: m.ServicePage })))
 const HomePage = lazy(() => import('./pages/home/HomePage').then(m => ({ default: m.HomePage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then(m => ({ default: m.AllPostsPage })))
 const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then(m => ({ default: m.PostDetailPage })))
@@ -58,6 +58,7 @@ function App() {
   const location = useLocation()
   const navigate = useNavigate()
   const [activeBoard, setActiveBoard] = useState<PostBoardFilterId>(defaultPostBoardFilter)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const { isLoggedIn, user, logout } = useAuth()
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
@@ -120,6 +121,11 @@ function App() {
     navigate("/")
   }
 
+  const handleMobileNav = (route: AppRoute) => {
+    handleRouteChange(route)
+    setMobileNavOpen(false)
+  }
+
   return (
     <div className="coala-app">
       <header className="coala-header">
@@ -128,7 +134,7 @@ function App() {
             coala
           </button>
 
-          <nav className="coala-main-nav" aria-label="메인 메뉴">
+          <nav className={mobileNavOpen ? 'coala-main-nav is-open' : 'coala-main-nav'} aria-label="메인 메뉴">
             {headerNavItems.map((item) => (
               <button
                 key={item.id}
@@ -136,7 +142,7 @@ function App() {
                 className={
                   activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'
                 }
-                onClick={() => handleRouteChange(item.id)}
+                onClick={() => handleMobileNav(item.id)}
               >
                 {item.label}
               </button>
@@ -144,6 +150,14 @@ function App() {
           </nav>
 
           <div className="coala-header-actions">
+            <button
+              type="button"
+              className="mobile-menu-toggle"
+              aria-label="메뉴 열기"
+              onClick={() => setMobileNavOpen((v) => !v)}
+            >
+              <Icon name={mobileNavOpen ? 'chevron-down' : 'layout'} size={16} />
+            </button>
             {isLoggedIn ? (
               <>
                 <span className="header-user-name">{user?.name ?? user?.email}</span>
@@ -229,7 +243,7 @@ function App() {
 
           <Route path="/activity" element={<LeaderboardPage />} />
           <Route path="/settings" element={<ProfilePage />} />
-          <Route path="/service" element={<SectionPlaceholderPage title="서비스" />} />
+          <Route path="/service" element={<ServicePage />} />
           <Route path="/login" element={
             isLoggedIn
               ? <Navigate to="/" replace />

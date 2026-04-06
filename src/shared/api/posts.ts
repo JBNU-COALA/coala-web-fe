@@ -5,18 +5,13 @@ export type PostListItem = {
   boardId: number
   userId: number
   title: string
-}
-
-export type PostDetail = {
-  postId: number
-  boardId: number
-  userId: number
-  title: string
   content: string
   viewCount: number
   createdAt: string
   updatedAt: string
 }
+
+export type PostDetail = PostListItem
 
 export type CreatePostRequest = {
   title: string
@@ -27,7 +22,17 @@ export type CommentItem = {
   commentId: number
   content: string
   createdAt: string
-  updatedAt: string
+  updatedAt?: string
+}
+
+export type PostLikeResponse = {
+  liked: boolean
+  likeCount: number
+}
+
+export type CommentLikeResponse = {
+  liked: boolean
+  likeCount: number
 }
 
 export const postsApi = {
@@ -40,11 +45,35 @@ export const postsApi = {
   createPost: (boardId: number, data: CreatePostRequest) =>
     client.post<PostDetail>(`/api/boards/${boardId}/posts`, data).then((r) => r.data),
 
+  updatePost: (postId: number, data: CreatePostRequest) =>
+    client.patch<{ postId: number; title: string; content: string; updatedAt: string }>(
+      `/api/posts/${postId}`,
+      data,
+    ).then((r) => r.data),
+
+  deletePost: (postId: number) =>
+    client.delete(`/api/posts/${postId}`),
+
+  likePost: (postId: number) =>
+    client.post<PostLikeResponse>(`/api/posts/${postId}/likes`).then((r) => r.data),
+
   getComments: (postId: number) =>
     client.get<CommentItem[]>(`/api/posts/${postId}/comments`).then((r) => r.data),
 
   createComment: (postId: number, content: string) =>
-    client
-      .post<CommentItem>(`/api/posts/${postId}/comments`, { content })
-      .then((r) => r.data),
+    client.post<CommentItem>(`/api/posts/${postId}/comments`, { content }).then((r) => r.data),
+
+  updateComment: (postId: number, commentId: number, content: string) =>
+    client.patch<{ commentId: number; content: string; updatedAt: string }>(
+      `/api/posts/${postId}/comments/${commentId}`,
+      { content },
+    ).then((r) => r.data),
+
+  deleteComment: (postId: number, commentId: number) =>
+    client.delete(`/api/posts/${postId}/comments/${commentId}`),
+
+  likeComment: (postId: number, commentId: number) =>
+    client.post<CommentLikeResponse>(
+      `/api/posts/${postId}/comments/${commentId}/likes`,
+    ).then((r) => r.data),
 }

@@ -1,27 +1,54 @@
-import { useState } from 'react'
-import { profileSummary } from '../home/homeData'
+import { useEffect, useState } from 'react'
 import { activityMembers, solvedTierMeta } from '../leaderboard/leaderboardData'
-import { communityPosts } from '../posts/postsData'
+import { boardsApi } from '../../shared/api/boards'
+import { postsApi, type PostListItem } from '../../shared/api/posts'
+import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
-
-const me = activityMembers.find((m) => m.isMe) ?? activityMembers[activityMembers.length - 1]
-
-const myPosts = communityPosts.slice(0, 3)
 
 type ProfileTab = 'overview' | 'activity' | 'posts'
 
 export function ProfilePage() {
+  const { user } = useAuth()
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
-  const [bio, setBio] = useState('안녕하세요! 코알라 동아리에서 백엔드와 알고리즘을 공부하고 있어요.')
+  const [bio, setBio] = useState('안녕하세요! 코알라 동아리에서 활동하고 있어요.')
+  const [myPosts, setMyPosts] = useState<PostListItem[]>([])
 
+  const me = activityMembers.find((m) => m.isMe) ?? activityMembers[activityMembers.length - 1]
   const tierMeta = solvedTierMeta[me.solvedTier]
+
+  const displayName = user?.name ?? user?.email ?? '사용자'
+  const displayRole = user?.department ?? '동아리 멤버'
+  const initial = displayName.charAt(0)
+
+  const joinedAt = user?.createdAt
+    ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
+    : ''
+
+  useEffect(() => {
+    if (!user) return
+    const fetchMyPosts = async () => {
+      try {
+        const boards = await boardsApi.getBoards(true)
+        const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
+        const all = postsArrays.flat().filter((p) => p.userId === user.id)
+        setMyPosts(all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+      } catch {
+        setMyPosts([])
+      }
+    }
+    fetchMyPosts()
+  }, [user])
 
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: 'overview', label: '개요' },
     { id: 'activity', label: '활동 내역' },
     { id: 'posts', label: '작성 게시글' },
   ]
+
+  function formatDate(dateStr: string) {
+    return new Date(dateStr).toLocaleDateString('ko-KR')
+  }
 
   return (
     <section className="coala-content coala-content--profile">
@@ -30,11 +57,11 @@ export function ProfilePage() {
         {/* Hero */}
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
-            <span className="profile-page-avatar">박</span>
+            <span className="profile-page-avatar">{initial}</span>
             <div className="profile-page-identity">
-              <h2 className="profile-page-name">{profileSummary.name}</h2>
-              <p className="profile-page-role">{profileSummary.role}</p>
-              <p className="profile-page-joined">2024년 3월 가입 · 동아리 코알라</p>
+              <h2 className="profile-page-name">{displayName}</h2>
+              <p className="profile-page-role">{displayRole}</p>
+              {joinedAt && <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p>}
             </div>
           </div>
           <button
@@ -64,8 +91,8 @@ export function ProfilePage() {
             <p className="profile-stat-label">GitHub 커밋</p>
           </div>
           <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value">{me.rank}위</p>
-            <p className="profile-stat-label">종합 순위</p>
+            <p className="profile-stat-value">{myPosts.length}개</p>
+            <p className="profile-stat-label">작성 게시글</p>
           </div>
         </div>
 
@@ -101,24 +128,24 @@ export function ProfilePage() {
             </div>
 
             <div className="surface-card profile-section-card">
-              <h3 className="profile-section-title">연결된 계정</h3>
+              <h3 className="profile-section-title">계정 정보</h3>
               <ul className="profile-handles-list">
                 <li className="profile-handle-item">
                   <span className="profile-handle-icon profile-handle-icon--baekjoon">
-                    <Icon name="file" size={14} />
+                    <Icon name="user" size={14} />
                   </span>
                   <span className="profile-handle-body">
-                    <span className="profile-handle-service">백준</span>
-                    <span className="profile-handle-value">{me.solvedHandle}</span>
+                    <span className="profile-handle-service">이메일</span>
+                    <span className="profile-handle-value">{user?.email ?? '-'}</span>
                   </span>
                 </li>
                 <li className="profile-handle-item">
                   <span className="profile-handle-icon profile-handle-icon--github">
-                    <Icon name="network" size={14} />
+                    <Icon name="file" size={14} />
                   </span>
                   <span className="profile-handle-body">
-                    <span className="profile-handle-service">GitHub</span>
-                    <span className="profile-handle-value">@{me.githubHandle}</span>
+                    <span className="profile-handle-service">학번</span>
+                    <span className="profile-handle-value">{user?.studentId ?? '-'}</span>
                   </span>
                 </li>
               </ul>
@@ -178,28 +205,30 @@ export function ProfilePage() {
         {/* Tab: 작성 게시글 */}
         {tab === 'posts' && (
           <div className="surface-card profile-section-card">
-            <h3 className="profile-section-title">작성 게시글</h3>
-            <ul className="profile-post-list">
-              {myPosts.map((post) => (
-                <li key={post.id} className="profile-post-item">
-                  <div className="profile-post-body">
-                    <p className="profile-post-title">{post.title}</p>
-                    <p className="profile-post-excerpt">{post.excerpt}</p>
-                  </div>
-                  <div className="profile-post-meta">
-                    <span className="profile-post-time">{post.publishedAt}</span>
-                    <span className="profile-post-stat">
-                      <Icon name="eye" size={11} />
-                      {post.views}
-                    </span>
-                    <span className="profile-post-stat">
-                      <Icon name="message" size={11} />
-                      {post.comments}
-                    </span>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <h3 className="profile-section-title">작성 게시글 ({myPosts.length})</h3>
+            {myPosts.length === 0 ? (
+              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>작성한 게시글이 없습니다.</p>
+            ) : (
+              <ul className="profile-post-list">
+                {myPosts.map((post) => (
+                  <li key={`${post.boardId}-${post.postId}`} className="profile-post-item">
+                    <div className="profile-post-body">
+                      <p className="profile-post-title">{post.title}</p>
+                      <p className="profile-post-excerpt">
+                        {post.content.replace(/<[^>]+>/g, '').slice(0, 80)}
+                      </p>
+                    </div>
+                    <div className="profile-post-meta">
+                      <span className="profile-post-time">{formatDate(post.createdAt)}</span>
+                      <span className="profile-post-stat">
+                        <Icon name="eye" size={11} />
+                        {post.viewCount}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
 
