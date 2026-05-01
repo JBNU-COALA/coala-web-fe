@@ -1,6 +1,6 @@
-﻿export type PostBoardFilterId = 'all' | 'free' | 'alumni'
+﻿export type PostBoardFilterId = 'all' | 'normal' | 'recruit'
 
-export type PostBadgeTone = 'all' | 'free' | 'alumni'
+export type PostBadgeTone = 'all' | 'normal' | 'recruit'
 
 type PostAuthorTone = 'mint' | 'slate' | 'sky' | 'sand' | 'rose'
 
@@ -57,14 +57,14 @@ export const totalPostCountLabel = '코알라 커뮤니티에서 1,284개의 게
 
 export const postCategoryFilters: PostCategoryFilter[] = [
   { id: 'all', label: '전체 게시글' },
-  { id: 'free', label: '자유게시판' },
-  { id: 'alumni', label: '졸업생게시판' },
+  { id: 'normal', label: '일반 게시판' },
+  { id: 'recruit', label: '모집 게시판' },
 ]
 
 export const sidebarBoardItems: SidebarBoardItem[] = [
-  { id: 'all', label: '전체 게시글', badge: '1.2k' },
-  { id: 'free', label: '자유게시판', badge: '842' },
-  { id: 'alumni', label: '졸업생게시판', badge: '197' },
+  { id: 'all', label: '전체 게시글', badge: 'ALL' },
+  { id: 'normal', label: '일반 게시판', badge: 'NORMAL' },
+  { id: 'recruit', label: '모집 게시판', badge: 'RECRUIT' },
 ]
 
 export const postCategoryMeta: Record<PostBoardFilterId, PostCategoryMeta> = {
@@ -73,15 +73,15 @@ export const postCategoryMeta: Record<PostBoardFilterId, PostCategoryMeta> = {
     tone: 'all',
     description: '모든 게시글의 리듬을 훑어보며 커뮤니티 분위기를 파악해요.',
   },
-  free: {
-    label: '자유',
-    tone: 'free',
-    description: '자유게시판에서는 근황, 질문, 팁을 가볍게 나눠요.',
+  normal: {
+    label: '일반',
+    tone: 'normal',
+    description: '백엔드 NORMAL 타입 게시판의 글을 모아 보여줘요.',
   },
-  alumni: {
-    label: '졸업생',
-    tone: 'alumni',
-    description: '졸업생들의 실무 인사이트와 경험담을 모아둔 보드예요.',
+  recruit: {
+    label: '모집',
+    tone: 'recruit',
+    description: '백엔드 RECRUIT 타입 게시판의 글을 모아 보여줘요.',
   },
 }
 
@@ -100,7 +100,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-002',
-    category: 'free',
+    category: 'normal',
     title: '2026년 생산성 루틴 공유 스레드',
     excerpt: '아침 루틴부터 사이드 프로젝트를 병행하는 방법까지, 멤버들의 실제 스케줄을 엿볼 수 있어요.',
     author: '박세연',
@@ -112,7 +112,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-003',
-    category: 'free',
+    category: 'normal',
     title: '스터디 운영 자동화 템플릿 같이 써볼 분 있나요?',
     excerpt: '노션과 슬랙을 연결한 스터디 운영 자동화 템플릿을 함께 실험해볼 멤버를 찾습니다.',
     author: '최민호',
@@ -125,7 +125,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-004',
-    category: 'alumni',
+    category: 'recruit',
     title: '졸업생 실무 세션: 프론트엔드 협업 팁 공유',
     excerpt: '실제 스타트업 프론트엔드 팀에서 쓰는 협업 규칙과 QA 플로를 정리한 세션 노트입니다.',
     author: '김예린',
@@ -137,7 +137,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-005',
-    category: 'alumni',
+    category: 'recruit',
     title: '취업 포트폴리오 피드백 모임 후기',
     excerpt: '졸업생 모임에서 나왔던 포트폴리오 진단 기준과 첨삭 팁을 간단히 남겼어요.',
     author: '이도윤',

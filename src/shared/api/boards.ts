@@ -1,9 +1,11 @@
 import client from './client'
 
+export type BoardType = 'NORMAL' | 'RECRUIT'
+
 export type BoardData = {
   boardId: number
   boardName: string
-  boardType: string
+  boardType: BoardType
   description: string
   isActive: boolean
   createdAt: string
@@ -12,7 +14,7 @@ export type BoardData = {
 
 export type CreateBoardRequest = {
   boardName: string
-  boardType: string
+  boardType: BoardType
   description: string
 }
 

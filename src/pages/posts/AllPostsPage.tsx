@@ -15,8 +15,9 @@ type AllPostsPageProps = {
 type EnrichedPost = PostListItem & { board?: BoardData }
 
 function boardTypeToFilter(boardType: string): PostBoardFilterId {
-  if (boardType === 'free') return 'free'
-  if (boardType === 'alumni') return 'alumni'
+  const normalized = boardType.trim().toUpperCase()
+  if (normalized === 'NORMAL') return 'normal'
+  if (normalized === 'RECRUIT') return 'recruit'
   return 'all'
 }
 
@@ -68,9 +69,14 @@ export function AllPostsPage({
             (p) => p.board && boardTypeToFilter(p.board.boardType) === activeBoard,
           )
 
-    return normalizedQuery
+    const searched = normalizedQuery
       ? byCategory.filter((p) => p.title.toLowerCase().includes(normalizedQuery))
       : byCategory
+
+    return [...searched].sort((a, b) => {
+      if (sortMode === 'popular') return b.viewCount - a.viewCount
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    })
   }, [activeBoard, enrichedPosts, normalizedQuery, sortMode])
 
   return (

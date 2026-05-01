@@ -100,6 +100,19 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
 
   const handlePublish = async (event: FormEvent) => {
     event.preventDefault()
+    const trimmedTitle = title.trim()
+    const content = editor?.getHTML() ?? ''
+
+    if (!trimmedTitle) {
+      setPublishError('제목을 입력해주세요.')
+      return
+    }
+
+    if (!editor?.getText().trim()) {
+      setPublishError('내용을 입력해주세요.')
+      return
+    }
+
     if (!selectedBoardId) {
       setPublishError('게시판을 선택해주세요.')
       return
@@ -107,8 +120,7 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
     setIsPublishing(true)
     setPublishError(null)
     try {
-      const content = editor?.getHTML() ?? ''
-      await postsApi.createPost(selectedBoardId, { title, content })
+      await postsApi.createPost(selectedBoardId, { title: trimmedTitle, content })
       onClose()
     } catch {
       setPublishError('게시글 발행에 실패했습니다. 다시 시도해주세요.')
@@ -156,7 +168,7 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
             >
               {boards.map((b) => (
                 <option key={b.boardId} value={b.boardId}>
-                  {b.boardName}
+                  {b.boardName} ({b.boardType})
                 </option>
               ))}
             </select>
