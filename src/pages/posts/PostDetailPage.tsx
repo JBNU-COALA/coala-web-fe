@@ -32,8 +32,33 @@ function formatDate(dateStr: string) {
 }
 
 function estimateReadingTime(content: string) {
-  const words = content.split(/\s+/).length
+  const words = toPlainText(content).split(/\s+/).filter(Boolean).length
   return `${Math.max(1, Math.ceil(words / 200))}분 분량`
+}
+
+function toPlainText(content: string) {
+  return content.replace(/<[^>]*>/g, ' ')
+}
+
+function sanitizePostContent(content: string) {
+  const template = document.createElement('template')
+  template.innerHTML = content
+
+  template.content.querySelectorAll('script, style, iframe, object, embed').forEach((node) => {
+    node.remove()
+  })
+
+  template.content.querySelectorAll('*').forEach((node) => {
+    Array.from(node.attributes).forEach((attribute) => {
+      const name = attribute.name.toLowerCase()
+      const value = attribute.value.trim().toLowerCase()
+      if (name.startsWith('on') || (name === 'href' && value.startsWith('javascript:'))) {
+        node.removeAttribute(attribute.name)
+      }
+    })
+  })
+
+  return template.innerHTML
 }
 
 const COVER_GRADIENTS = [
@@ -135,6 +160,7 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
   const readingTime = estimateReadingTime(post.content)
   const publishedAt = formatDate(post.createdAt)
   const category = postCategoryMeta['all']
+  const safeContent = sanitizePostContent(post.content)
 
   return (
     <section className="coala-content coala-content--post-detail">
@@ -182,9 +208,11 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
 
           <div className="post-cover-meta">
             <div className="post-meta-author">
-              <span className="board-avatar board-avatar--mint">{String(post.userId)[0]}</span>
+              <span className="board-avatar board-avatar--mint">
+                {(post.authorName ?? String(post.userId))[0]}
+              </span>
               <div>
-                <strong>사용자 {post.userId}</strong>
+                <strong>{post.authorName ?? `사용자 ${post.userId}`}</strong>
                 <span>
                   {publishedAt} · {readingTime}
                 </span>
@@ -209,17 +237,10 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
             <span className="post-meta-updated">최종 수정: {formatDate(post.updatedAt)}</span>
           </div>
 
-          <div className="post-content">
-            {post.content.split('\n').map((line, i) =>
-              line.trim() ? (
-                <p key={i} className="post-content-paragraph">
-                  {line}
-                </p>
-              ) : (
-                <br key={i} />
-              ),
-            )}
-          </div>
+          <div
+            className="post-content post-content--html"
+            dangerouslySetInnerHTML={{ __html: safeContent }}
+          />
 
           <div className="post-comments" style={{ marginTop: '2rem' }}>
             <h3 style={{ marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>
@@ -236,6 +257,9 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
                   marginBottom: '0.5rem',
                 }}
               >
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>
+                  {comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
+                </p>
                 <p style={{ margin: 0 }}>{comment.content}</p>
                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', opacity: 0.6 }}>
                   {formatDate(comment.createdAt)}

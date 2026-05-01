@@ -1,10 +1,13 @@
-import { useCallback, useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useCallback, useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import TurndownService from 'turndown'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
+
+const TITLE_MAX = 100
+const CONTENT_MAX = 5000
 
 type PostWriterPageProps = {
   onClose: () => void
@@ -41,13 +44,26 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
 
   const editor = useEditor({
     extensions: [StarterKit],
-    content: `<h2>안녕하세요!</h2><p>여기에 글을 자유롭게 작성해보세요.</p>`,
+    content: '',
     editorProps: {
       attributes: {
         class: 'pw-editor-area',
+        'aria-label': '게시글 본문 입력',
       },
     },
   })
+
+  // 미발행 변경사항 보호: 새로고침/창닫기 경고
+  useEffect(() => {
+    const dirty = () => Boolean(title.trim()) || Boolean(editor?.getText().trim())
+    const handler = (event: BeforeUnloadEvent) => {
+      if (!dirty()) return
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [editor, title])
 
   useEffect(() => {
     boardsApi.getBoards(true).then((list) => {
@@ -98,8 +114,35 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
     setTimeout(() => setCopyState('idle'), 2000)
   }
 
+  const plainTextLength = editor?.getText().length ?? 0
+  const titleOverLimit = title.length > TITLE_MAX
+  const contentOverLimit = plainTextLength > CONTENT_MAX
+
   const handlePublish = async (event: FormEvent) => {
     event.preventDefault()
+    const trimmedTitle = title.trim()
+    const content = editor?.getHTML() ?? ''
+
+    if (!trimmedTitle) {
+      setPublishError('제목을 입력해주세요.')
+      return
+    }
+
+    if (titleOverLimit) {
+      setPublishError(`제목은 ${TITLE_MAX}자 이하로 입력해주세요.`)
+      return
+    }
+
+    if (!editor?.getText().trim()) {
+      setPublishError('내용을 입력해주세요.')
+      return
+    }
+
+    if (contentOverLimit) {
+      setPublishError(`내용은 ${CONTENT_MAX}자 이하로 입력해주세요.`)
+      return
+    }
+
     if (!selectedBoardId) {
       setPublishError('게시판을 선택해주세요.')
       return
@@ -107,13 +150,21 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
     setIsPublishing(true)
     setPublishError(null)
     try {
-      const content = editor?.getHTML() ?? ''
-      await postsApi.createPost(selectedBoardId, { title, content })
+      await postsApi.createPost(selectedBoardId, { title: trimmedTitle, content })
       onClose()
     } catch {
       setPublishError('게시글 발행에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsPublishing(false)
+    }
+  }
+
+  const handleEditorKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    // Ctrl/Cmd + Enter 발행 단축키
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      event.preventDefault()
+      const formEl = (event.currentTarget.closest('form') as HTMLFormElement | null)
+      formEl?.requestSubmit()
     }
   }
 
@@ -156,20 +207,31 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
             >
               {boards.map((b) => (
                 <option key={b.boardId} value={b.boardId}>
-                  {b.boardName}
+                  {b.boardName} ({b.boardType})
                 </option>
               ))}
             </select>
           )}
           {publishError && <p className="auth-error">{publishError}</p>}
 
-          <input
-            className="post-writer-input post-writer-title-input"
-            type="text"
-            value={title}
-            placeholder="제목을 입력하세요"
-            onChange={(e) => setTitle(e.target.value)}
-          />
+          <div className="post-writer-title-wrap">
+            <input
+              className="post-writer-input post-writer-title-input"
+              type="text"
+              value={title}
+              placeholder="제목을 입력하세요"
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={TITLE_MAX + 20}
+              aria-label="게시글 제목"
+              aria-invalid={titleOverLimit}
+            />
+            <span
+              className={`pw-counter${titleOverLimit ? ' pw-counter--over' : ''}`}
+              aria-live="polite"
+            >
+              {title.length} / {TITLE_MAX}
+            </span>
+          </div>
           <input
             className="post-writer-input"
             type="text"
@@ -205,7 +267,19 @@ export function PostWriterPage({ onClose }: PostWriterPageProps) {
               <ToolbarButton onClick={() => editor.chain().focus().undo().run()} label="↩" />
               <ToolbarButton onClick={() => editor.chain().focus().redo().run()} label="↪" />
             </div>
-            <EditorContent editor={editor} className="pw-editor-content" />
+            <EditorContent
+              editor={editor}
+              className="pw-editor-content"
+              onKeyDown={handleEditorKeyDown}
+            />
+            <div className="pw-editor-footer" aria-live="polite">
+              <span className={`pw-counter${contentOverLimit ? ' pw-counter--over' : ''}`}>
+                {plainTextLength} / {CONTENT_MAX}자
+              </span>
+              <span className="pw-shortcut-hint">
+                <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd> 로 빠르게 발행
+              </span>
+            </div>
           </div>
         </div>
       </form>

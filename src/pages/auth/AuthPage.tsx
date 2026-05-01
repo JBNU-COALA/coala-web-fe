@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
 
 type AuthMode = 'login' | 'signup'
@@ -13,6 +13,9 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
   const { login, signup } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const redirectTo =
+    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/'
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -40,7 +43,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
       } else {
         await signup({ email, password, name, department, studentId, academicStatus })
       }
-      navigate('/')
+      navigate(redirectTo, { replace: true })
     } catch (err: unknown) {
       const axiosError = err as { response?: { data?: { message?: string } } }
       setError(axiosError.response?.data?.message ?? '요청에 실패했습니다. 다시 시도해주세요.')

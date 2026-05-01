@@ -16,6 +16,7 @@ import {
 } from './pages/posts/postsData'
 import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
+import { RequireAuth } from './shared/auth/RequireAuth'
 import './pages/home/home.css'
 
 const ServicePage = lazy(() => import('./pages/service/ServicePage').then(m => ({ default: m.ServicePage })))
@@ -31,7 +32,7 @@ const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage')
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })))
 
 const isPostBoardFilter = (value: string): value is PostBoardFilterId => {
-  return value === 'all' || value === 'free' || value === 'alumni'
+  return value === 'all' || value === 'normal' || value === 'recruit'
 }
 
 function PostDetailRoute() {
@@ -225,14 +226,16 @@ function App() {
             <AllPostsPage
               activeBoard={activeBoard}
               onOpenPost={(postId) => navigate(`/community/posts/${postId}`)}
-              onWritePost={() => navigate('/community/write')}
-              title="커뮤니티"
-              subtitle="전체 게시글, 자유게시판, 졸업생게시판을 한 곳에서 관리해요."
-            />
+                onWritePost={() => navigate('/community/write')}
+                title="커뮤니티"
+                subtitle="백엔드 게시판 타입에 맞춰 일반 게시판과 모집 게시판을 한 곳에서 관리해요."
+              />
           } />
           <Route path="/community/info" element={<InfoSharePage />} />
           <Route path="/community/write" element={
-            <PostWriterPage onClose={() => navigate('/community')} />
+            <RequireAuth>
+              <PostWriterPage onClose={() => navigate('/community')} />
+            </RequireAuth>
           } />
           <Route path="/community/posts/:postId" element={<PostDetailRoute />} />
 
@@ -242,7 +245,11 @@ function App() {
           <Route path="/recruit/:recruitId" element={<RecruitDetailRoute />} />
 
           <Route path="/activity" element={<LeaderboardPage />} />
-          <Route path="/settings" element={<ProfilePage />} />
+          <Route path="/settings" element={
+            <RequireAuth>
+              <ProfilePage />
+            </RequireAuth>
+          } />
           <Route path="/service" element={<ServicePage />} />
           <Route path="/login" element={
             isLoggedIn

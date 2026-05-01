@@ -3,7 +3,9 @@ import client from './client'
 export type PostListItem = {
   postId: number
   boardId: number
+  boardName?: string
   userId: number
+  authorName?: string
   title: string
   content: string
   viewCount: number
@@ -18,8 +20,16 @@ export type CreatePostRequest = {
   content: string
 }
 
+export type CreatePostResponse = {
+  postId: number
+  title: string
+  content: string
+}
+
 export type CommentItem = {
   commentId: number
+  userId?: number
+  authorName?: string
   content: string
   createdAt: string
   updatedAt?: string
@@ -43,7 +53,7 @@ export const postsApi = {
     client.get<PostDetail>(`/api/boards/${boardId}/posts/${postId}`).then((r) => r.data),
 
   createPost: (boardId: number, data: CreatePostRequest) =>
-    client.post<PostDetail>(`/api/boards/${boardId}/posts`, data).then((r) => r.data),
+    client.post<CreatePostResponse>(`/api/boards/${boardId}/posts`, data).then((r) => r.data),
 
   updatePost: (postId: number, data: CreatePostRequest) =>
     client.patch<{ postId: number; title: string; content: string; updatedAt: string }>(
