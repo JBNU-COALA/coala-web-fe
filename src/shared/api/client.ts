@@ -1,6 +1,9 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
 
-const apiBaseUrl = import.meta.env.API_BASE_URL?.replace(/\/$/, '') ?? ''
+// vite.config.ts 의 envPrefix='API_' 와 일치. dev 모드에서는 vite proxy(/api)를 사용하므로
+// API_BASE_URL 미설정도 정상이며, prod 빌드시에는 .env.production 에 정의해야 한다.
+const rawBaseUrl = (import.meta.env.API_BASE_URL as string | undefined) ?? ''
+const apiBaseUrl = rawBaseUrl.replace(/\/$/, '')
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean

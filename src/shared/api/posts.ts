@@ -3,7 +3,9 @@ import client from './client'
 export type PostListItem = {
   postId: number
   boardId: number
+  boardName?: string
   userId: number
+  authorName?: string
   title: string
   content: string
   viewCount: number
@@ -26,6 +28,8 @@ export type CreatePostResponse = {
 
 export type CommentItem = {
   commentId: number
+  userId?: number
+  authorName?: string
   content: string
   createdAt: string
   updatedAt?: string

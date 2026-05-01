@@ -159,9 +159,9 @@ export function AllPostsPage({
                         <span
                           className={`board-avatar board-avatar--${toAuthorTone(post.userId)}`}
                         >
-                          {String(post.userId)[0]}
+                          {(post.authorName ?? String(post.userId))[0]}
                         </span>
-                        <span>사용자 {post.userId}</span>
+                        <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
                       </p>
                     </div>
 

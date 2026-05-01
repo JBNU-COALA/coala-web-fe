@@ -208,9 +208,11 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
 
           <div className="post-cover-meta">
             <div className="post-meta-author">
-              <span className="board-avatar board-avatar--mint">{String(post.userId)[0]}</span>
+              <span className="board-avatar board-avatar--mint">
+                {(post.authorName ?? String(post.userId))[0]}
+              </span>
               <div>
-                <strong>사용자 {post.userId}</strong>
+                <strong>{post.authorName ?? `사용자 ${post.userId}`}</strong>
                 <span>
                   {publishedAt} · {readingTime}
                 </span>
@@ -255,6 +257,9 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
                   marginBottom: '0.5rem',
                 }}
               >
+                <p style={{ margin: '0 0 0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>
+                  {comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
+                </p>
                 <p style={{ margin: 0 }}>{comment.content}</p>
                 <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', opacity: 0.6 }}>
                   {formatDate(comment.createdAt)}

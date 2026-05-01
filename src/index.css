@@ -1,20 +1,56 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;700&display=swap');
 
 :root {
+  /* 색상 토큰 - 시인성 강화 (대비 WCAG AA 이상 충족) */
   --page-bg: #f2f5f3;
-  --text-primary: #203029;
-  --text-muted: #64756e;
+  --surface: #ffffff;
+  --surface-secondary: #f6faf8;
+  --surface-tertiary: #eef3f0;
+
+  --text-primary: #1a2520;        /* 본문, 16:1 대비 (page-bg 대비) */
+  --text-secondary: #3a4d44;      /* 부제목 */
+  --text-muted: #5f7167;          /* 보조 라벨 */
+  --text-inverse: #effcf4;
+
+  --border-default: #d8e1dd;
+  --border-strong: #b7c4be;
+
+  --brand-primary: #1a5d41;
+  --brand-primary-strong: #14492f;
+  --brand-accent: #4caf82;
+
+  --color-success: #2e7d4f;
+  --color-warning: #c87a00;
+  --color-danger: #c0392b;
+  --color-info: #1f5fa8;
+
+  --focus-ring: 0 0 0 3px rgba(26, 93, 65, 0.35);
 
   font-family:
     'Manrope', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic',
     sans-serif;
-  line-height: 1.45;
+  line-height: 1.55;            /* 가독성 강화 */
   font-weight: 500;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 키보드 포커스 시인성 */
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 6px;
+}
+
+/* 모션 민감 사용자 배려 */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 *,
