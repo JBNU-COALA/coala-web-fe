@@ -119,7 +119,7 @@ export function JcloudAdminPanel() {
           {filtered.length === 0 ? (
             <li className="jcloud-list-empty">
               <Icon name="file" size={24} />
-              <p>해당 신청이 없습니다.</p>
+              <p>신청이 없습니다.</p>
             </li>
           ) : null}
         </ul>
@@ -138,7 +138,7 @@ export function JcloudAdminPanel() {
         ) : (
           <div className="jcloud-admin-empty">
             <Icon name="file" size={32} />
-            <p>왼쪽 목록에서 신청 건을 선택하면 상세 내용을 확인할 수 있어요.</p>
+            <p>신청 건을 선택하세요.</p>
           </div>
         )}
       </div>
@@ -193,8 +193,7 @@ function AdminDetail({
         <div className="jcloud-apply-detail-row">
           <span className="jcloud-detail-label">사양</span>
           <span className="jcloud-detail-value">
-            {app.specs.cpu} · {app.specs.ram} · {app.specs.disk}
-            {app.specs.gpu ? ` · ${app.specs.gpu}` : ''}
+            {app.specs.cpu} / {app.specs.ram} / {app.specs.disk}
           </span>
         </div>
         <div className="jcloud-apply-detail-row">
@@ -210,7 +209,7 @@ function AdminDetail({
         <textarea
           id="admin-note"
           className="jcloud-textarea"
-          placeholder="승인/반려 사유, 접속 정보 안내 등을 입력하세요."
+          placeholder="승인/반려 메모를 입력하세요."
           rows={3}
           value={app.adminNoteInput}
           onChange={(e) => onNoteChange(e.target.value)}
@@ -249,7 +248,7 @@ function AdminDetail({
             ))}
           </ul>
         ) : (
-          <p className="jcloud-file-empty">첨부된 파일이 없습니다.</p>
+          <p className="jcloud-file-empty">첨부 파일이 없습니다.</p>
         )}
         {app.status === 'pending' ? (
           <>
@@ -294,7 +293,7 @@ function AdminDetail({
           ) : (
             <Icon name="file" size={14} />
           )}
-          {app.status === 'approved' ? `${app.approvedAt} 승인 완료` : `${app.approvedAt} 반려됨`}
+          {app.status === 'approved' ? `${app.approvedAt} 승인 완료` : `${app.approvedAt} 반려`}
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   buildContextPanel,
@@ -9,33 +9,33 @@ import {
   type ContextPanelItem,
 } from './navigation/navigationData'
 import { ContextPanel } from './navigation/ContextPanel'
-import { UserActivityRail } from './navigation/UserActivityRail'
 import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import './pages/home/home.css'
 
-const ServicePage = lazy(() => import('./pages/service/ServicePage').then(m => ({ default: m.ServicePage })))
-const HomePage = lazy(() => import('./pages/home/HomePage').then(m => ({ default: m.HomePage })))
-const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then(m => ({ default: m.AllPostsPage })))
-const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then(m => ({ default: m.PostDetailPage })))
-const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then(m => ({ default: m.PostWriterPage })))
-const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then(m => ({ default: m.InfoSharePage })))
-const AuthPage = lazy(() => import('./pages/auth/AuthPage').then(m => ({ default: m.AuthPage })))
-const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then(m => ({ default: m.RecruitPage })))
-const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then(m => ({ default: m.RecruitDetailPage })))
-const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
-const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })))
+const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
+const CommunityHubPage = lazy(() => import('./pages/community/CommunityHubPage').then((m) => ({ default: m.CommunityHubPage })))
+const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
+const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then((m) => ({ default: m.PostDetailPage })))
+const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then((m) => ({ default: m.PostWriterPage })))
+const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then((m) => ({ default: m.InfoSharePage })))
+const AuthPage = lazy(() => import('./pages/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
+const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then((m) => ({ default: m.RecruitPage })))
+const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then((m) => ({ default: m.RecruitDetailPage })))
+const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })))
+const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })))
+const ServicesPage = lazy(() => import('./pages/services/ServicesPage').then((m) => ({ default: m.ServicesPage })))
 
 function PostDetailRoute() {
   const { postId } = useParams<{ postId: string }>()
   const navigate = useNavigate()
-  if (!postId) return <Navigate to="/community" replace />
+  if (!postId) return <Navigate to="/community/board" replace />
   return (
     <PostDetailPage
       postId={postId}
-      onBack={() => navigate('/community')}
-      onWrite={() => navigate('/community/write')}
+      onBack={() => navigate('/community/board')}
+      onWrite={() => navigate('/community/board/write')}
     />
   )
 }
@@ -43,29 +43,55 @@ function PostDetailRoute() {
 function RecruitDetailRoute() {
   const { recruitId } = useParams<{ recruitId: string }>()
   const navigate = useNavigate()
-  if (!recruitId) return <Navigate to="/recruit" replace />
-  return <RecruitDetailPage recruitId={recruitId} onBack={() => navigate('/recruit')} />
+  if (!recruitId) return <Navigate to="/community/recruit" replace />
+  return <RecruitDetailPage recruitId={recruitId} onBack={() => navigate('/community/recruit')} />
 }
+
+function ServicesHubPage() {
+  return (
+    <section className="coala-content coala-content--placeholder">
+      <div className="surface-card services-hub">
+        <p className="services-hub-eyebrow">Services</p>
+        <h2 className="services-hub-title">코알라 서비스</h2>
+        <p className="services-hub-description">
+          인스턴스 신청, 활동 공유, 커뮤니티 운영 도구를 한 곳에서 확인하는 공간입니다.
+        </p>
+        <div className="services-hub-grid">
+          <article className="services-hub-card">
+            <Icon name="network" size={18} />
+            <h3>인스턴스</h3>
+            <p>프로젝트 서버와 실습 환경을 신청하고 문의합니다.</p>
+          </article>
+          <article className="services-hub-card">
+            <Icon name="chart" size={18} />
+            <h3>활동 공유</h3>
+            <p>GitHub 커밋, 연구 로그, 개발 기록을 공유합니다.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+void ServicesHubPage
 
 function App() {
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const { isLoggedIn, user, logout } = useAuth()
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup'
-
   const contextPanel = useMemo(
     () => buildContextPanel(activeRoute, location.pathname),
     [activeRoute, location.pathname],
   )
-  const showHeaderProfile = isLoggedIn && activeRoute !== 'home'
-  const showActivityRail =
-    !isAuthRoute &&
-    activeRoute !== 'home' &&
-    activeRoute !== 'settings' &&
-    location.pathname !== '/community/write'
+
+  useEffect(() => {
+    setProfileMenuOpen(false)
+  }, [location.pathname])
 
   const handleRouteChange = (route: AppRoute) => {
     navigate(routePathById[route])
@@ -73,7 +99,7 @@ function App() {
 
   const handleContextSelect = (item: ContextPanelItem) => {
     if (item.value === 'community-board') {
-      navigate('/community')
+      navigate('/community/board')
       return
     }
 
@@ -82,54 +108,55 @@ function App() {
       return
     }
 
-    if (
-      item.kind === 'action' &&
-      (item.value === 'service-status' || item.value === 'service-guide')
-    ) {
-      navigate(item.value === 'service-guide' ? '/service?tab=inquiry' : '/service')
+    if (item.value === 'community-recruit') {
+      navigate('/community/recruit')
       return
     }
 
-    if (item.kind === 'action' && item.value === 'game-ranking') {
+    if (item.value === 'service-status' || item.value === 'service-guide') {
+      navigate('/services?tab=instance')
+      return
+    }
+
+    if (item.value === 'game-ranking' || item.value === 'game-github') {
       navigate('/activity')
       return
     }
 
-    if (
-      item.kind === 'action' &&
-      (item.value === 'recruit-open' || item.value === 'recruit-manage')
-    ) {
-      navigate('/recruit')
+    if (item.value === 'services-instance') {
+      navigate('/services?tab=instance')
       return
+    }
+
+    if (item.value === 'services-official') {
+      navigate('/services')
+      return
+    }
+
+    if (item.value === 'services-unofficial') {
+      navigate('/services?tab=unofficial')
+      return
+    }
+
+    if (item.value === 'services-activity') {
+      navigate('/services?tab=register')
     }
   }
 
   const handleLogout = async () => {
     await logout()
-    navigate("/")
+    setProfileMenuOpen(false)
+    navigate('/')
+  }
+
+  const handleOpenProfile = () => {
+    setProfileMenuOpen(false)
+    navigate('/settings')
   }
 
   const handleMobileNav = (route: AppRoute) => {
     handleRouteChange(route)
     setMobileNavOpen(false)
-  }
-
-  const handleRailPrimaryAction = () => {
-    if (activeRoute === 'community') {
-      navigate('/community/write')
-      return
-    }
-    if (activeRoute === 'service') {
-      navigate('/service')
-      return
-    }
-    if (activeRoute === 'recruit') {
-      navigate('/recruit')
-      return
-    }
-    if (activeRoute === 'game') {
-      navigate('/activity')
-    }
   }
 
   const appRoutes = (
@@ -139,58 +166,103 @@ function App() {
           path="/"
           element={
             <HomePage
-              onOpenAllPosts={() => navigate('/community')}
+              onOpenAllPosts={() => navigate('/community/board')}
               onOpenInfo={() => navigate('/community/info')}
             />
           }
         />
 
-        <Route path="/community" element={
-          <AllPostsPage
-            onOpenPost={(postId) => navigate(`/community/posts/${postId}`)}
-              onWritePost={() => navigate('/community/write')}
-              title="커뮤니티"
-              subtitle="공지와 인기글을 구분해 커뮤니티 흐름을 확인합니다."
+        <Route
+          path="/community"
+          element={
+            <CommunityHubPage
+              onOpenBoard={() => navigate('/community/board')}
+              onOpenInfo={() => navigate('/community/info')}
+              onOpenRecruit={() => navigate('/community/recruit')}
             />
-        } />
+          }
+        />
+        <Route
+          path="/community/board"
+          element={
+            <AllPostsPage
+              onOpenPost={(postId) => navigate(`/community/board/posts/${postId}`)}
+              onWritePost={() => navigate('/community/board/write')}
+              title="게시판"
+            />
+          }
+        />
         <Route
           path="/community/info"
           element={<InfoSharePage onWriteInfo={() => navigate('/community/info/write')} />}
         />
-        <Route path="/community/info/write" element={
-          <RequireAuth>
-            <PostWriterPage writerType="info" onClose={() => navigate('/community/info')} />
-          </RequireAuth>
-        } />
-        <Route path="/community/write" element={
-          <RequireAuth>
-            <PostWriterPage onClose={() => navigate('/community')} />
-          </RequireAuth>
-        } />
+        <Route
+          path="/community/info/write"
+          element={
+            <RequireAuth>
+              <PostWriterPage writerType="info" onClose={() => navigate('/community/info')} />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/community/board/write"
+          element={
+            <RequireAuth>
+              <PostWriterPage onClose={() => navigate('/community/board')} />
+            </RequireAuth>
+          }
+        />
+        <Route path="/community/board/posts/:postId" element={<PostDetailRoute />} />
+        <Route path="/community/write" element={<Navigate to="/community/board/write" replace />} />
         <Route path="/community/posts/:postId" element={<PostDetailRoute />} />
 
-        <Route path="/recruit" element={
-          <RecruitPage onSelectRecruit={(id) => navigate(`/recruit/${id}`)} />
-        } />
-        <Route path="/recruit/:recruitId" element={<RecruitDetailRoute />} />
+        <Route
+          path="/community/recruit"
+          element={<RecruitPage onSelectRecruit={(id) => navigate(`/community/recruit/${id}`)} />}
+        />
+        <Route path="/community/recruit/:recruitId" element={<RecruitDetailRoute />} />
+        <Route path="/recruit" element={<Navigate to="/community/recruit" replace />} />
+        <Route
+          path="/recruit/:recruitId"
+          element={
+            <Navigate
+              to={`/community/recruit/${location.pathname.split('/').filter(Boolean).at(-1) ?? ''}`}
+              replace
+            />
+          }
+        />
 
         <Route path="/activity" element={<LeaderboardPage />} />
-        <Route path="/settings" element={
-          <RequireAuth>
-            <ProfilePage />
-          </RequireAuth>
-        } />
-        <Route path="/service" element={<ServicePage />} />
-        <Route path="/login" element={
-          isLoggedIn
-            ? <Navigate to="/" replace />
-            : <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
-        } />
-        <Route path="/signup" element={
-          isLoggedIn
-            ? <Navigate to="/" replace />
-            : <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
-        } />
+        <Route
+          path="/settings"
+          element={
+            <RequireAuth>
+              <ProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route path="/service" element={<Navigate to="/services?tab=instance" replace />} />
+        <Route path="/services" element={<ServicesPage />} />
+        <Route
+          path="/login"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/" replace />
+            ) : (
+              <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
+            )
+          }
+        />
+        <Route
+          path="/signup"
+          element={
+            isLoggedIn ? (
+              <Navigate to="/" replace />
+            ) : (
+              <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
+            )
+          }
+        />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
@@ -215,9 +287,7 @@ function App() {
               <button
                 key={item.id}
                 type="button"
-                className={
-                  activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'
-                }
+                className={activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'}
                 onClick={() => handleMobileNav(item.id)}
               >
                 {item.label}
@@ -230,45 +300,59 @@ function App() {
               type="button"
               className="mobile-menu-toggle"
               aria-label="메뉴 열기"
-              onClick={() => setMobileNavOpen((v) => !v)}
+              onClick={() => setMobileNavOpen((value) => !value)}
             >
               <Icon name={mobileNavOpen ? 'chevron-down' : 'layout'} size={16} />
             </button>
             {isLoggedIn ? (
-              <>
-                {showHeaderProfile ? (
-                  <button
-                    type="button"
-                    className="header-user-button"
-                    onClick={() => navigate('/settings')}
-                  >
-                    <span className="header-user-avatar">
-                      {(user?.name ?? user?.email ?? 'U').charAt(0)}
-                    </span>
-                    <span className="header-user-name">{user?.name ?? user?.email}</span>
-                  </button>
-                ) : null}
+              <div className="header-profile-menu">
                 <button
                   type="button"
-                  className="header-action-button"
-                  onClick={handleLogout}
+                  className={`header-user-button${profileMenuOpen ? ' is-open' : ''}`}
+                  aria-expanded={profileMenuOpen}
+                  onClick={() => setProfileMenuOpen((value) => !value)}
                 >
-                  로그아웃
+                  <span className="header-user-avatar">
+                    {(user?.name ?? user?.email ?? 'U').charAt(0)}
+                  </span>
+                  <span className="header-user-name">{user?.name ?? user?.email}</span>
+                  <Icon name={profileMenuOpen ? 'chevron-down' : 'chevron-right'} size={13} />
                 </button>
-              </>
+                {profileMenuOpen ? (
+                  <div className="header-profile-popover">
+                    <div className="header-profile-summary">
+                      <span className="header-profile-summary-avatar">
+                        {(user?.name ?? user?.email ?? 'U').charAt(0)}
+                      </span>
+                      <div>
+                        <strong>{user?.name ?? user?.email}</strong>
+                        <span>{user?.department ?? user?.email}</span>
+                      </div>
+                    </div>
+                    <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>
+                      <Icon name="user" size={14} />
+                      마이프로필
+                    </button>
+                    <button type="button" className="header-profile-menu-item" onClick={handleLogout}>
+                      <Icon name="chevron-right" size={14} />
+                      로그아웃하기
+                    </button>
+                  </div>
+                ) : null}
+              </div>
             ) : (
               <>
                 <button
                   type="button"
                   className="header-action-button"
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/login', { state: { from: location } })}
                 >
                   로그인
                 </button>
                 <button
                   type="button"
                   className="header-action-button header-action-button--primary"
-                  onClick={() => navigate('/signup')}
+                  onClick={() => navigate('/signup', { state: { from: location } })}
                 >
                   회원가입
                 </button>
@@ -285,19 +369,7 @@ function App() {
       ) : null}
 
       <main className={isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}>
-        {showActivityRail ? (
-          <div className="coala-workspace coala-workspace--with-rail">
-            <div className="coala-workspace-main">{appRoutes}</div>
-            <UserActivityRail
-              route={activeRoute as 'community' | 'recruit' | 'game' | 'service'}
-              onPrimaryAction={handleRailPrimaryAction}
-              onOpenProfile={() => navigate('/settings')}
-              onLogin={() => navigate('/login')}
-            />
-          </div>
-        ) : (
-          appRoutes
-        )}
+        {appRoutes}
       </main>
 
       <footer className="coala-footer">(c) 2026 동아리 코알라. All rights reserved.</footer>

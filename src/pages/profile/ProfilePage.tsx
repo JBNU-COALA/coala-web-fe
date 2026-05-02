@@ -1,18 +1,107 @@
 import { useEffect, useState } from 'react'
-import { activityMembers, solvedTierMeta } from '../leaderboard/leaderboardData'
+import { communityPosts } from '../../data/postsData'
+import { latestInfoUpdates, resourceCards } from '../../data/infoData'
+import { recruitItems } from '../../data/recruitData'
+import { useAuth } from '../../shared/auth/AuthContext'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
-import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
+import { activityMembers, solvedTierMeta } from '../leaderboard/leaderboardData'
 
 type ProfileTab = 'overview' | 'activity' | 'posts'
+type AuthoredContentKind = 'board' | 'info' | 'recruit'
+
+type AuthoredContentItem = {
+  id: string
+  kind: AuthoredContentKind
+  title: string
+  excerpt: string
+  createdAt: string
+  viewCount?: number
+}
+
+const contentKindLabel: Record<AuthoredContentKind, string> = {
+  board: '게시판',
+  info: '정보공유',
+  recruit: '모집',
+}
+
+function apiPostToAuthoredContent(post: PostListItem): AuthoredContentItem {
+  const boardName = post.boardName ?? ''
+  const kind: AuthoredContentKind =
+    boardName.toLowerCase().includes('recruit') || boardName.includes('모집')
+      ? 'recruit'
+      : 'board'
+
+  return {
+    id: `api-${post.boardId}-${post.postId}`,
+    kind,
+    title: post.title,
+    excerpt: post.content.replace(/<[^>]+>/g, '').slice(0, 100),
+    createdAt: post.createdAt,
+    viewCount: post.viewCount,
+  }
+}
+
+function parseViewCount(value: string) {
+  if (value.includes('k')) return Math.round(Number(value.replace('k', '')) * 1000)
+  return Number(value.replace(/[^0-9]/g, '')) || 0
+}
+
+function createFallbackAuthoredContents(displayName: string): AuthoredContentItem[] {
+  const boardItems = communityPosts.slice(0, 2).map((post) => ({
+    id: `board-${post.id}`,
+    kind: 'board' as const,
+    title: post.title,
+    excerpt: post.excerpt,
+    createdAt: post.publishedAt,
+    viewCount: parseViewCount(post.views),
+  }))
+
+  const infoItems = [
+    ...latestInfoUpdates.slice(0, 1).map((item) => ({
+      id: `info-${item.id}`,
+      kind: 'info' as const,
+      title: item.title,
+      excerpt: item.summary,
+      createdAt: item.timestamp,
+    })),
+    ...resourceCards.slice(0, 1).map((item) => ({
+      id: `resource-${item.id}`,
+      kind: 'info' as const,
+      title: item.title,
+      excerpt: `${item.tag} · ${item.source}`,
+      createdAt: item.meta,
+    })),
+  ]
+
+  const recruitAuthoredItems = recruitItems.slice(0, 2).map((item) => ({
+    id: `recruit-${item.id}`,
+    kind: 'recruit' as const,
+    title: item.title,
+    excerpt: item.shortDesc,
+    createdAt: item.createdAt,
+    viewCount: item.views,
+  }))
+
+  return [...boardItems, ...infoItems, ...recruitAuthoredItems].map((item, index) => ({
+    ...item,
+    excerpt: index === 0 ? `${displayName}님이 작성한 콘텐츠 예시입니다. ${item.excerpt}` : item.excerpt,
+  }))
+}
+
+function formatDate(dateStr: string) {
+  const parsed = new Date(dateStr)
+  if (Number.isNaN(parsed.getTime())) return dateStr
+  return parsed.toLocaleDateString('ko-KR')
+}
 
 export function ProfilePage() {
   const { user } = useAuth()
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
-  const [bio, setBio] = useState('안녕하세요! 코알라 동아리에서 활동하고 있어요.')
-  const [myPosts, setMyPosts] = useState<PostListItem[]>([])
+  const [bio, setBio] = useState('안녕하세요. 코알라 동아리에서 활동하고 있어요.')
+  const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
 
   const me = activityMembers.find((m) => m.isMe) ?? activityMembers[activityMembers.length - 1]
   const tierMeta = solvedTierMeta[me.solvedTier]
@@ -20,48 +109,51 @@ export function ProfilePage() {
   const displayName = user?.name ?? user?.email ?? '사용자'
   const displayRole = user?.department ?? '동아리 멤버'
   const initial = displayName.charAt(0)
-
   const joinedAt = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : ''
 
   useEffect(() => {
     if (!user) return
-    const fetchMyPosts = async () => {
+
+    const fetchAuthoredContents = async () => {
       try {
         const boards = await boardsApi.getBoards(true)
         const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
-        const all = postsArrays.flat().filter((p) => p.userId === user.id)
-        setMyPosts(all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()))
+        const apiContents = postsArrays
+          .flat()
+          .filter((p) => p.userId === user.id)
+          .map(apiPostToAuthoredContent)
+
+        setAuthoredContents(
+          apiContents.length > 0
+            ? apiContents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+            : createFallbackAuthoredContents(displayName),
+        )
       } catch {
-        setMyPosts([])
+        setAuthoredContents(createFallbackAuthoredContents(displayName))
       }
     }
-    fetchMyPosts()
-  }, [user])
+
+    fetchAuthoredContents()
+  }, [displayName, user])
 
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: 'overview', label: '개요' },
     { id: 'activity', label: '활동 내역' },
-    { id: 'posts', label: '작성 게시글' },
+    { id: 'posts', label: '작성 콘텐츠' },
   ]
-
-  function formatDate(dateStr: string) {
-    return new Date(dateStr).toLocaleDateString('ko-KR')
-  }
 
   return (
     <section className="coala-content coala-content--profile">
       <div className="profile-page">
-
-        {/* Hero */}
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <span className="profile-page-avatar">{initial}</span>
             <div className="profile-page-identity">
               <h2 className="profile-page-name">{displayName}</h2>
               <p className="profile-page-role">{displayRole}</p>
-              {joinedAt && <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p>}
+              {joinedAt ? <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p> : null}
             </div>
           </div>
           <button
@@ -74,7 +166,6 @@ export function ProfilePage() {
           </button>
         </div>
 
-        {/* Stats */}
         <div className="profile-stats-grid">
           <div className="profile-stat-card surface-card">
             <p className="profile-stat-value">{me.totalPoints.toLocaleString()}</p>
@@ -91,12 +182,11 @@ export function ProfilePage() {
             <p className="profile-stat-label">GitHub 커밋</p>
           </div>
           <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value">{myPosts.length}개</p>
-            <p className="profile-stat-label">작성 게시글</p>
+            <p className="profile-stat-value">{authoredContents.length}개</p>
+            <p className="profile-stat-label">작성 콘텐츠</p>
           </div>
         </div>
 
-        {/* Tabs */}
         <div className="profile-tab-bar">
           {tabs.map((t) => (
             <button
@@ -110,8 +200,7 @@ export function ProfilePage() {
           ))}
         </div>
 
-        {/* Tab: 개요 */}
-        {tab === 'overview' && (
+        {tab === 'overview' ? (
           <div className="profile-section-grid">
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">소개</h3>
@@ -151,10 +240,9 @@ export function ProfilePage() {
               </ul>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {/* Tab: 활동 내역 */}
-        {tab === 'activity' && (
+        {tab === 'activity' ? (
           <div className="profile-section-grid">
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">백준 현황</h3>
@@ -171,12 +259,6 @@ export function ProfilePage() {
                   <span className="profile-activity-label">해결 문제</span>
                   <span className="profile-activity-value">{me.solvedCount}문제</span>
                 </div>
-                <div className="profile-activity-row">
-                  <span className="profile-activity-label">획득 포인트</span>
-                  <span className="profile-activity-value">
-                    {(me.solvedCount * tierMeta.pointsPerProblem).toLocaleString()} pts
-                  </span>
-                </div>
               </div>
             </div>
 
@@ -189,49 +271,44 @@ export function ProfilePage() {
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">이번 달 커밋</span>
-                  <span className="profile-activity-value profile-activity-value--github">{me.githubCommits}회</span>
-                </div>
-                <div className="profile-activity-row">
-                  <span className="profile-activity-label">획득 포인트</span>
-                  <span className="profile-activity-value">
-                    {(me.githubCommits * 5).toLocaleString()} pts
-                  </span>
+                  <span className="profile-activity-value profile-activity-value--github">{me.githubCommits}개</span>
                 </div>
               </div>
             </div>
           </div>
-        )}
+        ) : null}
 
-        {/* Tab: 작성 게시글 */}
-        {tab === 'posts' && (
+        {tab === 'posts' ? (
           <div className="surface-card profile-section-card">
-            <h3 className="profile-section-title">작성 게시글 ({myPosts.length})</h3>
-            {myPosts.length === 0 ? (
-              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>작성한 게시글이 없습니다.</p>
+            <h3 className="profile-section-title">작성 콘텐츠 ({authoredContents.length})</h3>
+            {authoredContents.length === 0 ? (
+              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>작성한 콘텐츠가 없습니다.</p>
             ) : (
               <ul className="profile-post-list">
-                {myPosts.map((post) => (
-                  <li key={`${post.boardId}-${post.postId}`} className="profile-post-item">
+                {authoredContents.map((item) => (
+                  <li key={item.id} className="profile-post-item">
                     <div className="profile-post-body">
-                      <p className="profile-post-title">{post.title}</p>
-                      <p className="profile-post-excerpt">
-                        {post.content.replace(/<[^>]+>/g, '').slice(0, 80)}
-                      </p>
+                      <span className={`profile-content-kind profile-content-kind--${item.kind}`}>
+                        {contentKindLabel[item.kind]}
+                      </span>
+                      <p className="profile-post-title">{item.title}</p>
+                      <p className="profile-post-excerpt">{item.excerpt}</p>
                     </div>
                     <div className="profile-post-meta">
-                      <span className="profile-post-time">{formatDate(post.createdAt)}</span>
-                      <span className="profile-post-stat">
-                        <Icon name="eye" size={11} />
-                        {post.viewCount}
-                      </span>
+                      <span className="profile-post-time">{formatDate(item.createdAt)}</span>
+                      {typeof item.viewCount === 'number' ? (
+                        <span className="profile-post-stat">
+                          <Icon name="eye" size={11} />
+                          {item.viewCount}
+                        </span>
+                      ) : null}
                     </div>
                   </li>
                 ))}
               </ul>
             )}
           </div>
-        )}
-
+        ) : null}
       </div>
     </section>
   )

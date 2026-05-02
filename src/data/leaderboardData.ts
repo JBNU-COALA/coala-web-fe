@@ -1,3 +1,5 @@
+export type AvatarTone = 'mint' | 'sky' | 'amber' | 'slate' | 'sand' | 'rose'
+
 export type SolvedTier =
   | 'ruby'
   | 'diamond'
@@ -7,30 +9,36 @@ export type SolvedTier =
   | 'bronze'
   | 'unrated'
 
-export type AvatarTone = 'mint' | 'sky' | 'amber' | 'slate' | 'sand' | 'rose'
+export type ActivityLogType = 'commit' | 'pull-request' | 'release' | 'note'
 
-export type ActivityTrend = 'up' | 'down' | 'flat'
-
-export type ActivitySource = {
+export type ActivityLog = {
   id: string
-  label: string
+  type: ActivityLogType
+  title: string
+  repository: string
   description: string
-  pointFormula: string
+  timeLabel: string
 }
 
 export type ActivityMember = {
   id: string
-  rank: number
   name: string
   initials: string
   tone: AvatarTone
+  role: string
+  grade: '1학년' | '2학년' | '3학년' | '4학년' | '졸업생'
+  lab: string
+  githubHandle: string
+  githubUrl: string
+  focus: string
+  recentCommit: string
+  sharedRepos: string[]
+  logs: ActivityLog[]
   solvedHandle: string
   solvedTier: SolvedTier
   solvedCount: number
-  githubHandle: string
   githubCommits: number
   totalPoints: number
-  trend: ActivityTrend
   isMe?: boolean
 }
 
@@ -46,119 +54,130 @@ export const solvedTierMeta: Record<SolvedTier, { label: string; pointsPerProble
   unrated: { label: 'Unrated', pointsPerProblem: 5 },
 }
 
-export const activitySources: ActivitySource[] = [
-  {
-    id: 'baekjoon',
-    label: '백준 문제풀이',
-    description: 'SOLVED 등급에 따라 풀이당 차등 포인트 지급',
-    pointFormula: 'Ruby 100pt · Diamond 80pt · Platinum 60pt · Gold 40pt · Silver 20pt · Bronze 10pt',
-  },
-  {
-    id: 'github',
-    label: 'GitHub 커밋',
-    description: '월별 커밋 기록 기준 포인트 지급',
-    pointFormula: '커밋 1건 = 5pt',
-  },
-]
-
 export const activityMembers: ActivityMember[] = [
   {
     id: 'member-1',
-    rank: 1,
-    name: '이영희',
-    initials: '이',
+    name: '김민지',
+    initials: '김',
     tone: 'mint',
-    solvedHandle: 'younghee_dev',
-    solvedTier: 'diamond',
-    solvedCount: 184,
-    githubHandle: 'younghee-dev',
-    githubCommits: 213,
-    totalPoints: 15785,
-    trend: 'flat',
+    role: '프론트엔드',
+    grade: '3학년',
+    lab: '웹서비스 연구실',
+    githubHandle: 'minji-dev',
+    githubUrl: 'https://github.com/minji-dev',
+    focus: 'React, 디자인 시스템',
+    recentCommit: '오늘 09:12',
+    sharedRepos: ['coala-dashboard', 'design-token-lab'],
+    solvedHandle: 'minji_dev',
+    solvedTier: 'gold',
+    solvedCount: 132,
+    githubCommits: 88,
+    totalPoints: 6420,
+    logs: [
+      {
+        id: 'log-1-1',
+        type: 'commit',
+        title: '커뮤니티 배너 슬라이더 컴포넌트 정리',
+        repository: 'coala-dashboard',
+        description: '탭형 페이지에서 재사용할 수 있도록 배너 데이터를 분리했습니다.',
+        timeLabel: '오늘',
+      },
+      {
+        id: 'log-1-2',
+        type: 'pull-request',
+        title: '프로필 작성 콘텐츠 필터 개선',
+        repository: 'coala-dashboard',
+        description: '게시판, 정보공유, 모집 글을 같은 목록에서 확인하도록 수정했습니다.',
+        timeLabel: '어제',
+      },
+    ],
   },
   {
     id: 'member-2',
-    rank: 2,
-    name: '김철수',
-    initials: '김',
+    name: '박세연',
+    initials: '박',
     tone: 'sky',
-    solvedHandle: 'cskim_codes',
+    role: '백엔드',
+    grade: '4학년',
+    lab: '클라우드 시스템 연구실',
+    githubHandle: 'seyeon-api',
+    githubUrl: 'https://github.com/seyeon-api',
+    focus: 'Spring Boot, 배포 자동화',
+    recentCommit: '어제 22:40',
+    sharedRepos: ['instance-api', 'deploy-playground'],
+    solvedHandle: 'seyeon_api',
     solvedTier: 'platinum',
-    solvedCount: 197,
-    githubHandle: 'cskim-dev',
-    githubCommits: 148,
-    totalPoints: 12560,
-    trend: 'up',
+    solvedCount: 166,
+    githubCommits: 104,
+    totalPoints: 7810,
+    logs: [
+      {
+        id: 'log-2-1',
+        type: 'release',
+        title: '인스턴스 신청 API v0.3 배포',
+        repository: 'instance-api',
+        description: '신청 상태 변경과 관리자 메모 필드를 추가했습니다.',
+        timeLabel: '어제',
+      },
+    ],
   },
   {
     id: 'member-3',
-    rank: 3,
-    name: '박지민',
-    initials: '박',
+    name: '최민호',
+    initials: '최',
     tone: 'amber',
-    solvedHandle: 'jimin_ps',
-    solvedTier: 'gold',
-    solvedCount: 263,
-    githubHandle: 'jimin-park',
-    githubCommits: 95,
-    totalPoints: 11005,
-    trend: 'up',
+    role: 'AI 연구',
+    grade: '졸업생',
+    lab: '지능형소프트웨어 연구실',
+    githubHandle: 'mino-lab',
+    githubUrl: 'https://github.com/mino-lab',
+    focus: 'LLM, 데이터 파이프라인',
+    recentCommit: '2일 전',
+    sharedRepos: ['paper-scout', 'dataset-cleaner'],
+    solvedHandle: 'mino_lab',
+    solvedTier: 'silver',
+    solvedCount: 94,
+    githubCommits: 57,
+    totalPoints: 4380,
+    logs: [
+      {
+        id: 'log-3-1',
+        type: 'note',
+        title: '논문 요약 자동화 실험 기록 공유',
+        repository: 'paper-scout',
+        description: '초록 수집, 키워드 추출, 요약 프롬프트를 비교했습니다.',
+        timeLabel: '2일 전',
+      },
+    ],
   },
   {
     id: 'member-4',
-    rank: 4,
-    name: '최현우',
-    initials: '최',
+    name: '이도윤',
+    initials: '이',
     tone: 'slate',
-    solvedHandle: 'chw_algorithm',
-    solvedTier: 'gold',
-    solvedCount: 231,
-    githubHandle: 'chw-dev',
-    githubCommits: 72,
-    totalPoints: 9600,
-    trend: 'up',
-  },
-  {
-    id: 'member-5',
-    rank: 5,
-    name: '한예진',
-    initials: '한',
-    tone: 'rose',
-    solvedHandle: 'yejin_h',
-    solvedTier: 'silver',
-    solvedCount: 318,
-    githubHandle: 'yejin-han',
-    githubCommits: 104,
-    totalPoints: 8980,
-    trend: 'down',
-  },
-  {
-    id: 'member-6',
-    rank: 6,
-    name: '윤지수',
-    initials: '윤',
-    tone: 'sand',
-    solvedHandle: 'js_yun',
-    solvedTier: 'silver',
-    solvedCount: 302,
-    githubHandle: 'jisoo-yun',
-    githubCommits: 86,
-    totalPoints: 8470,
-    trend: 'flat',
-  },
-  {
-    id: 'member-42',
-    rank: 42,
-    name: '김코알라',
-    initials: '김',
-    tone: 'mint',
-    solvedHandle: 'koala_codes',
+    role: '풀스택',
+    grade: '2학년',
+    lab: '웹서비스 연구실',
+    githubHandle: 'doyun-stack',
+    githubUrl: 'https://github.com/doyun-stack',
+    focus: 'Next.js, PostgreSQL',
+    recentCommit: '3일 전',
+    sharedRepos: ['team-finder', 'study-mate'],
+    solvedHandle: 'doyun_stack',
     solvedTier: 'bronze',
-    solvedCount: 88,
-    githubHandle: 'kim-koala',
-    githubCommits: 53,
-    totalPoints: 1145,
-    trend: 'up',
+    solvedCount: 61,
+    githubCommits: 42,
+    totalPoints: 3150,
+    logs: [
+      {
+        id: 'log-4-1',
+        type: 'commit',
+        title: '모집 지원 플로우 초안 구현',
+        repository: 'team-finder',
+        description: '지원서 입력 폼과 모집 상태 표시를 추가했습니다.',
+        timeLabel: '3일 전',
+      },
+    ],
     isMe: true,
   },
 ]

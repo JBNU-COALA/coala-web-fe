@@ -1,19 +1,22 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
+import { JcloudAdminPanel } from './JcloudAdminPanel'
 import { JcloudApplyForm } from './JcloudApplyForm'
 import { JcloudApplyList } from './JcloudApplyList'
-import { JcloudAdminPanel } from './JcloudAdminPanel'
 import { inquiryItems } from './serviceData'
 
 type ServiceTab = 'apply' | 'list' | 'inquiry' | 'admin'
 
-// 실제 서비스에선 useAuth()로 isAdmin 확인
+type ServicePageProps = {
+  embedded?: boolean
+}
+
 const IS_ADMIN = true
 
-export function ServicePage() {
+export function ServicePage({ embedded = false }: ServicePageProps) {
   const [searchParams, setSearchParams] = useSearchParams()
-  const initialTab = searchParams.get('tab') === 'inquiry' ? 'inquiry' : 'apply'
+  const initialTab = searchParams.get('instanceTab') === 'inquiry' ? 'inquiry' : 'apply'
   const [tab, setTab] = useState<ServiceTab>(initialTab)
 
   const tabs: { id: ServiceTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
@@ -27,50 +30,33 @@ export function ServicePage() {
 
   const changeTab = (nextTab: ServiceTab) => {
     setTab(nextTab)
-    setSearchParams(nextTab === 'inquiry' ? { tab: 'inquiry' } : {})
+    if (!embedded) {
+      setSearchParams(nextTab === 'inquiry' ? { instanceTab: 'inquiry' } : {})
+    }
   }
 
-  return (
-    <section className="coala-content coala-content--service">
-      <div className="jcloud-hero">
-        <div className="jcloud-hero-body">
-          <span className="jcloud-hero-badge">인스턴스</span>
-          <h2 className="jcloud-hero-title">
-            코알라 프로젝트에 활용한
-            <br />
-            인스턴스를 대여하세요.
-          </h2>
-          <p className="jcloud-hero-subtitle">
-            프로젝트 배포, 실습 서버, AI 실험 환경에 필요한 인스턴스 신청과 문의를 한 곳에서 확인합니다.
-          </p>
-        </div>
-        <div className="jcloud-hero-panel" aria-label="인스턴스 운영 요약">
-          <div className="jcloud-hero-panel-head">
-            <span>포털 연결</span>
-            <strong>Gateway</strong>
+  const content = (
+    <>
+      {!embedded ? (
+        <div className="jcloud-hero">
+          <div className="jcloud-hero-body">
+            <span className="jcloud-hero-badge">인스턴스</span>
+            <h2 className="jcloud-hero-title">코알라 인스턴스 신청</h2>
           </div>
-          <ul className="jcloud-hero-panel-list">
-            <li>신청하기</li>
-            <li>신청 내역</li>
-            <li>문의사항</li>
-          </ul>
-          <p className="jcloud-hero-panel-text">
-            실서비스 처리는 별도 대여 서비스에서 담당하며, 이 포털은 인스턴스 대여 진입점으로 노출합니다.
-          </p>
         </div>
-      </div>
+      ) : null}
 
       <div className="jcloud-tab-shell surface-card">
         <div className="jcloud-tab-bar">
-          {tabs.map((t) => (
+          {tabs.map((item) => (
             <button
-              key={t.id}
+              key={item.id}
               type="button"
-              className={`jcloud-tab-btn${tab === t.id ? ' is-active' : ''}`}
-              onClick={() => changeTab(t.id)}
+              className={`jcloud-tab-btn${tab === item.id ? ' is-active' : ''}`}
+              onClick={() => changeTab(item.id)}
             >
-              <Icon name={t.icon} size={14} />
-              {t.label}
+              <Icon name={item.icon} size={14} />
+              {item.label}
             </button>
           ))}
         </div>
@@ -87,8 +73,14 @@ export function ServicePage() {
           )}
         </div>
       </div>
-    </section>
+    </>
   )
+
+  if (embedded) {
+    return <div className="services-instance-panel">{content}</div>
+  }
+
+  return <section className="coala-content coala-content--service">{content}</section>
 }
 
 function InstanceInquiryPanel() {
@@ -99,7 +91,6 @@ function InstanceInquiryPanel() {
       <header className="jcloud-inquiry-header">
         <div>
           <h3 className="jcloud-form-section-title">문의사항</h3>
-          <p>다른 사용자가 남긴 인스턴스 대여 문의와 처리 상태를 확인합니다.</p>
         </div>
         <button
           type="button"
@@ -119,11 +110,7 @@ function InstanceInquiryPanel() {
           </label>
           <label className="jcloud-field">
             <span className="jcloud-label">내용</span>
-            <textarea
-              className="jcloud-textarea"
-              rows={4}
-              placeholder="대여 목적, 필요한 기간, 확인이 필요한 내용을 적어주세요."
-            />
+            <textarea className="jcloud-textarea" rows={4} placeholder="문의 내용을 입력하세요" />
           </label>
           <button type="button" className="jcloud-submit-button">
             문의 등록
