@@ -1,0 +1,258 @@
+import { useEffect, useMemo, useState } from 'react'
+import { activityMembers, GITHUB_COMMIT_POINT } from '../pages/leaderboard/leaderboardData'
+import { boardsApi } from '../shared/api/boards'
+import { postsApi } from '../shared/api/posts'
+import { useAuth } from '../shared/auth/AuthContext'
+import { Icon, type IconName } from '../shared/ui/Icon'
+import type { AppRoute } from './navigationData'
+
+type RailRoute = Extract<AppRoute, 'community' | 'recruit' | 'game' | 'service'>
+
+type UserActivityRailProps = {
+  route: RailRoute
+  onPrimaryAction: () => void
+  onOpenProfile: () => void
+  onLogin: () => void
+}
+
+type RailMetric = {
+  label: string
+  value: string
+  tone?: 'green' | 'slate' | 'amber'
+}
+
+type RailSignal = {
+  label: string
+  detail: string
+  icon: IconName
+}
+
+const routeMeta: Record<RailRoute, { eyebrow: string; title: string; primaryLabel: string; primaryIcon: IconName }> = {
+  community: {
+    eyebrow: 'Community',
+    title: '내 커뮤니티 활동',
+    primaryLabel: '글쓰기',
+    primaryIcon: 'edit',
+  },
+  service: {
+    eyebrow: 'Instance',
+    title: '내 인스턴스 대여',
+    primaryLabel: '인스턴스 대여',
+    primaryIcon: 'network',
+  },
+  recruit: {
+    eyebrow: 'Recruit',
+    title: '내 모집 진행',
+    primaryLabel: '모집 보기',
+    primaryIcon: 'users',
+  },
+  game: {
+    eyebrow: 'Activity',
+    title: '내 활동 현황',
+    primaryLabel: '랭킹 보기',
+    primaryIcon: 'chart',
+  },
+}
+
+export function UserActivityRail({
+  route,
+  onPrimaryAction,
+  onOpenProfile,
+  onLogin,
+}: UserActivityRailProps) {
+  const { user, isLoggedIn } = useAuth()
+  const [myPostCount, setMyPostCount] = useState(0)
+  const [myRecentPost, setMyRecentPost] = useState<string | null>(null)
+
+  const me = activityMembers.find((member) => member.isMe) ?? activityMembers[activityMembers.length - 1]
+  const githubPoints = me.githubCommits * GITHUB_COMMIT_POINT
+  const displayName = user?.name ?? user?.email ?? '게스트'
+  const displayRole = user?.department ?? '로그인하면 내 활동을 볼 수 있어요'
+  const initial = displayName.charAt(0)
+  const meta = routeMeta[route]
+
+  useEffect(() => {
+    if (!user) {
+      return
+    }
+
+    const fetchMyPosts = async () => {
+      try {
+        const boards = await boardsApi.getBoards(true)
+        const postsArrays = await Promise.all(boards.map((board) => postsApi.getPosts(board.boardId)))
+        const mine = postsArrays
+          .flat()
+          .filter((post) => post.userId === user.id)
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+
+        setMyPostCount(mine.length)
+        setMyRecentPost(mine[0]?.title ?? null)
+      } catch {
+        setMyPostCount(0)
+        setMyRecentPost(null)
+      }
+    }
+
+    fetchMyPosts()
+  }, [user])
+
+  const metrics = useMemo<RailMetric[]>(() => {
+    if (!isLoggedIn) {
+      return [
+        { label: '로그인 상태', value: '필요', tone: 'amber' },
+        { label: '내 활동', value: '숨김', tone: 'slate' },
+      ]
+    }
+
+    if (route === 'community') {
+      return [
+        { label: '작성 게시글', value: `${myPostCount}개`, tone: 'green' },
+        { label: '최근 글', value: myRecentPost ? '있음' : '없음', tone: 'slate' },
+      ]
+    }
+
+    if (route === 'service') {
+      return [
+        { label: '대여 상태', value: '신청 가능', tone: 'green' },
+        { label: '처리 흐름', value: '신청/내역', tone: 'slate' },
+      ]
+    }
+
+    if (route === 'recruit') {
+      return [
+        { label: '지원 상태', value: '확인 필요', tone: 'amber' },
+        { label: '관심 모집', value: '진행 중', tone: 'green' },
+      ]
+    }
+
+    return [
+      { label: '활동 포인트', value: githubPoints.toLocaleString(), tone: 'green' },
+      { label: 'GitHub', value: `${me.githubCommits}회`, tone: 'slate' },
+      { label: '오픈소스', value: '준비 중', tone: 'slate' },
+    ]
+  }, [githubPoints, isLoggedIn, me.githubCommits, myPostCount, myRecentPost, route])
+
+  const signals = useMemo<RailSignal[]>(() => {
+    if (route === 'community') {
+      return [
+        {
+          label: '최근 작성',
+          detail: isLoggedIn
+            ? myRecentPost ?? '아직 작성한 글이 없습니다.'
+            : '로그인하면 작성 기록을 볼 수 있습니다.',
+          icon: 'file',
+        },
+        {
+          label: '다음 행동',
+          detail: '질문, 정보공유, 모집 글을 같은 작성 흐름에서 시작합니다.',
+          icon: 'edit',
+        },
+      ]
+    }
+
+    if (route === 'service') {
+      return [
+        {
+          label: '인스턴스 대여',
+          detail: '신청 화면, 신청 내역, 문의사항을 한 페이지에서 확인합니다.',
+          icon: 'network',
+        },
+        {
+          label: '작성 기준',
+          detail: '목적, 기간, 필요한 사양을 명확히 적는 흐름이 중요합니다.',
+          icon: 'book',
+        },
+      ]
+    }
+
+    if (route === 'recruit') {
+      return [
+        {
+          label: '진행 중인 모집',
+          detail: '마감, 인원, 역할을 확인하고 지원 흐름으로 이어집니다.',
+          icon: 'calendar',
+        },
+        {
+          label: '내 참여',
+          detail: '지원/개설 상태는 이후 백엔드 연동 시 이 패널에 모읍니다.',
+          icon: 'users',
+        },
+      ]
+    }
+
+    return [
+      {
+        label: '활동 기준',
+        detail: 'GitHub 활동과 향후 오픈소스 기여 지표를 중심으로 정리합니다.',
+        icon: 'chart',
+      },
+      {
+        label: '내 계정',
+        detail: `@${me.githubHandle}`,
+        icon: 'user',
+      },
+    ]
+  }, [isLoggedIn, me.githubHandle, myRecentPost, route])
+
+  return (
+    <aside className="user-activity-rail" aria-label="내 활동 요약">
+      <section className="surface-card activity-rail-card activity-rail-profile">
+        <div className="activity-rail-profile-head">
+          <span className="activity-rail-avatar">{initial}</span>
+          <div className="activity-rail-identity">
+            <h2>{displayName}</h2>
+            <p>{displayRole}</p>
+          </div>
+        </div>
+
+        <p className="activity-rail-role">{meta.title}</p>
+
+        <div className="activity-rail-actions">
+          <button type="button" className="activity-rail-primary" onClick={onPrimaryAction}>
+            <Icon name={meta.primaryIcon} size={14} />
+            <span>{meta.primaryLabel}</span>
+          </button>
+          <button
+            type="button"
+            className="activity-rail-secondary"
+            onClick={isLoggedIn ? onOpenProfile : onLogin}
+          >
+            {isLoggedIn ? '프로필' : '로그인'}
+          </button>
+        </div>
+      </section>
+
+      <section className="surface-card activity-rail-card">
+        <h3 className="activity-rail-section-title">현재 상태</h3>
+        <div className="activity-rail-metrics">
+          {metrics.map((metric) => (
+            <div
+              key={metric.label}
+              className={`activity-rail-metric activity-rail-metric--${metric.tone ?? 'slate'}`}
+            >
+              <span>{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="surface-card activity-rail-card">
+        <h3 className="activity-rail-section-title">이어볼 항목</h3>
+        <ul className="activity-rail-signal-list">
+          {signals.map((signal) => (
+            <li key={signal.label} className="activity-rail-signal">
+              <span className="activity-rail-signal-icon">
+                <Icon name={signal.icon} size={14} />
+              </span>
+              <span>
+                <strong>{signal.label}</strong>
+                <small>{signal.detail}</small>
+              </span>
+            </li>
+          ))}
+        </ul>
+      </section>
+    </aside>
+  )
+}

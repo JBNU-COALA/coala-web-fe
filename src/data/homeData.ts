@@ -52,6 +52,25 @@ type LeaderboardMember = {
   tone: LeaderTone
 }
 
+type PortalStat = {
+  label: string
+  value: string
+}
+
+type PortalUpdate = {
+  id: string
+  category: string
+  title: string
+  meta: string
+}
+
+type PortalOpsItem = {
+  id: string
+  label: string
+  value: string
+  detail: string
+}
+
 export const profileSummary: ProfileSummary = {
   name: '박성우',
   role: '동아리 멤버',
@@ -60,27 +79,75 @@ export const profileSummary: ProfileSummary = {
 export const homeHeroSlides: HeroSlide[] = [
   {
     id: 'slide-1',
-    eyebrow: '동아리 코알라',
-    title: '이번 주 스터디와 커뮤니티 소식을 한 번에 확인하세요.',
-    subtitle: '공지, 정보공유, 멤버 활동 데이터를 홈에서 빠르게 확인할 수 있어요.',
+    eyebrow: '코알라 대시보드',
+    title: '전북대학교 컴퓨터인공지능학부 동아리 코알라입니다.\n',
+    subtitle: '프로그래밍과 개발 지식을 함께 공유하고, 필요한 소식을 빠르게 확인합니다.',
     imageUrl:
       'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80',
   },
   {
     id: 'slide-2',
-    eyebrow: '동아리 코알라',
-    title: '모집 공고를 비교하고 지금 가장 맞는 팀에 참여해보세요.',
-    subtitle: '프론트엔드, 백엔드, 디자인 트랙별 인기 모집 공고를 추천해드립니다.',
+    eyebrow: '정보공유',
+    title: '동아리 자료와 외부 개발 자료를 모아 공유합니다.\n',
+    subtitle: '스터디 노트, 개발 레퍼런스, 세션 자료를 홈에서 먼저 확인할 수 있습니다.',
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80',
   },
   {
     id: 'slide-3',
-    eyebrow: '동아리 코알라',
-    title: '리더보드에서 멤버들의 성장 흐름을 투명하게 볼 수 있어요.',
-    subtitle: '랭킹, 티어, 트렌드 기반으로 팀 기여도를 확인하고 목표를 설정하세요.',
+    eyebrow: '커뮤니티',
+    title: '공지와 인기글을 중심으로 커뮤니티 흐름을 보여줍니다.\n',
+    subtitle: '필요한 글을 빠르게 찾고, 새로 올라온 공유 자료를 이어서 탐색합니다.',
     imageUrl:
       'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=80',
+  },
+]
+
+export const portalStats: PortalStat[] = [
+  { label: '정보공유 새 자료', value: '12' },
+  { label: '오늘 새 글', value: '18' },
+  { label: '답변 대기 질문', value: '5' },
+]
+
+export const portalOpsItems: PortalOpsItem[] = [
+  {
+    id: 'info-new',
+    label: '정보공유',
+    value: '12건',
+    detail: '최근 추가된 문서, 링크, 튜토리얼',
+  },
+  {
+    id: 'question-new',
+    label: '질문/답변',
+    value: '5건',
+    detail: '답변이 필요한 커뮤니티 질문',
+  },
+  {
+    id: 'community-new',
+    label: '전체 게시글',
+    value: '18개',
+    detail: '오늘 새로 올라온 글과 댓글 업데이트',
+  },
+]
+
+export const portalUpdates: PortalUpdate[] = [
+  {
+    id: 'notice',
+    category: '공지',
+    title: '5월 정기 세션 자료 모음 글이 가장 많이 확인되었습니다.',
+    meta: '조회 1.8k · 댓글 24',
+  },
+  {
+    id: 'resource',
+    category: '자료',
+    title: 'React 상태 관리 비교 정리 글이 이번 주 인기글에 올랐습니다.',
+    meta: '조회 1.4k · 댓글 18',
+  },
+  {
+    id: 'question',
+    category: '질문',
+    title: '인스턴스 대여 전 배포 환경 구성 질문에 답변이 이어지고 있습니다.',
+    meta: '조회 980 · 댓글 12',
   },
 ]
 
@@ -107,26 +174,26 @@ export const postItems: PostItem[] = [
 
 export const resourceItems: ResourceItem[] = [
   {
-    id: 'handbook',
-    title: '동아리 핸드북.pdf',
-    subtitle: '신규 멤버를 위한 필수 안내 문서',
-    meta: '2.4 MB   |   다운로드',
+    id: 'react-state',
+    title: 'React 상태 관리 패턴 정리',
+    subtitle: 'Context, Zustand, TanStack Query를 프로젝트 규모별로 비교한 글',
+    meta: '정보공유 · 조회 1.4k',
     icon: 'book',
     tone: 'mint',
   },
   {
-    id: 'design-kit',
-    title: '디자인 에셋 라이브러리',
-    subtitle: '공유 Figma 리소스와 템플릿',
-    meta: '링크   |   외부',
+    id: 'backend-check',
+    title: '백엔드 보안 체크리스트',
+    subtitle: '배포 전 인증, 권한, 환경변수, 로그 설정을 점검하는 자료',
+    meta: '정보공유 · 조회 860',
     icon: 'link',
     tone: 'sand',
   },
   {
-    id: 'tutorial',
-    title: '온보딩 튜토리얼',
-    subtitle: '새 멤버를 위한 빠른 시작 영상',
-    meta: '12:45   |   영상',
+    id: 'ai-resource',
+    title: '생성형 AI 서비스 기획 자료',
+    subtitle: '뉴스 요약 서비스 프로젝트에서 참고한 API 설계와 UX 흐름',
+    meta: '정보공유 · 조회 720',
     icon: 'play',
     tone: 'sky',
   },

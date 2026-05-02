@@ -2,9 +2,12 @@ import { useEffect, useState } from 'react'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
+import { communityPosts } from '../posts/postsData'
 
 type PostCardProps = {
   onOpenAllPosts?: () => void
+  limit?: number
+  dashboard?: boolean
 }
 
 function formatRelativeTime(dateStr: string) {
@@ -17,7 +20,20 @@ function formatRelativeTime(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('ko-KR')
 }
 
-export function PostCard({ onOpenAllPosts }: PostCardProps) {
+const fallbackPosts: PostListItem[] = communityPosts.map((post, index) => ({
+  postId: index + 1,
+  boardId: post.category === 'recruit' ? 2 : 1,
+  boardName: post.category === 'recruit' ? '모집' : '일반 게시판',
+  userId: index + 1,
+  authorName: post.author,
+  title: post.title,
+  content: post.excerpt,
+  viewCount: Number(post.views.replace('k', '00').replace('.', '')),
+  createdAt: new Date(Date.now() - index * 3600000 * 6).toISOString(),
+  updatedAt: new Date(Date.now() - index * 3600000 * 6).toISOString(),
+}))
+
+export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostCardProps) {
   const [posts, setPosts] = useState<PostListItem[]>([])
 
   useEffect(() => {
@@ -28,23 +44,26 @@ export function PostCard({ onOpenAllPosts }: PostCardProps) {
         const all = postsArrays
           .flat()
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        setPosts(all.slice(0, 3))
+        setPosts((all.length > 0 ? all : fallbackPosts).slice(0, limit))
       } catch {
-        setPosts([])
+        setPosts(fallbackPosts.slice(0, limit))
       }
     }
     fetchRecentPosts()
-  }, [])
+  }, [limit])
 
   return (
-    <section className="surface-card panel posts-panel">
+    <section className={dashboard ? 'surface-card panel posts-panel posts-panel--dashboard' : 'surface-card panel posts-panel'}>
       <header className="panel-header">
-        <h2 className="panel-title">
-          <Icon name="file" size={16} />
-          <span>전체 게시글</span>
-        </h2>
-        <button type="button" className="panel-action" onClick={onOpenAllPosts}>
-          전체 보기
+        <div>
+          {dashboard ? <p className="portal-section-eyebrow">Community</p> : null}
+          <h2 className="panel-title">
+            <Icon name="file" size={16} />
+            <span>{dashboard ? '전체 게시글 업데이트' : '전체 게시글'}</span>
+          </h2>
+        </div>
+        <button type="button" className="panel-action panel-action--solid" onClick={onOpenAllPosts}>
+          게시글 보기
         </button>
       </header>
 
@@ -56,11 +75,16 @@ export function PostCard({ onOpenAllPosts }: PostCardProps) {
         ) : (
           posts.map((post) => (
             <li key={`${post.boardId}-${post.postId}`} className="post-item">
-              <p className="post-title">{post.title}</p>
+              <div className="post-item-heading">
+                <span className="post-board-chip">{post.boardName ?? `게시판 ${post.boardId}`}</span>
+                <p className="post-title">{post.title}</p>
+              </div>
               <p className="post-meta">
                 <span>{formatRelativeTime(post.createdAt)}</span>
                 <span className="dot-divider" />
-                <span>사용자 {post.userId}</span>
+                <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
+                <span className="dot-divider" />
+                <span>조회 {post.viewCount}</span>
               </p>
             </li>
           ))

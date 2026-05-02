@@ -3,23 +3,27 @@ import { resourceItems } from './homeData'
 
 type ResourcesCardProps = {
   onOpenInfo?: () => void
+  dashboard?: boolean
 }
 
-export function ResourcesCard({ onOpenInfo }: ResourcesCardProps) {
+export function ResourcesCard({ onOpenInfo, dashboard = false }: ResourcesCardProps) {
   return (
-    <section className="surface-card panel resources-panel">
+    <section className={dashboard ? 'surface-card panel resources-panel resources-panel--dashboard' : 'surface-card panel resources-panel'}>
       <header className="panel-header">
-        <h2 className="panel-title">
-          <Icon name="book" size={16} />
-          <span>정보공유</span>
-        </h2>
+        <div>
+          {dashboard ? <p className="portal-section-eyebrow">Info Share</p> : null}
+          <h2 className="panel-title">
+            <Icon name="book" size={16} />
+            <span>{dashboard ? '정보공유' : '정보공유 업데이트'}</span>
+          </h2>
+        </div>
         <button
           type="button"
-          className="icon-action"
+          className={dashboard ? 'panel-action panel-action--solid' : 'icon-action'}
           aria-label="정보공유 페이지 열기"
           onClick={onOpenInfo}
         >
-          <Icon name="plus" size={14} />
+          {dashboard ? '전체 보기' : <Icon name="plus" size={14} />}
         </button>
       </header>
 
@@ -40,4 +44,3 @@ export function ResourcesCard({ onOpenInfo }: ResourcesCardProps) {
     </section>
   )
 }
-

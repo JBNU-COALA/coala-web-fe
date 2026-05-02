@@ -1,11 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
-import { postCategoryMeta, type PostBoardFilterId } from './postsData'
+import {
+  communityPosts,
+  defaultPostBoardFilter,
+  postCategoryFilters,
+  postCategoryMeta,
+  type PostBoardFilterId,
+} from './postsData'
 import { Icon } from '../../shared/ui/Icon'
 
 type AllPostsPageProps = {
-  activeBoard: PostBoardFilterId
   onOpenPost: (postId: string) => void
   onWritePost: () => void
   title?: string
@@ -13,6 +18,7 @@ type AllPostsPageProps = {
 }
 
 type EnrichedPost = PostListItem & { board?: BoardData }
+type BoardViewFilter = 'all' | 'notice' | 'popular'
 
 function boardTypeToFilter(boardType: string): PostBoardFilterId {
   const normalized = boardType.trim().toUpperCase()
@@ -27,17 +33,50 @@ function toAuthorTone(userId: number) {
   return AVATAR_TONES[userId % AVATAR_TONES.length]
 }
 
+const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) => ({
+  postId: index + 1,
+  boardId: post.category === 'recruit' ? 2 : 1,
+  boardName: post.category === 'recruit' ? '모집' : '일반 게시판',
+  userId: index + 1,
+  authorName: post.author,
+  title: post.title,
+  content: post.excerpt,
+  viewCount: Number(post.views.replace('k', '00').replace('.', '')),
+  createdAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
+  updatedAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
+  board: {
+    boardId: post.category === 'recruit' ? 2 : 1,
+    boardName: post.category === 'recruit' ? '모집' : '일반 게시판',
+    boardType: post.category === 'recruit' ? 'RECRUIT' : 'NORMAL',
+    description: post.excerpt,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
+}))
+
+const boardViewFilters: { id: BoardViewFilter; label: string }[] = [
+  { id: 'all', label: '전체' },
+  { id: 'notice', label: '공지' },
+  { id: 'popular', label: '인기' },
+]
+
+function isNoticePost(post: EnrichedPost) {
+  return post.title.includes('공지') || post.board?.boardName.includes('공지')
+}
+
 export function AllPostsPage({
-  activeBoard,
   onOpenPost,
   onWritePost,
   title = '전체 게시글',
   subtitle,
 }: AllPostsPageProps) {
+  const [activeBoard, setActiveBoard] = useState<PostBoardFilterId>(defaultPostBoardFilter)
   const [enrichedPosts, setEnrichedPosts] = useState<EnrichedPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
+  const [viewFilter, setViewFilter] = useState<BoardViewFilter>('all')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,9 +87,9 @@ export function AllPostsPage({
         const combined: EnrichedPost[] = postsArrays.flatMap((posts, i) =>
           posts.map((p) => ({ ...p, board: boards[i] })),
         )
-        setEnrichedPosts(combined)
+        setEnrichedPosts(combined.length > 0 ? combined : fallbackCommunityPosts)
       } catch {
-        setEnrichedPosts([])
+        setEnrichedPosts(fallbackCommunityPosts)
       } finally {
         setIsLoading(false)
       }
@@ -73,41 +112,97 @@ export function AllPostsPage({
       ? byCategory.filter((p) => p.title.toLowerCase().includes(normalizedQuery))
       : byCategory
 
-    return [...searched].sort((a, b) => {
+    const byView =
+      viewFilter === 'notice'
+        ? searched.filter(isNoticePost)
+        : viewFilter === 'popular'
+          ? searched.filter((p) => p.viewCount >= 900)
+          : searched
+
+    return [...byView].sort((a, b) => {
       if (sortMode === 'popular') return b.viewCount - a.viewCount
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
-  }, [activeBoard, enrichedPosts, normalizedQuery, sortMode])
+  }, [activeBoard, enrichedPosts, normalizedQuery, sortMode, viewFilter])
 
   return (
     <section className="coala-content coala-content--posts">
-      <article className="surface-card board-shell">
-        <header className="board-shell-header">
+      <div className="board-page">
+        <header className="board-hero">
           <div>
+            <p className="board-eyebrow">Community</p>
             <h2 className="board-title">{title}</h2>
-            <p className="board-subtitle">
-              {subtitle ?? `총 ${enrichedPosts.length}개의 게시글이 있습니다.`}
-            </p>
-          </div>
-
-          <div className="board-actions">
-            <label className="board-search">
-              <Icon name="search" size={15} />
-              <input
-                type="search"
-                placeholder="검색어를 입력하세요..."
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </label>
-
-            <button type="button" className="write-post-button" onClick={onWritePost}>
-              <Icon name="edit" size={14} />
-              <span>글쓰기</span>
-            </button>
+            <p className="board-subtitle">{subtitle ?? `총 ${enrichedPosts.length}개의 게시글`}</p>
           </div>
         </header>
 
+        <div className="board-search-row">
+          <label className="board-search">
+            <Icon name="search" size={17} />
+            <input
+              type="search"
+              placeholder="게시글 제목을 검색하세요"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+            />
+          </label>
+
+          <button
+            type="button"
+            className="board-sort-button"
+            onClick={() =>
+              setSortMode((currentMode) => (currentMode === 'latest' ? 'popular' : 'latest'))
+            }
+          >
+            <span>{sortMode === 'latest' ? '최신순' : '인기순'}</span>
+            <Icon name="chevron-down" size={14} />
+          </button>
+        </div>
+
+        <div className="board-filter-row">
+          <ul className="board-filters" aria-label="게시판 필터">
+            {postCategoryFilters.map((filter) => (
+              <li key={filter.id}>
+                <button
+                  type="button"
+                  className={
+                    activeBoard === filter.id
+                      ? 'board-filter-chip is-active'
+                      : 'board-filter-chip'
+                  }
+                  onClick={() => setActiveBoard(filter.id)}
+                >
+                  {filter.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <ul className="board-filters" aria-label="글 성격 필터">
+            {boardViewFilters.map((filter) => (
+              <li key={filter.id}>
+                <button
+                  type="button"
+                  className={
+                    viewFilter === filter.id
+                      ? 'board-filter-chip board-filter-chip--strong is-active'
+                      : 'board-filter-chip board-filter-chip--strong'
+                  }
+                  onClick={() => setViewFilter(filter.id)}
+                >
+                  {filter.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          <button type="button" className="write-post-button write-post-button--board" onClick={onWritePost}>
+            <Icon name="edit" size={15} />
+            <span>글쓰기</span>
+          </button>
+        </div>
+
+      <article className="surface-card board-shell">
         <div className="board-toolbar">
           <div className="board-context">
             <span className={`board-context-pill board-context-pill--${currentBoardMeta.tone}`}>
@@ -118,16 +213,6 @@ export function AllPostsPage({
 
           <div className="board-toolbar-actions">
             <span className="board-count">{visiblePosts.length}개의 글</span>
-            <button
-              type="button"
-              className="board-sort-button"
-              onClick={() =>
-                setSortMode((currentMode) => (currentMode === 'latest' ? 'popular' : 'latest'))
-              }
-            >
-              <span>{sortMode === 'latest' ? '최신순' : '인기순'}</span>
-              <Icon name="chevron-down" size={14} />
-            </button>
           </div>
         </div>
 
@@ -192,6 +277,7 @@ export function AllPostsPage({
           </button>
         </footer>
       </article>
+      </div>
     </section>
   )
 }
