@@ -1,6 +1,5 @@
 import { lazy, Suspense, useMemo, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
-import { ProfileCard } from './pages/home/ProfileCard'
 import {
   buildContextPanel,
   getRouteFromPath,
@@ -10,10 +9,7 @@ import {
   type ContextPanelItem,
 } from './navigation/navigationData'
 import { ContextPanel } from './navigation/ContextPanel'
-import {
-  defaultPostBoardFilter,
-  type PostBoardFilterId,
-} from './pages/posts/postsData'
+import { UserActivityRail } from './navigation/UserActivityRail'
 import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
 import { RequireAuth } from './shared/auth/RequireAuth'
@@ -30,10 +26,6 @@ const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then(m => (
 const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then(m => ({ default: m.RecruitDetailPage })))
 const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then(m => ({ default: m.LeaderboardPage })))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then(m => ({ default: m.ProfilePage })))
-
-const isPostBoardFilter = (value: string): value is PostBoardFilterId => {
-  return value === 'all' || value === 'normal' || value === 'recruit'
-}
 
 function PostDetailRoute() {
   const { postId } = useParams<{ postId: string }>()
@@ -58,7 +50,6 @@ function RecruitDetailRoute() {
 function App() {
   const location = useLocation()
   const navigate = useNavigate()
-  const [activeBoard, setActiveBoard] = useState<PostBoardFilterId>(defaultPostBoardFilter)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const { isLoggedIn, user, logout } = useAuth()
 
@@ -66,41 +57,41 @@ function App() {
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup'
 
   const contextPanel = useMemo(
-    () => buildContextPanel(activeRoute, activeBoard),
-    [activeBoard, activeRoute],
+    () => buildContextPanel(activeRoute, location.pathname),
+    [activeRoute, location.pathname],
   )
+  const showHeaderProfile = isLoggedIn && activeRoute !== 'home'
+  const showActivityRail =
+    !isAuthRoute &&
+    activeRoute !== 'home' &&
+    activeRoute !== 'settings' &&
+    location.pathname !== '/community/write'
 
   const handleRouteChange = (route: AppRoute) => {
     navigate(routePathById[route])
   }
 
   const handleContextSelect = (item: ContextPanelItem) => {
-    if (item.kind === 'board' && isPostBoardFilter(item.value)) {
-      setActiveBoard(item.value)
+    if (item.value === 'community-board') {
       navigate('/community')
       return
     }
 
-    if (item.kind === 'action' && item.value === 'home-resource') {
+    if (item.value === 'community-info') {
       navigate('/community/info')
       return
     }
 
     if (
       item.kind === 'action' &&
-      (item.value === 'home-leader' || item.value === 'game-ranking')
+      (item.value === 'service-status' || item.value === 'service-guide')
     ) {
-      navigate('/activity')
+      navigate(item.value === 'service-guide' ? '/service?tab=inquiry' : '/service')
       return
     }
 
-    if (
-      item.kind === 'action' &&
-      (item.value === 'home-recent' ||
-        item.value === 'community-manage' ||
-        item.value === 'community-announce')
-    ) {
-      navigate('/community')
+    if (item.kind === 'action' && item.value === 'game-ranking') {
+      navigate('/activity')
       return
     }
 
@@ -110,10 +101,6 @@ function App() {
     ) {
       navigate('/recruit')
       return
-    }
-
-    if (item.kind === 'action' && item.value === 'community-info') {
-      navigate('/community/info')
     }
   }
 
@@ -127,12 +114,100 @@ function App() {
     setMobileNavOpen(false)
   }
 
+  const handleRailPrimaryAction = () => {
+    if (activeRoute === 'community') {
+      navigate('/community/write')
+      return
+    }
+    if (activeRoute === 'service') {
+      navigate('/service')
+      return
+    }
+    if (activeRoute === 'recruit') {
+      navigate('/recruit')
+      return
+    }
+    if (activeRoute === 'game') {
+      navigate('/activity')
+    }
+  }
+
+  const appRoutes = (
+    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>}>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomePage
+              onOpenAllPosts={() => navigate('/community')}
+              onOpenInfo={() => navigate('/community/info')}
+            />
+          }
+        />
+
+        <Route path="/community" element={
+          <AllPostsPage
+            onOpenPost={(postId) => navigate(`/community/posts/${postId}`)}
+              onWritePost={() => navigate('/community/write')}
+              title="커뮤니티"
+              subtitle="공지와 인기글을 구분해 커뮤니티 흐름을 확인합니다."
+            />
+        } />
+        <Route
+          path="/community/info"
+          element={<InfoSharePage onWriteInfo={() => navigate('/community/info/write')} />}
+        />
+        <Route path="/community/info/write" element={
+          <RequireAuth>
+            <PostWriterPage writerType="info" onClose={() => navigate('/community/info')} />
+          </RequireAuth>
+        } />
+        <Route path="/community/write" element={
+          <RequireAuth>
+            <PostWriterPage onClose={() => navigate('/community')} />
+          </RequireAuth>
+        } />
+        <Route path="/community/posts/:postId" element={<PostDetailRoute />} />
+
+        <Route path="/recruit" element={
+          <RecruitPage onSelectRecruit={(id) => navigate(`/recruit/${id}`)} />
+        } />
+        <Route path="/recruit/:recruitId" element={<RecruitDetailRoute />} />
+
+        <Route path="/activity" element={<LeaderboardPage />} />
+        <Route path="/settings" element={
+          <RequireAuth>
+            <ProfilePage />
+          </RequireAuth>
+        } />
+        <Route path="/service" element={<ServicePage />} />
+        <Route path="/login" element={
+          isLoggedIn
+            ? <Navigate to="/" replace />
+            : <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
+        } />
+        <Route path="/signup" element={
+          isLoggedIn
+            ? <Navigate to="/" replace />
+            : <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
+        } />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
+  )
+
   return (
     <div className="coala-app">
       <header className="coala-header">
         <div className="coala-header-inner">
           <button type="button" className="coala-brand" onClick={() => navigate('/')}>
-            coala
+            <span className="coala-brand-mark" aria-hidden="true">
+              <span className="coala-brand-leaf coala-brand-leaf--left" />
+              <span className="coala-brand-leaf coala-brand-leaf--right" />
+            </span>
+            <span className="coala-brand-copy">
+              <span className="coala-brand-word">코알라</span>
+            </span>
           </button>
 
           <nav className={mobileNavOpen ? 'coala-main-nav is-open' : 'coala-main-nav'} aria-label="메인 메뉴">
@@ -161,7 +236,18 @@ function App() {
             </button>
             {isLoggedIn ? (
               <>
-                <span className="header-user-name">{user?.name ?? user?.email}</span>
+                {showHeaderProfile ? (
+                  <button
+                    type="button"
+                    className="header-user-button"
+                    onClick={() => navigate('/settings')}
+                  >
+                    <span className="header-user-avatar">
+                      {(user?.name ?? user?.email ?? 'U').charAt(0)}
+                    </span>
+                    <span className="header-user-name">{user?.name ?? user?.email}</span>
+                  </button>
+                ) : null}
                 <button
                   type="button"
                   className="header-action-button"
@@ -188,82 +274,30 @@ function App() {
                 </button>
               </>
             )}
-            <button type="button" className="mode-toggle" aria-label="화면 모드 전환">
-              <Icon name="moon" size={15} />
-            </button>
           </div>
         </div>
       </header>
 
+      {!isAuthRoute && activeRoute !== 'home' && contextPanel ? (
+        <div className="coala-subnav">
+          <ContextPanel panel={contextPanel} onSelect={handleContextSelect} variant="bar" />
+        </div>
+      ) : null}
+
       <main className={isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}>
-        {!isAuthRoute ? (
-          <aside className="coala-sidebar">
-            <ProfileCard
-              onOpenSettings={() => navigate('/settings')}
+        {showActivityRail ? (
+          <div className="coala-workspace coala-workspace--with-rail">
+            <div className="coala-workspace-main">{appRoutes}</div>
+            <UserActivityRail
+              route={activeRoute as 'community' | 'recruit' | 'game' | 'service'}
+              onPrimaryAction={handleRailPrimaryAction}
               onOpenProfile={() => navigate('/settings')}
+              onLogin={() => navigate('/login')}
             />
-            {contextPanel ? (
-              <ContextPanel panel={contextPanel} onSelect={handleContextSelect} />
-            ) : null}
-          </aside>
-        ) : null}
-
-        <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>}>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <HomePage
-                onOpenAllPosts={() => navigate('/community')}
-                onOpenInfo={() => navigate('/community/info')}
-                onOpenRecruit={() => navigate('/recruit')}
-                onOpenLeaderboard={() => navigate('/activity')}
-              />
-            }
-          />
-
-          <Route path="/community" element={
-            <AllPostsPage
-              activeBoard={activeBoard}
-              onOpenPost={(postId) => navigate(`/community/posts/${postId}`)}
-                onWritePost={() => navigate('/community/write')}
-                title="커뮤니티"
-                subtitle="백엔드 게시판 타입에 맞춰 일반 게시판과 모집 게시판을 한 곳에서 관리해요."
-              />
-          } />
-          <Route path="/community/info" element={<InfoSharePage />} />
-          <Route path="/community/write" element={
-            <RequireAuth>
-              <PostWriterPage onClose={() => navigate('/community')} />
-            </RequireAuth>
-          } />
-          <Route path="/community/posts/:postId" element={<PostDetailRoute />} />
-
-          <Route path="/recruit" element={
-            <RecruitPage onSelectRecruit={(id) => navigate(`/recruit/${id}`)} />
-          } />
-          <Route path="/recruit/:recruitId" element={<RecruitDetailRoute />} />
-
-          <Route path="/activity" element={<LeaderboardPage />} />
-          <Route path="/settings" element={
-            <RequireAuth>
-              <ProfilePage />
-            </RequireAuth>
-          } />
-          <Route path="/service" element={<ServicePage />} />
-          <Route path="/login" element={
-            isLoggedIn
-              ? <Navigate to="/" replace />
-              : <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
-          } />
-          <Route path="/signup" element={
-            isLoggedIn
-              ? <Navigate to="/" replace />
-              : <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
-          } />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        </Suspense>
+          </div>
+        ) : (
+          appRoutes
+        )}
       </main>
 
       <footer className="coala-footer">(c) 2026 동아리 코알라. All rights reserved.</footer>

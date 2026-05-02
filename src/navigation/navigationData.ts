@@ -1,8 +1,4 @@
-﻿import type { IconName } from '../shared/ui/Icon'
-import {
-  type PostBoardFilterId,
-  sidebarBoardItems,
-} from '../pages/posts/postsData'
+import type { IconName } from '../shared/ui/Icon'
 
 export type AppRoute =
   | 'home'
@@ -19,9 +15,10 @@ export type HeaderRoute = 'home' | 'community' | 'recruit' | 'game' | 'service'
 export type HeaderNavItem = {
   id: HeaderRoute
   label: string
+  icon: IconName
 }
 
-export type ContextItemKind = 'board' | 'action'
+export type ContextItemKind = 'action'
 
 export type ContextPanelItem = {
   id: string
@@ -70,11 +67,11 @@ export function getRouteFromPath(pathname: string): AppRoute {
 }
 
 export const headerNavItems: HeaderNavItem[] = [
-  { id: 'home', label: '홈' },
-  { id: 'community', label: '커뮤니티' },
-  { id: 'recruit', label: '모집' },
-  { id: 'game', label: '활동' },
-  { id: 'service', label: '서비스' },
+  { id: 'home', label: '홈', icon: 'layout' },
+  { id: 'service', label: '인스턴스', icon: 'network' },
+  { id: 'community', label: '커뮤니티', icon: 'message' },
+  { id: 'recruit', label: '모집', icon: 'users' },
+  { id: 'game', label: '활동', icon: 'chart' },
 ]
 
 export const routeLabelById: Record<AppRoute, string> = {
@@ -82,51 +79,24 @@ export const routeLabelById: Record<AppRoute, string> = {
   community: '커뮤니티',
   recruit: '모집',
   game: '활동',
-  service: '서비스',
+  service: '인스턴스',
   settings: '프로필 설정',
   login: '로그인',
   signup: '회원가입',
 }
 
-const homeActions: ContextActionDefinition[] = [
-  {
-    id: 'home-recent',
-    label: '최근 업데이트',
-    icon: 'bell',
-    description: '오늘 변경된 공지와 소식을 확인해요.',
-  },
-  {
-    id: 'home-leader',
-    label: '활동 랭킹',
-    icon: 'chart',
-    description: '백준·GitHub 기여도 순위를 살펴봐요.',
-  },
-  {
-    id: 'home-resource',
-    label: '추천 자료',
-    icon: 'book',
-    description: '커뮤니티 정보공유 게시판으로 이동할 수 있어요.',
-  },
-]
-
 const communityActions: ContextActionDefinition[] = [
+  {
+    id: 'community-board',
+    label: '게시판',
+    icon: 'message',
+    description: '전체 게시글과 일반 게시판 필터를 확인합니다.',
+  },
   {
     id: 'community-info',
     label: '정보공유',
     icon: 'book',
-    description: '토론형 아티클과 자료 카드 화면을 확인해요.',
-  },
-  {
-    id: 'community-manage',
-    label: '게시판 관리',
-    icon: 'settings',
-    description: '게시판별 권한과 노출 규칙을 관리해요.',
-  },
-  {
-    id: 'community-announce',
-    label: '공지 등록',
-    icon: 'edit',
-    description: '공지 사항을 작성하고 상단 고정을 설정해요.',
+    description: '동아리 소개, 최신 정보, 일정, 전체 정보를 확인합니다.',
   },
 ]
 
@@ -148,15 +118,9 @@ const recruitActions: ContextActionDefinition[] = [
 const gameActions: ContextActionDefinition[] = [
   {
     id: 'game-ranking',
-    label: '종합 랭킹',
+    label: '활동 현황',
     icon: 'chart',
-    description: '백준 · GitHub 활동을 합산한 종합 순위를 확인해요.',
-  },
-  {
-    id: 'game-baekjoon',
-    label: '백준 현황',
-    icon: 'file',
-    description: 'SOLVED 등급별 문제풀이 기록을 확인해요.',
+    description: 'GitHub 활동과 향후 오픈소스 기여 지표를 확인합니다.',
   },
   {
     id: 'game-github',
@@ -169,15 +133,15 @@ const gameActions: ContextActionDefinition[] = [
 const serviceActions: ContextActionDefinition[] = [
   {
     id: 'service-status',
-    label: '서비스 상태',
+    label: '인스턴스 대여',
     icon: 'network',
-    description: '서비스 상태와 점검 일정을 확인해요.',
+    description: '인스턴스 대여 신청 화면으로 이동합니다.',
   },
   {
     id: 'service-guide',
-    label: '이용 가이드',
+    label: '문의사항',
     icon: 'book',
-    description: '서비스 기능별 사용 가이드를 확인해요.',
+    description: '대여 관련 문의와 처리 안내를 확인합니다.',
   },
 ]
 
@@ -211,38 +175,31 @@ const toActionPanelItems = (
   }))
 }
 
-const toBoardItems = (
-  activeBoard: PostBoardFilterId,
-  icon: IconName,
-): ContextPanelItem[] => {
-  return sidebarBoardItems.map((item) => ({
-    id: `board-${item.id}`,
+const toCommunityItems = (pathname: string): ContextPanelItem[] => {
+  const isInfo = pathname.startsWith('/community/info')
+  return communityActions.map((item) => ({
+    id: item.id,
     label: item.label,
-    icon,
-    badge: item.badge,
-    kind: 'board',
+    icon: item.icon,
+    description: item.description,
+    kind: 'action',
     value: item.id,
-    isActive: activeBoard === item.id,
+    isActive: item.id === 'community-info' ? isInfo : !isInfo,
   }))
 }
 
 export function buildContextPanel(
   route: AppRoute,
-  activeBoard: PostBoardFilterId,
+  pathname = '',
 ): ContextPanelData | null {
   switch (route) {
     case 'home':
-      return {
-        title: '바로가기',
-        description: '자주 쓰는 영역을 빠르게 이동할 수 있어요.',
-        items: toActionPanelItems(homeActions),
-      }
+      return null
     case 'community':
       return {
-        title: '커뮤니티 메뉴',
-        description:
-          '왼쪽에서 전체 게시글, 자유게시판, 졸업생게시판, 정보공유를 선택합니다.',
-        items: [...toBoardItems(activeBoard, 'users'), ...toActionPanelItems(communityActions, -1)],
+        title: '커뮤니티',
+        description: '게시판과 정보공유를 전환합니다.',
+        items: toCommunityItems(pathname),
       }
     case 'recruit':
       return {
@@ -253,13 +210,13 @@ export function buildContextPanel(
     case 'game':
       return {
         title: '활동 메뉴',
-        description: '백준 문제풀이와 GitHub 커밋 활동 기록을 확인하세요.',
+        description: 'GitHub 활동과 오픈소스 기여 지표를 확인하세요.',
         items: toActionPanelItems(gameActions),
       }
     case 'service':
       return {
-        title: '서비스 메뉴',
-        description: '서비스 상태, 정책, 가이드를 확인할 수 있어요.',
+        title: '인스턴스 메뉴',
+        description: '인스턴스 대여와 문의사항으로 이동할 수 있어요.',
         items: toActionPanelItems(serviceActions),
       }
     case 'settings':

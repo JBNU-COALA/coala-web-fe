@@ -30,6 +30,16 @@ export type AttachedFile = {
   uploadedAt: string
 }
 
+export type InquiryItem = {
+  id: string
+  title: string
+  summary: string
+  author: string
+  createdAt: string
+  status: string
+  statusClass: string
+}
+
 export const instanceTypes: {
   id: InstanceType
   label: string
@@ -143,3 +153,33 @@ export const statusMeta: Record<ApplyStatus, { label: string; colorClass: string
   approved: { label: '승인', colorClass: 'status--approved' },
   rejected: { label: '반려', colorClass: 'status--rejected' },
 }
+
+export const inquiryItems: InquiryItem[] = [
+  {
+    id: 'inq-001',
+    title: 'GPU 인스턴스는 최대 몇 주까지 대여할 수 있나요?',
+    summary: '졸업 프로젝트 모델 학습 일정 때문에 GPU 인스턴스 연장 가능 여부를 확인하고 싶습니다.',
+    author: '박알고',
+    createdAt: '2026.04.28',
+    status: '답변 완료',
+    statusClass: 'status--approved',
+  },
+  {
+    id: 'inq-002',
+    title: '배포용 포트를 외부에서 열 수 있는지 궁금합니다.',
+    summary: '캡스톤 데모 기간에만 API 서버를 외부 테스트 링크로 공유하려고 합니다.',
+    author: '최네트',
+    createdAt: '2026.04.25',
+    status: '검토 중',
+    statusClass: 'status--pending',
+  },
+  {
+    id: 'inq-003',
+    title: '팀 프로젝트 인스턴스 신청자는 팀장만 가능한가요?',
+    summary: '프로젝트 팀원이 대신 신청해도 되는지, 승인 후 접속 정보 공유 방식이 궁금합니다.',
+    author: '김코알라',
+    createdAt: '2026.04.21',
+    status: '답변 완료',
+    statusClass: 'status--approved',
+  },
+]

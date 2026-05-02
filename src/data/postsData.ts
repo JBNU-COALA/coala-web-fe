@@ -9,12 +9,6 @@ type PostCategoryFilter = {
   label: string
 }
 
-type SidebarBoardItem = {
-  id: PostBoardFilterId
-  label: string
-  badge: string
-}
-
 export type CommunityPost = {
   id: string
   category: PostBoardFilterId
@@ -58,13 +52,6 @@ export const totalPostCountLabel = '코알라 커뮤니티에서 1,284개의 게
 export const postCategoryFilters: PostCategoryFilter[] = [
   { id: 'all', label: '전체 게시글' },
   { id: 'normal', label: '일반 게시판' },
-  { id: 'recruit', label: '모집 게시판' },
-]
-
-export const sidebarBoardItems: SidebarBoardItem[] = [
-  { id: 'all', label: '전체 게시글', badge: 'ALL' },
-  { id: 'normal', label: '일반 게시판', badge: 'NORMAL' },
-  { id: 'recruit', label: '모집 게시판', badge: 'RECRUIT' },
 ]
 
 export const postCategoryMeta: Record<PostBoardFilterId, PostCategoryMeta> = {
@@ -76,12 +63,12 @@ export const postCategoryMeta: Record<PostBoardFilterId, PostCategoryMeta> = {
   normal: {
     label: '일반',
     tone: 'normal',
-    description: '백엔드 NORMAL 타입 게시판의 글을 모아 보여줘요.',
+    description: '일반 게시판의 글을 모아 보여줍니다.',
   },
   recruit: {
     label: '모집',
     tone: 'recruit',
-    description: '백엔드 RECRUIT 타입 게시판의 글을 모아 보여줘요.',
+    description: '모집 관련 글입니다. 주요 모집 흐름은 모집 탭에서 확인합니다.',
   },
 }
 
@@ -125,7 +112,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-004',
-    category: 'recruit',
+    category: 'normal',
     title: '졸업생 실무 세션: 프론트엔드 협업 팁 공유',
     excerpt: '실제 스타트업 프론트엔드 팀에서 쓰는 협업 규칙과 QA 플로를 정리한 세션 노트입니다.',
     author: '김예린',
@@ -137,7 +124,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-005',
-    category: 'recruit',
+    category: 'normal',
     title: '취업 포트폴리오 피드백 모임 후기',
     excerpt: '졸업생 모임에서 나왔던 포트폴리오 진단 기준과 첨삭 팁을 간단히 남겼어요.',
     author: '이도윤',

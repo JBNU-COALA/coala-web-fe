@@ -4,11 +4,32 @@ import type { ContextPanelData, ContextPanelItem } from './navigationData'
 type ContextPanelProps = {
   panel: ContextPanelData
   onSelect: (item: ContextPanelItem) => void
+  variant?: 'card' | 'bar'
 }
 
-export function ContextPanel({ panel, onSelect }: ContextPanelProps) {
+export function ContextPanel({ panel, onSelect, variant = 'card' }: ContextPanelProps) {
+  if (variant === 'bar') {
+    return (
+      <nav className="context-tabs" aria-label={panel.title}>
+        {panel.items.map((item) => (
+          <button
+            key={item.id}
+            type="button"
+            className={item.isActive ? 'context-tab is-active' : 'context-tab'}
+            onClick={() => onSelect(item)}
+          >
+            <span>{item.label}</span>
+            {item.badge ? <small>{item.badge}</small> : null}
+          </button>
+        ))}
+      </nav>
+    )
+  }
+
+  const className = 'surface-card context-card'
+
   return (
-    <section className="surface-card context-card" aria-label={panel.title}>
+    <section className={className} aria-label={panel.title}>
       <header className="context-card-header">
         <h2 className="context-card-title">{panel.title}</h2>
         <p className="context-card-description">{panel.description}</p>

@@ -1,15 +1,12 @@
 import { useMemo, useState } from 'react'
 import {
   activityMembers,
-  activitySources,
-  solvedTierMeta,
   GITHUB_COMMIT_POINT,
   type ActivityMember,
-  type SolvedTier,
 } from './leaderboardData'
 import { Icon } from '../../shared/ui/Icon'
 
-type TabId = 'overall' | 'baekjoon' | 'github' | 'me'
+type TabId = 'overall' | 'github' | 'opensource' | 'me'
 
 const trendSymbol: Record<'up' | 'down' | 'flat', string> = {
   up: '▲',
@@ -17,11 +14,59 @@ const trendSymbol: Record<'up' | 'down' | 'flat', string> = {
   flat: '―',
 }
 
-const podiumOrder = [1, 0, 2] // 2nd, 1st, 3rd visually
+const podiumOrder = [1, 0, 2]
 
-function SolvedTierBadge({ tier }: { tier: SolvedTier }) {
-  const meta = solvedTierMeta[tier]
-  return <span className={`solved-tier-badge solved-tier-badge--${tier}`}>{meta.label}</span>
+const activitySourceCards = [
+  {
+    id: 'github',
+    label: 'GitHub 활동',
+    description: '커밋, 리뷰, 프로젝트 기여를 중심으로 활동 기록을 정리합니다.',
+    pointFormula: `커밋 1회 = ${GITHUB_COMMIT_POINT}pt`,
+  },
+  {
+    id: 'community',
+    label: '개발자 커뮤니티',
+    description: '기술 질문 답변, 자료 공유, 코드 리뷰 참여도를 함께 반영합니다.',
+    pointFormula: '답변 1건 = 12pt · 리뷰 1건 = 15pt',
+  },
+  {
+    id: 'opensource',
+    label: '오픈소스 기여',
+    description: '이슈 제보, 문서 개선, PR 제출 이력을 활동 지표로 묶습니다.',
+    pointFormula: 'PR 1건 = 40pt · 이슈 1건 = 10pt',
+  },
+]
+
+function getGithubPoints(row: ActivityMember) {
+  return row.githubCommits * GITHUB_COMMIT_POINT
+}
+
+function getCommunityStats(row: ActivityMember) {
+  return {
+    answers: Math.max(2, Math.round(row.githubCommits / 18)),
+    reviews: Math.max(1, Math.round(row.githubCommits / 32)),
+    shares: Math.max(1, row.rank <= 3 ? 6 - row.rank : 2),
+  }
+}
+
+function getOpenSourceStats(row: ActivityMember) {
+  return {
+    prs: Math.max(0, Math.round(row.githubCommits / 70)),
+    issues: Math.max(1, Math.round(row.githubCommits / 45)),
+  }
+}
+
+function getActivityPoints(row: ActivityMember) {
+  const community = getCommunityStats(row)
+  const openSource = getOpenSourceStats(row)
+  return (
+    getGithubPoints(row) +
+    community.answers * 12 +
+    community.reviews * 15 +
+    community.shares * 8 +
+    openSource.prs * 40 +
+    openSource.issues * 10
+  )
 }
 
 function ActivityRow({ row }: { row: ActivityMember }) {
@@ -52,15 +97,8 @@ function ActivityRow({ row }: { row: ActivityMember }) {
             {row.name}
             {row.isMe ? <span className="activity-you-chip">나</span> : null}
           </span>
-          <span className="activity-member-handles">
-            {row.solvedHandle} · @{row.githubHandle}
-          </span>
+          <span className="activity-member-handles">@{row.githubHandle}</span>
         </span>
-      </span>
-
-      <span className="activity-cell activity-cell--tier" role="cell">
-        <SolvedTierBadge tier={row.solvedTier} />
-        <span className="activity-solved-count">{row.solvedCount}문제</span>
       </span>
 
       <span className="activity-cell activity-cell--commits" role="cell">
@@ -68,10 +106,14 @@ function ActivityRow({ row }: { row: ActivityMember }) {
         <span className="activity-commits-label">commits</span>
       </span>
 
+      <span className="activity-cell activity-cell--opensource" role="cell">
+        <span className="activity-open-source-placeholder">
+          답변 {getCommunityStats(row).answers} · 리뷰 {getCommunityStats(row).reviews}
+        </span>
+      </span>
+
       <span className="activity-cell activity-cell--points" role="cell">
-        <strong className="activity-total-points">
-          {row.totalPoints.toLocaleString()}
-        </strong>
+        <strong className="activity-total-points">{getActivityPoints(row).toLocaleString()}</strong>
         <span className="activity-points-label">pts</span>
       </span>
 
@@ -103,22 +145,21 @@ export function LeaderboardPage() {
       rows = rows.filter((r) => r.isMe)
     }
 
-    if (tab === 'baekjoon') {
-      rows = [...rows].sort((a, b) => {
-        const tierOrder: SolvedTier[] = ['ruby', 'diamond', 'platinum', 'gold', 'silver', 'bronze', 'unrated']
-        const tierDiff = tierOrder.indexOf(a.solvedTier) - tierOrder.indexOf(b.solvedTier)
-        if (tierDiff !== 0) return tierDiff
-        return b.solvedCount - a.solvedCount
-      })
-    }
-
     if (tab === 'github') {
       rows = [...rows].sort((a, b) => b.githubCommits - a.githubCommits)
     }
 
+    if (tab === 'opensource') {
+      rows = [...rows].sort((a, b) => {
+        const aStats = getOpenSourceStats(a)
+        const bStats = getOpenSourceStats(b)
+        return bStats.prs + bStats.issues - (aStats.prs + aStats.issues)
+      })
+    }
+
     if (normalizedQuery) {
       rows = rows.filter((r) =>
-        `${r.name} ${r.solvedHandle} ${r.githubHandle}`.toLowerCase().includes(normalizedQuery),
+        `${r.name} ${r.githubHandle}`.toLowerCase().includes(normalizedQuery),
       )
     }
 
@@ -126,22 +167,21 @@ export function LeaderboardPage() {
   }, [tab, normalizedQuery])
 
   const tabs: { id: TabId; label: string }[] = [
-    { id: 'overall', label: '종합 순위' },
-    { id: 'baekjoon', label: '백준' },
+    { id: 'overall', label: '전체' },
     { id: 'github', label: 'GitHub' },
-    { id: 'me', label: '내 순위' },
+    { id: 'opensource', label: '오픈소스/커뮤니티' },
+    { id: 'me', label: '내 활동' },
   ]
 
   return (
     <section className="coala-content coala-content--activity">
       <div className="activity-page">
-        {/* Page header */}
         <header className="activity-page-header">
           <div className="activity-page-title-block">
             <p className="activity-page-eyebrow">2026 · 2월</p>
-            <h2 className="activity-page-title">활동 랭킹</h2>
+            <h2 className="activity-page-title">활동 현황</h2>
             <p className="activity-page-subtitle">
-              백준 문제풀이와 GitHub 커밋 기록을 합산한 종합 활동 순위입니다. 포인트는 24시간마다 업데이트됩니다.
+              GitHub, 코드 리뷰, 질의응답, 자료 공유, 오픈소스 참여 흐름을 함께 보여줍니다.
             </p>
           </div>
           <div className="activity-page-header-actions">
@@ -152,12 +192,14 @@ export function LeaderboardPage() {
           </div>
         </header>
 
-        {/* Activity sources */}
         <div className="activity-sources-grid">
-          {activitySources.map((source) => (
+          {activitySourceCards.map((source) => (
             <div key={source.id} className="activity-source-card surface-card">
               <div className="activity-source-icon">
-                <Icon name={source.id === 'baekjoon' ? 'file' : 'network'} size={18} />
+                <Icon
+                  name={source.id === 'github' ? 'network' : source.id === 'community' ? 'message' : 'link'}
+                  size={18}
+                />
               </div>
               <div className="activity-source-body">
                 <p className="activity-source-label">{source.label}</p>
@@ -168,13 +210,11 @@ export function LeaderboardPage() {
           ))}
         </div>
 
-        {/* Podium */}
-        <div className="activity-podium" aria-label="상위 랭커">
+        <div className="activity-podium" aria-label="상위 활동 멤버">
           {podiumOrder.map((idx) => {
             const member = top3[idx]
             if (!member) return null
-            const baekjoonPts = member.solvedCount * solvedTierMeta[member.solvedTier].pointsPerProblem
-            const githubPts = member.githubCommits * GITHUB_COMMIT_POINT
+            const activityPts = getActivityPoints(member)
             return (
               <div
                 key={member.id}
@@ -188,17 +228,16 @@ export function LeaderboardPage() {
                     {member.rank}
                   </span>
                   <p className="podium-name">{member.name}</p>
-                  <SolvedTierBadge tier={member.solvedTier} />
-                  <p className="podium-points">{member.totalPoints.toLocaleString()} pts</p>
+                  <p className="podium-handle">@{member.githubHandle}</p>
+                  <p className="podium-points">{activityPts.toLocaleString()} pts</p>
                   <div className="podium-breakdown">
                     <span className="podium-breakdown-item">
-                      <span className="podium-breakdown-dot podium-breakdown-dot--baekjoon" />
-                      {baekjoonPts.toLocaleString()}
-                    </span>
-                    <span className="podium-breakdown-sep">+</span>
-                    <span className="podium-breakdown-item">
                       <span className="podium-breakdown-dot podium-breakdown-dot--github" />
-                      {githubPts.toLocaleString()}
+                      GitHub {member.githubCommits}회
+                    </span>
+                    <span className="podium-breakdown-item">
+                      <span className="podium-breakdown-dot podium-breakdown-dot--community" />
+                      답변 {getCommunityStats(member).answers}건
                     </span>
                   </div>
                 </div>
@@ -208,7 +247,6 @@ export function LeaderboardPage() {
           })}
         </div>
 
-        {/* Table section */}
         <div className="activity-table-shell surface-card">
           <div className="activity-table-toolbar">
             <div className="activity-tabs">
@@ -230,18 +268,18 @@ export function LeaderboardPage() {
                 type="search"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="이름 또는 핸들 검색"
+                placeholder="이름 또는 GitHub 핸들 검색"
               />
             </label>
           </div>
 
-          <div className="activity-table-wrap" role="table" aria-label="활동 랭킹 테이블">
+          <div className="activity-table-wrap" role="table" aria-label="활동 현황 테이블">
             <div className="activity-table-head" role="row">
               <span role="columnheader">순위</span>
               <span role="columnheader">멤버</span>
-              <span role="columnheader">백준</span>
               <span role="columnheader">GitHub</span>
-              <span role="columnheader">총 포인트</span>
+              <span role="columnheader">커뮤니티</span>
+              <span role="columnheader">포인트</span>
               <span role="columnheader">추세</span>
             </div>
 
@@ -250,29 +288,11 @@ export function LeaderboardPage() {
                 <ActivityRow key={row.id} row={row} />
               ))}
               {tableRows.length === 0 ? (
-                <li className="activity-empty">조건에 맞는 멤버가 없습니다.</li>
+                <li className="activity-empty">
+                  조건에 맞는 멤버가 없습니다.
+                </li>
               ) : null}
             </ul>
-          </div>
-        </div>
-
-        {/* Point formula reference */}
-        <div className="activity-formula-strip">
-          <p className="activity-formula-title">포인트 산정 기준</p>
-          <div className="activity-formula-tiers">
-            {(Object.entries(solvedTierMeta) as [SolvedTier, { label: string; pointsPerProblem: number }][]).map(
-              ([tier, meta]) => (
-                <span key={tier} className="activity-formula-tier-item">
-                  <span className={`solved-tier-badge solved-tier-badge--${tier}`}>{meta.label}</span>
-                  <span className="activity-formula-pt">{meta.pointsPerProblem}pt</span>
-                </span>
-              ),
-            )}
-            <span className="activity-formula-divider" />
-            <span className="activity-formula-tier-item">
-              <Icon name="network" size={13} />
-              <span className="activity-formula-pt">커밋 {GITHUB_COMMIT_POINT}pt</span>
-            </span>
           </div>
         </div>
       </div>
