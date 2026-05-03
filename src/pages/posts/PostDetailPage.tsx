@@ -159,7 +159,7 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
   const coverGradient = COVER_GRADIENTS[post.boardId % COVER_GRADIENTS.length]
   const readingTime = estimateReadingTime(post.content)
   const publishedAt = formatDate(post.createdAt)
-  const category = postCategoryMeta['all']
+  const category = postCategoryMeta['free']
   const safeContent = sanitizePostContent(post.content)
 
   return (

@@ -1,6 +1,6 @@
-﻿export type PostBoardFilterId = 'all' | 'normal' | 'recruit'
+﻿export type PostBoardFilterId = 'notice' | 'free' | 'humor'
 
-export type PostBadgeTone = 'all' | 'normal' | 'recruit'
+export type PostBadgeTone = PostBoardFilterId
 
 type PostAuthorTone = 'mint' | 'slate' | 'sky' | 'sand' | 'rose'
 
@@ -45,37 +45,38 @@ export type PostDetailContent = {
   content: PostDetailBlock[]
 }
 
-export const defaultPostBoardFilter: PostBoardFilterId = 'all'
+export const defaultPostBoardFilter: PostBoardFilterId = 'notice'
 
 export const totalPostCountLabel = '코알라 커뮤니티에서 1,284개의 게시글을 찾았어요.'
 
 export const postCategoryFilters: PostCategoryFilter[] = [
-  { id: 'all', label: '전체 게시글' },
-  { id: 'normal', label: '일반 게시판' },
+  { id: 'notice', label: '공지' },
+  { id: 'free', label: '자유' },
+  { id: 'humor', label: '유머' },
 ]
 
 export const postCategoryMeta: Record<PostBoardFilterId, PostCategoryMeta> = {
-  all: {
-    label: '전체',
-    tone: 'all',
-    description: '모든 게시글의 리듬을 훑어보며 커뮤니티 분위기를 파악해요.',
+  notice: {
+    label: '공지',
+    tone: 'notice',
+    description: '운영진 공지와 중요한 안내를 확인합니다.',
   },
-  normal: {
-    label: '일반',
-    tone: 'normal',
-    description: '일반 게시판의 글을 모아 보여줍니다.',
+  free: {
+    label: '자유',
+    tone: 'free',
+    description: '자유롭게 질문하고 생각을 나누는 게시판입니다.',
   },
-  recruit: {
-    label: '모집',
-    tone: 'recruit',
-    description: '모집 관련 글입니다. 주요 모집 흐름은 모집 탭에서 확인합니다.',
+  humor: {
+    label: '유머',
+    tone: 'humor',
+    description: '가볍게 웃고 쉬어가는 이야기들을 모아둡니다.',
   },
 }
 
 export const communityPosts: CommunityPost[] = [
   {
     id: 'post-001',
-    category: 'all',
+    category: 'notice',
     title: '동아리 코알라 이용 가이드와 온보딩 공지',
     excerpt: '신규 합류자가 빠르게 적응할 수 있도록 운영진이 정리해 둔 체크리스트와 공지를 모았습니다.',
     author: '관리자_코알라',
@@ -87,7 +88,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-002',
-    category: 'normal',
+    category: 'free',
     title: '2026년 생산성 루틴 공유 스레드',
     excerpt: '아침 루틴부터 사이드 프로젝트를 병행하는 방법까지, 멤버들의 실제 스케줄을 엿볼 수 있어요.',
     author: '박세연',
@@ -99,7 +100,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-003',
-    category: 'normal',
+    category: 'free',
     title: '스터디 운영 자동화 템플릿 같이 써볼 분 있나요?',
     excerpt: '노션과 슬랙을 연결한 스터디 운영 자동화 템플릿을 함께 실험해볼 멤버를 찾습니다.',
     author: '최민호',
@@ -112,7 +113,7 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-004',
-    category: 'normal',
+    category: 'notice',
     title: '졸업생 실무 세션: 프론트엔드 협업 팁 공유',
     excerpt: '실제 스타트업 프론트엔드 팀에서 쓰는 협업 규칙과 QA 플로를 정리한 세션 노트입니다.',
     author: '김예린',
@@ -124,9 +125,9 @@ export const communityPosts: CommunityPost[] = [
   },
   {
     id: 'post-005',
-    category: 'normal',
-    title: '취업 포트폴리오 피드백 모임 후기',
-    excerpt: '졸업생 모임에서 나왔던 포트폴리오 진단 기준과 첨삭 팁을 간단히 남겼어요.',
+    category: 'humor',
+    title: '코딩하다가 새벽 3시에 깨달은 웃픈 순간들',
+    excerpt: '콘솔 로그 한 줄 때문에 밤을 새운 경험담과 밈을 가볍게 나눠요.',
     author: '이도윤',
     authorInitials: '이',
     authorTone: 'rose',

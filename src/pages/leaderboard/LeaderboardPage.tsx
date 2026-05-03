@@ -1,263 +1,126 @@
 import { useMemo, useState } from 'react'
-import {
-  activityMembers,
-  GITHUB_COMMIT_POINT,
-  type ActivityMember,
-} from './leaderboardData'
+import { activityMembers, type ActivityLogType, type ActivityMember } from './leaderboardData'
 import { Icon } from '../../shared/ui/Icon'
 
-type TabId = 'overall' | 'github' | 'opensource' | 'me'
+type ActivityTab = 'users' | 'github' | 'mine'
 
-const trendSymbol: Record<'up' | 'down' | 'flat', string> = {
-  up: '▲',
-  down: '▼',
-  flat: '―',
+const logIconByType: Record<ActivityLogType, Parameters<typeof Icon>[0]['name']> = {
+  commit: 'network',
+  'pull-request': 'link',
+  release: 'file',
+  note: 'book',
 }
 
-const podiumOrder = [1, 0, 2]
-
-const activitySourceCards = [
-  {
-    id: 'github',
-    label: 'GitHub 활동',
-    description: '커밋, 리뷰, 프로젝트 기여를 중심으로 활동 기록을 정리합니다.',
-    pointFormula: `커밋 1회 = ${GITHUB_COMMIT_POINT}pt`,
-  },
-  {
-    id: 'community',
-    label: '개발자 커뮤니티',
-    description: '기술 질문 답변, 자료 공유, 코드 리뷰 참여도를 함께 반영합니다.',
-    pointFormula: '답변 1건 = 12pt · 리뷰 1건 = 15pt',
-  },
-  {
-    id: 'opensource',
-    label: '오픈소스 기여',
-    description: '이슈 제보, 문서 개선, PR 제출 이력을 활동 지표로 묶습니다.',
-    pointFormula: 'PR 1건 = 40pt · 이슈 1건 = 10pt',
-  },
-]
-
-function getGithubPoints(row: ActivityMember) {
-  return row.githubCommits * GITHUB_COMMIT_POINT
-}
-
-function getCommunityStats(row: ActivityMember) {
-  return {
-    answers: Math.max(2, Math.round(row.githubCommits / 18)),
-    reviews: Math.max(1, Math.round(row.githubCommits / 32)),
-    shares: Math.max(1, row.rank <= 3 ? 6 - row.rank : 2),
-  }
-}
-
-function getOpenSourceStats(row: ActivityMember) {
-  return {
-    prs: Math.max(0, Math.round(row.githubCommits / 70)),
-    issues: Math.max(1, Math.round(row.githubCommits / 45)),
-  }
-}
-
-function getActivityPoints(row: ActivityMember) {
-  const community = getCommunityStats(row)
-  const openSource = getOpenSourceStats(row)
+function MemberCard({ member, isSelected, onSelect }: {
+  member: ActivityMember
+  isSelected: boolean
+  onSelect: () => void
+}) {
   return (
-    getGithubPoints(row) +
-    community.answers * 12 +
-    community.reviews * 15 +
-    community.shares * 8 +
-    openSource.prs * 40 +
-    openSource.issues * 10
-  )
-}
-
-function ActivityRow({ row }: { row: ActivityMember }) {
-  const isTop3 = row.rank <= 3
-  return (
-    <li
-      className={[
-        'activity-row',
-        row.isMe ? 'activity-row--me' : '',
-        isTop3 ? `activity-row--top${row.rank}` : '',
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      role="row"
+    <button
+      type="button"
+      className={isSelected ? 'activity-member-card is-active' : 'activity-member-card'}
+      onClick={onSelect}
     >
-      <span className="activity-cell activity-cell--rank" role="cell">
-        {isTop3 ? (
-          <span className={`rank-medal rank-medal--${row.rank}`}>{row.rank}</span>
-        ) : (
-          <span className="rank-number">{row.rank}</span>
-        )}
-      </span>
-
-      <span className="activity-cell activity-cell--member" role="cell">
-        <span className={`activity-avatar activity-avatar--${row.tone}`}>{row.initials}</span>
-        <span className="activity-member-info">
-          <span className="activity-member-name">
-            {row.name}
-            {row.isMe ? <span className="activity-you-chip">나</span> : null}
-          </span>
-          <span className="activity-member-handles">@{row.githubHandle}</span>
+      <span className={`activity-avatar activity-avatar--${member.tone}`}>{member.initials}</span>
+      <span className="activity-member-info">
+        <span className="activity-member-name">
+          {member.name}
+          {member.isMe ? <span className="activity-you-chip">나</span> : null}
         </span>
+        <span className="activity-member-handles">@{member.githubHandle}</span>
+        <span className="activity-member-focus">{member.focus}</span>
       </span>
-
-      <span className="activity-cell activity-cell--commits" role="cell">
-        <span className="activity-commits-count">{row.githubCommits}</span>
-        <span className="activity-commits-label">commits</span>
-      </span>
-
-      <span className="activity-cell activity-cell--opensource" role="cell">
-        <span className="activity-open-source-placeholder">
-          답변 {getCommunityStats(row).answers} · 리뷰 {getCommunityStats(row).reviews}
-        </span>
-      </span>
-
-      <span className="activity-cell activity-cell--points" role="cell">
-        <strong className="activity-total-points">{getActivityPoints(row).toLocaleString()}</strong>
-        <span className="activity-points-label">pts</span>
-      </span>
-
-      <span
-        className={`activity-cell activity-cell--trend trend-chip trend-chip--${row.trend}`}
-        role="cell"
-      >
-        {trendSymbol[row.trend]}
-      </span>
-    </li>
+    </button>
   )
 }
 
 export function LeaderboardPage() {
   const [query, setQuery] = useState('')
-  const [tab, setTab] = useState<TabId>('overall')
+  const [tab, setTab] = useState<ActivityTab>('users')
+  const [gradeFilter, setGradeFilter] = useState('all')
+  const [labFilter, setLabFilter] = useState('all')
+  const [selectedMemberId, setSelectedMemberId] = useState(activityMembers[0]?.id ?? '')
 
   const normalizedQuery = query.trim().toLowerCase()
+  const gradeOptions = ['all', ...Array.from(new Set(activityMembers.map((member) => member.grade)))]
+  const labOptions = ['all', ...Array.from(new Set(activityMembers.map((member) => member.lab)))]
 
-  const top3 = useMemo(
-    () => activityMembers.filter((m) => m.rank <= 3).sort((a, b) => a.rank - b.rank),
-    [],
-  )
+  const filteredMembers = useMemo(() => {
+    let members = activityMembers
 
-  const tableRows = useMemo(() => {
-    let rows = activityMembers
-
-    if (tab === 'me') {
-      rows = rows.filter((r) => r.isMe)
+    if (tab === 'mine') {
+      members = members.filter((member) => member.isMe)
     }
 
-    if (tab === 'github') {
-      rows = [...rows].sort((a, b) => b.githubCommits - a.githubCommits)
+    if (gradeFilter !== 'all') {
+      members = members.filter((member) => member.grade === gradeFilter)
     }
 
-    if (tab === 'opensource') {
-      rows = [...rows].sort((a, b) => {
-        const aStats = getOpenSourceStats(a)
-        const bStats = getOpenSourceStats(b)
-        return bStats.prs + bStats.issues - (aStats.prs + aStats.issues)
-      })
+    if (labFilter !== 'all') {
+      members = members.filter((member) => member.lab === labFilter)
     }
 
     if (normalizedQuery) {
-      rows = rows.filter((r) =>
-        `${r.name} ${r.githubHandle}`.toLowerCase().includes(normalizedQuery),
+      members = members.filter((member) =>
+        `${member.name} ${member.githubHandle} ${member.focus} ${member.sharedRepos.join(' ')}`
+          .toLowerCase()
+          .includes(normalizedQuery),
       )
     }
 
-    return rows
-  }, [tab, normalizedQuery])
+    return members
+  }, [gradeFilter, labFilter, normalizedQuery, tab])
 
-  const tabs: { id: TabId; label: string }[] = [
-    { id: 'overall', label: '전체' },
-    { id: 'github', label: 'GitHub' },
-    { id: 'opensource', label: '오픈소스/커뮤니티' },
-    { id: 'me', label: '내 활동' },
+  const selectedMember =
+    activityMembers.find((member) => member.id === selectedMemberId) ?? activityMembers[0]
+
+  const visibleLogs = useMemo(() => {
+    const logs = activityMembers.flatMap((member) =>
+      member.logs.map((log) => ({
+        ...log,
+        memberName: member.name,
+        githubHandle: member.githubHandle,
+        tone: member.tone,
+        initials: member.initials,
+      })),
+    )
+
+    if (tab === 'github') return logs
+    if (tab === 'mine') return logs.filter((log) => log.githubHandle === activityMembers.find((m) => m.isMe)?.githubHandle)
+    return selectedMember?.logs ?? []
+  }, [selectedMember, tab])
+
+  const tabs: { id: ActivityTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
+    { id: 'users', label: '유저 목록', icon: 'users' },
+    { id: 'github', label: 'GitHub 활동', icon: 'network' },
+    { id: 'mine', label: '내 활동', icon: 'user' },
   ]
 
   return (
     <section className="coala-content coala-content--activity">
-      <div className="activity-page">
+      <div className="activity-page activity-page--directory">
         <header className="activity-page-header">
           <div className="activity-page-title-block">
-            <p className="activity-page-eyebrow">2026 · 2월</p>
-            <h2 className="activity-page-title">활동 현황</h2>
+            <h2 className="activity-page-title">활동</h2>
             <p className="activity-page-subtitle">
-              GitHub, 코드 리뷰, 질의응답, 자료 공유, 오픈소스 참여 흐름을 함께 보여줍니다.
+              유저가 공유한 GitHub 저장소와 최근 활동 로그를 확인합니다.
             </p>
           </div>
-          <div className="activity-page-header-actions">
-            <button type="button" className="activity-header-button">
-              <Icon name="file" size={14} />
-              리포트
-            </button>
-          </div>
         </header>
-
-        <div className="activity-sources-grid">
-          {activitySourceCards.map((source) => (
-            <div key={source.id} className="activity-source-card surface-card">
-              <div className="activity-source-icon">
-                <Icon
-                  name={source.id === 'github' ? 'network' : source.id === 'community' ? 'message' : 'link'}
-                  size={18}
-                />
-              </div>
-              <div className="activity-source-body">
-                <p className="activity-source-label">{source.label}</p>
-                <p className="activity-source-desc">{source.description}</p>
-                <p className="activity-source-formula">{source.pointFormula}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="activity-podium" aria-label="상위 활동 멤버">
-          {podiumOrder.map((idx) => {
-            const member = top3[idx]
-            if (!member) return null
-            const activityPts = getActivityPoints(member)
-            return (
-              <div
-                key={member.id}
-                className={`podium-slot podium-slot--${member.rank}`}
-              >
-                <div className="podium-card">
-                  <span className={`podium-avatar podium-avatar--${member.tone}`}>
-                    {member.initials}
-                  </span>
-                  <span className={`podium-rank-badge podium-rank-badge--${member.rank}`}>
-                    {member.rank}
-                  </span>
-                  <p className="podium-name">{member.name}</p>
-                  <p className="podium-handle">@{member.githubHandle}</p>
-                  <p className="podium-points">{activityPts.toLocaleString()} pts</p>
-                  <div className="podium-breakdown">
-                    <span className="podium-breakdown-item">
-                      <span className="podium-breakdown-dot podium-breakdown-dot--github" />
-                      GitHub {member.githubCommits}회
-                    </span>
-                    <span className="podium-breakdown-item">
-                      <span className="podium-breakdown-dot podium-breakdown-dot--community" />
-                      답변 {getCommunityStats(member).answers}건
-                    </span>
-                  </div>
-                </div>
-                <div className={`podium-pedestal podium-pedestal--${member.rank}`} />
-              </div>
-            )
-          })}
-        </div>
 
         <div className="activity-table-shell surface-card">
           <div className="activity-table-toolbar">
             <div className="activity-tabs">
-              {tabs.map((t) => (
+              {tabs.map((item) => (
                 <button
-                  key={t.id}
+                  key={item.id}
                   type="button"
-                  className={tab === t.id ? 'activity-tab is-active' : 'activity-tab'}
-                  onClick={() => setTab(t.id)}
+                  className={tab === item.id ? 'activity-tab is-active' : 'activity-tab'}
+                  onClick={() => setTab(item.id)}
                 >
-                  {t.label}
+                  <Icon name={item.icon} size={14} />
+                  {item.label}
                 </button>
               ))}
             </div>
@@ -267,32 +130,94 @@ export function LeaderboardPage() {
               <input
                 type="search"
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="이름 또는 GitHub 핸들 검색"
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="이름, GitHub, 저장소 검색"
               />
             </label>
           </div>
 
-          <div className="activity-table-wrap" role="table" aria-label="활동 현황 테이블">
-            <div className="activity-table-head" role="row">
-              <span role="columnheader">순위</span>
-              <span role="columnheader">멤버</span>
-              <span role="columnheader">GitHub</span>
-              <span role="columnheader">커뮤니티</span>
-              <span role="columnheader">포인트</span>
-              <span role="columnheader">추세</span>
-            </div>
+          <div className="activity-filter-row">
+            <label>
+              <span>학년</span>
+              <select value={gradeFilter} onChange={(event) => setGradeFilter(event.target.value)}>
+                {gradeOptions.map((grade) => (
+                  <option key={grade} value={grade}>
+                    {grade === 'all' ? '전체' : grade}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>연구실</span>
+              <select value={labFilter} onChange={(event) => setLabFilter(event.target.value)}>
+                {labOptions.map((lab) => (
+                  <option key={lab} value={lab}>
+                    {lab === 'all' ? '전체' : lab}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
 
-            <ul className="activity-table-body">
-              {tableRows.map((row) => (
-                <ActivityRow key={row.id} row={row} />
+          <div className="activity-directory-layout">
+            <aside className="activity-member-list" aria-label="유저 목록">
+              {filteredMembers.map((member) => (
+                <MemberCard
+                  key={member.id}
+                  member={member}
+                  isSelected={selectedMember?.id === member.id}
+                  onSelect={() => setSelectedMemberId(member.id)}
+                />
               ))}
-              {tableRows.length === 0 ? (
-                <li className="activity-empty">
-                  조건에 맞는 멤버가 없습니다.
-                </li>
+              {filteredMembers.length === 0 ? (
+                <p className="activity-empty">조건에 맞는 유저가 없습니다.</p>
               ) : null}
-            </ul>
+            </aside>
+
+            <section className="activity-detail-panel">
+              {selectedMember ? (
+                <div className="activity-profile-card">
+                  <div className="activity-profile-head">
+                    <span className={`activity-avatar activity-avatar--${selectedMember.tone}`}>
+                      {selectedMember.initials}
+                    </span>
+                    <div>
+                      <h3>{selectedMember.name}</h3>
+                      <p>@{selectedMember.githubHandle}</p>
+                    </div>
+                  </div>
+                  <div className="activity-profile-meta">
+                    <span>{selectedMember.role}</span>
+                    <span>{selectedMember.grade}</span>
+                    <span>{selectedMember.lab}</span>
+                    <span>{selectedMember.recentCommit}</span>
+                  </div>
+                  <div className="activity-repo-list">
+                    {selectedMember.sharedRepos.map((repo) => (
+                      <span key={repo}>{repo}</span>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <ul className="activity-log-list">
+                {visibleLogs.map((log) => (
+                  <li key={log.id} className="activity-log-item">
+                    <span className="activity-log-icon">
+                      <Icon name={logIconByType[log.type]} size={15} />
+                    </span>
+                    <div>
+                      <p className="activity-log-title">{log.title}</p>
+                      <p className="activity-log-description">{log.description}</p>
+                      <p className="activity-log-meta">
+                        {log.repository} · {log.timeLabel}
+                        {'memberName' in log ? ` · ${log.memberName}` : ''}
+                      </p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           </div>
         </div>
       </div>

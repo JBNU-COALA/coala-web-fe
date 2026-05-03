@@ -47,7 +47,7 @@ export function JcloudApplyList() {
       {items.length === 0 ? (
         <div className="jcloud-list-empty">
           <Icon name="file" size={28} />
-          <p>해당하는 신청 내역이 없습니다.</p>
+          <p>신청 내역이 없습니다.</p>
         </div>
       ) : (
         <ul className="jcloud-apply-list">
@@ -105,8 +105,7 @@ function ApplicationItem({
             <div className="jcloud-apply-detail-row">
               <span className="jcloud-detail-label">사양</span>
               <span className="jcloud-detail-value">
-                {app.specs.cpu} · {app.specs.ram} · {app.specs.disk}
-                {app.specs.gpu ? ` · ${app.specs.gpu}` : ''}
+                {app.specs.cpu} / {app.specs.ram} / {app.specs.disk}
               </span>
             </div>
             {app.approvedAt ? (

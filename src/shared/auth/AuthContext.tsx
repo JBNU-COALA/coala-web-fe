@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest } from '../api/auth'
+import { createDemoAuthResponse, isDemoCredential } from './demoAccount'
 
 type AuthState = {
   user: UserData | null
@@ -24,7 +25,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(loadUserFromStorage)
 
   const login = async (email: string, password: string) => {
-    const data = await authApi.login({ email, password })
+    const data = isDemoCredential(email, password)
+      ? createDemoAuthResponse()
+      : await authApi.login({ email, password })
     localStorage.setItem('accessToken', data.accessToken)
     localStorage.setItem('refreshToken', data.refreshToken)
     localStorage.setItem('user', JSON.stringify(data.user))

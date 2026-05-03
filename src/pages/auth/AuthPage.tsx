@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { DEMO_ACCOUNT } from '../../shared/auth/demoAccount'
 
 type AuthMode = 'login' | 'signup'
 
@@ -26,6 +27,12 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const [academicStatus, setAcademicStatus] = useState<'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'>('ENROLLED')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  const fillDemoAccount = () => {
+    setEmail(DEMO_ACCOUNT.email)
+    setPassword(DEMO_ACCOUNT.password)
+    setError(null)
+  }
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
@@ -68,6 +75,18 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
+          {isLogin ? (
+            <div className="auth-demo-box">
+              <div>
+                <strong>임시 로그인 계정</strong>
+                <span>{DEMO_ACCOUNT.email} / {DEMO_ACCOUNT.password}</span>
+              </div>
+              <button type="button" className="auth-demo-button" onClick={fillDemoAccount}>
+                입력하기
+              </button>
+            </div>
+          ) : null}
+
           {!isLogin && (
             <label className="auth-label">
               이름

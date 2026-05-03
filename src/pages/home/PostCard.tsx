@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
-import { communityPosts } from '../posts/postsData'
+import { communityPosts, postCategoryMeta } from '../posts/postsData'
 
 type PostCardProps = {
   onOpenAllPosts?: () => void
@@ -22,8 +22,8 @@ function formatRelativeTime(dateStr: string) {
 
 const fallbackPosts: PostListItem[] = communityPosts.map((post, index) => ({
   postId: index + 1,
-  boardId: post.category === 'recruit' ? 2 : 1,
-  boardName: post.category === 'recruit' ? '모집' : '일반 게시판',
+  boardId: index + 1,
+  boardName: postCategoryMeta[post.category].label,
   userId: index + 1,
   authorName: post.author,
   title: post.title,
