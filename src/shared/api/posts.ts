@@ -9,6 +9,8 @@ export type PostListItem = {
   title: string
   content: string
   viewCount: number
+  commentCount?: number
+  likeCount?: number
   createdAt: string
   updatedAt: string
 }

@@ -96,9 +96,13 @@ export function PostWriterPage({ onClose, writerType = 'community' }: PostWriter
   useEffect(() => {
     boardsApi.getBoards(true).then((list) => {
       setBoards(list)
-      if (list.length > 0) setSelectedBoardId(list[0].boardId)
+      const preferredBoard =
+        writerType === 'recruit'
+          ? list.find((board) => board.boardType === 'RECRUIT')
+          : list.find((board) => board.boardType === 'NORMAL')
+      if (list.length > 0) setSelectedBoardId((preferredBoard ?? list[0]).boardId)
     }).catch(() => {})
-  }, [])
+  }, [writerType])
 
   const tags = useMemo(
     () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),

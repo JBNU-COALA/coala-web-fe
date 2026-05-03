@@ -226,7 +226,11 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
               </span>
               <span>
                 <Icon name="message" size={15} />
-                {comments.length}
+                {post.commentCount ?? comments.length}
+              </span>
+              <span>
+                <Icon name="bell" size={15} />
+                {post.likeCount ?? 0}
               </span>
             </div>
           </div>

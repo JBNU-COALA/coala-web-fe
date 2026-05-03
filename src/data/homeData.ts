@@ -28,7 +28,6 @@ type HeroSlide = {
   eyebrow: string
   title: string
   subtitle: string
-  imageUrl: string
 }
 
 type RecruitHighlight = {
@@ -81,25 +80,19 @@ export const homeHeroSlides: HeroSlide[] = [
     id: 'slide-1',
     eyebrow: '코알라 대시보드',
     title: '전북대학교 컴퓨터인공지능학부 동아리 코알라입니다.\n',
-    subtitle: '프로그래밍과 개발 지식을 함께 공유하고, 필요한 소식을 빠르게 확인합니다.',
-    imageUrl:
-      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80',
+    subtitle: '(준비중입니다)',
   },
   {
     id: 'slide-2',
     eyebrow: '정보공유',
     title: '동아리 자료와 외부 개발 자료를 모아 공유합니다.\n',
-    subtitle: '스터디 노트, 개발 레퍼런스, 세션 자료를 홈에서 먼저 확인할 수 있습니다.',
-    imageUrl:
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80',
+    subtitle: '(준비중입니다)',
   },
   {
     id: 'slide-3',
     eyebrow: '커뮤니티',
     title: '공지와 인기글을 중심으로 커뮤니티 흐름을 보여줍니다.\n',
-    subtitle: '필요한 글을 빠르게 찾고, 새로 올라온 공유 자료를 이어서 탐색합니다.',
-    imageUrl:
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=80',
+    subtitle: '(준비중입니다)',
   },
 ]
 

@@ -4,7 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { ServicePage } from '../service/ServicePage'
 
 type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
-type ServicesTab = 'official' | 'unofficial' | 'register' | 'instance'
+type ServicesTab = 'official' | 'unofficial'
 
 type MemberService = {
   id: string
@@ -17,20 +17,9 @@ type MemberService = {
   status: '운영 중' | '베타' | '준비 중'
 }
 
-type OfficialService = {
-  id: string
-  title: string
-  summary: string
-  status: string
-  icon: Parameters<typeof Icon>[0]['name']
-  metrics: string[]
-}
-
 const tabs: { id: ServicesTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'official', label: '통합 서비스', icon: 'layout' },
-  { id: 'instance', label: '인스턴스 신청', icon: 'network' },
+  { id: 'official', label: '공식 서비스', icon: 'network' },
   { id: 'unofficial', label: '비공식 서비스', icon: 'link' },
-  { id: 'register', label: '서비스 등록', icon: 'plus' },
 ]
 
 const categories: { id: ServiceCategory | 'all'; label: string }[] = [
@@ -39,33 +28,6 @@ const categories: { id: ServiceCategory | 'all'; label: string }[] = [
   { id: 'ai', label: 'AI' },
   { id: 'community', label: '커뮤니티' },
   { id: 'learning', label: '학습' },
-]
-
-const officialServices: OfficialService[] = [
-  {
-    id: 'coala-community',
-    title: '코알라 커뮤니티',
-    summary: '게시판, 정보공유, 모집을 하나의 동아리 활동 흐름으로 연결합니다.',
-    status: '운영 중',
-    icon: 'message',
-    metrics: ['게시판', '정보공유', '모집'],
-  },
-  {
-    id: 'coala-activity',
-    title: '활동 아카이브',
-    summary: '멤버별 GitHub 활동, 학년, 연구실 정보를 모아 확인합니다.',
-    status: '운영 중',
-    icon: 'users',
-    metrics: ['GitHub', '학년별', '연구실별'],
-  },
-  {
-    id: 'coala-instance',
-    title: '인스턴스 신청',
-    summary: '동아리 프로젝트에 필요한 서버 환경을 신청하고 관리합니다.',
-    status: '운영 중',
-    icon: 'network',
-    metrics: ['micro', 'medium', '관리자 검토'],
-  },
 ]
 
 const memberServices: MemberService[] = [
@@ -104,10 +66,7 @@ const memberServices: MemberService[] = [
 export function ServicesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialParam = searchParams.get('tab')
-  const initialTab: ServicesTab =
-    initialParam === 'instance' || initialParam === 'unofficial' || initialParam === 'register'
-      ? initialParam
-      : 'official'
+  const initialTab: ServicesTab = initialParam === 'unofficial' ? 'unofficial' : 'official'
   const [activeTab, setActiveTab] = useState<ServicesTab>(initialTab)
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | 'all'>('all')
   const [query, setQuery] = useState('')
@@ -116,10 +75,16 @@ export function ServicesPage() {
 
   useEffect(() => {
     const tab = searchParams.get('tab')
-    setActiveTab(
-      tab === 'instance' || tab === 'unofficial' || tab === 'register' ? tab : 'official',
-    )
-  }, [searchParams])
+    if (tab === 'unofficial') {
+      setActiveTab('unofficial')
+      return
+    }
+
+    setActiveTab('official')
+    if (tab) {
+      setSearchParams({}, { replace: true })
+    }
+  }, [searchParams, setSearchParams])
 
   const changeTab = (nextTab: ServicesTab) => {
     setActiveTab(nextTab)
@@ -143,7 +108,7 @@ export function ServicesPage() {
         <header className="member-services-hero">
           <div>
             <h2>서비스</h2>
-            <p>코알라 동아리 프로젝트에 통합된 주요 서비스를 안내합니다.</p>
+            <p>공식 서비스는 동아리 오피셜, 비공식 서비스는 부원들이 올린 서비스입니다.</p>
           </div>
         </header>
 
@@ -162,46 +127,22 @@ export function ServicesPage() {
         </div>
 
         {activeTab === 'official' ? (
-          <ul className="official-service-grid">
-            {officialServices.map((service) => (
-              <li key={service.id} className="surface-card official-service-card">
-                <span className="official-service-icon">
-                  <Icon name={service.icon} size={22} />
-                </span>
-                <span className="member-service-status">{service.status}</span>
-                <h3>{service.title}</h3>
-                <p>{service.summary}</p>
-                <div className="member-service-tags">
-                  {service.metrics.map((metric) => (
-                    <span key={metric}>{metric}</span>
-                  ))}
-                </div>
-              </li>
-            ))}
-          </ul>
-        ) : activeTab === 'instance' ? (
-          <ServicePage embedded />
-        ) : activeTab === 'register' ? (
-          <section className="surface-card member-service-form">
-            <h3>비공식 서비스 등록</h3>
-            <div className="member-service-form-grid">
-              <label className="jcloud-field">
-                <span className="jcloud-label">서비스명</span>
-                <input className="jcloud-input" placeholder="서비스 이름" />
-              </label>
-              <label className="jcloud-field">
-                <span className="jcloud-label">URL</span>
-                <input className="jcloud-input" placeholder="https:// 또는 도메인" />
-              </label>
-              <label className="jcloud-field member-service-form-wide">
-                <span className="jcloud-label">소개</span>
-                <textarea className="jcloud-textarea" rows={4} placeholder="서비스가 해결하는 문제를 적어주세요." />
-              </label>
-            </div>
-            <div className="recruit-write-footer">
-              <button type="button" className="jcloud-submit-button">등록하기</button>
-            </div>
-          </section>
+          <div className="official-service-panel">
+            <section className="surface-card official-service-card official-service-card--single">
+              <span className="official-service-icon">
+                <Icon name="network" size={22} />
+              </span>
+              <span className="member-service-status">공식</span>
+              <h3>인스턴스 신청</h3>
+              <p>동아리 프로젝트와 실습에 필요한 서버 환경을 신청하고 관리합니다.</p>
+              <div className="member-service-tags">
+                <span>신청하기</span>
+                <span>신청 내역</span>
+                <span>문의사항</span>
+              </div>
+            </section>
+            <ServicePage embedded />
+          </div>
         ) : (
           <>
             <div className="member-services-toolbar surface-card">
@@ -254,6 +195,27 @@ export function ServicesPage() {
                 </li>
               ))}
             </ul>
+
+            <section className="surface-card member-service-form">
+              <h3>비공식 서비스 등록</h3>
+              <div className="member-service-form-grid">
+                <label className="jcloud-field">
+                  <span className="jcloud-label">서비스명</span>
+                  <input className="jcloud-input" placeholder="서비스 이름" />
+                </label>
+                <label className="jcloud-field">
+                  <span className="jcloud-label">URL</span>
+                  <input className="jcloud-input" placeholder="https:// 또는 도메인" />
+                </label>
+                <label className="jcloud-field member-service-form-wide">
+                  <span className="jcloud-label">소개</span>
+                  <textarea className="jcloud-textarea" rows={4} placeholder="서비스가 해결하는 문제를 적어주세요." />
+                </label>
+              </div>
+              <div className="recruit-write-footer">
+                <button type="button" className="jcloud-submit-button">등록하기</button>
+              </div>
+            </section>
           </>
         )}
       </div>

@@ -11,10 +11,12 @@ export type SignupRequest = {
   name: string
   nickname?: string
   birthDate?: string
-  gender?: 'MALE' | 'FEMALE' | 'NONE'
-  department: string
+  gender: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
+  department?: string
   studentId: string
-  grade?: number
+  grade: number
+  githubId: string
+  linkedinUrl?: string
   academicStatus: 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
 }
 
@@ -24,10 +26,12 @@ export type UserData = {
   name: string
   nickname: string | null
   birthDate: string | null
-  gender: 'MALE' | 'FEMALE' | 'NONE' | null
+  gender: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY' | null
   department: string
   studentId: string
   grade: number | null
+  githubId: string | null
+  linkedinUrl: string | null
   academicStatus: 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
   createdAt: string
   updatedAt: string

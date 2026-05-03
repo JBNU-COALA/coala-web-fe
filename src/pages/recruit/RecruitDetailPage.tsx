@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { recruitItems } from './recruitData'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { recruitItems, type RecruitComment, type RecruitItem } from './recruitData'
 import { Icon } from '../../shared/ui/Icon'
 
 type RecruitDetailPageProps = {
@@ -13,17 +13,65 @@ const categoryLabelById = {
   tutoring: '멘토링',
 } as const
 
+const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
+
+const loadLocalRecruitItems = (): RecruitItem[] => {
+  if (typeof window === 'undefined') return []
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_RECRUIT_STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+
 export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps) {
   const [comment, setComment] = useState('')
+  const [localComments, setLocalComments] = useState<RecruitComment[]>([])
+  const [applied, setApplied] = useState(false)
+  const [saved, setSaved] = useState(false)
 
   const item = useMemo(() => {
-    return recruitItems.find((recruit) => recruit.id === recruitId) ?? recruitItems[0]
+    const localRecruitItems = loadLocalRecruitItems()
+    return (
+      localRecruitItems.find((recruit) => recruit.id === recruitId)
+      ?? recruitItems.find((recruit) => recruit.id === recruitId)
+      ?? recruitItems[0]
+    )
   }, [recruitId])
 
+  useEffect(() => {
+    setLocalComments([])
+    setApplied(false)
+    setSaved(false)
+  }, [recruitId])
+
+  const comments = [...item.comments, ...localComments]
   const totalCurrent = item.roles.reduce((sum, role) => sum + role.current, 0)
   const totalMax = item.roles.reduce((sum, role) => sum + role.max, 0)
   const participationRate = totalMax > 0 ? (totalCurrent / totalMax) * 100 : 0
   const isOpen = item.status !== 'closed'
+
+  const handleSubmitComment = (event: FormEvent) => {
+    event.preventDefault()
+    const trimmedComment = comment.trim()
+    if (!trimmedComment) return
+    setLocalComments((current) => [
+      ...current,
+      {
+        id: `local-${Date.now()}`,
+        author: '나',
+        authorInitials: '나',
+        authorTone: 'mint',
+        timeLabel: '방금 전',
+        content: trimmedComment,
+      },
+    ])
+    setComment('')
+  }
 
   return (
     <section className="coala-content coala-content--recruit">
@@ -114,10 +162,10 @@ export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps)
 
           <article className="surface-card recruit-detail-card">
             <h3 className="recruit-content-title">
-              질문과 답변 <span className="recruit-qa-count">{item.comments.length}</span>
+              질문과 답변 <span className="recruit-qa-count">{comments.length}</span>
             </h3>
 
-            <div className="recruit-qa-form">
+            <form className="recruit-qa-form" onSubmit={handleSubmitComment}>
               <textarea
                 className="recruit-qa-textarea"
                 placeholder="궁금한 점을 남겨주세요."
@@ -126,14 +174,14 @@ export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps)
                 onChange={(event) => setComment(event.target.value)}
               />
               <div className="recruit-qa-form-footer">
-                <button type="button" className="recruit-qa-submit">
+                <button type="submit" className="recruit-qa-submit" disabled={!comment.trim()}>
                   질문 등록
                 </button>
               </div>
-            </div>
+            </form>
 
             <ul className="recruit-comment-list">
-              {item.comments.map((itemComment) => (
+              {comments.map((itemComment) => (
                 <li key={itemComment.id} className="recruit-comment">
                   <span className={`board-avatar board-avatar--${itemComment.authorTone}`}>
                     {itemComment.authorInitials}
@@ -185,11 +233,21 @@ export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps)
                 isOpen ? 'recruit-apply-button' : 'recruit-apply-button recruit-apply-button--closed'
               }
               disabled={!isOpen}
+              onClick={() => setApplied((current) => !current)}
             >
-              {isOpen ? '지원 요청하기' : '모집이 마감되었습니다'}
+              {isOpen
+                ? applied
+                  ? '지원 요청됨'
+                  : '지원 요청하기'
+                : '모집이 마감되었습니다'}
             </button>
-            <button type="button" className="recruit-interest-button">
-              관심 프로젝트로 저장
+            <button
+              type="button"
+              className={saved ? 'recruit-interest-button recruit-interest-button--active' : 'recruit-interest-button'}
+              aria-pressed={saved}
+              onClick={() => setSaved((current) => !current)}
+            >
+              {saved ? '관심 프로젝트 저장됨' : '관심 프로젝트로 저장'}
             </button>
           </div>
 

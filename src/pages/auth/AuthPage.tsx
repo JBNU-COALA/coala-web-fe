@@ -10,6 +10,12 @@ type AuthPageProps = {
   onSwitchMode: () => void
 }
 
+type SignupGender = 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
+type AcademicStatus = 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
+
+const githubUsernamePattern = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/
+const linkedinProfilePattern = /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/
+
 export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
   const { login, signup } = useAuth()
@@ -22,9 +28,12 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [name, setName] = useState('')
-  const [department, setDepartment] = useState('')
+  const [gender, setGender] = useState<SignupGender>('MALE')
   const [studentId, setStudentId] = useState('')
-  const [academicStatus, setAcademicStatus] = useState<'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'>('ENROLLED')
+  const [academicStatus, setAcademicStatus] = useState<AcademicStatus>('ENROLLED')
+  const [grade, setGrade] = useState(1)
+  const [githubId, setGithubId] = useState('')
+  const [linkedinUrl, setLinkedinUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -43,12 +52,35 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
       return
     }
 
+    const trimmedGithubId = githubId.trim()
+    const trimmedLinkedinUrl = linkedinUrl.trim()
+
+    if (!isLogin && !githubUsernamePattern.test(trimmedGithubId)) {
+      setError('GitHub 아이디를 정확히 입력해주세요. 계정이 없다면 GitHub 가입 링크를 먼저 확인하세요.')
+      return
+    }
+
+    if (!isLogin && trimmedLinkedinUrl && !linkedinProfilePattern.test(trimmedLinkedinUrl)) {
+      setError('LinkedIn은 https://www.linkedin.com/in/아이디 형식의 프로필 URL로 입력해주세요.')
+      return
+    }
+
     setIsLoading(true)
     try {
       if (isLogin) {
         await login(email, password)
       } else {
-        await signup({ email, password, name, department, studentId, academicStatus })
+        await signup({
+          email,
+          password,
+          name,
+          gender,
+          studentId,
+          academicStatus,
+          grade,
+          githubId: trimmedGithubId,
+          linkedinUrl: trimmedLinkedinUrl || undefined,
+        })
       }
       navigate(redirectTo, { replace: true })
     } catch (err: unknown) {
@@ -70,7 +102,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           <p className="auth-description">
             {isLogin
               ? '커뮤니티, 정보공유, 스터디 모집 기능을 이용하려면 로그인하세요.'
-              : '회원가입 후 커뮤니티 게시판, 자료 공유, 알림 기능을 사용할 수 있습니다.'}
+              : '회원 확인에 필요한 기본 정보와 GitHub 계정을 등록합니다.'}
           </p>
         </div>
 
@@ -139,17 +171,38 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
                 />
               </label>
 
-              <label className="auth-label">
-                학과
-                <input
-                  className="auth-input"
-                  type="text"
-                  placeholder="학과를 입력하세요 (예: 컴퓨터공학과)"
-                  value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  required
-                />
-              </label>
+              <div className="auth-form-grid">
+                <label className="auth-label">
+                  성별
+                  <select
+                    className="auth-input"
+                    value={gender}
+                    onChange={(e) => setGender(e.target.value as SignupGender)}
+                    required
+                  >
+                    <option value="MALE">남성</option>
+                    <option value="FEMALE">여성</option>
+                    <option value="OTHER">기타</option>
+                    <option value="PREFER_NOT_TO_SAY">응답하지 않음</option>
+                  </select>
+                </label>
+
+                <label className="auth-label">
+                  학년
+                  <select
+                    className="auth-input"
+                    value={grade}
+                    onChange={(e) => setGrade(Number(e.target.value))}
+                    required
+                  >
+                    {[1, 2, 3, 4, 5, 6].map((value) => (
+                      <option key={value} value={value}>
+                        {value}학년
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
 
               <label className="auth-label">
                 학번
@@ -164,17 +217,46 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </label>
 
               <label className="auth-label">
-                재학 상태
+                학적
                 <select
                   className="auth-input"
                   value={academicStatus}
-                  onChange={(e) => setAcademicStatus(e.target.value as 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED')}
+                  onChange={(e) => setAcademicStatus(e.target.value as AcademicStatus)}
                   required
                 >
                   <option value="ENROLLED">재학</option>
                   <option value="ON_LEAVE">휴학</option>
                   <option value="GRADUATED">졸업</option>
                 </select>
+              </label>
+
+              <label className="auth-label">
+                GitHub 아이디
+                <input
+                  className="auth-input"
+                  type="text"
+                  placeholder="예: coala-dev"
+                  value={githubId}
+                  onChange={(e) => setGithubId(e.target.value)}
+                  required
+                />
+                <span className="auth-helper">
+                  GitHub 계정이 없다면{' '}
+                  <a href="https://github.com/signup" target="_blank" rel="noreferrer">
+                    GitHub 가입하기
+                  </a>
+                </span>
+              </label>
+
+              <label className="auth-label">
+                LinkedIn 프로필 URL <span className="auth-optional">선택</span>
+                <input
+                  className="auth-input"
+                  type="url"
+                  placeholder="https://www.linkedin.com/in/coala-dev"
+                  value={linkedinUrl}
+                  onChange={(e) => setLinkedinUrl(e.target.value)}
+                />
               </label>
             </>
           )}

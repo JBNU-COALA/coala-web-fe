@@ -28,7 +28,6 @@ export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
             className={index === activeSlide ? 'portal-slide is-active' : 'portal-slide'}
             aria-hidden={index !== activeSlide}
           >
-            <img src={slide.imageUrl} alt="" className="portal-slide-image" />
             <div className="portal-slide-overlay" />
             <div className="portal-hero-copy">
               <p className="portal-hero-eyebrow">{slide.eyebrow}</p>

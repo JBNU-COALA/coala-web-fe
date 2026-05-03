@@ -19,6 +19,13 @@ export type HeaderNavItem = {
   icon: IconName
 }
 
+export type HeaderSubNavItem = {
+  id: string
+  label: string
+  icon: IconName
+  path: string
+}
+
 export type ContextItemKind = 'action'
 
 export type ContextPanelItem = {
@@ -47,10 +54,10 @@ type ContextActionDefinition = {
 
 export const routePathById: Record<AppRoute, string> = {
   home: '/',
-  community: '/community',
+  community: '/community/board',
   recruit: '/community/recruit',
   game: '/activity',
-  service: '/services?tab=instance',
+  service: '/services',
   services: '/services',
   settings: '/settings',
   login: '/login',
@@ -75,6 +82,23 @@ export const headerNavItems: HeaderNavItem[] = [
   { id: 'game', label: '활동', icon: 'chart' },
   { id: 'services', label: '서비스', icon: 'settings' },
 ]
+
+export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>> = {
+  community: [
+    { id: 'community-board', label: '게시판', icon: 'message', path: '/community/board' },
+    { id: 'community-info', label: '정보공유', icon: 'book', path: '/community/info' },
+    { id: 'community-recruit', label: '모집', icon: 'users', path: '/community/recruit' },
+  ],
+  game: [
+    { id: 'game-users', label: '유저 목록', icon: 'users', path: '/activity' },
+    { id: 'game-github', label: 'GitHub 활동', icon: 'network', path: '/activity?tab=github' },
+    { id: 'game-mine', label: '내 활동', icon: 'user', path: '/activity?tab=mine' },
+  ],
+  services: [
+    { id: 'services-official', label: '공식 서비스', icon: 'network', path: '/services' },
+    { id: 'services-unofficial', label: '비공식 서비스', icon: 'link', path: '/services?tab=unofficial' },
+  ],
+}
 
 export const routeLabelById: Record<AppRoute, string> = {
   home: '홈',
@@ -122,32 +146,26 @@ const activityActions: ContextActionDefinition[] = [
     icon: 'network',
     description: '유저가 올린 GitHub 저장소와 활동 로그를 확인합니다.',
   },
+  {
+    id: 'game-mine',
+    label: '내 활동',
+    icon: 'user',
+    description: '내 GitHub 저장소와 활동 로그를 확인합니다.',
+  },
 ]
 
 const servicesActions: ContextActionDefinition[] = [
   {
     id: 'services-official',
-    label: '통합 서비스',
-    icon: 'layout',
-    description: '동아리 프로젝트에 통합된 주요 서비스를 확인합니다.',
-  },
-  {
-    id: 'services-instance',
-    label: '인스턴스 신청',
+    label: '공식 서비스',
     icon: 'network',
-    description: '프로젝트 서버와 실습 환경을 신청합니다.',
+    description: '동아리 공식 서비스를 확인합니다.',
   },
   {
     id: 'services-unofficial',
     label: '비공식 서비스',
     icon: 'link',
-    description: '멤버들이 등록한 비공식 서비스를 둘러봅니다.',
-  },
-  {
-    id: 'services-activity',
-    label: '서비스 등록',
-    icon: 'plus',
-    description: '직접 만든 서비스를 소개합니다.',
+    description: '부원들이 올린 서비스를 확인합니다.',
   },
 ]
 
@@ -206,7 +224,8 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
 
 const toServicesItems = (pathname: string): ContextPanelItem[] => {
   const query = typeof window !== 'undefined' ? window.location.search : ''
-  const isInstance = query.includes('tab=instance')
+  const isUnofficial = query.includes('tab=unofficial')
+  const isLegacyServiceRoute = pathname === '/service' || pathname.startsWith('/service/')
 
   return servicesActions.map((item) => ({
     id: item.id,
@@ -216,11 +235,30 @@ const toServicesItems = (pathname: string): ContextPanelItem[] => {
     kind: 'action',
     value: item.id,
     isActive:
-      item.id === 'services-instance'
-        ? isInstance || pathname.startsWith('/service')
+      item.id === 'services-unofficial'
+        ? isUnofficial
         : item.id === 'services-official'
-          ? !isInstance
+          ? !isUnofficial || isLegacyServiceRoute
           : false,
+  }))
+}
+
+const toActivityItems = (): ContextPanelItem[] => {
+  const query = typeof window !== 'undefined' ? window.location.search : ''
+  const activeTab = query.includes('tab=github')
+    ? 'game-github'
+    : query.includes('tab=mine')
+      ? 'game-mine'
+      : 'game-ranking'
+
+  return activityActions.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    description: item.description,
+    kind: 'action',
+    value: item.id,
+    isActive: item.id === activeTab,
   }))
 }
 
@@ -238,14 +276,14 @@ export function buildContextPanel(route: AppRoute, pathname = ''): ContextPanelD
       return {
         title: '활동',
         description: '유저와 GitHub 활동을 확인합니다.',
-        items: toActionPanelItems(activityActions),
+        items: toActivityItems(),
       }
     case 'service':
       return null
     case 'services':
       return {
         title: '서비스',
-        description: '통합 서비스와 인스턴스 신청을 확인합니다.',
+        description: '공식 서비스와 비공식 서비스를 전환합니다.',
         items: toServicesItems(pathname),
       }
     case 'settings':

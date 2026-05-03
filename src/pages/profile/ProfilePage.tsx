@@ -96,6 +96,19 @@ function formatDate(dateStr: string) {
   return parsed.toLocaleDateString('ko-KR')
 }
 
+const genderLabel = {
+  MALE: '남성',
+  FEMALE: '여성',
+  OTHER: '기타',
+  PREFER_NOT_TO_SAY: '응답하지 않음',
+} as const
+
+const academicStatusLabel = {
+  ENROLLED: '재학',
+  ON_LEAVE: '휴학',
+  GRADUATED: '졸업',
+} as const
+
 export function ProfilePage() {
   const { user } = useAuth()
   const [tab, setTab] = useState<ProfileTab>('overview')
@@ -107,7 +120,9 @@ export function ProfilePage() {
   const tierMeta = solvedTierMeta[me.solvedTier]
 
   const displayName = user?.name ?? user?.email ?? '사용자'
-  const displayRole = user?.department ?? '동아리 멤버'
+  const displayRole = user?.academicStatus
+    ? `${academicStatusLabel[user.academicStatus]} · ${user.grade ?? '-'}학년`
+    : '동아리 멤버'
   const initial = displayName.charAt(0)
   const joinedAt = user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
@@ -237,6 +252,38 @@ export function ProfilePage() {
                     <span className="profile-handle-value">{user?.studentId ?? '-'}</span>
                   </span>
                 </li>
+                <li className="profile-handle-item">
+                  <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                    <Icon name="users" size={14} />
+                  </span>
+                  <span className="profile-handle-body">
+                    <span className="profile-handle-service">성별 / 학적</span>
+                    <span className="profile-handle-value">
+                      {user?.gender ? genderLabel[user.gender] : '-'} ·{' '}
+                      {user?.academicStatus ? academicStatusLabel[user.academicStatus] : '-'}
+                    </span>
+                  </span>
+                </li>
+                <li className="profile-handle-item">
+                  <span className="profile-handle-icon profile-handle-icon--github">
+                    <Icon name="network" size={14} />
+                  </span>
+                  <span className="profile-handle-body">
+                    <span className="profile-handle-service">GitHub</span>
+                    <span className="profile-handle-value">
+                      {user?.githubId ? `@${user.githubId}` : '-'}
+                    </span>
+                  </span>
+                </li>
+                <li className="profile-handle-item">
+                  <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                    <Icon name="link" size={14} />
+                  </span>
+                  <span className="profile-handle-body">
+                    <span className="profile-handle-service">LinkedIn</span>
+                    <span className="profile-handle-value">{user?.linkedinUrl ?? '등록 안 함'}</span>
+                  </span>
+                </li>
               </ul>
             </div>
           </div>
@@ -267,7 +314,9 @@ export function ProfilePage() {
               <div className="profile-activity-block">
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">핸들</span>
-                  <span className="profile-activity-value profile-activity-value--mono">@{me.githubHandle}</span>
+                  <span className="profile-activity-value profile-activity-value--mono">
+                    @{user?.githubId ?? me.githubHandle}
+                  </span>
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">이번 달 커밋</span>
