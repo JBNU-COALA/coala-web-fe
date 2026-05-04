@@ -189,6 +189,12 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         <span>위 대여 약관에 동의합니다.</span>
       </label>
 
+      <p className="jcloud-open-source-notice">
+        * 위 인스턴스 사용시 본인의 서비스를 코알라 도메인을 통해 배포할 수 있게 됩니다. 이후 코알라 오픈소스 프로젝트에 참여하게 됩니다.
+        <br />
+        코알라 오픈소스 프로젝트 안내
+      </p>
+
       <button
         type="submit"
         className="jcloud-submit-button"
