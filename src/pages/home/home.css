@@ -3878,46 +3878,6 @@
   gap: 12px;
 }
 
-.auth-demo-box {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px;
-  border: 1px solid #cfe4d8;
-  border-radius: 10px;
-  background: #f1faf5;
-}
-
-.auth-demo-box div {
-  display: grid;
-  gap: 4px;
-}
-
-.auth-demo-box strong {
-  color: #174b36;
-  font-size: 13px;
-}
-
-.auth-demo-box span {
-  color: #587168;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.auth-demo-button {
-  flex: 0 0 auto;
-  min-height: 34px;
-  border: 1px solid #1a5d41;
-  border-radius: 9px;
-  padding: 0 12px;
-  background: #ffffff;
-  color: #1a5d41;
-  font-size: 12px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
 .auth-label {
   display: grid;
   gap: 6px;

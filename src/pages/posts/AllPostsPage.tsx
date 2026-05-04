@@ -23,6 +23,13 @@ type PostBoardTabId = 'all' | PostBoardFilterId
 
 const avatarTones = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
 
+const boardFilterIconById: Record<PostBoardTabId, Parameters<typeof Icon>[0]['name']> = {
+  all: 'layout',
+  notice: 'bell',
+  free: 'message',
+  humor: 'palette',
+}
+
 function toAuthorTone(userId: number) {
   return avatarTones[userId % avatarTones.length]
 }
@@ -137,6 +144,7 @@ export function AllPostsPage({
               }
               onClick={() => setActiveBoard('all')}
             >
+              <Icon name={boardFilterIconById.all} size={15} />
               전체
             </button>
             <span className="community-filter-divider" aria-hidden="true" />
@@ -154,6 +162,7 @@ export function AllPostsPage({
                   }
                   onClick={() => setActiveBoard(filter.id)}
                 >
+                  <Icon name={boardFilterIconById[filter.id]} size={15} />
                   {filter.label}
                 </button>
               ))}

@@ -62,7 +62,7 @@ export const resourceCards: ResourceCard[] = [
   {
     id: 1,
     filter: 'news',
-    tag: 'NEWS',
+    tag: '소식',
     title: '5월 코알라 운영진 공지',
     meta: '공지',
     source: '운영진 | 2026.05.02',
@@ -79,7 +79,7 @@ export const resourceCards: ResourceCard[] = [
   {
     id: 2,
     filter: 'contest',
-    tag: 'CONTEST',
+    tag: '대회',
     title: '2026 AI 해커톤 참가팀 모집',
     meta: '외부 대회',
     source: '대회팀 | 2026.05.01',
@@ -96,7 +96,7 @@ export const resourceCards: ResourceCard[] = [
   {
     id: 3,
     filter: 'lab',
-    tag: 'LAB',
+    tag: '연구실',
     title: '지능형소프트웨어 연구실 학부생 인턴 안내',
     meta: '연구실',
     source: '연구연계팀 | 2026.04.29',
@@ -113,7 +113,7 @@ export const resourceCards: ResourceCard[] = [
   {
     id: 4,
     filter: 'resource',
-    tag: 'PDF',
+    tag: '자료',
     title: 'React 상태관리 패턴 정리',
     meta: '3.4 MB',
     source: '김예린 | 2026.04.27',
@@ -132,7 +132,7 @@ export const resourceCards: ResourceCard[] = [
   {
     id: 5,
     filter: 'contest',
-    tag: 'CONTEST',
+    tag: '대회',
     title: '교내 캡스톤 경진대회 일정',
     meta: '교내 대회',
     source: '박세연 | 2026.04.25',
@@ -149,7 +149,7 @@ export const resourceCards: ResourceCard[] = [
   {
     id: 6,
     filter: 'resource',
-    tag: 'LINK',
+    tag: '자료',
     title: '백엔드 보안 체크리스트',
     meta: '외부 링크',
     source: '최민호 | 2026.04.23',

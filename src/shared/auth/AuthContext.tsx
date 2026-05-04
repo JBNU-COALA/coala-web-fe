@@ -1,6 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest } from '../api/auth'
-import { createDemoAuthResponse, isDemoCredential } from './demoAccount'
 import { clearAuthSession, getStoredUser, setAuthSession } from './tokenStorage'
 
 type AuthState = {
@@ -17,10 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(getStoredUser)
 
   const login = async (email: string, password: string) => {
-    const canUseDemoAccount = import.meta.env.DEV && isDemoCredential(email, password)
-    const data = canUseDemoAccount
-      ? createDemoAuthResponse()
-      : await authApi.login({ email, password })
+    const data = await authApi.login({ email, password })
     setAuthSession(data)
     setUser(data.user)
   }
