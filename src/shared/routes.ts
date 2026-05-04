@@ -1,5 +1,6 @@
 export const routes = {
   home: '/',
+  about: '/about',
   community: {
     root: '/community',
     board: '/community/board',

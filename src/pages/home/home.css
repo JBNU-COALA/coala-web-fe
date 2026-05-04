@@ -12937,6 +12937,26 @@
   overflow-wrap: anywhere;
 }
 
+.coala-content--about {
+  display: grid;
+  gap: 20px;
+}
+
+.about-empty {
+  min-height: 140px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 28px;
+}
+
+.about-empty p {
+  margin: 0;
+  color: #52685d;
+  font-size: 16px;
+  font-weight: 800;
+}
+
 .leader-avatar--mint,
 .board-avatar--mint,
 .activity-avatar--mint,
