@@ -469,7 +469,7 @@ function App() {
         <div className="coala-header-inner">
           <button type="button" className="coala-brand" onClick={() => navigate('/')}>
             <span className="coala-brand-mark" aria-hidden="true">
-              <img src="/favicon.svg" alt="" />
+              <img src="/favicon.svg?v=coala-20260504" alt="" />
             </span>
             <span className="coala-brand-copy">
               <span className="coala-brand-word">코알라</span>
