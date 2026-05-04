@@ -14,6 +14,7 @@ type AcademicStatus = 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
 
 const githubUsernamePattern = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/
 const linkedinProfilePattern = /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/
+const jbnuEmailPattern = /^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$/i
 
 export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
@@ -40,6 +41,13 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     event.preventDefault()
     setError(null)
 
+    const normalizedEmail = email.trim().toLowerCase()
+
+    if (!isLogin && !jbnuEmailPattern.test(normalizedEmail)) {
+      setError('전북대학교 이메일(@jbnu.ac.kr)만 사용할 수 있습니다.')
+      return
+    }
+
     if (!isLogin && password !== confirmPassword) {
       setError('비밀번호가 일치하지 않습니다.')
       return
@@ -61,10 +69,10 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     setIsLoading(true)
     try {
       if (isLogin) {
-        await login(email.trim(), password)
+        await login(normalizedEmail, password)
       } else {
         await signup({
-          email: email.trim(),
+          email: normalizedEmail,
           password,
           name: name.trim(),
           gender,
@@ -107,12 +115,12 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           )}
 
           <label className="auth-label">
-            {isLogin ? '아이디 또는 이메일' : '이메일'}
+            이메일
             <input
               className="auth-input"
-              type={isLogin ? 'text' : 'email'}
-              autoComplete={isLogin ? 'username' : 'email'}
-              placeholder={isLogin ? '아이디 또는 이메일' : 'you@coala.club'}
+              type="email"
+              autoComplete="email"
+              placeholder={isLogin ? 'test@test.com' : 'name@jbnu.ac.kr'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

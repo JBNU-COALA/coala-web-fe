@@ -12114,6 +12114,7 @@
 
   .community-list-controls {
     padding: 12px;
+    gap: 10px;
   }
 
   .community-list-summary,
@@ -12132,8 +12133,124 @@
     grid-template-columns: 1fr;
   }
 
-  .community-filter-tab {
-    flex: 1 1 calc(50% - 4px);
+  .community-filter-tabs--with-all {
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .community-filter-tabs--with-all::-webkit-scrollbar {
+    display: none;
+  }
+
+  .community-filter-tabs--with-all .community-filter-tab {
+    flex: 0 0 auto;
+    min-width: 82px;
+    min-height: 36px;
+    padding: 0 10px;
+    border-radius: 9px;
+    font-size: 12px;
+  }
+
+  .community-filter-tabs--with-all .community-filter-tab--all {
+    min-width: 88px;
+  }
+
+  .community-filter-grouped {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+
+  .community-filter-divider {
+    flex: 0 0 1px;
+    height: 24px;
+  }
+
+  .board-post-card {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px 0;
+  }
+
+  .board-post-heading {
+    align-items: flex-start;
+  }
+
+  .board-post-title {
+    font-size: 18px;
+    line-height: 1.35;
+    -webkit-line-clamp: 1;
+  }
+
+  .board-post-excerpt {
+    margin-top: 7px;
+    font-size: 14px;
+    -webkit-line-clamp: 2;
+  }
+
+  .board-post-stats {
+    justify-content: flex-start;
+  }
+
+  .recruit-control-panel {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .recruit-control-head {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .recruit-control-head > div {
+    gap: 6px;
+  }
+
+  .recruit-control-head p {
+    min-height: 26px;
+    padding: 0 10px;
+    font-size: 11px;
+  }
+
+  .recruit-control-head strong {
+    font-size: 12px;
+  }
+
+  .recruit-filter-grid {
+    gap: 8px;
+  }
+
+  .recruit-filter-group {
+    gap: 5px;
+  }
+
+  .recruit-filter-group > span {
+    font-size: 11px;
+  }
+
+  .recruit-segmented {
+    min-height: 36px;
+    border-radius: 9px;
+  }
+
+  .recruit-segmented button {
+    min-height: 28px;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .recruit-segmented--with-all > button {
+    flex-basis: 58px;
+  }
+
+  .recruit-sort-select {
+    height: 38px;
+    border-radius: 9px;
   }
 
   .auth-form-grid {
@@ -12540,6 +12657,41 @@
 }
 
 @media (max-width: 640px) {
+  .coala-content--info .info-shell {
+    padding: 0;
+  }
+
+  .coala-content--info .community-banner,
+  .coala-content--info .community-list-controls,
+  .coala-content--info .board-shell {
+    width: 100%;
+  }
+
+  .coala-content--info .community-banner {
+    min-height: 150px !important;
+  }
+
+  .cossp-panel {
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .cossp-visual {
+    min-height: 330px;
+    padding: 28px;
+    order: 1;
+  }
+
+  .cossp-copy {
+    padding: 26px 28px 30px;
+    order: 2;
+    align-content: start;
+  }
+
+  .cossp-feature-grid span {
+    border-radius: 12px;
+  }
+
   .post-comment-form,
   .info-list-open,
   .info-list-item--editorial {
