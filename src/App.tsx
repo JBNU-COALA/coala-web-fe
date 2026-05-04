@@ -29,6 +29,7 @@ const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then((m
 const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then((m) => ({ default: m.InfoSharePage })))
 const InfoDetailPage = lazy(() => import('./pages/info/InfoDetailPage').then((m) => ({ default: m.InfoDetailPage })))
 const AuthPage = lazy(() => import('./pages/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
+const EmailVerificationPage = lazy(() => import('./pages/auth/EmailVerificationPage').then((m) => ({ default: m.EmailVerificationPage })))
 const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then((m) => ({ default: m.RecruitPage })))
 const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then((m) => ({ default: m.RecruitDetailPage })))
 const RecruitApplyPage = lazy(() => import('./pages/recruit/RecruitApplyPage').then((m) => ({ default: m.RecruitApplyPage })))
@@ -228,7 +229,7 @@ function App() {
   }, [clearSubNavTimers])
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
-  const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup'
+  const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup' || activeRoute === 'verifyEmail'
   const contextPanel = useMemo(
     () => buildContextPanel(activeRoute, location.pathname),
     [activeRoute, location.pathname],
@@ -510,7 +511,11 @@ function App() {
           path="/login"
           element={
             isLoggedIn ? (
-              <Navigate to="/" replace />
+              user?.verified === false ? (
+                <Navigate to={routes.auth.verifyEmail} replace state={{ email: user.email }} />
+              ) : (
+                <Navigate to="/" replace />
+              )
             ) : (
               <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />
             )
@@ -520,9 +525,23 @@ function App() {
           path="/signup"
           element={
             isLoggedIn ? (
-              <Navigate to="/" replace />
+              user?.verified === false ? (
+                <Navigate to={routes.auth.verifyEmail} replace state={{ email: user.email }} />
+              ) : (
+                <Navigate to="/" replace />
+              )
             ) : (
               <AuthPage mode="signup" onSwitchMode={() => navigate('/login')} />
+            )
+          }
+        />
+        <Route
+          path="/email-verification"
+          element={
+            isLoggedIn && user?.verified !== false ? (
+              <Navigate to="/" replace />
+            ) : (
+              <EmailVerificationPage />
             )
           }
         />

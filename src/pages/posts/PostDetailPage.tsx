@@ -10,7 +10,7 @@ import {
 } from '../../dummy/postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { copyMarkdown, downloadMarkdown, htmlToReadableMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
+import { copyMarkdown, htmlToReadableMarkdown, type MarkdownCopyState } from '../../shared/markdown'
 import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
 
 type PostDetailPageProps = {
@@ -281,10 +281,6 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     setTimeout(() => setMarkdownCopied('idle'), 2000)
   }
 
-  const handleDownloadMarkdown = () => {
-    downloadMarkdown(toMarkdownFilename(visiblePost.title, 'coala-post'), sourceMarkdown)
-  }
-
   return (
     <section className="coala-content coala-content--post-detail">
       <article className="surface-card post-detail">
@@ -309,11 +305,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
               onClick={handleCopyMarkdown}
             >
               <Icon name="copy" size={15} />
-              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운'}</span>
-            </button>
-            <button type="button" className="ghost-button" onClick={handleDownloadMarkdown}>
-              <Icon name="file" size={15} />
-              <span>.md</span>
+              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
             </button>
             <button
               type="button"

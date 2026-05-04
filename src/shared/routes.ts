@@ -20,6 +20,9 @@ export const routes = {
     recruitApplicationNew: (recruitId: string) =>
       `/community/recruit/applications/new?id=${encodeURIComponent(recruitId)}`,
   },
+  auth: {
+    verifyEmail: '/email-verification',
+  },
   services: {
     root: '/services',
     officialInstance: '/services/official/instance',

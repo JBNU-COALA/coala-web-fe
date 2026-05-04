@@ -4,6 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
 import { memberServiceDetails, memberServices } from '../../dummy/memberServices'
+import { CommunityBanner } from '../community/CommunityBanner'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type ServicesTab = 'coas' | 'official' | 'user'
@@ -126,11 +127,7 @@ export function ServicesPage() {
   return (
     <section className="coala-content coala-content--services">
       <div className="member-services">
-        <header className="member-services-hero">
-          <div>
-            <h2>{activeBannerTitle}</h2>
-          </div>
-        </header>
+        <CommunityBanner title={activeBannerTitle} tone="service" />
 
         {activeTab === 'coas' ? (
           <section className="surface-card cossp-panel">

@@ -3,7 +3,7 @@ import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { resourceCards } from '../../dummy/infoData'
 import { Icon } from '../../shared/ui/Icon'
-import { copyMarkdown, downloadMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
+import { copyMarkdown, type MarkdownCopyState } from '../../shared/markdown'
 
 type InfoDetailPageProps = {
   infoId: string
@@ -61,19 +61,19 @@ function splitSource(source: string) {
 const categoryCopy = {
   news: {
     label: '소식',
-    tone: 'notice',
+    tone: 'info-news',
   },
   contest: {
     label: '대회',
-    tone: 'free',
+    tone: 'info-contest',
   },
   lab: {
     label: '연구실',
-    tone: 'notice',
+    tone: 'info-lab',
   },
   resource: {
     label: '자료',
-    tone: 'humor',
+    tone: 'info-resource',
   },
 } as const
 
@@ -96,10 +96,6 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(markdown) ? 'copied' : 'error')
     setTimeout(() => setMarkdownCopied('idle'), 2000)
-  }
-
-  const handleDownloadMarkdown = () => {
-    downloadMarkdown(toMarkdownFilename(title, 'coala-info'), markdown)
   }
 
   const handleCopyShareLink = async () => {
@@ -136,11 +132,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
               onClick={handleCopyMarkdown}
             >
               <Icon name="copy" size={15} />
-              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운'}</span>
-            </button>
-            <button type="button" className="ghost-button" onClick={handleDownloadMarkdown}>
-              <Icon name="file" size={15} />
-              <span>.md</span>
+              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
             </button>
             <button
               type="button"
