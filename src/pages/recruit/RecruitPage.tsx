@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
+import { routes } from '../../shared/routes'
 import {
   recruitItems,
   type RecruitCategory,
@@ -30,11 +31,17 @@ const writeCategories = categories.filter(
   (category): category is { id: RecruitCategory; label: string } => category.id !== 'all',
 )
 
+const recruitCategoryTabs = writeCategories
+
 const filters: { id: RecruitFilterId; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: 'open', label: '모집 중' },
   { id: 'closing-soon', label: '마감 임박' },
 ]
+
+const recruitStatusTabs = filters.filter(
+  (filter): filter is { id: Exclude<RecruitFilterId, 'all'>; label: string } => filter.id !== 'all',
+)
 
 const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
   { id: 'list', label: '모집 공고', icon: 'file' },
@@ -43,6 +50,8 @@ const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parame
 ]
 
 const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
+const LOCAL_APPLICATION_STORAGE_KEY = 'coala-recruit-applications'
+const LOCAL_RECRUIT_INTEREST_STORAGE_KEY = 'coala-recruit-interests'
 
 type RecruitDraft = {
   title: string
@@ -93,6 +102,32 @@ const loadLocalRecruitItems = (): RecruitItem[] => {
     return Array.isArray(parsed) ? parsed : []
   } catch {
     return []
+  }
+}
+
+const loadAppliedRecruitIds = () => {
+  if (typeof window === 'undefined') return new Set<string>()
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_APPLICATION_STORAGE_KEY)
+    if (!raw) return new Set<string>()
+    const parsed = JSON.parse(raw)
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return new Set<string>()
+    return new Set(Object.keys(parsed))
+  } catch {
+    return new Set<string>()
+  }
+}
+
+const loadSavedRecruitIds = () => {
+  if (typeof window === 'undefined') return new Set<string>()
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_RECRUIT_INTEREST_STORAGE_KEY)
+    const parsed = raw ? JSON.parse(raw) : []
+    return new Set(Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [])
+  } catch {
+    return new Set<string>()
   }
 }
 
@@ -154,7 +189,7 @@ type RecruitListProps = {
   appliedIds: Set<string>
   savedIds: Set<string>
   onSelectRecruit: (id: string) => void
-  onToggleApplied: (id: string) => void
+  onOpenApplication: (id: string) => void
   onToggleSaved: (id: string) => void
 }
 
@@ -165,7 +200,7 @@ function RecruitList({
   appliedIds,
   savedIds,
   onSelectRecruit,
-  onToggleApplied,
+  onOpenApplication,
   onToggleSaved,
 }: RecruitListProps) {
   return (
@@ -225,10 +260,10 @@ function RecruitList({
                     className={isApplied ? 'recruit-row-button recruit-row-button--primary is-active' : 'recruit-row-button recruit-row-button--primary'}
                     disabled={!canApply}
                     onClick={() => {
-                      if (canApply) onToggleApplied(item.id)
+                      if (canApply) onOpenApplication(item.id)
                     }}
                   >
-                    {canApply ? (isApplied ? '지원 완료' : '지원') : '마감'}
+                    {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
                   </button>
                 </>
               )}
@@ -251,8 +286,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const [activeFilter, setActiveFilter] = useState<RecruitFilterId>('all')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [query, setQuery] = useState('')
-  const [appliedIds, setAppliedIds] = useState<Set<string>>(() => new Set())
-  const [savedIds, setSavedIds] = useState<Set<string>>(() => new Set())
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(() => loadAppliedRecruitIds())
+  const [savedIds, setSavedIds] = useState<Set<string>>(() => loadSavedRecruitIds())
+  const [applicationView, setApplicationView] = useState<'applied' | 'saved'>('applied')
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [localRecruitItems, setLocalRecruitItems] = useState<RecruitItem[]>(() => loadLocalRecruitItems())
@@ -268,6 +304,18 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   useEffect(() => {
     setMode(initialMode)
   }, [initialMode])
+
+  useEffect(() => {
+    const syncAppliedIds = () => setAppliedIds(loadAppliedRecruitIds())
+
+    syncAppliedIds()
+    window.addEventListener('focus', syncAppliedIds)
+    return () => window.removeEventListener('focus', syncAppliedIds)
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(LOCAL_RECRUIT_INTEREST_STORAGE_KEY, JSON.stringify([...savedIds]))
+  }, [savedIds])
 
   const visibleItems = useMemo(() => {
     const filtered = allRecruitItems.filter((item) => {
@@ -293,13 +341,16 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     [allRecruitItems, appliedIds],
   )
 
-  const toggleApplied = (id: string) => {
-    setAppliedIds((current) => {
-      const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
-      return next
-    })
+  const savedItems = useMemo(
+    () => allRecruitItems.filter((item) => savedIds.has(item.id)),
+    [allRecruitItems, savedIds],
+  )
+
+  const openApplication = (id: string) => {
+    const item = allRecruitItems.find((recruit) => recruit.id === id)
+    if (!item) return
+
+    navigate(routes.community.recruitApplicationNew(id))
   }
 
   const toggleSaved = (id: string) => {
@@ -317,7 +368,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
   const changeMode = (nextMode: RecruitMode) => {
     setMode(nextMode)
-    navigate(nextMode === 'write' ? '/community/recruit/write' : '/community/recruit')
+    navigate(nextMode === 'write' ? routes.community.recruitNoticeNew : routes.community.recruit)
   }
 
   const handleCreateRecruit = (event: FormEvent) => {
@@ -339,7 +390,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     setActiveFilter('all')
     setSortMode('latest')
     setMode('manage')
-    navigate('/community/recruit')
+    navigate(routes.community.recruit)
   }
 
   const isTabActive = (tabId: Exclude<RecruitMode, 'write'>) =>
@@ -366,7 +417,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       {mode === 'write' ? (
         <form className="surface-card recruit-write-panel" onSubmit={handleCreateRecruit}>
           <header>
-            <h3>모집 공고 작성</h3>
+            <h3>공고 작성</h3>
           </header>
 
           <div className="recruit-write-category-tabs" role="tablist" aria-label="모집 공고 분류">
@@ -485,17 +536,37 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           <header className="recruit-dashboard-header">
             <div>
               <h3>지원 내역</h3>
-              <p>{appliedItems.length}개</p>
+              <p>{applicationView === 'applied' ? appliedItems.length : savedItems.length}개</p>
             </div>
           </header>
+          <div className="surface-card recruit-history-tabs" role="tablist" aria-label="모집 지원 내역">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={applicationView === 'applied'}
+              className={applicationView === 'applied' ? 'recruit-history-tab is-active' : 'recruit-history-tab'}
+              onClick={() => setApplicationView('applied')}
+            >
+              지원서
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={applicationView === 'saved'}
+              className={applicationView === 'saved' ? 'recruit-history-tab is-active' : 'recruit-history-tab'}
+              onClick={() => setApplicationView('saved')}
+            >
+              관심 공고
+            </button>
+          </div>
           <RecruitList
-            items={appliedItems}
-            variant="applied"
-            emptyText="지원한 모집이 없습니다."
+            items={applicationView === 'applied' ? appliedItems : savedItems}
+            variant={applicationView === 'applied' ? 'applied' : 'public'}
+            emptyText={applicationView === 'applied' ? '지원한 모집이 없습니다.' : '관심 공고가 없습니다.'}
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}
-            onToggleApplied={toggleApplied}
+            onOpenApplication={openApplication}
             onToggleSaved={toggleSaved}
           />
         </section>
@@ -508,7 +579,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             </div>
             <button type="button" className="jcloud-submit-button" onClick={() => changeMode('write')}>
               <Icon name="plus" size={15} />
-              모집 공고 작성
+              공고 작성
             </button>
           </header>
           <RecruitList
@@ -518,7 +589,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}
-            onToggleApplied={toggleApplied}
+            onOpenApplication={openApplication}
             onToggleSaved={toggleSaved}
           />
         </section>
@@ -528,7 +599,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <div className="recruit-control-head">
               <div>
                 <p>{activeCategoryLabel}</p>
-                <strong>{visibleItems.length}개 모집</strong>
+                <strong>모집 {visibleItems.length}개</strong>
               </div>
               <label className="community-list-search recruit-search">
                 <Icon name="search" size={15} />
@@ -544,37 +615,61 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <div className="recruit-filter-grid">
               <div className="recruit-filter-group">
                 <span>분류</span>
-                <div className="recruit-segmented" role="tablist" aria-label="모집 분류">
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeCategory === category.id}
-                      className={activeCategory === category.id ? 'is-active' : ''}
-                      onClick={() => setActiveCategory(category.id)}
-                    >
-                      {category.label}
-                    </button>
-                  ))}
+                <div className="recruit-segmented recruit-segmented--with-all" role="tablist" aria-label="모집 분류">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeCategory === 'all'}
+                    className={activeCategory === 'all' ? 'is-active' : ''}
+                    onClick={() => setActiveCategory('all')}
+                  >
+                    전체
+                  </button>
+                  <span className="recruit-segmented-divider" aria-hidden="true" />
+                  <div className="recruit-segmented-group">
+                    {recruitCategoryTabs.map((category) => (
+                      <button
+                        key={category.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={activeCategory === category.id}
+                        className={activeCategory === category.id ? 'is-active' : ''}
+                        onClick={() => setActiveCategory(category.id)}
+                      >
+                        {category.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               <div className="recruit-filter-group">
                 <span>상태</span>
-                <div className="recruit-segmented" role="tablist" aria-label="모집 상태">
-                  {filters.map((filter) => (
-                    <button
-                      key={filter.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeFilter === filter.id}
-                      className={activeFilter === filter.id ? 'is-active' : ''}
-                      onClick={() => setActiveFilter(filter.id)}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
+                <div className="recruit-segmented recruit-segmented--with-all" role="tablist" aria-label="모집 상태">
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={activeFilter === 'all'}
+                    className={activeFilter === 'all' ? 'is-active' : ''}
+                    onClick={() => setActiveFilter('all')}
+                  >
+                    전체
+                  </button>
+                  <span className="recruit-segmented-divider" aria-hidden="true" />
+                  <div className="recruit-segmented-group">
+                    {recruitStatusTabs.map((filter) => (
+                      <button
+                        key={filter.id}
+                        type="button"
+                        role="tab"
+                        aria-selected={activeFilter === filter.id}
+                        className={activeFilter === filter.id ? 'is-active' : ''}
+                        onClick={() => setActiveFilter(filter.id)}
+                      >
+                        {filter.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
@@ -599,7 +694,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}
-            onToggleApplied={toggleApplied}
+            onOpenApplication={openApplication}
             onToggleSaved={toggleSaved}
           />
         </>

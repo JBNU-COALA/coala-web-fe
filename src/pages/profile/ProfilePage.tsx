@@ -6,9 +6,9 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
-import { activityMembers, solvedTierMeta } from '../leaderboard/leaderboardData'
+import { activityMembers, type UserAward } from '../leaderboard/leaderboardData'
 
-type ProfileTab = 'overview' | 'activity' | 'posts'
+type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
 type AuthoredContentKind = 'board' | 'info' | 'recruit'
 
 type AuthoredContentItem = {
@@ -24,6 +24,30 @@ const contentKindLabel: Record<AuthoredContentKind, string> = {
   board: '게시판',
   info: '정보공유',
   recruit: '모집',
+}
+
+const genderLabel = {
+  MALE: '남성',
+  FEMALE: '여성',
+  OTHER: '기타',
+  PREFER_NOT_TO_SAY: '응답 안 함',
+} as const
+
+const academicStatusLabel = {
+  ENROLLED: '재학',
+  ON_LEAVE: '휴학',
+  GRADUATED: '졸업',
+} as const
+
+const awardCategoryLabel: Record<UserAward['category'], string> = {
+  competition: '대회',
+  hackathon: '해커톤',
+  research: '연구',
+  club: '동아리',
+}
+
+type ProfilePageProps = {
+  profileUserId?: string
 }
 
 function apiPostToAuthoredContent(post: PostListItem): AuthoredContentItem {
@@ -86,7 +110,7 @@ function createFallbackAuthoredContents(displayName: string): AuthoredContentIte
 
   return [...boardItems, ...infoItems, ...recruitAuthoredItems].map((item, index) => ({
     ...item,
-    excerpt: index === 0 ? `${displayName}님이 작성한 콘텐츠 예시입니다. ${item.excerpt}` : item.excerpt,
+    excerpt: index === 0 ? `${displayName}님이 작성한 예시 콘텐츠입니다. ${item.excerpt}` : item.excerpt,
   }))
 }
 
@@ -96,21 +120,10 @@ function formatDate(dateStr: string) {
   return parsed.toLocaleDateString('ko-KR')
 }
 
-const genderLabel = {
-  MALE: '남성',
-  FEMALE: '여성',
-  OTHER: '기타',
-  PREFER_NOT_TO_SAY: '응답하지 않음',
-} as const
-
-const academicStatusLabel = {
-  ENROLLED: '재학',
-  ON_LEAVE: '휴학',
-  GRADUATED: '졸업',
-} as const
-
-type ProfilePageProps = {
-  profileUserId?: string
+function formatAwardDate(dateStr: string) {
+  const parsed = new Date(dateStr)
+  if (Number.isNaN(parsed.getTime())) return dateStr
+  return parsed.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
 }
 
 function findPublicMember(profileUserId?: string) {
@@ -124,17 +137,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const { user } = useAuth()
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
-  const [bio, setBio] = useState('안녕하세요. 코알라 동아리에서 활동하고 있어요.')
+  const [bio, setBio] = useState('코알라에서 함께 개발하고 있습니다.')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
 
   const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '1')
   const isOwnProfile = Boolean(user && String(user.id) === effectiveProfileUserId)
   const publicMember = findPublicMember(effectiveProfileUserId)
-  const profileMember =
-    isOwnProfile
-      ? activityMembers.find((member) => member.isMe) ?? publicMember
-      : publicMember
-  const tierMeta = solvedTierMeta[profileMember.solvedTier]
+  const profileMember = isOwnProfile
+    ? activityMembers.find((member) => member.isMe) ?? publicMember
+    : publicMember
   const canEdit = isOwnProfile
 
   const displayName = isOwnProfile ? user?.name ?? user?.email ?? '사용자' : profileMember.name
@@ -146,10 +157,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : ''
   const profileGithub = isOwnProfile ? user?.githubId ?? profileMember.githubHandle : profileMember.githubHandle
+  const profileAwards = profileMember.awards
 
   useEffect(() => {
     setEditing(false)
-    setBio(canEdit ? '안녕하세요. 코알라 동아리에서 활동하고 있어요.' : profileMember.focus)
+    setBio(canEdit ? '코알라에서 함께 개발하고 있습니다.' : profileMember.focus)
   }, [canEdit, effectiveProfileUserId, profileMember.focus])
 
   useEffect(() => {
@@ -183,7 +195,8 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: 'overview', label: '개요' },
     { id: 'activity', label: '활동 내역' },
-    { id: 'posts', label: '작성 콘텐츠' },
+    { id: 'awards', label: '수상 내역' },
+    { id: 'posts', label: '작성 내용' },
   ]
 
   return (
@@ -213,21 +226,23 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         <div className="profile-stats-grid">
           <div className="profile-stat-card surface-card">
             <p className="profile-stat-value">{profileMember.totalPoints.toLocaleString()}</p>
-            <p className="profile-stat-label">활동 포인트</p>
-          </div>
-          <div className="profile-stat-card surface-card">
-            <p className={`profile-stat-value profile-stat-value--tier solved-tier-color--${profileMember.solvedTier}`}>
-              {tierMeta.label}
-            </p>
-            <p className="profile-stat-label">백준 등급</p>
+            <p className="profile-stat-label">활동 점수</p>
           </div>
           <div className="profile-stat-card surface-card">
             <p className="profile-stat-value profile-stat-value--github">{profileMember.githubCommits}</p>
             <p className="profile-stat-label">GitHub 커밋</p>
           </div>
           <div className="profile-stat-card surface-card">
+            <p className="profile-stat-value">{profileMember.sharedRepos.length}개</p>
+            <p className="profile-stat-label">공유 저장소</p>
+          </div>
+          <div className="profile-stat-card surface-card">
+            <p className="profile-stat-value profile-stat-value--award">{profileAwards.length}개</p>
+            <p className="profile-stat-label">수상 내역</p>
+          </div>
+          <div className="profile-stat-card surface-card">
             <p className="profile-stat-value">{authoredContents.length}개</p>
-            <p className="profile-stat-label">작성 콘텐츠</p>
+            <p className="profile-stat-label">작성 내용</p>
           </div>
         </div>
 
@@ -265,7 +280,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
               {canEdit ? (
                 <ul className="profile-handles-list">
                   <li className="profile-handle-item">
-                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                    <span className="profile-handle-icon profile-handle-icon--github">
                       <Icon name="user" size={14} />
                     </span>
                     <span className="profile-handle-body">
@@ -283,7 +298,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     </span>
                   </li>
                   <li className="profile-handle-item">
-                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                    <span className="profile-handle-icon profile-handle-icon--github">
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
@@ -300,13 +315,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     </span>
                     <span className="profile-handle-body">
                       <span className="profile-handle-service">GitHub</span>
-                      <span className="profile-handle-value">
-                        {profileGithub ? `@${profileGithub}` : '-'}
-                      </span>
+                      <span className="profile-handle-value">{profileGithub ? `@${profileGithub}` : '-'}</span>
                     </span>
                   </li>
                   <li className="profile-handle-item">
-                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                    <span className="profile-handle-icon profile-handle-icon--github">
                       <Icon name="link" size={14} />
                     </span>
                     <span className="profile-handle-body">
@@ -327,7 +340,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     </span>
                   </li>
                   <li className="profile-handle-item">
-                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                    <span className="profile-handle-icon profile-handle-icon--github">
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
@@ -353,52 +366,65 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         {tab === 'activity' ? (
           <div className="profile-section-grid">
             <div className="surface-card profile-section-card">
-              <h3 className="profile-section-title">백준 현황</h3>
-              <div className="profile-activity-block">
-                <div className="profile-activity-row">
-                  <span className="profile-activity-label">핸들</span>
-                  <span className="profile-activity-value profile-activity-value--mono">
-                    {profileMember.solvedHandle}
-                  </span>
-                </div>
-                <div className="profile-activity-row">
-                  <span className="profile-activity-label">등급</span>
-                  <span className={`solved-tier-badge solved-tier-badge--${profileMember.solvedTier}`}>
-                    {tierMeta.label}
-                  </span>
-                </div>
-                <div className="profile-activity-row">
-                  <span className="profile-activity-label">해결 문제</span>
-                  <span className="profile-activity-value">{profileMember.solvedCount}문제</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">GitHub 현황</h3>
               <div className="profile-activity-block">
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">핸들</span>
-                  <span className="profile-activity-value profile-activity-value--mono">
-                    @{profileGithub}
-                  </span>
+                  <span className="profile-activity-value profile-activity-value--mono">@{profileGithub}</span>
                 </div>
                 <div className="profile-activity-row">
-                  <span className="profile-activity-label">이번 달 커밋</span>
+                  <span className="profile-activity-label">최근 커밋</span>
                   <span className="profile-activity-value profile-activity-value--github">
                     {profileMember.githubCommits}개
                   </span>
+                </div>
+                <div className="profile-activity-row">
+                  <span className="profile-activity-label">저장소</span>
+                  <span className="profile-activity-value">{profileMember.sharedRepos.join(', ')}</span>
                 </div>
               </div>
             </div>
           </div>
         ) : null}
 
+        {tab === 'awards' ? (
+          <div className="surface-card profile-section-card">
+            <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
+            {profileAwards.length === 0 ? (
+              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>등록된 수상 내역이 없습니다.</p>
+            ) : (
+              <ul className="profile-award-list">
+                {profileAwards.map((award) => (
+                  <li key={award.awardId} className="profile-award-item">
+                    <div className="profile-award-main">
+                      <span className={`profile-award-category profile-award-category--${award.category}`}>
+                        {awardCategoryLabel[award.category]}
+                      </span>
+                      <p className="profile-award-title">{award.title}</p>
+                      <p className="profile-award-description">{award.description}</p>
+                    </div>
+                    <div className="profile-award-meta">
+                      <strong>{award.rank}</strong>
+                      <span>{award.organizer}</span>
+                      <span>{formatAwardDate(award.awardedAt)}</span>
+                      {award.credentialUrl ? (
+                        <a href={award.credentialUrl} target="_blank" rel="noreferrer">
+                          확인 링크
+                        </a>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+
         {tab === 'posts' ? (
           <div className="surface-card profile-section-card">
-            <h3 className="profile-section-title">작성 콘텐츠 ({authoredContents.length})</h3>
+            <h3 className="profile-section-title">작성 내용 ({authoredContents.length})</h3>
             {authoredContents.length === 0 ? (
-              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>작성한 콘텐츠가 없습니다.</p>
+              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>작성한 내용이 없습니다.</p>
             ) : (
               <ul className="profile-post-list">
                 {authoredContents.map((item) => (

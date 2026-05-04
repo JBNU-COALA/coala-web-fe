@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { DEMO_ACCOUNT } from '../../shared/auth/demoAccount'
 
 type AuthMode = 'login' | 'signup'
 
@@ -15,6 +14,7 @@ type AcademicStatus = 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
 
 const githubUsernamePattern = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/
 const linkedinProfilePattern = /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/
+const jbnuEmailPattern = /^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$/i
 
 export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
@@ -37,15 +37,16 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
-  const fillDemoAccount = () => {
-    setEmail(DEMO_ACCOUNT.email)
-    setPassword(DEMO_ACCOUNT.password)
-    setError(null)
-  }
-
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setError(null)
+
+    const normalizedEmail = email.trim().toLowerCase()
+
+    if (!isLogin && !jbnuEmailPattern.test(normalizedEmail)) {
+      setError('전북대학교 이메일(@jbnu.ac.kr)만 사용할 수 있습니다.')
+      return
+    }
 
     if (!isLogin && password !== confirmPassword) {
       setError('비밀번호가 일치하지 않습니다.')
@@ -61,21 +62,21 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     }
 
     if (!isLogin && trimmedLinkedinUrl && !linkedinProfilePattern.test(trimmedLinkedinUrl)) {
-      setError('LinkedIn은 https://www.linkedin.com/in/아이디 형식의 프로필 URL로 입력해주세요.')
+      setError('LinkedIn URL은 https://www.linkedin.com/in/아이디 형식으로 입력해주세요.')
       return
     }
 
     setIsLoading(true)
     try {
       if (isLogin) {
-        await login(email, password)
+        await login(normalizedEmail, password)
       } else {
         await signup({
-          email,
+          email: normalizedEmail,
           password,
-          name,
+          name: name.trim(),
           gender,
-          studentId,
+          studentId: studentId.trim(),
           academicStatus,
           grade,
           githubId: trimmedGithubId,
@@ -95,24 +96,10 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     <section className="coala-content coala-content--auth">
       <article className="surface-card auth-shell">
         <div className="auth-intro">
-          <h2 className="auth-title">
-            {isLogin ? '로그인' : '회원가입'}
-          </h2>
+          <h2 className="auth-title">{isLogin ? '로그인' : '회원가입'}</h2>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {isLogin ? (
-            <div className="auth-demo-box">
-              <div>
-                <strong>임시 로그인 계정</strong>
-                <span>{DEMO_ACCOUNT.email} / {DEMO_ACCOUNT.password}</span>
-              </div>
-              <button type="button" className="auth-demo-button" onClick={fillDemoAccount}>
-                입력하기
-              </button>
-            </div>
-          ) : null}
-
           {!isLogin && (
             <label className="auth-label">
               이름
@@ -132,7 +119,8 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
             <input
               className="auth-input"
               type="email"
-              placeholder="you@coala.club"
+              autoComplete="email"
+              placeholder={isLogin ? 'test@test.com' : 'name@jbnu.ac.kr'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -144,6 +132,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
             <input
               className="auth-input"
               type="password"
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
               placeholder="비밀번호를 입력하세요"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -158,6 +147,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
                 <input
                   className="auth-input"
                   type="password"
+                  autoComplete="new-password"
                   placeholder="비밀번호를 다시 입력하세요"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
@@ -203,7 +193,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
                 <input
                   className="auth-input"
                   type="text"
-                  placeholder="학번을 입력하세요 (예: 202012345)"
+                  placeholder="예: 202012345"
                   value={studentId}
                   onChange={(e) => setStudentId(e.target.value)}
                   required

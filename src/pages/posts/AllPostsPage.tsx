@@ -3,7 +3,6 @@ import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import {
   communityPosts,
-  defaultPostBoardFilter,
   postCategoryFilters,
   postCategoryMeta,
   type PostBoardFilterId,
@@ -11,26 +10,25 @@ import {
 import { Icon } from '../../shared/ui/Icon'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { fallbackCommunityBoardIds, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 
 type AllPostsPageProps = {
-  onOpenPost: (postId: string) => void
+  onOpenPost: (boardId: number, postId: number) => void
   onWritePost: () => void
   title?: string
 }
 
 type EnrichedPost = PostListItem & { board?: BoardData }
-
-function boardTypeToFilter(boardType: string, boardName = ''): PostBoardFilterId {
-  if (boardName.includes('공지')) return 'notice'
-  if (boardName.includes('유머')) return 'humor'
-  if (boardName.toLowerCase().includes('humor')) return 'humor'
-  const normalized = boardType.trim().toUpperCase()
-  if (normalized === 'NOTICE') return 'notice'
-  if (normalized === 'HUMOR') return 'humor'
-  return 'free'
-}
+type PostBoardTabId = 'all' | PostBoardFilterId
 
 const avatarTones = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
+
+const boardFilterIconById: Record<PostBoardTabId, Parameters<typeof Icon>[0]['name']> = {
+  all: 'layout',
+  notice: 'bell',
+  free: 'message',
+  humor: 'palette',
+}
 
 function toAuthorTone(userId: number) {
   return avatarTones[userId % avatarTones.length]
@@ -38,7 +36,7 @@ function toAuthorTone(userId: number) {
 
 const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) => ({
   postId: index + 1,
-  boardId: index + 1,
+  boardId: fallbackCommunityBoardIds[post.category],
   boardName: postCategoryMeta[post.category].label,
   userId: index + 1,
   authorName: post.author,
@@ -50,7 +48,7 @@ const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) 
   createdAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
   updatedAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
   board: {
-    boardId: index + 1,
+    boardId: fallbackCommunityBoardIds[post.category],
     boardName: postCategoryMeta[post.category].label,
     boardType: 'NORMAL',
     description: post.excerpt,
@@ -66,7 +64,7 @@ export function AllPostsPage({
   title = '게시판',
 }: AllPostsPageProps) {
   const { user } = useAuth()
-  const [activeBoard, setActiveBoard] = useState<PostBoardFilterId>(defaultPostBoardFilter)
+  const [activeBoard, setActiveBoard] = useState<PostBoardTabId>('all')
   const [enrichedPosts, setEnrichedPosts] = useState<EnrichedPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
@@ -91,7 +89,7 @@ export function AllPostsPage({
     fetchData()
   }, [])
 
-  const currentBoardMeta = postCategoryMeta[activeBoard]
+  const currentBoardLabel = activeBoard === 'all' ? '전체' : postCategoryMeta[activeBoard].label
   const normalizedQuery = query.trim().toLowerCase()
   const isOperator =
     Boolean(user?.email?.toLowerCase().includes('admin')) ||
@@ -102,7 +100,10 @@ export function AllPostsPage({
   const visiblePosts = useMemo(() => {
     const byCategory = enrichedPosts.filter((post) => {
       if (!post.board) return false
-      return boardTypeToFilter(post.board.boardType, post.board.boardName) === activeBoard
+      const postCategory = resolveCommunityBoardFilter(post.board)
+      if (!postCategory) return false
+      if (activeBoard === 'all') return true
+      return postCategory === activeBoard
     })
 
     const searched = normalizedQuery
@@ -123,75 +124,94 @@ export function AllPostsPage({
       <div className="board-page">
         <CommunityBanner title={title} tone="board" />
 
-        <div className="community-section-tabs">
-          {postCategoryFilters.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              className={
-                activeBoard === filter.id
-                  ? 'community-section-tab is-active'
-                  : 'community-section-tab'
-              }
-              onClick={() => setActiveBoard(filter.id)}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
-
-        <div className="board-search-row">
-          <label className="board-search">
-            <Icon name="search" size={17} />
-            <input
-              type="search"
-              placeholder="게시글 제목을 검색하세요"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-            />
-          </label>
-
-          <button
-            type="button"
-            className="board-sort-button"
-            onClick={() =>
-              setSortMode((currentMode) => (currentMode === 'latest' ? 'popular' : 'latest'))
-            }
-          >
-            <span>{sortMode === 'latest' ? '최신순' : '인기순'}</span>
-            <Icon name="chevron-down" size={14} />
-          </button>
-        </div>
-
-        <article className="surface-card board-shell">
-          <div className="board-toolbar">
-            <div className="board-context">
-              <span className={`board-context-pill board-context-pill--${currentBoardMeta.tone}`}>
-                {currentBoardMeta.label}
-              </span>
-            </div>
-
-            <div className="board-toolbar-actions">
-              <span className="board-count">{visiblePosts.length}개의 글</span>
-              <button
-                type="button"
-                className="write-post-button write-post-button--board"
-                disabled={!canWriteCurrentBoard}
-                title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
-                onClick={canWriteCurrentBoard ? onWritePost : undefined}
-              >
-                <Icon name="edit" size={15} />
-                글쓰기
-              </button>
+        <section className="surface-card community-list-controls board-list-controls" aria-label="게시판 필터">
+          <div className="community-list-summary">
+            <div className="community-list-heading">
+              <p>{currentBoardLabel}</p>
+              <strong>게시글 {visiblePosts.length}개</strong>
             </div>
           </div>
 
+          <div className="community-filter-tabs community-filter-tabs--with-all" role="tablist" aria-label="게시판 분류">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeBoard === 'all'}
+              className={
+                activeBoard === 'all'
+                  ? 'community-filter-tab community-filter-tab--all is-active'
+                  : 'community-filter-tab community-filter-tab--all'
+              }
+              onClick={() => setActiveBoard('all')}
+            >
+              <Icon name={boardFilterIconById.all} size={15} />
+              전체
+            </button>
+            <span className="community-filter-divider" aria-hidden="true" />
+            <div className="community-filter-grouped">
+              {postCategoryFilters.map((filter) => (
+                <button
+                  key={filter.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeBoard === filter.id}
+                  className={
+                    activeBoard === filter.id
+                      ? 'community-filter-tab is-active'
+                      : 'community-filter-tab'
+                  }
+                  onClick={() => setActiveBoard(filter.id)}
+                >
+                  <Icon name={boardFilterIconById[filter.id]} size={15} />
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="community-list-actions">
+            <label className="community-list-search">
+              <Icon name="search" size={15} />
+              <input
+                type="search"
+                placeholder="게시글 제목을 검색하세요"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+              />
+            </label>
+
+            <label className="board-sort-field">
+              <span>정렬</span>
+              <select
+                className="board-sort-select"
+                value={sortMode}
+                onChange={(event) => setSortMode(event.target.value as 'latest' | 'popular')}
+              >
+                <option value="latest">최신순</option>
+                <option value="popular">인기순</option>
+              </select>
+            </label>
+
+            <button
+              type="button"
+              className="write-post-button write-post-button--board"
+              disabled={!canWriteCurrentBoard}
+              title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
+              onClick={canWriteCurrentBoard ? onWritePost : undefined}
+            >
+              <Icon name="edit" size={15} />
+              글쓰기
+            </button>
+          </div>
+        </section>
+
+        <article className="surface-card board-shell">
           <ul className="board-post-list">
             {isLoading ? (
               <li className="empty-post-state">게시글을 불러오는 중...</li>
             ) : (
               visiblePosts.map((post) => {
-                const category = post.board ? boardTypeToFilter(post.board.boardType, post.board.boardName) : 'free'
+                const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
                 const categoryMeta = postCategoryMeta[category]
                 const compositeId = `${post.boardId}-${post.postId}`
 
@@ -200,7 +220,7 @@ export function AllPostsPage({
                     <button
                       type="button"
                       className="board-post-card"
-                      onClick={() => onOpenPost(compositeId)}
+                      onClick={() => onOpenPost(post.boardId, post.postId)}
                     >
                       <div className="board-post-main">
                         <div className="board-post-heading">

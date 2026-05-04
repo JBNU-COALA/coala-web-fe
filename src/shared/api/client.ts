@@ -1,4 +1,11 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
+import {
+  clearAuthSession,
+  getAccessToken,
+  getRefreshToken,
+  setAuthSession,
+} from '../auth/tokenStorage'
+import type { AuthResponse } from './auth'
 
 // vite.config.ts 의 envPrefix='API_' 와 일치. dev 모드에서는 vite proxy(/api)를 사용하므로
 // API_BASE_URL 미설정도 정상이며, prod 빌드시에는 .env.production 에 정의해야 한다.
@@ -14,7 +21,7 @@ const client = axios.create({
 })
 
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('accessToken')
+  const token = getAccessToken()
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -27,22 +34,18 @@ client.interceptors.response.use(
     const original = error.config as RetryableRequestConfig | undefined
     if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true
-      const refreshToken = localStorage.getItem('refreshToken')
+      const refreshToken = getRefreshToken()
       if (refreshToken) {
         try {
           const { data } = await axios.post(
-            `${apiBaseUrl}/api/auth/refresh`,
+            `${apiBaseUrl || ''}/api/auth/refresh`,
             { refreshToken },
-          )
-          localStorage.setItem('accessToken', data.accessToken)
-          localStorage.setItem('refreshToken', data.refreshToken)
-          if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+          ) as { data: AuthResponse }
+          setAuthSession(data)
           original.headers.Authorization = `Bearer ${data.accessToken}`
           return client(original)
         } catch {
-          localStorage.removeItem('accessToken')
-          localStorage.removeItem('refreshToken')
-          localStorage.removeItem('user')
+          clearAuthSession()
           window.location.href = '/login'
         }
       }

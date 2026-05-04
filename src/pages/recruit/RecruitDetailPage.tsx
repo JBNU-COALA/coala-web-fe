@@ -5,6 +5,7 @@ import { Icon } from '../../shared/ui/Icon'
 type RecruitDetailPageProps = {
   recruitId: string
   onBack: () => void
+  onApply: (id: string) => void
 }
 
 const categoryLabelById = {
@@ -28,10 +29,9 @@ const loadLocalRecruitItems = (): RecruitItem[] => {
   }
 }
 
-export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps) {
+export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailPageProps) {
   const [comment, setComment] = useState('')
   const [localComments, setLocalComments] = useState<RecruitComment[]>([])
-  const [applied, setApplied] = useState(false)
   const [saved, setSaved] = useState(false)
 
   const item = useMemo(() => {
@@ -45,7 +45,6 @@ export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps)
 
   useEffect(() => {
     setLocalComments([])
-    setApplied(false)
     setSaved(false)
   }, [recruitId])
 
@@ -233,13 +232,9 @@ export function RecruitDetailPage({ recruitId, onBack }: RecruitDetailPageProps)
                 isOpen ? 'recruit-apply-button' : 'recruit-apply-button recruit-apply-button--closed'
               }
               disabled={!isOpen}
-              onClick={() => setApplied((current) => !current)}
+              onClick={() => onApply(item.id)}
             >
-              {isOpen
-                ? applied
-                  ? '지원 요청됨'
-                  : '지원 요청하기'
-                : '모집이 마감되었습니다'}
+              {isOpen ? '지원하기' : '모집이 마감되었습니다'}
             </button>
             <button
               type="button"

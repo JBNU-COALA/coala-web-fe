@@ -123,28 +123,17 @@ function ApplicationItem({
             </div>
           ) : null}
 
-          {app.attachedFiles && app.attachedFiles.length > 0 ? (
-            <div className="jcloud-attached-files">
-              <p className="jcloud-attached-title">
-                <Icon name="file" size={13} />
-                첨부 파일
+          <div className="jcloud-mail-notice">
+            <Icon name="message" size={14} />
+            <div>
+              <strong>메일을 확인해주세요.</strong>
+              <p>
+                {app.status === 'approved'
+                  ? `${app.keyEmail ?? '신청한 메일'}로 접속 키와 안내가 발송됩니다.`
+                  : '승인 후 접속 키와 안내가 신청한 메일로 발송됩니다.'}
               </p>
-              <ul className="jcloud-file-list">
-                {app.attachedFiles.map((file) => (
-                  <li key={file.name} className="jcloud-file-item">
-                    <Icon name="file" size={13} />
-                    <span className="jcloud-file-name">{file.name}</span>
-                    <span className="jcloud-file-meta">
-                      {file.size} · {file.uploadedAt}
-                    </span>
-                    <button type="button" className="jcloud-file-download">
-                      다운로드
-                    </button>
-                  </li>
-                ))}
-              </ul>
             </div>
-          ) : null}
+          </div>
         </div>
       ) : null}
     </li>

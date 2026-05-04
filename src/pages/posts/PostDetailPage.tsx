@@ -6,17 +6,30 @@ import {
   communityPosts,
   postCategoryMeta,
   postDetailContentById,
-  type PostBoardFilterId,
   type PostDetailContent,
 } from './postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { copyMarkdown, downloadMarkdown, htmlToReadableMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
+import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
 
 type PostDetailPageProps = {
   postId: string
   onBack: () => void
   onWrite: () => void
+  onEdit: () => void
 }
+
+type LocalPostEdit = {
+  title: string
+  content: string
+  tagsInput: string
+  boardId: number | null
+  writerType: string
+  updatedAt: string
+}
+
+const LOCAL_POST_EDIT_STORAGE_KEY = 'coala-local-post-edits'
 
 function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
   const parts = compositeId.split('-')
@@ -83,6 +96,19 @@ function getFallbackDetail(realPostId: number): PostDetailContent | undefined {
   return postDetailContentById[toFallbackKey(realPostId)]
 }
 
+function loadLocalPostEdits(): Record<string, LocalPostEdit> {
+  if (typeof window === 'undefined') return {}
+
+  try {
+    const raw = window.localStorage.getItem(LOCAL_POST_EDIT_STORAGE_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
+  } catch {
+    return {}
+  }
+}
+
 function sanitizePostContent(content: string) {
   const template = document.createElement('template')
   template.innerHTML = content
@@ -119,7 +145,7 @@ const fallbackComments: CommentItem[] = [
   },
 ]
 
-export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps) {
+export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPageProps) {
   const { isLoggedIn } = useAuth()
   const [post, setPost] = useState<PostDetail | null>(null)
   const [comments, setComments] = useState<CommentItem[]>([])
@@ -128,6 +154,7 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
   const [newComment, setNewComment] = useState('')
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
+  const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
 
   const parsed = parseCompositeId(postId)
 
@@ -229,14 +256,34 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
     )
   }
 
-  const categoryKey = (post.boardName?.includes('공지')
-    ? 'notice'
-    : post.boardName?.includes('유머')
-      ? 'humor'
-      : 'free') as PostBoardFilterId
+  const categoryKey = resolveCommunityBoardFilter({
+    boardName: post.boardName ?? '',
+    boardType: 'NORMAL',
+  }) ?? 'free'
   const category = postCategoryMeta[categoryKey]
-  const safeContent = sanitizePostContent(post.content)
-  const isHtmlContent = isHtmlPostContent(post.content)
+  const localEdit = loadLocalPostEdits()[postId]
+  const visiblePost = localEdit
+    ? {
+        ...post,
+        title: localEdit.title,
+        content: localEdit.content,
+        updatedAt: localEdit.updatedAt,
+      }
+    : post
+  const safeContent = sanitizePostContent(visiblePost.content)
+  const isHtmlContent = isHtmlPostContent(visiblePost.content)
+  const sourceMarkdown = isHtmlContent
+    ? htmlToReadableMarkdown(visiblePost.content)
+    : visiblePost.content
+
+  const handleCopyMarkdown = async () => {
+    setMarkdownCopied(await copyMarkdown(sourceMarkdown) ? 'copied' : 'error')
+    setTimeout(() => setMarkdownCopied('idle'), 2000)
+  }
+
+  const handleDownloadMarkdown = () => {
+    downloadMarkdown(toMarkdownFilename(visiblePost.title, 'coala-post'), sourceMarkdown)
+  }
 
   return (
     <section className="coala-content coala-content--post-detail">
@@ -251,6 +298,22 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
             <button type="button" className="ghost-button" onClick={onWrite}>
               <Icon name="edit" size={15} />
               <span>새 글 쓰기</span>
+            </button>
+            <button type="button" className="ghost-button" onClick={onEdit}>
+              <Icon name="edit" size={15} />
+              <span>수정</span>
+            </button>
+            <button
+              type="button"
+              className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
+              onClick={handleCopyMarkdown}
+            >
+              <Icon name="copy" size={15} />
+              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운'}</span>
+            </button>
+            <button type="button" className="ghost-button" onClick={handleDownloadMarkdown}>
+              <Icon name="file" size={15} />
+              <span>.md</span>
             </button>
             <button
               type="button"
@@ -269,7 +332,7 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
               {category.label}
             </span>
             <p className="post-cover-subtitle">{fallbackDetail?.subtitle ?? '커뮤니티 게시글'}</p>
-            <h1 className="post-cover-title">{post.title}</h1>
+            <h1 className="post-cover-title">{visiblePost.title}</h1>
           </div>
 
           <div className="post-cover-meta">
@@ -278,15 +341,15 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
                 {(post.authorName ?? String(post.userId))[0]}
               </span>
               <div>
-                <strong>{post.authorName ?? `사용자 ${post.userId}`}</strong>
-                <span>{formatDate(post.createdAt)}</span>
+                <strong>{visiblePost.authorName ?? `사용자 ${visiblePost.userId}`}</strong>
+                <span>{formatDate(visiblePost.createdAt)}</span>
               </div>
             </div>
 
             <div className="post-meta-stats">
-              <span><Icon name="eye" size={15} />{post.viewCount}</span>
-              <span><Icon name="message" size={15} />{post.commentCount ?? comments.length}</span>
-              <span><Icon name="bell" size={15} />{post.likeCount ?? 0}</span>
+              <span><Icon name="eye" size={15} />{visiblePost.viewCount}</span>
+              <span><Icon name="message" size={15} />{visiblePost.commentCount ?? comments.length}</span>
+              <span><Icon name="bell" size={15} />{visiblePost.likeCount ?? 0}</span>
             </div>
           </div>
         </div>
@@ -296,7 +359,7 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
             {(fallbackDetail?.tags ?? ['커뮤니티']).map((tag) => (
               <span key={tag} className="post-tag">#{tag}</span>
             ))}
-            <span className="post-meta-updated">최종 수정: {formatDate(post.updatedAt)}</span>
+            <span className="post-meta-updated">최종 수정: {formatDate(visiblePost.updatedAt)}</span>
           </div>
 
           {isHtmlContent ? (
@@ -307,7 +370,7 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
           ) : (
             <MDEditor.Markdown
               className="post-content post-content--markdown"
-              source={post.content}
+              source={visiblePost.content}
               style={{ whiteSpace: 'pre-wrap' }}
             />
           )}

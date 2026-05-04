@@ -32,11 +32,8 @@ export const boardsApi = {
       })
       .then((r) => r.data),
 
-  // 단건 조회는 BE 에 별도 엔드포인트가 없어 list 결과에서 find 로 대체
-  getBoardById: async (boardId: number) => {
-    const list = await client.get<BoardData[]>('/api/boards').then((r) => r.data)
-    return list.find((b) => b.boardId === boardId) ?? null
-  },
+  getBoardById: (boardId: number) =>
+    client.get<BoardData>(`/api/boards/${boardId}`).then((r) => r.data),
 
   createBoard: (data: CreateBoardRequest) =>
     client.post<{ boardId: number; boardName: string; createdAt: string }>(
