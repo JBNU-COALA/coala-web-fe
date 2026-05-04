@@ -20,9 +20,21 @@ const client = axios.create({
   baseURL: apiBaseUrl || undefined,
 })
 
+function isAuthEndpoint(url?: string) {
+  if (!url) return false
+
+  const pathname = url.startsWith('http') ? new URL(url).pathname : url.split('?')[0]
+  return [
+    '/api/auth/login',
+    '/api/auth/signup',
+    '/api/auth/refresh',
+    '/api/auth/email-verification',
+  ].some((endpoint) => pathname.startsWith(endpoint))
+}
+
 client.interceptors.request.use((config) => {
   const token = getAccessToken()
-  if (token) {
+  if (token && !isAuthEndpoint(config.url)) {
     config.headers.Authorization = `Bearer ${token}`
   }
   return config
@@ -32,7 +44,7 @@ client.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config as RetryableRequestConfig | undefined
-    if (error.response?.status === 401 && original && !original._retry) {
+    if (error.response?.status === 401 && original && !original._retry && !isAuthEndpoint(original.url)) {
       original._retry = true
       const refreshToken = getRefreshToken()
       if (refreshToken) {
