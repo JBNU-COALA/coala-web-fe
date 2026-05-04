@@ -3,6 +3,7 @@ import { routes } from '../shared/routes'
 
 export type AppRoute =
   | 'home'
+  | 'about'
   | 'community'
   | 'recruit'
   | 'game'
@@ -13,7 +14,7 @@ export type AppRoute =
   | 'signup'
   | 'verifyEmail'
 
-export type HeaderRoute = 'home' | 'community' | 'game' | 'services'
+export type HeaderRoute = 'about' | 'community' | 'game' | 'services'
 
 export type HeaderNavItem = {
   id: HeaderRoute
@@ -56,6 +57,7 @@ type ContextActionDefinition = {
 
 export const routePathById: Record<AppRoute, string> = {
   home: routes.home,
+  about: routes.about,
   community: routes.community.root,
   recruit: routes.community.recruit,
   game: routes.users.root,
@@ -68,6 +70,7 @@ export const routePathById: Record<AppRoute, string> = {
 }
 
 export function getRouteFromPath(pathname: string): AppRoute {
+  if (pathname.startsWith('/about')) return 'about'
   if (pathname.startsWith('/community')) return 'community'
   if (pathname.startsWith('/recruit')) return 'community'
   if (pathname.startsWith('/users')) return 'game'
@@ -83,7 +86,7 @@ export function getRouteFromPath(pathname: string): AppRoute {
 }
 
 export const headerNavItems: HeaderNavItem[] = [
-  { id: 'home', label: '홈', icon: 'layout' },
+  { id: 'about', label: '소개', icon: 'layout' },
   { id: 'community', label: '커뮤니티', icon: 'message' },
   { id: 'services', label: '서비스', icon: 'settings' },
   { id: 'game', label: '유저', icon: 'users' },
@@ -104,6 +107,7 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
 
 export const routeLabelById: Record<AppRoute, string> = {
   home: '홈',
+  about: '소개',
   community: '커뮤니티',
   recruit: '모집',
   game: '유저',
@@ -262,6 +266,7 @@ const toActivityItems = (): ContextPanelItem[] => {
 export function buildContextPanel(route: AppRoute, pathname = ''): ContextPanelData | null {
   switch (route) {
     case 'home':
+    case 'about':
       return null
     case 'community':
       return {

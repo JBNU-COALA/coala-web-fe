@@ -23,6 +23,7 @@ import {
 import './pages/home/home.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
+const AboutPage = lazy(() => import('./pages/about/AboutPage').then((m) => ({ default: m.AboutPage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
 const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then((m) => ({ default: m.PostDetailPage })))
 const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then((m) => ({ default: m.PostWriterPage })))
@@ -419,6 +420,7 @@ function App() {
           }
         />
 
+        <Route path="/about" element={<AboutPage />} />
         <Route path="/community" element={<Navigate to="/" replace />} />
         <Route
           path="/community/board"
