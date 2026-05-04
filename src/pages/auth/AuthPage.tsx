@@ -120,7 +120,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               className="auth-input"
               type="email"
               autoComplete="email"
-              placeholder={isLogin ? 'test@test.com' : 'name@jbnu.ac.kr'}
+              placeholder="name@jbnu.ac.kr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required

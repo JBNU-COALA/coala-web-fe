@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, type FocusEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   buildContextPanel,
@@ -195,34 +195,84 @@ function App() {
   const [expandedMainNav, setExpandedMainNav] = useState<string | null>(null)
   const [suppressedMainNav, setSuppressedMainNav] = useState<string | null>(null)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const mainNavRef = useRef<HTMLElement | null>(null)
   const closeSubNavTimerRef = useRef<number | null>(null)
   const releaseSubNavTimerRef = useRef<number | null>(null)
   const { isLoggedIn, user, logout } = useAuth()
+
+  const clearSubNavTimers = useCallback(() => {
+    if (closeSubNavTimerRef.current) {
+      window.clearTimeout(closeSubNavTimerRef.current)
+      closeSubNavTimerRef.current = null
+    }
+
+    if (releaseSubNavTimerRef.current) {
+      window.clearTimeout(releaseSubNavTimerRef.current)
+      releaseSubNavTimerRef.current = null
+    }
+  }, [])
+
+  const closeExpandedMainNav = useCallback(() => {
+    clearSubNavTimers()
+    setExpandedMainNav(null)
+    setSuppressedMainNav(null)
+  }, [clearSubNavTimers])
+
+  const scheduleExpandedMainNavClose = useCallback(() => {
+    clearSubNavTimers()
+    closeSubNavTimerRef.current = window.setTimeout(() => {
+      setExpandedMainNav(null)
+      setSuppressedMainNav(null)
+      if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
+    }, 160)
+  }, [clearSubNavTimers])
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup'
   const contextPanel = useMemo(
     () => buildContextPanel(activeRoute, location.pathname),
-    [activeRoute, location.pathname, location.search],
+    [activeRoute, location.pathname],
   )
 
   useEffect(() => {
-    setProfileMenuOpen(false)
-    setExpandedMainNav(null)
+    const closeOnRouteChange = window.setTimeout(() => {
+      setProfileMenuOpen(false)
+      setExpandedMainNav(null)
+    }, 0)
+
+    return () => window.clearTimeout(closeOnRouteChange)
   }, [location.pathname])
 
   useEffect(() => {
-    return () => {
-      if (closeSubNavTimerRef.current) window.clearTimeout(closeSubNavTimerRef.current)
-      if (releaseSubNavTimerRef.current) window.clearTimeout(releaseSubNavTimerRef.current)
+    if (!expandedMainNav) return undefined
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target
+      if (target instanceof Node && mainNavRef.current?.contains(target)) return
+      closeExpandedMainNav()
     }
-  }, [])
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') closeExpandedMainNav()
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [closeExpandedMainNav, expandedMainNav])
+
+  useEffect(() => {
+    return clearSubNavTimers
+  }, [clearSubNavTimers])
 
   const handleHeaderSubNavSelect = (path: string, parentId: string) => {
     navigate(path)
     setMobileNavOpen(false)
-    if (closeSubNavTimerRef.current) window.clearTimeout(closeSubNavTimerRef.current)
-    if (releaseSubNavTimerRef.current) window.clearTimeout(releaseSubNavTimerRef.current)
+    clearSubNavTimers()
 
     closeSubNavTimerRef.current = window.setTimeout(() => {
       setExpandedMainNav(null)
@@ -328,13 +378,31 @@ function App() {
 
   const handleMainNavClick = (itemId: string, hasSubItems: boolean) => {
     if (hasSubItems) {
+      clearSubNavTimers()
       setExpandedMainNav((current) => (current === itemId ? null : itemId))
       return
     }
 
-    setExpandedMainNav(null)
+    closeExpandedMainNav()
     setMobileNavOpen(false)
     navigate(routePathById[itemId as AppRoute])
+  }
+
+  const handleMainNavMouseEnter = () => {
+    if (closeSubNavTimerRef.current) {
+      window.clearTimeout(closeSubNavTimerRef.current)
+      closeSubNavTimerRef.current = null
+    }
+  }
+
+  const handleMainNavMouseLeave = () => {
+    if (expandedMainNav) scheduleExpandedMainNavClose()
+  }
+
+  const handleMainNavBlur = (event: FocusEvent<HTMLElement>) => {
+    const nextFocusedElement = event.relatedTarget
+    if (nextFocusedElement instanceof Node && event.currentTarget.contains(nextFocusedElement)) return
+    if (expandedMainNav) scheduleExpandedMainNavClose()
   }
 
   const appRoutes = (
@@ -476,7 +544,14 @@ function App() {
             </span>
           </button>
 
-          <nav className={mobileNavOpen ? 'coala-main-nav is-open' : 'coala-main-nav'} aria-label="메인 메뉴">
+          <nav
+            ref={mainNavRef}
+            className={mobileNavOpen ? 'coala-main-nav is-open' : 'coala-main-nav'}
+            aria-label="메인 메뉴"
+            onMouseEnter={handleMainNavMouseEnter}
+            onMouseLeave={handleMainNavMouseLeave}
+            onBlur={handleMainNavBlur}
+          >
             {headerNavItems.map((item) => {
               const subItems = headerSubNavItems[item.id] ?? []
 
