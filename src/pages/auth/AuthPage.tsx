@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { routes } from '../../shared/routes'
 
 type AuthMode = 'login' | 'signup'
 
@@ -71,7 +72,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
       if (isLogin) {
         await login(normalizedEmail, password)
       } else {
-        await signup({
+        const response = await signup({
           email: normalizedEmail,
           password,
           name: name.trim(),
@@ -82,10 +83,22 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           githubId: trimmedGithubId,
           linkedinUrl: trimmedLinkedinUrl || undefined,
         })
+        navigate(routes.auth.verifyEmail, {
+          replace: true,
+          state: { email: response.email },
+        })
+        return
       }
       navigate(redirectTo, { replace: true })
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string } } }
+      const axiosError = err as { response?: { data?: { message?: string; errorCode?: string } } }
+      if (isLogin && axiosError.response?.data?.errorCode === 'EMAIL_NOT_VERIFIED') {
+        navigate(`${routes.auth.verifyEmail}?email=${encodeURIComponent(normalizedEmail)}`, {
+          replace: true,
+          state: { email: normalizedEmail },
+        })
+        return
+      }
       setError(axiosError.response?.data?.message ?? '요청에 실패했습니다. 다시 시도해주세요.')
     } finally {
       setIsLoading(false)

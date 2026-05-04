@@ -11,6 +11,7 @@ export type AppRoute =
   | 'settings'
   | 'login'
   | 'signup'
+  | 'verifyEmail'
 
 export type HeaderRoute = 'home' | 'community' | 'game' | 'services'
 
@@ -63,6 +64,7 @@ export const routePathById: Record<AppRoute, string> = {
   settings: '/settings',
   login: '/login',
   signup: '/signup',
+  verifyEmail: routes.auth.verifyEmail,
 }
 
 export function getRouteFromPath(pathname: string): AppRoute {
@@ -76,6 +78,7 @@ export function getRouteFromPath(pathname: string): AppRoute {
   if (pathname.startsWith('/settings')) return 'settings'
   if (pathname.startsWith('/login')) return 'login'
   if (pathname.startsWith('/signup')) return 'signup'
+  if (pathname.startsWith('/email-verification')) return 'verifyEmail'
   return 'home'
 }
 
@@ -109,6 +112,7 @@ export const routeLabelById: Record<AppRoute, string> = {
   settings: '프로필 설정',
   login: '로그인',
   signup: '회원가입',
+  verifyEmail: '이메일 인증',
 }
 
 const communityActions: ContextActionDefinition[] = [

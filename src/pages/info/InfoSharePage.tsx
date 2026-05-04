@@ -126,8 +126,8 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                   aria-selected={activeFilter === filter.id}
                   className={
                     activeFilter === filter.id
-                      ? 'community-filter-tab is-active'
-                      : 'community-filter-tab'
+                      ? `community-filter-tab info-filter-tab info-filter-tab--${filter.id} is-active`
+                      : `community-filter-tab info-filter-tab info-filter-tab--${filter.id}`
                   }
                   onClick={() => setActiveFilter(filter.id)}
                 >
@@ -175,7 +175,9 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                     >
                       <div className="board-post-main">
                         <div className="board-post-heading">
-                          <span className="board-tag board-tag--notice">{card.tag}</span>
+                          <span className={`board-tag info-tag info-tag--${card.filter}`}>
+                            {card.tag}
+                          </span>
                           <h3 className="board-post-title">{card.title}</h3>
                         </div>
 

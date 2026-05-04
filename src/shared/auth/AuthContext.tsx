@@ -1,12 +1,12 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import { authApi, type UserData, type SignupRequest } from '../api/auth'
+import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
 import { clearAuthSession, getStoredUser, setAuthSession } from './tokenStorage'
 
 type AuthState = {
   user: UserData | null
   isLoggedIn: boolean
   login: (email: string, password: string) => Promise<void>
-  signup: (data: SignupRequest) => Promise<void>
+  signup: (data: SignupRequest) => Promise<EmailVerificationResponse>
   logout: () => Promise<void>
 }
 
@@ -23,8 +23,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signup = async (signupData: SignupRequest) => {
     const data = await authApi.signup(signupData)
-    setAuthSession(data)
-    setUser(data.user)
+    return data
   }
 
   const logout = async () => {

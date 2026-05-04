@@ -2754,6 +2754,30 @@
   color: #52378e;
 }
 
+.board-context-pill--info-news,
+.info-filter-tab--news {
+  background: #e4f1eb;
+  color: #1f5f43;
+}
+
+.board-context-pill--info-contest,
+.info-filter-tab--contest {
+  background: #fff4d8;
+  color: #8a5a12;
+}
+
+.board-context-pill--info-lab,
+.info-filter-tab--lab {
+  background: #e4eefc;
+  color: #285f9f;
+}
+
+.board-context-pill--info-resource,
+.info-filter-tab--resource {
+  background: #efe8ff;
+  color: #5b3c91;
+}
+
 .board-toolbar-actions {
   display: flex;
   align-items: center;
@@ -2897,6 +2921,26 @@
 .board-tag--humor {
   background: #efe6ff;
   color: #6b4eb5;
+}
+
+.info-tag--news {
+  background: #e4f1eb;
+  color: #1f5f43;
+}
+
+.info-tag--contest {
+  background: #fff4d8;
+  color: #8a5a12;
+}
+
+.info-tag--lab {
+  background: #e4eefc;
+  color: #285f9f;
+}
+
+.info-tag--resource {
+  background: #efe8ff;
+  color: #5b3c91;
 }
 
 .board-post-title {
@@ -3928,6 +3972,26 @@
   line-height: 1.45;
 }
 
+.auth-success,
+.auth-helper-panel {
+  margin: 0;
+  border: 1px solid #cfe0d8;
+  border-radius: 10px;
+  background: #eef6f2;
+  color: #1b5c40;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+.auth-helper-panel {
+  color: #60756b;
+  font-weight: 700;
+}
+
 .auth-submit {
   margin-top: 4px;
   height: 44px;
@@ -3940,6 +4004,12 @@
   cursor: pointer;
 }
 
+.auth-submit:disabled,
+.auth-switch:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
 .auth-switch {
   border: 0;
   background: transparent;
@@ -3947,6 +4017,24 @@
   font-size: 13px;
   font-weight: 700;
   cursor: pointer;
+}
+
+.email-verification-shell {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.email-verification-code-input {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: 0.22em;
+}
+
+.email-verification-resend,
+.email-verification-link {
+  display: inline-flex;
+  justify-content: center;
+  text-decoration: none;
 }
 
 .placeholder-shell {
@@ -11548,6 +11636,30 @@
   border-color: #1a5d41;
   background: #1a5d41;
   color: #effcf4;
+}
+
+.info-filter-tab--news.is-active {
+  border-color: #1a5d41;
+  background: #1a5d41;
+  color: #ffffff;
+}
+
+.info-filter-tab--contest.is-active {
+  border-color: #b56b16;
+  background: #b56b16;
+  color: #ffffff;
+}
+
+.info-filter-tab--lab.is-active {
+  border-color: #2f6fae;
+  background: #2f6fae;
+  color: #ffffff;
+}
+
+.info-filter-tab--resource.is-active {
+  border-color: #6746a8;
+  background: #6746a8;
+  color: #ffffff;
 }
 
 .community-filter-tab--all {

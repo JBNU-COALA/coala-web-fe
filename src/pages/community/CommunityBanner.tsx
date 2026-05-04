@@ -1,7 +1,7 @@
 type CommunityBannerProps = {
   title: string
   description?: string
-  tone?: 'board' | 'info' | 'recruit'
+  tone?: 'board' | 'info' | 'recruit' | 'service'
   images?: unknown[]
 }
 

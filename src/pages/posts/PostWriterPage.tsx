@@ -5,7 +5,7 @@ import '@uiw/react-markdown-preview/markdown.css'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
-import { copyMarkdown, downloadMarkdown, toMarkdownFilename } from '../../shared/markdown'
+import { copyMarkdown } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
   getMarkdownLengthWithoutInlineImageData,
@@ -288,10 +288,6 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     setTimeout(() => setCopyState('idle'), 2000)
   }
 
-  const handleDownloadMarkdown = () => {
-    downloadMarkdown(toMarkdownFilename(title, writerType), content)
-  }
-
   const insertImagesIntoEditor = (textarea: HTMLTextAreaElement, markdown: string) => {
     const result = insertMarkdownBlockAtRange(
       textarea.value,
@@ -461,10 +457,6 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
               >
                 <Icon name="copy" size={15} />
                 {copyState === 'copied' ? '복사됨' : copyState === 'error' ? '복사 실패' : '마크다운 복사'}
-              </button>
-              <button type="button" className="ghost-button" onClick={handleDownloadMarkdown}>
-                <Icon name="file" size={15} />
-                .md 추출
               </button>
               <button type="button" className="ghost-button" onClick={onClose}>
                 나가기

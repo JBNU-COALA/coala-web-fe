@@ -33,6 +33,7 @@ export type UserData = {
   githubId: string | null
   linkedinUrl: string | null
   academicStatus: 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
+  verified: boolean
   createdAt: string
   updatedAt: string
 }
@@ -44,12 +45,28 @@ export type AuthResponse = {
   user: UserData
 }
 
+export type EmailVerificationResponse = {
+  email: string
+  verified: boolean
+  message: string
+}
+
 export const authApi = {
   login: (data: LoginRequest) =>
     client.post<AuthResponse>('/api/auth/login', data).then((r) => r.data),
 
   signup: (data: SignupRequest) =>
-    client.post<AuthResponse>('/api/auth/signup', data).then((r) => r.data),
+    client.post<EmailVerificationResponse>('/api/auth/signup', data).then((r) => r.data),
+
+  resendEmailVerification: (email: string) =>
+    client
+      .post<EmailVerificationResponse>('/api/auth/email-verification/resend', { email })
+      .then((r) => r.data),
+
+  confirmEmailVerification: (email: string, code: string) =>
+    client
+      .post<EmailVerificationResponse>('/api/auth/email-verification/confirm', { email, code })
+      .then((r) => r.data),
 
   logout: () => client.post('/api/auth/logout'),
 
