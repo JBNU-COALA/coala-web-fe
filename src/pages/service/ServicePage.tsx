@@ -4,7 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { JcloudAdminPanel } from './JcloudAdminPanel'
 import { JcloudApplyForm } from './JcloudApplyForm'
 import { JcloudApplyList } from './JcloudApplyList'
-import { inquiryItems } from './serviceData'
+import { inquiryItems } from '../../dummy/serviceData'
 
 type ServiceTab = 'apply' | 'list' | 'inquiry' | 'admin'
 

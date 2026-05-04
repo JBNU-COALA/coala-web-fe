@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { resourceCards, type InfoFilterId } from './infoData'
+import { resourceCards, type InfoFilterId } from '../../dummy/infoData'
 import { Icon } from '../../shared/ui/Icon'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'

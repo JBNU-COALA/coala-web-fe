@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
+import { mockApplications } from '../../dummy/serviceData'
 import {
   instanceTypes,
-  mockApplications,
   statusMeta,
   type ApplyStatus,
   type AttachedFile,

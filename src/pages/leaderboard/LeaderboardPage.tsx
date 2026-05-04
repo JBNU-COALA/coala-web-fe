@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { activityMembers, type ActivityMember } from './leaderboardData'
+import { activityMembers, type ActivityMember } from '../../dummy/leaderboardData'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
 import { CommunityBanner } from '../community/CommunityBanner'

@@ -20,8 +20,8 @@ import {
   isCommunityBoard,
   isInfoBoard,
 } from '../../shared/communityBoards'
-import { resourceCards } from '../info/infoData'
-import { communityPosts, postCategoryMeta, postDetailContentById, type PostDetailContent } from './postsData'
+import { resourceCards } from '../../dummy/infoData'
+import { communityPosts, postCategoryMeta, postDetailContentById, type PostDetailContent } from '../../dummy/postsData'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 12000

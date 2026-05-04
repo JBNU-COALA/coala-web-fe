@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
-import { resourceCards } from './infoData'
+import { resourceCards } from '../../dummy/infoData'
 import { Icon } from '../../shared/ui/Icon'
 import { copyMarkdown, downloadMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
 

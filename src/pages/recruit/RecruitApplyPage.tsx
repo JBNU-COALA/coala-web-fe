@@ -4,7 +4,7 @@ import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighli
 import '@uiw/react-md-editor/markdown-editor.css'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
-import { recruitItems, type RecruitItem } from './recruitData'
+import { recruitItems, type RecruitItem } from '../../dummy/recruitData'
 import { copyMarkdown, downloadMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,

@@ -6,7 +6,7 @@ import {
   postCategoryFilters,
   postCategoryMeta,
   type PostBoardFilterId,
-} from './postsData'
+} from '../../dummy/postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'

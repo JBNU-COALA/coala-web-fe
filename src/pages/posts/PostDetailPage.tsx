@@ -7,7 +7,7 @@ import {
   postCategoryMeta,
   postDetailContentById,
   type PostDetailContent,
-} from './postsData'
+} from '../../dummy/postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { copyMarkdown, downloadMarkdown, htmlToReadableMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'

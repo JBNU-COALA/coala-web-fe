@@ -1,5 +1,5 @@
 ﻿import { Icon } from '../../shared/ui/Icon'
-import { resourceItems } from './homeData'
+import { resourceItems } from '../../dummy/homeData'
 
 type ResourcesCardProps = {
   onOpenInfo?: () => void

@@ -3,14 +3,15 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
+import { memberServiceDetails, memberServices } from '../../dummy/memberServices'
 
-type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
+export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type ServicesTab = 'coas' | 'official' | 'user'
 type UserServiceViewMode = 'card' | 'list'
-type MemberServiceStatus = '운영중' | '운영중지' | '운영종료'
+export type MemberServiceStatus = '운영중' | '운영중지' | '운영종료'
 type ServiceStatusFilter = 'all' | MemberServiceStatus
 
-type MemberService = {
+export type MemberService = {
   id: string
   title: string
   category: ServiceCategory
@@ -23,7 +24,7 @@ type MemberService = {
   status: MemberServiceStatus
 }
 
-type MemberServiceDetail = {
+export type MemberServiceDetail = {
   audience: string
   visibility: string
   period: string
@@ -32,105 +33,6 @@ type MemberServiceDetail = {
   stack: string[]
 }
 
-const memberServices: MemberService[] = [
-  {
-    id: 'paper-scout',
-    title: 'Paper Scout',
-    category: 'ai',
-    owner: '최민호',
-    summary: '관심 키워드로 논문을 모으고 요약하는 리서치 도구입니다.',
-    url: 'paper-scout.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/paper-scout',
-    imageUrl: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=80',
-    tags: ['LLM', '논문', '요약'],
-    status: '운영중',
-  },
-  {
-    id: 'study-mate',
-    title: 'Study Mate',
-    category: 'learning',
-    owner: '이도윤',
-    summary: '스터디 일정, 과제, 출석을 한 번에 관리하는 서비스입니다.',
-    url: 'study-mate.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/study-mate',
-    imageUrl: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80',
-    tags: ['스터디', '일정', '과제'],
-    status: '운영중',
-  },
-  {
-    id: 'deploy-note',
-    title: 'Deploy Note',
-    category: 'productivity',
-    owner: '박세연',
-    summary: '팀 배포 체크리스트와 릴리즈 노트',
-    url: 'deploy-note.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/deploy-note',
-    imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=900&q=80',
-    tags: ['배포', '문서', '팀'],
-    status: '운영중',
-  },
-  {
-    id: 'algo-room',
-    title: 'Algo Room',
-    category: 'learning',
-    owner: '정하윤',
-    summary: '알고리즘 문제 풀이 기록과 스터디 과제를 모아보는 서비스입니다.',
-    url: 'algo-room.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/algo-room',
-    imageUrl: 'https://images.unsplash.com/photo-1515879218367-8466d910aaa4?auto=format&fit=crop&w=900&q=80',
-    tags: ['알고리즘', '스터디', '기록'],
-    status: '운영중',
-  },
-  {
-    id: 'lab-board',
-    title: 'Lab Board',
-    category: 'community',
-    owner: '서지우',
-    summary: '연구실 모집, 세미나, 인턴 정보를 정리하는 게시판형 서비스입니다.',
-    url: 'lab-board.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/lab-board',
-    imageUrl: 'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=900&q=80',
-    tags: ['연구실', '세미나', '정보'],
-    status: '운영중지',
-  },
-  {
-    id: 'resume-kit',
-    title: 'Resume Kit',
-    category: 'productivity',
-    owner: '강민재',
-    summary: '포트폴리오와 이력서 초안을 팀원끼리 리뷰할 수 있게 만든 도구입니다.',
-    url: 'resume-kit.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/resume-kit',
-    imageUrl: 'https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=900&q=80',
-    tags: ['포트폴리오', '리뷰', '문서'],
-    status: '운영종료',
-  },
-  {
-    id: 'prompt-vault',
-    title: 'Prompt Vault',
-    category: 'ai',
-    owner: '오유진',
-    summary: '프로젝트에서 사용한 프롬프트와 실험 결과를 정리하는 아카이브입니다.',
-    url: 'prompt-vault.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/prompt-vault',
-    imageUrl: 'https://images.unsplash.com/photo-1677442136019-21780ecad995?auto=format&fit=crop&w=900&q=80',
-    tags: ['AI', '프롬프트', '실험'],
-    status: '운영중',
-  },
-  {
-    id: 'team-clock',
-    title: 'Team Clock',
-    category: 'productivity',
-    owner: '윤태현',
-    summary: '팀별 개발 시간, 회의 기록, 마감 일정을 가볍게 관리합니다.',
-    url: 'team-clock.coala.dev',
-    githubUrl: 'https://github.com/JBNU-COALA/team-clock',
-    imageUrl: 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=900&q=80',
-    tags: ['팀', '일정', '생산성'],
-    status: '운영중지',
-  },
-]
-
 const USER_SERVICE_PAGE_SIZE = 4
 const serviceStatusFilters: { id: ServiceStatusFilter; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -138,73 +40,6 @@ const serviceStatusFilters: { id: ServiceStatusFilter; label: string }[] = [
   { id: '운영중지', label: '운영중지' },
   { id: '운영종료', label: '운영종료' },
 ]
-
-const memberServiceDetails: Record<string, MemberServiceDetail> = {
-  'paper-scout': {
-    audience: '연구·논문 스터디',
-    visibility: 'Public',
-    period: '2026.03 ~ 운영 중',
-    description: '키워드 기반으로 논문 후보를 모으고, 팀원이 읽을 자료를 빠르게 선별하는 서비스입니다.',
-    features: ['키워드별 논문 후보 저장', '요약 메모와 읽음 상태 관리', '스터디 공유 링크 생성'],
-    stack: ['React', 'Node.js', 'LLM API', 'PostgreSQL'],
-  },
-  'study-mate': {
-    audience: '스터디 운영자',
-    visibility: 'Public',
-    period: '2026.02 ~ 운영 중',
-    description: '스터디 일정과 과제, 출석 체크를 한 화면에서 관리하기 위한 서비스입니다.',
-    features: ['스터디별 일정표', '과제 제출 체크', '출석 기록 관리'],
-    stack: ['React', 'Django', 'SQLite', 'Calendar'],
-  },
-  'deploy-note': {
-    audience: '프로젝트 팀',
-    visibility: 'Public',
-    period: '2026.01 ~ 운영 중',
-    description: '배포 전 확인해야 할 항목과 릴리즈 노트를 서비스 단위로 남기는 도구입니다.',
-    features: ['배포 체크리스트', '릴리즈 노트 템플릿', '팀별 운영 기록'],
-    stack: ['React', 'Express', 'Markdown', 'GitHub Actions'],
-  },
-  'algo-room': {
-    audience: '알고리즘 스터디',
-    visibility: 'Public',
-    period: '2025.12 ~ 운영 중',
-    description: '문제 풀이 기록과 스터디 과제를 모아보고, 회차별 진행 상황을 확인합니다.',
-    features: ['회차별 문제 묶음', '풀이 기록', '스터디 과제 상태'],
-    stack: ['React', 'Spring Boot', 'MySQL', 'Baekjoon'],
-  },
-  'lab-board': {
-    audience: '연구실 정보 공유',
-    visibility: 'Public',
-    period: '2025.11 ~ 운영 중지',
-    description: '연구실 모집, 세미나, 학부생 인턴 정보를 게시판 형태로 정리한 서비스입니다.',
-    features: ['연구실 공고 목록', '세미나 일정 정리', '관심 연구실 저장'],
-    stack: ['Vue', 'Firebase', 'Markdown'],
-  },
-  'resume-kit': {
-    audience: '취업·포트폴리오 준비',
-    visibility: 'Public',
-    period: '2025.09 ~ 운영 종료',
-    description: '포트폴리오와 이력서 초안을 팀원끼리 리뷰하고 개선 기록을 남기는 도구입니다.',
-    features: ['리뷰 요청', '체크리스트', '수정 이력'],
-    stack: ['React', 'NestJS', 'PostgreSQL'],
-  },
-  'prompt-vault': {
-    audience: 'AI 프로젝트 팀',
-    visibility: 'Public',
-    period: '2026.04 ~ 운영 중',
-    description: '프로젝트에서 사용한 프롬프트와 실험 결과를 재사용 가능한 형태로 모읍니다.',
-    features: ['프롬프트 버전 관리', '실험 결과 기록', '태그 기반 검색'],
-    stack: ['React', 'FastAPI', 'Vector DB', 'LLM API'],
-  },
-  'team-clock': {
-    audience: '팀 프로젝트',
-    visibility: 'Public',
-    period: '2025.10 ~ 운영 중지',
-    description: '개발 시간, 회의 기록, 마감 일정을 가볍게 정리하는 팀 운영 도구입니다.',
-    features: ['회의 로그', '마감 일정', '팀별 활동 시간'],
-    stack: ['Svelte', 'Node.js', 'SQLite'],
-  },
-}
 
 const toExternalUrl = (url: string) => (
   /^https?:\/\//i.test(url) ? url : `https://${url}`

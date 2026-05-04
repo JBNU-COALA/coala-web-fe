@@ -1,4 +1,4 @@
-import { portalUpdates } from './homeData'
+import { portalUpdates } from '../../dummy/homeData'
 import { PostCard } from './PostCard'
 import { ResourcesCard } from './ResourcesCard'
 

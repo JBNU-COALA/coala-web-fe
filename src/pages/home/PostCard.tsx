@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
-import { communityPosts, postCategoryMeta } from '../posts/postsData'
+import { communityPosts, postCategoryMeta } from '../../dummy/postsData'
 
 type PostCardProps = {
   onOpenAllPosts?: () => void

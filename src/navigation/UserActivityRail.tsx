@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { activityMembers } from '../pages/leaderboard/leaderboardData'
+import { activityMembers } from '../dummy/leaderboardData'
 import { boardsApi } from '../shared/api/boards'
 import { postsApi } from '../shared/api/posts'
 import { useAuth } from '../shared/auth/AuthContext'

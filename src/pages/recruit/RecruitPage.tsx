@@ -10,7 +10,7 @@ import {
   type RecruitItem,
   type RecruitRole,
   type RecruitStatus,
-} from './recruitData'
+} from '../../dummy/recruitData'
 
 type RecruitPageProps = {
   onSelectRecruit: (id: string) => void

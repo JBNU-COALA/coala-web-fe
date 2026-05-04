@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { recruitItems, type RecruitComment, type RecruitItem } from './recruitData'
+import { recruitItems, type RecruitComment, type RecruitItem } from '../../dummy/recruitData'
 import { Icon } from '../../shared/ui/Icon'
 
 type RecruitDetailPageProps = {
