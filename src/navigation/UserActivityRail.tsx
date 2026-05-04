@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { activityMembers, GITHUB_COMMIT_POINT } from '../pages/leaderboard/leaderboardData'
+import { activityMembers } from '../pages/leaderboard/leaderboardData'
 import { boardsApi } from '../shared/api/boards'
 import { postsApi } from '../shared/api/posts'
 import { useAuth } from '../shared/auth/AuthContext'
@@ -23,14 +23,14 @@ type RailMetric = {
 
 type RailSignal = {
   label: string
-  detail: string
+  detail?: string
   icon: IconName
 }
 
 const routeMeta: Record<RailRoute, { eyebrow: string; title: string; primaryLabel: string; primaryIcon: IconName }> = {
   community: {
     eyebrow: 'Community',
-    title: '내 커뮤니티 활동',
+    title: '내 커뮤니티',
     primaryLabel: '글쓰기',
     primaryIcon: 'edit',
   },
@@ -47,10 +47,10 @@ const routeMeta: Record<RailRoute, { eyebrow: string; title: string; primaryLabe
     primaryIcon: 'users',
   },
   game: {
-    eyebrow: 'Activity',
-    title: '내 활동 현황',
-    primaryLabel: '랭킹 보기',
-    primaryIcon: 'chart',
+    eyebrow: 'Members',
+    title: '내 프로필',
+    primaryLabel: '유저 목록',
+    primaryIcon: 'users',
   },
 }
 
@@ -65,9 +65,8 @@ export function UserActivityRail({
   const [myRecentPost, setMyRecentPost] = useState<string | null>(null)
 
   const me = activityMembers.find((member) => member.isMe) ?? activityMembers[activityMembers.length - 1]
-  const githubPoints = me.githubCommits * GITHUB_COMMIT_POINT
   const displayName = user?.name ?? user?.email ?? '게스트'
-  const displayRole = user?.department ?? '로그인하면 내 활동을 볼 수 있어요'
+  const displayRole = user?.department ?? '게스트'
   const initial = displayName.charAt(0)
   const meta = routeMeta[route]
 
@@ -100,7 +99,7 @@ export function UserActivityRail({
     if (!isLoggedIn) {
       return [
         { label: '로그인 상태', value: '필요', tone: 'amber' },
-        { label: '내 활동', value: '숨김', tone: 'slate' },
+        { label: '프로필 정보', value: '로그인 필요', tone: 'slate' },
       ]
     }
 
@@ -126,11 +125,11 @@ export function UserActivityRail({
     }
 
     return [
-      { label: '활동 포인트', value: githubPoints.toLocaleString(), tone: 'green' },
-      { label: 'GitHub', value: `${me.githubCommits}회`, tone: 'slate' },
-      { label: '오픈소스', value: '준비 중', tone: 'slate' },
+      { label: '역할', value: me.role, tone: 'green' },
+      { label: '학년', value: me.grade, tone: 'slate' },
+      { label: '연구실', value: me.lab, tone: 'slate' },
     ]
-  }, [githubPoints, isLoggedIn, me.githubCommits, myPostCount, myRecentPost, route])
+  }, [isLoggedIn, me.grade, me.lab, me.role, myPostCount, myRecentPost, route])
 
   const signals = useMemo<RailSignal[]>(() => {
     if (route === 'community') {
@@ -138,13 +137,12 @@ export function UserActivityRail({
         {
           label: '최근 작성',
           detail: isLoggedIn
-            ? myRecentPost ?? '아직 작성한 글이 없습니다.'
-            : '로그인하면 작성 기록을 볼 수 있습니다.',
+            ? myRecentPost ?? undefined
+            : undefined,
           icon: 'file',
         },
         {
-          label: '다음 행동',
-          detail: '질문, 정보공유, 모집 글을 같은 작성 흐름에서 시작합니다.',
+          label: '글쓰기',
           icon: 'edit',
         },
       ]
@@ -154,12 +152,10 @@ export function UserActivityRail({
       return [
         {
           label: '인스턴스 대여',
-          detail: '신청 화면, 신청 내역, 문의사항을 한 페이지에서 확인합니다.',
           icon: 'network',
         },
         {
-          label: '작성 기준',
-          detail: '목적, 기간, 필요한 사양을 명확히 적는 흐름이 중요합니다.',
+          label: '신청 내역',
           icon: 'book',
         },
       ]
@@ -169,12 +165,10 @@ export function UserActivityRail({
       return [
         {
           label: '진행 중인 모집',
-          detail: '마감, 인원, 역할을 확인하고 지원 흐름으로 이어집니다.',
           icon: 'calendar',
         },
         {
           label: '내 참여',
-          detail: '지원/개설 상태는 이후 백엔드 연동 시 이 패널에 모읍니다.',
           icon: 'users',
         },
       ]
@@ -182,9 +176,8 @@ export function UserActivityRail({
 
     return [
       {
-        label: '활동 기준',
-        detail: 'GitHub 활동과 향후 오픈소스 기여 지표를 중심으로 정리합니다.',
-        icon: 'chart',
+        label: '유저 목록',
+        icon: 'users',
       },
       {
         label: '내 계정',
@@ -195,7 +188,7 @@ export function UserActivityRail({
   }, [isLoggedIn, me.githubHandle, myRecentPost, route])
 
   return (
-    <aside className="user-activity-rail" aria-label="내 활동 요약">
+    <aside className="user-activity-rail" aria-label="내 정보 요약">
       <section className="surface-card activity-rail-card activity-rail-profile">
         <div className="activity-rail-profile-head">
           <span className="activity-rail-avatar">{initial}</span>
@@ -247,7 +240,7 @@ export function UserActivityRail({
               </span>
               <span>
                 <strong>{signal.label}</strong>
-                <small>{signal.detail}</small>
+                {signal.detail ? <small>{signal.detail}</small> : null}
               </span>
             </li>
           ))}

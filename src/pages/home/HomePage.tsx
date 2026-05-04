@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { homeHeroSlides, portalUpdates } from './homeData'
+import { portalUpdates } from './homeData'
 import { PostCard } from './PostCard'
 import { ResourcesCard } from './ResourcesCard'
 
@@ -9,45 +8,15 @@ type HomePageProps = {
 }
 
 export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
-  const [activeSlide, setActiveSlide] = useState(0)
-
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % homeHeroSlides.length)
-    }, 5200)
-
-    return () => window.clearInterval(timer)
-  }, [])
-
   return (
     <section className="coala-content coala-content--portal">
-      <section className="portal-hero portal-hero--slider" aria-label="코알라 소개 슬라이더">
-        {homeHeroSlides.map((slide, index) => (
-          <article
-            key={slide.id}
-            className={index === activeSlide ? 'portal-slide is-active' : 'portal-slide'}
-            aria-hidden={index !== activeSlide}
-          >
-            <div className="portal-slide-overlay" />
-            <div className="portal-hero-copy">
-              <p className="portal-hero-eyebrow">{slide.eyebrow}</p>
-              <h1 className="portal-hero-title">{slide.title}</h1>
-              <p className="portal-hero-subtitle">{slide.subtitle}</p>
-            </div>
-          </article>
-        ))}
-
-        <div className="portal-slider-dots" aria-label="소개 배너 선택">
-          {homeHeroSlides.map((slide, index) => (
-            <button
-              key={slide.id}
-              type="button"
-              className={index === activeSlide ? 'portal-slider-dot is-active' : 'portal-slider-dot'}
-              onClick={() => setActiveSlide(index)}
-              aria-label={`${index + 1}번 소개 배너`}
-            />
-          ))}
-        </div>
+      <section className="portal-hero portal-hero--slider" aria-label="홈 배너">
+        <article className="portal-slide is-active">
+          <div className="portal-slide-overlay" />
+          <div className="portal-hero-copy">
+            <h1 className="portal-hero-title">준비중입니다</h1>
+          </div>
+        </article>
       </section>
 
       <div className="portal-grid portal-grid--dashboard">

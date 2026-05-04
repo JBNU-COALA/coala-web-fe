@@ -59,17 +59,17 @@ export const postCategoryMeta: Record<PostBoardFilterId, PostCategoryMeta> = {
   notice: {
     label: '공지',
     tone: 'notice',
-    description: '운영진 공지와 중요한 안내를 확인합니다.',
+    description: '',
   },
   free: {
     label: '자유',
     tone: 'free',
-    description: '자유롭게 질문하고 생각을 나누는 게시판입니다.',
+    description: '',
   },
   humor: {
     label: '유머',
     tone: 'humor',
-    description: '가볍게 웃고 쉬어가는 이야기들을 모아둡니다.',
+    description: '',
   },
 }
 

@@ -19,7 +19,9 @@ const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ defau
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
 const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then((m) => ({ default: m.PostDetailPage })))
 const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then((m) => ({ default: m.PostWriterPage })))
+const CommunityHubPage = lazy(() => import('./pages/community/CommunityHubPage').then((m) => ({ default: m.CommunityHubPage })))
 const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then((m) => ({ default: m.InfoSharePage })))
+const InfoDetailPage = lazy(() => import('./pages/info/InfoDetailPage').then((m) => ({ default: m.InfoDetailPage })))
 const AuthPage = lazy(() => import('./pages/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
 const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then((m) => ({ default: m.RecruitPage })))
 const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then((m) => ({ default: m.RecruitDetailPage })))
@@ -47,25 +49,45 @@ function RecruitDetailRoute() {
   return <RecruitDetailPage recruitId={recruitId} onBack={() => navigate('/community/recruit')} />
 }
 
+function InfoDetailRoute() {
+  const { infoId } = useParams<{ infoId: string }>()
+  const navigate = useNavigate()
+  if (!infoId) return <Navigate to="/community/info" replace />
+  return (
+    <InfoDetailPage
+      infoId={infoId}
+      onBack={() => navigate('/community/info')}
+      onWrite={() => navigate('/community/info/write')}
+    />
+  )
+}
+
+function UserProfileRoute() {
+  const { userId } = useParams<{ userId: string }>()
+  if (!userId) return <Navigate to="/users" replace />
+  return <ProfilePage profileUserId={userId} />
+}
+
+function SettingsRedirect() {
+  const { user } = useAuth()
+  if (!user) return <Navigate to="/login" replace />
+  return <Navigate to={`/users/${user.id}`} replace />
+}
+
 function ServicesHubPage() {
   return (
     <section className="coala-content coala-content--placeholder">
       <div className="surface-card services-hub">
         <p className="services-hub-eyebrow">Services</p>
         <h2 className="services-hub-title">코알라 서비스</h2>
-        <p className="services-hub-description">
-          인스턴스 신청, 활동 공유, 커뮤니티 운영 도구를 한 곳에서 확인하는 공간입니다.
-        </p>
         <div className="services-hub-grid">
           <article className="services-hub-card">
             <Icon name="network" size={18} />
             <h3>인스턴스</h3>
-            <p>프로젝트 서버와 실습 환경을 신청하고 문의합니다.</p>
           </article>
           <article className="services-hub-card">
             <Icon name="chart" size={18} />
-            <h3>활동 공유</h3>
-            <p>GitHub 커밋, 연구 로그, 개발 기록을 공유합니다.</p>
+            <h3>활동</h3>
           </article>
         </div>
       </div>
@@ -79,6 +101,7 @@ function App() {
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [expandedMainNav, setExpandedMainNav] = useState<string | null>(null)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
   const { isLoggedIn, user, logout } = useAuth()
 
@@ -91,15 +114,13 @@ function App() {
 
   useEffect(() => {
     setProfileMenuOpen(false)
+    setExpandedMainNav(null)
   }, [location.pathname])
-
-  const handleRouteChange = (route: AppRoute) => {
-    navigate(routePathById[route])
-  }
 
   const handleHeaderSubNavSelect = (path: string) => {
     navigate(path)
     setMobileNavOpen(false)
+    setExpandedMainNav(null)
   }
 
   const isHeaderSubNavActive = (path: string) => {
@@ -117,8 +138,15 @@ function App() {
       return location.pathname.startsWith('/community/recruit') || location.pathname.startsWith('/recruit')
     }
 
-    if (targetPath === '/activity') {
-      return location.pathname === '/activity' && location.search === (targetQuery ? `?${targetQuery}` : '')
+    if (targetPath === '/members') {
+      return (
+        (location.pathname === '/members' || location.pathname === '/activity') &&
+        location.search === (targetQuery ? `?${targetQuery}` : '')
+      )
+    }
+
+    if (targetPath === '/users') {
+      return location.pathname === '/users'
     }
 
     if (targetPath === '/services') {
@@ -144,28 +172,18 @@ function App() {
       return
     }
 
-    if (item.value === 'service-status' || item.value === 'service-guide') {
+    if (item.value === 'service-status' || item.value === 'service-guide' || item.value === 'services-cossp') {
       navigate('/services')
       return
     }
 
     if (item.value === 'game-ranking') {
-      navigate('/activity')
-      return
-    }
-
-    if (item.value === 'game-github') {
-      navigate('/activity?tab=github')
-      return
-    }
-
-    if (item.value === 'game-mine') {
-      navigate('/activity?tab=mine')
+      navigate('/users')
       return
     }
 
     if (item.value === 'services-official') {
-      navigate('/services')
+      navigate('/services?tab=official')
       return
     }
 
@@ -183,12 +201,24 @@ function App() {
 
   const handleOpenProfile = () => {
     setProfileMenuOpen(false)
-    navigate('/settings')
+    if (user) {
+      navigate(`/users/${user.id}`)
+    }
   }
 
-  const handleMobileNav = (route: AppRoute) => {
-    handleRouteChange(route)
-    setMobileNavOpen(false)
+  const handleMainNavClick = (itemId: string, hasSubItems: boolean) => {
+    if (!hasSubItems) {
+      setExpandedMainNav(null)
+      navigate(routePathById[itemId as AppRoute])
+      return
+    }
+
+    if (window.matchMedia('(max-width: 640px)').matches) {
+      setExpandedMainNav(null)
+      return
+    }
+
+    setExpandedMainNav((current) => (current === itemId ? null : itemId))
   }
 
   const appRoutes = (
@@ -204,7 +234,16 @@ function App() {
           }
         />
 
-        <Route path="/community" element={<Navigate to="/community/board" replace />} />
+        <Route
+          path="/community"
+          element={
+            <CommunityHubPage
+              onOpenBoard={() => navigate('/community/board')}
+              onOpenInfo={() => navigate('/community/info')}
+              onOpenRecruit={() => navigate('/community/recruit')}
+            />
+          }
+        />
         <Route
           path="/community/board"
           element={
@@ -217,23 +256,21 @@ function App() {
         />
         <Route
           path="/community/info"
-          element={<InfoSharePage onWriteInfo={() => navigate('/community/info/write')} />}
+          element={
+            <InfoSharePage
+              onWriteInfo={() => navigate('/community/info/write')}
+              onOpenInfo={(infoId) => navigate(`/community/info/${infoId}`)}
+            />
+          }
         />
+        <Route path="/community/info/:infoId" element={<InfoDetailRoute />} />
         <Route
           path="/community/info/write"
-          element={
-            <RequireAuth>
-              <PostWriterPage writerType="info" onClose={() => navigate('/community/info')} />
-            </RequireAuth>
-          }
+          element={<PostWriterPage writerType="info" onClose={() => navigate('/community/info')} />}
         />
         <Route
           path="/community/board/write"
-          element={
-            <RequireAuth>
-              <PostWriterPage onClose={() => navigate('/community/board')} />
-            </RequireAuth>
-          }
+          element={<PostWriterPage onClose={() => navigate('/community/board')} />}
         />
         <Route path="/community/board/posts/:postId" element={<PostDetailRoute />} />
         <Route path="/community/write" element={<Navigate to="/community/board/write" replace />} />
@@ -264,12 +301,15 @@ function App() {
           }
         />
 
-        <Route path="/activity" element={<LeaderboardPage />} />
+        <Route path="/users" element={<LeaderboardPage />} />
+        <Route path="/users/:userId" element={<UserProfileRoute />} />
+        <Route path="/members" element={<Navigate to="/users" replace />} />
+        <Route path="/activity" element={<Navigate to="/users" replace />} />
         <Route
           path="/settings"
           element={
             <RequireAuth>
-              <ProfilePage />
+              <SettingsRedirect />
             </RequireAuth>
           }
         />
@@ -319,11 +359,15 @@ function App() {
               const subItems = headerSubNavItems[item.id] ?? []
 
               return (
-                <div key={item.id} className="main-nav-item">
+                <div
+                  key={item.id}
+                  className={expandedMainNav === item.id ? 'main-nav-item is-expanded' : 'main-nav-item'}
+                >
                   <button
                     type="button"
                     className={activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'}
-                    onClick={() => handleMobileNav(item.id)}
+                    aria-expanded={subItems.length > 0 ? expandedMainNav === item.id : undefined}
+                    onClick={() => handleMainNavClick(item.id, subItems.length > 0)}
                   >
                     {item.label}
                   </button>

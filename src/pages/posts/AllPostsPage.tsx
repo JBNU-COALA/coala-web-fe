@@ -10,6 +10,7 @@ import {
 } from './postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { CommunityBanner } from '../community/CommunityBanner'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 type AllPostsPageProps = {
   onOpenPost: (postId: string) => void
@@ -29,10 +30,10 @@ function boardTypeToFilter(boardType: string, boardName = ''): PostBoardFilterId
   return 'free'
 }
 
-const AVATAR_TONES = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
+const avatarTones = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
 
 function toAuthorTone(userId: number) {
-  return AVATAR_TONES[userId % AVATAR_TONES.length]
+  return avatarTones[userId % avatarTones.length]
 }
 
 const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) => ({
@@ -61,8 +62,10 @@ const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) 
 
 export function AllPostsPage({
   onOpenPost,
+  onWritePost,
   title = '게시판',
 }: AllPostsPageProps) {
+  const { user } = useAuth()
   const [activeBoard, setActiveBoard] = useState<PostBoardFilterId>(defaultPostBoardFilter)
   const [enrichedPosts, setEnrichedPosts] = useState<EnrichedPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -90,6 +93,11 @@ export function AllPostsPage({
 
   const currentBoardMeta = postCategoryMeta[activeBoard]
   const normalizedQuery = query.trim().toLowerCase()
+  const isOperator =
+    Boolean(user?.email?.toLowerCase().includes('admin')) ||
+    Boolean(user?.name?.includes('관리자')) ||
+    Boolean(user?.nickname?.includes('운영'))
+  const canWriteCurrentBoard = activeBoard !== 'notice' || isOperator
 
   const visiblePosts = useMemo(() => {
     const byCategory = enrichedPosts.filter((post) => {
@@ -110,27 +118,10 @@ export function AllPostsPage({
     })
   }, [activeBoard, enrichedPosts, normalizedQuery, sortMode])
 
-  const popularPosts = useMemo(() => {
-    const images = [
-      'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1552664730-d307ca884978?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1400&q=80',
-    ]
-
-    return [...enrichedPosts]
-      .sort((a, b) => b.viewCount - a.viewCount)
-      .slice(0, 3)
-      .map((post, index) => ({
-        label: '인기글',
-        title: post.title,
-        imageUrl: images[index % images.length],
-      }))
-  }, [enrichedPosts])
-
   return (
     <section className="coala-content coala-content--posts">
       <div className="board-page">
-        <CommunityBanner title={title} tone="board" images={popularPosts} />
+        <CommunityBanner title={title} tone="board" />
 
         <div className="community-section-tabs">
           {postCategoryFilters.map((filter) => (
@@ -178,11 +169,20 @@ export function AllPostsPage({
               <span className={`board-context-pill board-context-pill--${currentBoardMeta.tone}`}>
                 {currentBoardMeta.label}
               </span>
-              <p>{currentBoardMeta.description}</p>
             </div>
 
             <div className="board-toolbar-actions">
               <span className="board-count">{visiblePosts.length}개의 글</span>
+              <button
+                type="button"
+                className="write-post-button write-post-button--board"
+                disabled={!canWriteCurrentBoard}
+                title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
+                onClick={canWriteCurrentBoard ? onWritePost : undefined}
+              >
+                <Icon name="edit" size={15} />
+                글쓰기
+              </button>
             </div>
           </div>
 
@@ -251,7 +251,7 @@ export function AllPostsPage({
             )}
           </ul>
 
-          <footer className="board-pagination" aria-label="페이지네이션">
+          <footer className="board-pagination" aria-label="페이지">
             <button type="button" className="page-button is-active">
               1
             </button>

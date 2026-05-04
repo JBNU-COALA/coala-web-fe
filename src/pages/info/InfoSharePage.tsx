@@ -1,22 +1,21 @@
 import { useMemo, useState } from 'react'
-import {
-  infoFilters,
-  latestInfoUpdates,
-  resourceCards,
-  type InfoFilterId,
-} from './infoData'
+import { resourceCards, type InfoFilterId } from './infoData'
 import { Icon } from '../../shared/ui/Icon'
 import { CommunityBanner } from '../community/CommunityBanner'
 
 type InfoSharePageProps = {
   onWriteInfo?: () => void
+  onOpenInfo?: (id: string) => void
 }
 
 type InfoTabId = 'all' | InfoFilterId
 
 const infoTabFilters: { id: InfoTabId; label: string }[] = [
   { id: 'all', label: '전체' },
-  ...infoFilters,
+  { id: 'news', label: '소식' },
+  { id: 'contest', label: '대회' },
+  { id: 'lab', label: '연구실' },
+  { id: 'resource', label: '자료' },
 ]
 
 const filterIconById: Record<InfoTabId, Parameters<typeof Icon>[0]['name']> = {
@@ -27,7 +26,7 @@ const filterIconById: Record<InfoTabId, Parameters<typeof Icon>[0]['name']> = {
   resource: 'file',
 }
 
-export function InfoSharePage({ onWriteInfo }: InfoSharePageProps) {
+export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
   const [query, setQuery] = useState('')
   const [savedResourceIds, setSavedResourceIds] = useState<Set<string>>(() => new Set())
@@ -53,20 +52,6 @@ export function InfoSharePage({ onWriteInfo }: InfoSharePageProps) {
     })
   }, [activeFilter, normalizedQuery])
 
-  const popularInfo = useMemo(() => {
-    const images = [
-      'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=1400&q=80',
-    ]
-
-    return latestInfoUpdates.slice(0, 3).map((item, index) => ({
-      label: '인기 정보',
-      title: item.title,
-      imageUrl: images[index % images.length],
-    }))
-  }, [])
-
   const toggleSavedResource = (resourceId: string) => {
     setSavedResourceIds((current) => {
       const next = new Set(current)
@@ -89,7 +74,10 @@ export function InfoSharePage({ onWriteInfo }: InfoSharePageProps) {
   return (
     <section className="coala-content coala-content--info">
       <article className="info-shell">
-        <CommunityBanner title="정보공유" tone="info" images={popularInfo} />
+        <CommunityBanner
+          title="정보공유"
+          tone="info"
+        />
 
         <section className="surface-card community-list-controls info-list-controls" aria-label="정보공유 필터">
           <div className="community-list-controls__top">
@@ -139,17 +127,24 @@ export function InfoSharePage({ onWriteInfo }: InfoSharePageProps) {
           </div>
         </section>
 
-        <section className="surface-card info-resource-zone" aria-label="정보공유 목록">
-          <ul className="info-list">
+        <section className="surface-card info-resource-zone info-resource-zone--editorial" aria-label="정보공유 목록">
+          <ul className="info-list info-list--editorial">
             {visibleResources.map((card) => (
-              <li key={card.id} className="info-list-item">
-                <span className="info-list-tag">{card.tag}</span>
-                <div className="info-list-main">
-                  <h3>{card.title}</h3>
-                  <p>{card.source}</p>
-                </div>
+              <li key={card.id} className="info-list-item info-list-item--editorial">
+                <button
+                  type="button"
+                  className="info-list-open"
+                  onClick={() => onOpenInfo?.(card.id)}
+                >
+                  <span className="info-list-tag">{card.tag}</span>
+                  <div className="info-list-main">
+                    <h3>{card.title}</h3>
+                    <p>{card.source}</p>
+                    <small>{card.meta}</small>
+                  </div>
+                </button>
+
                 <div className="info-list-side">
-                  <span>{card.meta}</span>
                   <div className="info-list-actions">
                     <button
                       type="button"

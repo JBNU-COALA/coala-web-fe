@@ -109,27 +109,54 @@ const academicStatusLabel = {
   GRADUATED: '졸업',
 } as const
 
-export function ProfilePage() {
+type ProfilePageProps = {
+  profileUserId?: string
+}
+
+function findPublicMember(profileUserId?: string) {
+  const numericId = Number(profileUserId)
+  const indexedMember = Number.isFinite(numericId) ? activityMembers[numericId - 1] : null
+
+  return indexedMember ?? activityMembers.find((member) => member.isMe) ?? activityMembers[0]
+}
+
+export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const { user } = useAuth()
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('안녕하세요. 코알라 동아리에서 활동하고 있어요.')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
 
-  const me = activityMembers.find((m) => m.isMe) ?? activityMembers[activityMembers.length - 1]
-  const tierMeta = solvedTierMeta[me.solvedTier]
+  const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '1')
+  const isOwnProfile = Boolean(user && String(user.id) === effectiveProfileUserId)
+  const publicMember = findPublicMember(effectiveProfileUserId)
+  const profileMember =
+    isOwnProfile
+      ? activityMembers.find((member) => member.isMe) ?? publicMember
+      : publicMember
+  const tierMeta = solvedTierMeta[profileMember.solvedTier]
+  const canEdit = isOwnProfile
 
-  const displayName = user?.name ?? user?.email ?? '사용자'
-  const displayRole = user?.academicStatus
+  const displayName = isOwnProfile ? user?.name ?? user?.email ?? '사용자' : profileMember.name
+  const displayRole = isOwnProfile && user?.academicStatus
     ? `${academicStatusLabel[user.academicStatus]} · ${user.grade ?? '-'}학년`
-    : '동아리 멤버'
+    : `${profileMember.grade} · ${profileMember.role}`
   const initial = displayName.charAt(0)
-  const joinedAt = user?.createdAt
+  const joinedAt = isOwnProfile && user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : ''
+  const profileGithub = isOwnProfile ? user?.githubId ?? profileMember.githubHandle : profileMember.githubHandle
 
   useEffect(() => {
-    if (!user) return
+    setEditing(false)
+    setBio(canEdit ? '안녕하세요. 코알라 동아리에서 활동하고 있어요.' : profileMember.focus)
+  }, [canEdit, effectiveProfileUserId, profileMember.focus])
+
+  useEffect(() => {
+    if (!isOwnProfile || !user) {
+      setAuthoredContents(createFallbackAuthoredContents(displayName))
+      return
+    }
 
     const fetchAuthoredContents = async () => {
       try {
@@ -151,7 +178,7 @@ export function ProfilePage() {
     }
 
     fetchAuthoredContents()
-  }, [displayName, user])
+  }, [displayName, isOwnProfile, user])
 
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: 'overview', label: '개요' },
@@ -171,29 +198,31 @@ export function ProfilePage() {
               {joinedAt ? <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p> : null}
             </div>
           </div>
-          <button
-            type="button"
-            className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
-            onClick={() => setEditing((v) => !v)}
-          >
-            <Icon name="edit" size={13} />
-            {editing ? '완료' : '프로필 편집'}
-          </button>
+          {canEdit ? (
+            <button
+              type="button"
+              className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
+              onClick={() => setEditing((v) => !v)}
+            >
+              <Icon name="edit" size={13} />
+              {editing ? '완료' : '프로필 편집'}
+            </button>
+          ) : null}
         </div>
 
         <div className="profile-stats-grid">
           <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value">{me.totalPoints.toLocaleString()}</p>
+            <p className="profile-stat-value">{profileMember.totalPoints.toLocaleString()}</p>
             <p className="profile-stat-label">활동 포인트</p>
           </div>
           <div className="profile-stat-card surface-card">
-            <p className={`profile-stat-value profile-stat-value--tier solved-tier-color--${me.solvedTier}`}>
+            <p className={`profile-stat-value profile-stat-value--tier solved-tier-color--${profileMember.solvedTier}`}>
               {tierMeta.label}
             </p>
             <p className="profile-stat-label">백준 등급</p>
           </div>
           <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value profile-stat-value--github">{me.githubCommits}</p>
+            <p className="profile-stat-value profile-stat-value--github">{profileMember.githubCommits}</p>
             <p className="profile-stat-label">GitHub 커밋</p>
           </div>
           <div className="profile-stat-card surface-card">
@@ -233,58 +262,90 @@ export function ProfilePage() {
 
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">계정 정보</h3>
-              <ul className="profile-handles-list">
-                <li className="profile-handle-item">
-                  <span className="profile-handle-icon profile-handle-icon--baekjoon">
-                    <Icon name="user" size={14} />
-                  </span>
-                  <span className="profile-handle-body">
-                    <span className="profile-handle-service">이메일</span>
-                    <span className="profile-handle-value">{user?.email ?? '-'}</span>
-                  </span>
-                </li>
-                <li className="profile-handle-item">
-                  <span className="profile-handle-icon profile-handle-icon--github">
-                    <Icon name="file" size={14} />
-                  </span>
-                  <span className="profile-handle-body">
-                    <span className="profile-handle-service">학번</span>
-                    <span className="profile-handle-value">{user?.studentId ?? '-'}</span>
-                  </span>
-                </li>
-                <li className="profile-handle-item">
-                  <span className="profile-handle-icon profile-handle-icon--baekjoon">
-                    <Icon name="users" size={14} />
-                  </span>
-                  <span className="profile-handle-body">
-                    <span className="profile-handle-service">성별 / 학적</span>
-                    <span className="profile-handle-value">
-                      {user?.gender ? genderLabel[user.gender] : '-'} ·{' '}
-                      {user?.academicStatus ? academicStatusLabel[user.academicStatus] : '-'}
+              {canEdit ? (
+                <ul className="profile-handles-list">
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                      <Icon name="user" size={14} />
                     </span>
-                  </span>
-                </li>
-                <li className="profile-handle-item">
-                  <span className="profile-handle-icon profile-handle-icon--github">
-                    <Icon name="network" size={14} />
-                  </span>
-                  <span className="profile-handle-body">
-                    <span className="profile-handle-service">GitHub</span>
-                    <span className="profile-handle-value">
-                      {user?.githubId ? `@${user.githubId}` : '-'}
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">이메일</span>
+                      <span className="profile-handle-value">{user?.email ?? '-'}</span>
                     </span>
-                  </span>
-                </li>
-                <li className="profile-handle-item">
-                  <span className="profile-handle-icon profile-handle-icon--baekjoon">
-                    <Icon name="link" size={14} />
-                  </span>
-                  <span className="profile-handle-body">
-                    <span className="profile-handle-service">LinkedIn</span>
-                    <span className="profile-handle-value">{user?.linkedinUrl ?? '등록 안 함'}</span>
-                  </span>
-                </li>
-              </ul>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--github">
+                      <Icon name="file" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">학번</span>
+                      <span className="profile-handle-value">{user?.studentId ?? '-'}</span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                      <Icon name="users" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">성별 / 학적</span>
+                      <span className="profile-handle-value">
+                        {user?.gender ? genderLabel[user.gender] : '-'} ·{' '}
+                        {user?.academicStatus ? academicStatusLabel[user.academicStatus] : '-'}
+                      </span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--github">
+                      <Icon name="network" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">GitHub</span>
+                      <span className="profile-handle-value">
+                        {profileGithub ? `@${profileGithub}` : '-'}
+                      </span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                      <Icon name="link" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">LinkedIn</span>
+                      <span className="profile-handle-value">{user?.linkedinUrl ?? '등록 안 함'}</span>
+                    </span>
+                  </li>
+                </ul>
+              ) : (
+                <ul className="profile-handles-list">
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--github">
+                      <Icon name="network" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">GitHub</span>
+                      <span className="profile-handle-value">@{profileGithub}</span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--baekjoon">
+                      <Icon name="users" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">소속</span>
+                      <span className="profile-handle-value">{profileMember.lab}</span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--github">
+                      <Icon name="file" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">역할</span>
+                      <span className="profile-handle-value">{profileMember.role}</span>
+                    </span>
+                  </li>
+                </ul>
+              )}
             </div>
           </div>
         ) : null}
@@ -296,15 +357,19 @@ export function ProfilePage() {
               <div className="profile-activity-block">
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">핸들</span>
-                  <span className="profile-activity-value profile-activity-value--mono">{me.solvedHandle}</span>
+                  <span className="profile-activity-value profile-activity-value--mono">
+                    {profileMember.solvedHandle}
+                  </span>
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">등급</span>
-                  <span className={`solved-tier-badge solved-tier-badge--${me.solvedTier}`}>{tierMeta.label}</span>
+                  <span className={`solved-tier-badge solved-tier-badge--${profileMember.solvedTier}`}>
+                    {tierMeta.label}
+                  </span>
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">해결 문제</span>
-                  <span className="profile-activity-value">{me.solvedCount}문제</span>
+                  <span className="profile-activity-value">{profileMember.solvedCount}문제</span>
                 </div>
               </div>
             </div>
@@ -315,12 +380,14 @@ export function ProfilePage() {
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">핸들</span>
                   <span className="profile-activity-value profile-activity-value--mono">
-                    @{user?.githubId ?? me.githubHandle}
+                    @{profileGithub}
                   </span>
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">이번 달 커밋</span>
-                  <span className="profile-activity-value profile-activity-value--github">{me.githubCommits}개</span>
+                  <span className="profile-activity-value profile-activity-value--github">
+                    {profileMember.githubCommits}개
+                  </span>
                 </div>
               </div>
             </div>

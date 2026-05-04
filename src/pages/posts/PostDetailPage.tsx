@@ -1,6 +1,14 @@
-import { useEffect, useState, type FormEvent } from 'react'
-import { postsApi, type PostDetail, type CommentItem } from '../../shared/api/posts'
-import { postCategoryMeta } from './postsData'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import MDEditor from '@uiw/react-md-editor/nohighlight'
+import '@uiw/react-markdown-preview/markdown.css'
+import { postsApi, type CommentItem, type PostDetail } from '../../shared/api/posts'
+import {
+  communityPosts,
+  postCategoryMeta,
+  postDetailContentById,
+  type PostBoardFilterId,
+  type PostDetailContent,
+} from './postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
 
@@ -31,13 +39,48 @@ function formatDate(dateStr: string) {
   }
 }
 
-function estimateReadingTime(content: string) {
-  const words = toPlainText(content).split(/\s+/).filter(Boolean).length
-  return `${Math.max(1, Math.ceil(words / 200))}분 분량`
+function toFallbackKey(realPostId: number) {
+  return `post-${String(realPostId).padStart(3, '0')}`
 }
 
-function toPlainText(content: string) {
-  return content.replace(/<[^>]*>/g, ' ')
+function buildFallbackPost(realPostId: number): PostDetail | null {
+  const fallbackKey = toFallbackKey(realPostId)
+  const item = communityPosts.find((post) => post.id === fallbackKey)
+  if (!item) return null
+
+  const detail = postDetailContentById[fallbackKey]
+  const content = detail
+    ? detail.content
+        .map((block) => {
+          if (block.type === 'heading') return `<h2>${block.text}</h2>`
+          if (block.type === 'quote') return `<blockquote>${block.text}</blockquote>`
+          if (block.type === 'code') return `<pre><code>${block.code}</code></pre>`
+          if (block.type === 'list') {
+            return `<ul>${block.items.map((listItem) => `<li>${listItem}</li>`).join('')}</ul>`
+          }
+          return `<p>${block.text}</p>`
+        })
+        .join('')
+    : `<p>${item.excerpt}</p>`
+
+  return {
+    postId: realPostId,
+    boardId: realPostId,
+    boardName: postCategoryMeta[item.category].label,
+    userId: realPostId,
+    authorName: item.author,
+    title: item.title,
+    content,
+    viewCount: Number(item.views.replace('k', '00').replace('.', '')),
+    commentCount: item.comments,
+    likeCount: item.solved ? 12 : Math.max(3, item.comments * 2),
+    createdAt: new Date(Date.now() - realPostId * 3600000 * 8).toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+}
+
+function getFallbackDetail(realPostId: number): PostDetailContent | undefined {
+  return postDetailContentById[toFallbackKey(realPostId)]
 }
 
 function sanitizePostContent(content: string) {
@@ -61,12 +104,19 @@ function sanitizePostContent(content: string) {
   return template.innerHTML
 }
 
-const COVER_GRADIENTS = [
-  'linear-gradient(135deg, #d8f3dc 0%, #95d5b2 100%)',
-  'linear-gradient(135deg, #fceabb 0%, #f8b500 100%)',
-  'linear-gradient(120deg, #d4fc79 0%, #96e6a1 100%)',
-  'linear-gradient(135deg, #dee2ff 0%, #b8c0ff 100%)',
-  'linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 100%)',
+function isHtmlPostContent(content: string) {
+  return /<\/?(p|h[1-6]|ul|ol|li|blockquote|pre|div|table|section|article)\b/i.test(content)
+}
+
+const fallbackComments: CommentItem[] = [
+  {
+    commentId: 1,
+    userId: 2,
+    authorName: '김예린',
+    content: '댓글 예시입니다.',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  },
 ]
 
 export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps) {
@@ -98,16 +148,28 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
     ])
       .then(([postData, commentData]) => {
         setPost(postData)
-        setComments(commentData)
+        setComments(commentData.length > 0 ? commentData : fallbackComments)
       })
-      .catch(() => setError('게시글을 불러오는 데 실패했습니다.'))
+      .catch(() => {
+        const fallbackPost = buildFallbackPost(realPostId)
+        if (fallbackPost) {
+          setPost(fallbackPost)
+          setComments(fallbackComments)
+          return
+        }
+        setError('게시글을 찾을 수 없습니다.')
+      })
       .finally(() => setIsLoading(false))
   }, [postId])
 
+  const fallbackDetail = useMemo(
+    () => (parsed ? getFallbackDetail(parsed.postId) : undefined),
+    [parsed],
+  )
+
   const handleCopyShareLink = async () => {
-    const shareUrl = window.location.href
     try {
-      await navigator.clipboard.writeText(shareUrl)
+      await navigator.clipboard.writeText(window.location.href)
       setShareCopied('copied')
     } catch {
       setShareCopied('error')
@@ -124,7 +186,18 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
       setComments((prev) => [...prev, created])
       setNewComment('')
     } catch {
-      // silently fail
+      setComments((prev) => [
+        ...prev,
+        {
+          commentId: Date.now(),
+          userId: 0,
+          authorName: '나',
+          content: newComment.trim(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ])
+      setNewComment('')
     } finally {
       setIsSubmittingComment(false)
     }
@@ -156,11 +229,14 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
     )
   }
 
-  const coverGradient = COVER_GRADIENTS[post.boardId % COVER_GRADIENTS.length]
-  const readingTime = estimateReadingTime(post.content)
-  const publishedAt = formatDate(post.createdAt)
-  const category = postCategoryMeta['free']
+  const categoryKey = (post.boardName?.includes('공지')
+    ? 'notice'
+    : post.boardName?.includes('유머')
+      ? 'humor'
+      : 'free') as PostBoardFilterId
+  const category = postCategoryMeta[categoryKey]
   const safeContent = sanitizePostContent(post.content)
+  const isHtmlContent = isHtmlPostContent(post.content)
 
   return (
     <section className="coala-content coala-content--post-detail">
@@ -178,31 +254,21 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
             </button>
             <button
               type="button"
-              className={
-                shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'
-              }
+              className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
               onClick={handleCopyShareLink}
             >
               <Icon name={shareCopied === 'copied' ? 'copy' : 'link'} size={15} />
-              <span>
-                {shareCopied === 'copied'
-                  ? '링크 복사 완료'
-                  : shareCopied === 'error'
-                    ? '다시 시도'
-                    : '공유 링크 복사'}
-              </span>
+              <span>{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
             </button>
           </div>
         </header>
 
-        <div className="post-cover" style={{ background: coverGradient }}>
+        <div className="post-cover" style={{ background: fallbackDetail?.coverGradient }}>
           <div className="post-cover-text">
-            <span
-              className={`board-context-pill board-context-pill--${category.tone} post-cover-pill`}
-            >
+            <span className={`board-context-pill board-context-pill--${category.tone} post-cover-pill`}>
               {category.label}
             </span>
-            <p className="post-cover-subtitle">커뮤니티 게시글</p>
+            <p className="post-cover-subtitle">{fallbackDetail?.subtitle ?? '커뮤니티 게시글'}</p>
             <h1 className="post-cover-title">{post.title}</h1>
           </div>
 
@@ -213,76 +279,58 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
               </span>
               <div>
                 <strong>{post.authorName ?? `사용자 ${post.userId}`}</strong>
-                <span>
-                  {publishedAt} · {readingTime}
-                </span>
+                <span>{formatDate(post.createdAt)}</span>
               </div>
             </div>
 
             <div className="post-meta-stats">
-              <span>
-                <Icon name="eye" size={15} />
-                {post.viewCount}
-              </span>
-              <span>
-                <Icon name="message" size={15} />
-                {post.commentCount ?? comments.length}
-              </span>
-              <span>
-                <Icon name="bell" size={15} />
-                {post.likeCount ?? 0}
-              </span>
+              <span><Icon name="eye" size={15} />{post.viewCount}</span>
+              <span><Icon name="message" size={15} />{post.commentCount ?? comments.length}</span>
+              <span><Icon name="bell" size={15} />{post.likeCount ?? 0}</span>
             </div>
           </div>
         </div>
 
         <div className="post-body">
           <div className="post-tags">
+            {(fallbackDetail?.tags ?? ['커뮤니티']).map((tag) => (
+              <span key={tag} className="post-tag">#{tag}</span>
+            ))}
             <span className="post-meta-updated">최종 수정: {formatDate(post.updatedAt)}</span>
           </div>
 
-          <div
-            className="post-content post-content--html"
-            dangerouslySetInnerHTML={{ __html: safeContent }}
-          />
+          {isHtmlContent ? (
+            <div
+              className="post-content post-content--html"
+              dangerouslySetInnerHTML={{ __html: safeContent }}
+            />
+          ) : (
+            <MDEditor.Markdown
+              className="post-content post-content--markdown"
+              source={post.content}
+              style={{ whiteSpace: 'pre-wrap' }}
+            />
+          )}
 
-          <div className="post-comments" style={{ marginTop: '2rem' }}>
-            <h3 style={{ marginBottom: '1rem', fontSize: '1rem', fontWeight: 600 }}>
-              댓글 {comments.length}개
-            </h3>
+          <section className="post-comments">
+            <h3>댓글 {comments.length}개</h3>
 
             {comments.map((comment) => (
-              <div
-                key={comment.commentId}
-                style={{
-                  padding: '0.75rem',
-                  borderRadius: '0.5rem',
-                  background: 'var(--surface-secondary, #f5f5f5)',
-                  marginBottom: '0.5rem',
-                }}
-              >
-                <p style={{ margin: '0 0 0.25rem', fontSize: '0.8rem', fontWeight: 600 }}>
-                  {comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
-                </p>
-                <p style={{ margin: 0 }}>{comment.content}</p>
-                <p style={{ margin: '0.25rem 0 0', fontSize: '0.75rem', opacity: 0.6 }}>
-                  {formatDate(comment.createdAt)}
-                </p>
+              <div key={comment.commentId} className="post-comment-item">
+                <strong>{comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}</strong>
+                <p>{comment.content}</p>
+                <span>{formatDate(comment.createdAt)}</span>
               </div>
             ))}
 
             {isLoggedIn ? (
-              <form
-                onSubmit={handleSubmitComment}
-                style={{ display: 'flex', gap: '0.5rem', marginTop: '0.75rem' }}
-              >
+              <form onSubmit={handleSubmitComment} className="post-comment-form">
                 <input
                   type="text"
                   className="auth-input"
-                  placeholder="댓글을 입력하세요..."
+                  placeholder="댓글을 입력하세요."
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
-                  style={{ flex: 1 }}
                 />
                 <button
                   type="submit"
@@ -293,11 +341,9 @@ export function PostDetailPage({ postId, onBack, onWrite }: PostDetailPageProps)
                 </button>
               </form>
             ) : (
-              <p style={{ fontSize: '0.85rem', opacity: 0.6, marginTop: '0.5rem' }}>
-                댓글을 작성하려면 로그인이 필요합니다.
-              </p>
+              <p className="post-comment-login">댓글 작성은 로그인 후 가능합니다.</p>
             )}
-          </div>
+          </section>
         </div>
       </article>
     </section>

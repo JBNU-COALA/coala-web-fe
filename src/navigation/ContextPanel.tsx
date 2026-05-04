@@ -32,7 +32,9 @@ export function ContextPanel({ panel, onSelect, variant = 'card' }: ContextPanel
     <section className={className} aria-label={panel.title}>
       <header className="context-card-header">
         <h2 className="context-card-title">{panel.title}</h2>
-        <p className="context-card-description">{panel.description}</p>
+        {panel.description ? (
+          <p className="context-card-description">{panel.description}</p>
+        ) : null}
       </header>
 
       <ul className="context-item-list">
