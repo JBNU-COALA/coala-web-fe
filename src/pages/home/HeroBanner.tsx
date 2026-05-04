@@ -28,7 +28,6 @@ export function HeroBanner() {
           }
           aria-hidden={index !== activeIndex}
         >
-          <img src={slide.imageUrl} alt={slide.title} className="hero-slide-image" />
           <div className="hero-slide-overlay" />
           <div className="hero-banner-content">
             <p className="hero-banner-eyebrow">{slide.eyebrow}</p>

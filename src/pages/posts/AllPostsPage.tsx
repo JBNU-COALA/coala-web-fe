@@ -44,6 +44,8 @@ const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) 
   title: post.title,
   content: post.excerpt,
   viewCount: Number(post.views.replace('k', '00').replace('.', '')),
+  commentCount: post.comments,
+  likeCount: post.solved ? 12 : Math.max(3, post.comments * 2),
   createdAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
   updatedAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
   board: {
@@ -96,7 +98,10 @@ export function AllPostsPage({
     })
 
     const searched = normalizedQuery
-      ? byCategory.filter((post) => post.title.toLowerCase().includes(normalizedQuery))
+      ? byCategory.filter((post) => {
+          const searchable = `${post.title} ${post.content} ${post.authorName ?? ''}`.toLowerCase()
+          return searchable.includes(normalizedQuery)
+        })
       : byCategory
 
     return [...searched].sort((a, b) => {
@@ -205,6 +210,10 @@ export function AllPostsPage({
                           <h3 className="board-post-title">{post.title}</h3>
                         </div>
 
+                        <p className="board-post-excerpt">
+                          {post.content.replace(/<[^>]+>/g, '').slice(0, 120)}
+                        </p>
+
                         <p className="board-post-meta">
                           <span
                             className={`board-avatar board-avatar--${toAuthorTone(post.userId)}`}
@@ -212,6 +221,8 @@ export function AllPostsPage({
                             {(post.authorName ?? String(post.userId))[0]}
                           </span>
                           <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
+                          <span className="dot-divider" />
+                          <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
                         </p>
                       </div>
 
@@ -222,7 +233,11 @@ export function AllPostsPage({
                         </span>
                         <span className="board-stat">
                           <Icon name="message" size={14} />
-                          <span>0</span>
+                          <span>{post.commentCount ?? 0}</span>
+                        </span>
+                        <span className="board-stat">
+                          <Icon name="bell" size={14} />
+                          <span>{post.likeCount ?? 0}</span>
                         </span>
                       </div>
                     </button>

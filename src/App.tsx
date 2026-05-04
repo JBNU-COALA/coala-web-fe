@@ -4,6 +4,7 @@ import {
   buildContextPanel,
   getRouteFromPath,
   headerNavItems,
+  headerSubNavItems,
   routePathById,
   type AppRoute,
   type ContextPanelItem,
@@ -15,7 +16,6 @@ import { RequireAuth } from './shared/auth/RequireAuth'
 import './pages/home/home.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
-const CommunityHubPage = lazy(() => import('./pages/community/CommunityHubPage').then((m) => ({ default: m.CommunityHubPage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
 const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then((m) => ({ default: m.PostDetailPage })))
 const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then((m) => ({ default: m.PostWriterPage })))
@@ -86,7 +86,7 @@ function App() {
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup'
   const contextPanel = useMemo(
     () => buildContextPanel(activeRoute, location.pathname),
-    [activeRoute, location.pathname],
+    [activeRoute, location.pathname, location.search],
   )
 
   useEffect(() => {
@@ -95,6 +95,37 @@ function App() {
 
   const handleRouteChange = (route: AppRoute) => {
     navigate(routePathById[route])
+  }
+
+  const handleHeaderSubNavSelect = (path: string) => {
+    navigate(path)
+    setMobileNavOpen(false)
+  }
+
+  const isHeaderSubNavActive = (path: string) => {
+    const [targetPath, targetQuery = ''] = path.split('?')
+
+    if (targetPath === '/community/board') {
+      return location.pathname.startsWith('/community/board') || location.pathname.startsWith('/community/posts')
+    }
+
+    if (targetPath === '/community/info') {
+      return location.pathname.startsWith('/community/info')
+    }
+
+    if (targetPath === '/community/recruit') {
+      return location.pathname.startsWith('/community/recruit') || location.pathname.startsWith('/recruit')
+    }
+
+    if (targetPath === '/activity') {
+      return location.pathname === '/activity' && location.search === (targetQuery ? `?${targetQuery}` : '')
+    }
+
+    if (targetPath === '/services') {
+      return location.pathname === '/services' && location.search === (targetQuery ? `?${targetQuery}` : '')
+    }
+
+    return location.pathname === targetPath
   }
 
   const handleContextSelect = (item: ContextPanelItem) => {
@@ -114,17 +145,22 @@ function App() {
     }
 
     if (item.value === 'service-status' || item.value === 'service-guide') {
-      navigate('/services?tab=instance')
+      navigate('/services')
       return
     }
 
-    if (item.value === 'game-ranking' || item.value === 'game-github') {
+    if (item.value === 'game-ranking') {
       navigate('/activity')
       return
     }
 
-    if (item.value === 'services-instance') {
-      navigate('/services?tab=instance')
+    if (item.value === 'game-github') {
+      navigate('/activity?tab=github')
+      return
+    }
+
+    if (item.value === 'game-mine') {
+      navigate('/activity?tab=mine')
       return
     }
 
@@ -136,10 +172,6 @@ function App() {
     if (item.value === 'services-unofficial') {
       navigate('/services?tab=unofficial')
       return
-    }
-
-    if (item.value === 'services-activity') {
-      navigate('/services?tab=register')
     }
   }
 
@@ -172,16 +204,7 @@ function App() {
           }
         />
 
-        <Route
-          path="/community"
-          element={
-            <CommunityHubPage
-              onOpenBoard={() => navigate('/community/board')}
-              onOpenInfo={() => navigate('/community/info')}
-              onOpenRecruit={() => navigate('/community/recruit')}
-            />
-          }
-        />
+        <Route path="/community" element={<Navigate to="/community/board" replace />} />
         <Route
           path="/community/board"
           element={
@@ -220,6 +243,15 @@ function App() {
           path="/community/recruit"
           element={<RecruitPage onSelectRecruit={(id) => navigate(`/community/recruit/${id}`)} />}
         />
+        <Route
+          path="/community/recruit/write"
+          element={
+            <RecruitPage
+              initialMode="write"
+              onSelectRecruit={(id) => navigate(`/community/recruit/${id}`)}
+            />
+          }
+        />
         <Route path="/community/recruit/:recruitId" element={<RecruitDetailRoute />} />
         <Route path="/recruit" element={<Navigate to="/community/recruit" replace />} />
         <Route
@@ -241,7 +273,7 @@ function App() {
             </RequireAuth>
           }
         />
-        <Route path="/service" element={<Navigate to="/services?tab=instance" replace />} />
+        <Route path="/service" element={<Navigate to="/services" replace />} />
         <Route path="/services" element={<ServicesPage />} />
         <Route
           path="/login"
@@ -283,16 +315,41 @@ function App() {
           </button>
 
           <nav className={mobileNavOpen ? 'coala-main-nav is-open' : 'coala-main-nav'} aria-label="메인 메뉴">
-            {headerNavItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className={activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'}
-                onClick={() => handleMobileNav(item.id)}
-              >
-                {item.label}
-              </button>
-            ))}
+            {headerNavItems.map((item) => {
+              const subItems = headerSubNavItems[item.id] ?? []
+
+              return (
+                <div key={item.id} className="main-nav-item">
+                  <button
+                    type="button"
+                    className={activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'}
+                    onClick={() => handleMobileNav(item.id)}
+                  >
+                    {item.label}
+                  </button>
+                  {subItems.length > 0 ? (
+                    <div className="main-nav-dropdown" role="menu" aria-label={`${item.label} 하위 메뉴`}>
+                      {subItems.map((subItem) => (
+                        <button
+                          key={subItem.id}
+                          type="button"
+                          className={
+                            isHeaderSubNavActive(subItem.path)
+                              ? 'main-nav-dropdown-item is-active'
+                              : 'main-nav-dropdown-item'
+                          }
+                          onClick={() => handleHeaderSubNavSelect(subItem.path)}
+                          role="menuitem"
+                        >
+                          <Icon name={subItem.icon} size={14} />
+                          <span>{subItem.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                </div>
+              )
+            })}
           </nav>
 
           <div className="coala-header-actions">
