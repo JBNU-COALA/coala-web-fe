@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type FormEvent } from 'react'
 import { Icon } from '../../shared/ui/Icon'
 import { durationOptions, instanceTypes, type InstanceType } from './serviceData'
 
@@ -15,7 +15,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
 
   const selectedSpec = instanceTypes.find((t) => t.id === selectedType)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault()
     if (!agreed || !purpose.trim()) return
     setSubmitted(true)
@@ -49,18 +49,9 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
             >
               <p className="jcloud-instance-label">{type.label}</p>
               <ul className="jcloud-spec-list">
-                <li>
-                  <Icon name="settings" size={11} />
-                  {type.specs.cpu}
-                </li>
-                <li>
-                  <Icon name="layout" size={11} />
-                  {type.specs.ram}
-                </li>
-                <li>
-                  <Icon name="file" size={11} />
-                  {type.specs.disk}
-                </li>
+                <li><Icon name="settings" size={11} />{type.specs.cpu}</li>
+                <li><Icon name="layout" size={11} />{type.specs.ram}</li>
+                <li><Icon name="file" size={11} />{type.specs.disk}</li>
               </ul>
             </button>
           ))}
@@ -88,21 +79,11 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         <div className="jcloud-field-group">
           <div className="jcloud-field-row">
             <div className="jcloud-field">
-              <label className="jcloud-label" htmlFor="apply-name">
-                이름
-              </label>
-              <input
-                id="apply-name"
-                type="text"
-                className="jcloud-input"
-                placeholder="홍길동"
-                required
-              />
+              <label className="jcloud-label" htmlFor="apply-name">이름</label>
+              <input id="apply-name" type="text" className="jcloud-input" placeholder="홍길동" required />
             </div>
             <div className="jcloud-field">
-              <label className="jcloud-label" htmlFor="apply-student-id">
-                학번
-              </label>
+              <label className="jcloud-label" htmlFor="apply-student-id">학번</label>
               <input
                 id="apply-student-id"
                 type="text"
@@ -159,6 +140,12 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         />
         <span>코알라 동아리 프로젝트에 편입되는 것에 동의합니다.</span>
       </label>
+
+      <p className="jcloud-open-source-notice">
+        * 위 인스턴스 사용시 본인의 서비스를 코알라 도메인을 통해 배포할 수 있게 됩니다. 이후 코알라 오픈소스 프로젝트에 참여하게 됩니다.
+        <br />
+        코알라 오픈소스 프로젝트 안내
+      </p>
 
       <button
         type="submit"

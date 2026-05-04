@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import MDEditor from '@uiw/react-md-editor/nohighlight'
+import '@uiw/react-md-editor/markdown-editor.css'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
 import {
@@ -16,7 +18,12 @@ type RecruitPageProps = {
   initialMode?: RecruitMode
 }
 
-type RecruitMode = 'apply' | 'write'
+type RecruitMode = 'list' | 'applications' | 'manage' | 'write'
+type RecruitListVariant = 'public' | 'applied' | 'managed'
+type RecruitApplicationDraft = {
+  role: string
+  body: string
+}
 
 const categories: { id: RecruitCategory | 'all'; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -30,14 +37,15 @@ const writeCategories = categories.filter(
 )
 
 const filters: { id: RecruitFilterId; label: string }[] = [
-  { id: 'all', label: '전체 보기' },
+  { id: 'all', label: '전체' },
   { id: 'open', label: '모집 중' },
   { id: 'closing-soon', label: '마감 임박' },
 ]
 
-const modeTabs: { id: RecruitMode; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'apply', label: '지원 하기', icon: 'users' },
-  { id: 'write', label: '모집 공고 작성', icon: 'edit' },
+const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
+  { id: 'list', label: '모집 공고', icon: 'file' },
+  { id: 'applications', label: '지원 내역', icon: 'users' },
+  { id: 'manage', label: '모집 관리', icon: 'settings' },
 ]
 
 const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
@@ -72,7 +80,13 @@ const defaultRecruitDraft: RecruitDraft = {
 const getStatusLabel = (status: RecruitStatus) => {
   if (status === 'open') return '모집 중'
   if (status === 'closing-soon') return '마감 임박'
-  return '모집 완료'
+  return '마감'
+}
+
+const getStatusClass = (status: RecruitStatus) => {
+  if (status === 'open') return 'recruit-status--open'
+  if (status === 'closing-soon') return 'recruit-status--closing'
+  return 'recruit-status--closed'
 }
 
 const loadLocalRecruitItems = (): RecruitItem[] => {
@@ -139,7 +153,175 @@ const buildRecruitItem = (draft: RecruitDraft): RecruitItem => {
   }
 }
 
-export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitPageProps) {
+const createDefaultApplicationDraft = (item: RecruitItem): RecruitApplicationDraft => ({
+  role: item.roles[0]?.label ?? '',
+  body: `## 자기소개\n\n\n## 지원 동기\n\n${item.title}에 관심을 가지게 된 이유를 적어주세요.\n\n## 가능한 역할과 시간\n\n\n## 남기고 싶은 말\n\n`,
+})
+
+type RecruitListProps = {
+  items: RecruitItem[]
+  variant: RecruitListVariant
+  emptyText: string
+  appliedIds: Set<string>
+  savedIds: Set<string>
+  onSelectRecruit: (id: string) => void
+  onOpenApplication: (id: string) => void
+  onToggleSaved: (id: string) => void
+}
+
+function RecruitList({
+  items,
+  variant,
+  emptyText,
+  appliedIds,
+  savedIds,
+  onSelectRecruit,
+  onOpenApplication,
+  onToggleSaved,
+}: RecruitListProps) {
+  return (
+    <ul className="recruit-list">
+      {items.map((item) => {
+        const isOpen = item.status === 'open'
+        const isClosingSoon = item.status === 'closing-soon'
+        const canApply = isOpen || isClosingSoon
+        const isApplied = appliedIds.has(item.id)
+
+        return (
+          <li key={item.id} className="recruit-list-row surface-card">
+            <button
+              type="button"
+              className="recruit-row-main"
+              onClick={() => onSelectRecruit(item.id)}
+            >
+              <span className={`recruit-status-pill ${getStatusClass(item.status)}`}>
+                <span className="recruit-status-dot" />
+                {getStatusLabel(item.status)}
+              </span>
+              <span className="recruit-row-copy">
+                <strong>{item.title}</strong>
+                <span>{item.shortDesc}</span>
+              </span>
+            </button>
+
+            <div className="recruit-row-meta">
+              <span>{item.currentMembers}/{item.maxMembers}명</span>
+              <span>{item.createdAt}</span>
+              <span>{item.techStack.slice(0, 2).join(', ')}</span>
+            </div>
+
+            <div className="recruit-row-actions">
+              {variant === 'managed' ? (
+                <button
+                  type="button"
+                  className="recruit-row-button"
+                  onClick={() => onSelectRecruit(item.id)}
+                >
+                  관리
+                </button>
+              ) : variant === 'applied' ? (
+                <span className="recruit-row-static-chip">지원 완료</span>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className={savedIds.has(item.id) ? 'recruit-row-button is-active' : 'recruit-row-button'}
+                    aria-pressed={savedIds.has(item.id)}
+                    onClick={() => onToggleSaved(item.id)}
+                  >
+                    {savedIds.has(item.id) ? '관심 중' : '관심'}
+                  </button>
+                  <button
+                    type="button"
+                    className={isApplied ? 'recruit-row-button recruit-row-button--primary is-active' : 'recruit-row-button recruit-row-button--primary'}
+                    disabled={!canApply}
+                    onClick={() => {
+                      if (canApply) onOpenApplication(item.id)
+                    }}
+                  >
+                    {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
+                  </button>
+                </>
+              )}
+            </div>
+          </li>
+        )
+      })}
+
+      {items.length === 0 ? (
+        <li className="recruit-card-empty">{emptyText}</li>
+      ) : null}
+    </ul>
+  )
+}
+
+type RecruitApplicationPanelProps = {
+  item: RecruitItem
+  draft: RecruitApplicationDraft
+  error: string | null
+  onChange: (draft: RecruitApplicationDraft) => void
+  onClose: () => void
+  onSubmit: (event: FormEvent) => void
+}
+
+function RecruitApplicationPanel({
+  item,
+  draft,
+  error,
+  onChange,
+  onClose,
+  onSubmit,
+}: RecruitApplicationPanelProps) {
+  return (
+    <form className="surface-card recruit-application-panel" onSubmit={onSubmit}>
+      <header className="recruit-application-head">
+        <div>
+          <p>지원서 작성</p>
+          <h3>{item.title}</h3>
+        </div>
+        <button type="button" className="recruit-row-button" onClick={onClose}>
+          닫기
+        </button>
+      </header>
+
+      <label className="jcloud-field">
+        <span className="jcloud-label">지원 역할</span>
+        <input
+          className="jcloud-input"
+          value={draft.role}
+          onChange={(event) => onChange({ ...draft, role: event.target.value })}
+          placeholder="프론트엔드, 백엔드, 기획"
+        />
+      </label>
+
+      <label className="jcloud-field recruit-application-editor-field">
+        <span className="jcloud-label">지원 내용</span>
+        <div className="recruit-application-editor" data-color-mode="light">
+          <MDEditor
+            value={draft.body}
+            onChange={(value) => onChange({ ...draft, body: value ?? '' })}
+            preview="edit"
+            height={280}
+            visibleDragbar={false}
+            textareaProps={{
+              placeholder: '자기소개, 지원 동기, 가능한 역할과 시간을 Markdown으로 작성하세요.',
+            }}
+          />
+        </div>
+      </label>
+
+      {error ? <p className="auth-error">{error}</p> : null}
+
+      <div className="recruit-application-footer">
+        <button type="submit" className="jcloud-submit-button">
+          지원서 제출
+        </button>
+      </div>
+    </form>
+  )
+}
+
+export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPageProps) {
   const navigate = useNavigate()
   const [mode, setMode] = useState<RecruitMode>(initialMode)
   const [activeCategory, setActiveCategory] = useState<RecruitCategory | 'all'>('all')
@@ -151,6 +333,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [localRecruitItems, setLocalRecruitItems] = useState<RecruitItem[]>(() => loadLocalRecruitItems())
+  const [applicationTargetId, setApplicationTargetId] = useState<string | null>(null)
+  const [applicationDrafts, setApplicationDrafts] = useState<Record<string, RecruitApplicationDraft>>({})
+  const [applicationError, setApplicationError] = useState<string | null>(null)
 
   const normalizedQuery = query.trim().toLowerCase()
   const allRecruitItems = useMemo(
@@ -183,30 +368,58 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
     })
   }, [activeCategory, activeFilter, allRecruitItems, normalizedQuery, sortMode])
 
-  const popularRecruit = useMemo(() => {
-    const images = [
-      'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1556761175-b413da4baf72?auto=format&fit=crop&w=1400&q=80',
-      'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1400&q=80',
-    ]
+  const appliedItems = useMemo(
+    () => allRecruitItems.filter((item) => appliedIds.has(item.id)),
+    [allRecruitItems, appliedIds],
+  )
 
-    return [...allRecruitItems]
-      .sort((a, b) => b.views + b.bookmarks * 12 - (a.views + a.bookmarks * 12))
-      .slice(0, 3)
-      .map((item, index) => ({
-        label: '인기 모집',
-        title: item.title,
-        imageUrl: images[index % images.length],
-      }))
-  }, [allRecruitItems])
+  const applicationItem = useMemo(
+    () => allRecruitItems.find((item) => item.id === applicationTargetId) ?? null,
+    [allRecruitItems, applicationTargetId],
+  )
 
-  const toggleApplied = (id: string) => {
+  const activeApplicationDraft =
+    applicationItem && applicationTargetId
+      ? applicationDrafts[applicationTargetId] ?? createDefaultApplicationDraft(applicationItem)
+      : null
+
+  const openApplication = (id: string) => {
+    const item = allRecruitItems.find((recruit) => recruit.id === id)
+    if (!item) return
+
+    setApplicationTargetId(id)
+    setApplicationError(null)
+    setApplicationDrafts((current) => (
+      current[id] ? current : { ...current, [id]: createDefaultApplicationDraft(item) }
+    ))
+  }
+
+  const updateApplicationDraft = (nextDraft: RecruitApplicationDraft) => {
+    if (!applicationTargetId) return
+    setApplicationDrafts((current) => ({ ...current, [applicationTargetId]: nextDraft }))
+  }
+
+  const closeApplication = () => {
+    setApplicationTargetId(null)
+    setApplicationError(null)
+  }
+
+  const submitApplication = (event: FormEvent) => {
+    event.preventDefault()
+    if (!applicationTargetId || !activeApplicationDraft) return
+
+    const markdownBody = activeApplicationDraft.body.replace(/[#*_`>\-\s]/g, '')
+    if (!activeApplicationDraft.role.trim() || !markdownBody.trim()) {
+      setApplicationError('지원 역할과 지원 내용을 입력해주세요.')
+      return
+    }
+
     setAppliedIds((current) => {
       const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else next.add(id)
+      next.add(applicationTargetId)
       return next
     })
+    closeApplication()
   }
 
   const toggleSaved = (id: string) => {
@@ -224,6 +437,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
 
   const changeMode = (nextMode: RecruitMode) => {
     setMode(nextMode)
+    closeApplication()
     navigate(nextMode === 'write' ? '/community/recruit/write' : '/community/recruit')
   }
 
@@ -245,20 +459,23 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
     setActiveCategory('all')
     setActiveFilter('all')
     setSortMode('latest')
-    setMode('apply')
+    setMode('manage')
     navigate('/community/recruit')
   }
 
+  const isTabActive = (tabId: Exclude<RecruitMode, 'write'>) =>
+    mode === tabId || (mode === 'write' && tabId === 'manage')
+
   return (
     <section className="coala-content coala-content--recruit">
-      <CommunityBanner title="모집" tone="recruit" images={popularRecruit} />
+      <CommunityBanner title="모집" tone="recruit" />
 
       <div className="community-section-tabs">
         {modeTabs.map((tab) => (
           <button
             key={tab.id}
             type="button"
-            className={mode === tab.id ? 'community-section-tab is-active' : 'community-section-tab'}
+            className={isTabActive(tab.id) ? 'community-section-tab is-active' : 'community-section-tab'}
             onClick={() => changeMode(tab.id)}
           >
             <Icon name={tab.icon} size={14} />
@@ -271,7 +488,6 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
         <form className="surface-card recruit-write-panel" onSubmit={handleCreateRecruit}>
           <header>
             <h3>모집 공고 작성</h3>
-            <p>지원 화면에 보이는 역할, 인원, 기간, 진행 방식까지 같은 규격으로 작성합니다.</p>
           </header>
 
           <div className="recruit-write-category-tabs" role="tablist" aria-label="모집 공고 분류">
@@ -309,7 +525,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
                 className="jcloud-input"
                 value={draft.shortDesc}
                 onChange={(event) => updateDraft('shortDesc', event.target.value)}
-                placeholder="목록 카드에 보일 모집 요약"
+                placeholder="목록에 보일 모집 요약"
               />
             </label>
             <label className="jcloud-field">
@@ -385,15 +601,57 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
             <button type="submit" className="jcloud-submit-button">작성 완료</button>
           </div>
         </form>
+      ) : mode === 'applications' ? (
+        <section className="recruit-dashboard-panel">
+          <header className="recruit-dashboard-header">
+            <div>
+              <h3>지원 내역</h3>
+              <p>{appliedItems.length}개</p>
+            </div>
+          </header>
+          <RecruitList
+            items={appliedItems}
+            variant="applied"
+            emptyText="지원한 모집이 없습니다."
+            appliedIds={appliedIds}
+            savedIds={savedIds}
+            onSelectRecruit={onSelectRecruit}
+            onOpenApplication={openApplication}
+            onToggleSaved={toggleSaved}
+          />
+        </section>
+      ) : mode === 'manage' ? (
+        <section className="recruit-dashboard-panel">
+          <header className="recruit-dashboard-header">
+            <div>
+              <h3>모집 관리</h3>
+              <p>{localRecruitItems.length}개</p>
+            </div>
+            <button type="button" className="jcloud-submit-button" onClick={() => changeMode('write')}>
+              <Icon name="plus" size={15} />
+              모집 공고 작성
+            </button>
+          </header>
+          <RecruitList
+            items={localRecruitItems}
+            variant="managed"
+            emptyText="작성한 모집 공고가 없습니다."
+            appliedIds={appliedIds}
+            savedIds={savedIds}
+            onSelectRecruit={onSelectRecruit}
+            onOpenApplication={openApplication}
+            onToggleSaved={toggleSaved}
+          />
+        </section>
       ) : (
         <>
-          <section className="surface-card community-list-controls recruit-list-controls" aria-label="모집 필터">
-            <div className="community-list-controls__top">
-              <div className="community-list-heading">
+          <section className="surface-card recruit-control-panel" aria-label="모집 공고 필터">
+            <div className="recruit-control-head">
+              <div>
                 <p>{activeCategoryLabel}</p>
                 <strong>{visibleItems.length}개 모집</strong>
               </div>
-              <label className="community-list-search">
+              <label className="community-list-search recruit-search">
                 <Icon name="search" size={15} />
                 <input
                   type="search"
@@ -404,132 +662,78 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'apply' }: RecruitP
               </label>
             </div>
 
-            <div className="community-filter-tabs" role="tablist" aria-label="모집 분류">
-              {categories.map((category) => (
-                <button
-                  key={category.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeCategory === category.id}
-                  className={
-                    activeCategory === category.id
-                      ? 'community-filter-tab is-active'
-                      : 'community-filter-tab'
-                  }
-                  onClick={() => setActiveCategory(category.id)}
-                >
-                  {category.label}
-                </button>
-              ))}
-            </div>
+            <div className="recruit-filter-grid">
+              <div className="recruit-filter-group">
+                <span>분류</span>
+                <div className="recruit-segmented" role="tablist" aria-label="모집 분류">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeCategory === category.id}
+                      className={activeCategory === category.id ? 'is-active' : ''}
+                      onClick={() => setActiveCategory(category.id)}
+                    >
+                      {category.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-            <div className="community-status-filters" aria-label="모집 상태">
-              {filters.map((filter) => (
-                <button
-                  key={filter.id}
-                  type="button"
-                  className={
-                    activeFilter === filter.id
-                      ? 'community-status-chip is-active'
-                      : 'community-status-chip'
-                  }
-                  onClick={() => setActiveFilter(filter.id)}
+              <div className="recruit-filter-group">
+                <span>상태</span>
+                <div className="recruit-segmented" role="tablist" aria-label="모집 상태">
+                  {filters.map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeFilter === filter.id}
+                      className={activeFilter === filter.id ? 'is-active' : ''}
+                      onClick={() => setActiveFilter(filter.id)}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <label className="recruit-filter-group recruit-sort-field">
+                <span>정렬</span>
+                <select
+                  className="recruit-sort-select"
+                  value={sortMode}
+                  onChange={(event) => setSortMode(event.target.value as 'latest' | 'popular')}
                 >
-                  {filter.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                className="community-status-chip"
-                onClick={() => setSortMode((current) => (current === 'latest' ? 'popular' : 'latest'))}
-              >
-                {sortMode === 'latest' ? '최신 등록순' : '인기순'}
-              </button>
+                  <option value="latest">최신 등록순</option>
+                  <option value="popular">인기순</option>
+                </select>
+              </label>
             </div>
           </section>
 
-          <ul className="recruit-card-grid">
-            {visibleItems.map((item) => {
-              const isOpen = item.status === 'open'
-              const isClosingSoon = item.status === 'closing-soon'
+          {applicationItem && activeApplicationDraft ? (
+            <RecruitApplicationPanel
+              item={applicationItem}
+              draft={activeApplicationDraft}
+              error={applicationError}
+              onChange={updateApplicationDraft}
+              onClose={closeApplication}
+              onSubmit={submitApplication}
+            />
+          ) : null}
 
-              return (
-                <li
-                  key={item.id}
-                  className="recruit-card surface-card"
-                  onClick={() => onSelectRecruit(item.id)}
-                >
-                  <div className="recruit-card-tags">{item.tags.join('  ')}</div>
-                  <span
-                    className={`recruit-status-badge ${
-                      isOpen
-                        ? 'recruit-status--open'
-                        : isClosingSoon
-                          ? 'recruit-status--closing'
-                          : 'recruit-status--closed'
-                    }`}
-                  >
-                    {getStatusLabel(item.status)}
-                  </span>
-                  <p className="recruit-card-title">{item.title}</p>
-                  <p className="recruit-card-desc">{item.shortDesc}</p>
-                  <div className="recruit-card-techs">
-                    {item.techStack.slice(0, 3).map((tech) => (
-                      <span key={tech}>{tech}</span>
-                    ))}
-                  </div>
-                  <div className="recruit-card-footer">
-                    <span className="recruit-card-members">
-                      <Icon name="users" size={12} />
-                      <span>
-                        {item.currentMembers}/{item.maxMembers}명
-                      </span>
-                    </span>
-                    <div className="recruit-card-actions">
-                      <button
-                        type="button"
-                        className={
-                          savedIds.has(item.id)
-                            ? 'recruit-save-chip recruit-save-chip--active'
-                            : 'recruit-save-chip'
-                        }
-                        aria-pressed={savedIds.has(item.id)}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          toggleSaved(item.id)
-                        }}
-                      >
-                        {savedIds.has(item.id) ? '저장됨' : '관심'}
-                      </button>
-                      <button
-                        type="button"
-                        className={
-                          isOpen || isClosingSoon
-                            ? 'recruit-apply-chip'
-                            : 'recruit-apply-chip recruit-apply-chip--closed'
-                        }
-                        disabled={!isOpen && !isClosingSoon}
-                        onClick={(event) => {
-                          event.stopPropagation()
-                          if (isOpen || isClosingSoon) toggleApplied(item.id)
-                        }}
-                      >
-                        {isOpen || isClosingSoon
-                          ? appliedIds.has(item.id)
-                            ? '지원 완료'
-                            : '지원하기'
-                          : '마감'}
-                      </button>
-                    </div>
-                  </div>
-                </li>
-              )
-            })}
-
-            {visibleItems.length === 0 ? (
-              <li className="recruit-card-empty">조건에 맞는 모집이 없습니다.</li>
-            ) : null}
-          </ul>
+          <RecruitList
+            items={visibleItems}
+            variant="public"
+            emptyText="조건에 맞는 모집이 없습니다."
+            appliedIds={appliedIds}
+            savedIds={savedIds}
+            onSelectRecruit={onSelectRecruit}
+            onOpenApplication={openApplication}
+            onToggleSaved={toggleSaved}
+          />
         </>
       )}
     </section>

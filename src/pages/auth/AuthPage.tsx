@@ -56,7 +56,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     const trimmedLinkedinUrl = linkedinUrl.trim()
 
     if (!isLogin && !githubUsernamePattern.test(trimmedGithubId)) {
-      setError('GitHub 아이디를 정확히 입력해주세요. 계정이 없다면 GitHub 가입 링크를 먼저 확인하세요.')
+      setError('GitHub 아이디를 확인해주세요.')
       return
     }
 
@@ -95,15 +95,9 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     <section className="coala-content coala-content--auth">
       <article className="surface-card auth-shell">
         <div className="auth-intro">
-          <p className="auth-eyebrow">동아리 코알라</p>
           <h2 className="auth-title">
-            {isLogin ? '다시 오신 것을 환영해요.' : '동아리 코알라에 가입하세요.'}
+            {isLogin ? '로그인' : '회원가입'}
           </h2>
-          <p className="auth-description">
-            {isLogin
-              ? '커뮤니티, 정보공유, 스터디 모집 기능을 이용하려면 로그인하세요.'
-              : '회원 확인에 필요한 기본 정보와 GitHub 계정을 등록합니다.'}
-          </p>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
