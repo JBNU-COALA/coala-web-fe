@@ -20,6 +20,17 @@ export type ActivityLog = {
   timeLabel: string
 }
 
+export type UserAward = {
+  awardId: string
+  title: string
+  organizer: string
+  rank: string
+  awardedAt: string
+  category: 'competition' | 'hackathon' | 'research' | 'club'
+  description: string
+  credentialUrl?: string
+}
+
 export type ActivityMember = {
   id: string
   name: string
@@ -39,6 +50,7 @@ export type ActivityMember = {
   solvedCount: number
   githubCommits: number
   totalPoints: number
+  awards: UserAward[]
   isMe?: boolean
 }
 
@@ -73,6 +85,27 @@ export const activityMembers: ActivityMember[] = [
     solvedCount: 132,
     githubCommits: 88,
     totalPoints: 6420,
+    awards: [
+      {
+        awardId: 'award-1-1',
+        title: '전북대학교 SW 창업 해커톤',
+        organizer: '전북대학교 SW중심대학사업단',
+        rank: '대상',
+        awardedAt: '2026-04-12',
+        category: 'hackathon',
+        description: '동아리 프로젝트 대시보드 프로토타입으로 팀 개발과 발표를 진행했습니다.',
+        credentialUrl: 'https://github.com/coala-jbnu/coala-dashboard',
+      },
+      {
+        awardId: 'award-1-2',
+        title: '코알라 서비스 개선 공모',
+        organizer: '코알라',
+        rank: '우수상',
+        awardedAt: '2026-02-24',
+        category: 'club',
+        description: '커뮤니티 정보 구조와 서비스 탭 개편안을 제안했습니다.',
+      },
+    ],
     logs: [
       {
         id: 'log-1-1',
@@ -110,6 +143,18 @@ export const activityMembers: ActivityMember[] = [
     solvedCount: 166,
     githubCommits: 104,
     totalPoints: 7810,
+    awards: [
+      {
+        awardId: 'award-2-1',
+        title: 'JBNU 클라우드 인프라 챌린지',
+        organizer: '전북대학교 컴퓨터인공지능학부',
+        rank: '최우수상',
+        awardedAt: '2026-03-18',
+        category: 'competition',
+        description: '인스턴스 신청, 배포 자동화, Redis 기반 인증 흐름을 설계했습니다.',
+        credentialUrl: 'https://github.com/coala-jbnu/instance-api',
+      },
+    ],
     logs: [
       {
         id: 'log-2-1',
@@ -139,6 +184,17 @@ export const activityMembers: ActivityMember[] = [
     solvedCount: 94,
     githubCommits: 57,
     totalPoints: 4380,
+    awards: [
+      {
+        awardId: 'award-3-1',
+        title: '학부 연구 포스터 세션',
+        organizer: '전북대학교 컴퓨터인공지능학부',
+        rank: '장려상',
+        awardedAt: '2025-12-05',
+        category: 'research',
+        description: '논문 요약 자동화와 데이터셋 정제 파이프라인을 발표했습니다.',
+      },
+    ],
     logs: [
       {
         id: 'log-3-1',
@@ -168,6 +224,17 @@ export const activityMembers: ActivityMember[] = [
     solvedCount: 61,
     githubCommits: 42,
     totalPoints: 3150,
+    awards: [
+      {
+        awardId: 'award-4-1',
+        title: '코알라 프로젝트 데모데이',
+        organizer: '코알라',
+        rank: '인기상',
+        awardedAt: '2026-04-30',
+        category: 'club',
+        description: '모집 지원 플로우와 마크다운 지원서 화면을 시연했습니다.',
+      },
+    ],
     logs: [
       {
         id: 'log-4-1',

@@ -3,10 +3,17 @@ import { Link } from 'react-router-dom'
 import { activityMembers, type ActivityMember } from './leaderboardData'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
+import { CommunityBanner } from '../community/CommunityBanner'
 
 function getPublicUserId(member: ActivityMember, index: number, currentUserId?: number) {
   if (member.isMe && currentUserId) return String(currentUserId)
   return String(index + 1)
+}
+
+function formatAwardDate(value: string) {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return parsed.toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })
 }
 
 function MemberCard({ member, isSelected, onSelect }: {
@@ -33,6 +40,7 @@ function MemberCard({ member, isSelected, onSelect }: {
         </span>
         <span className="activity-member-metrics">
           <span>{member.sharedRepos.length}개 저장소</span>
+          <span>{member.awards.length}개 수상</span>
           <span>{member.lab}</span>
         </span>
       </span>
@@ -64,7 +72,7 @@ export function LeaderboardPage() {
 
     if (normalizedQuery) {
       members = members.filter((member) =>
-        `${member.name} ${member.githubHandle} ${member.focus} ${member.sharedRepos.join(' ')}`
+        `${member.name} ${member.githubHandle} ${member.focus} ${member.sharedRepos.join(' ')} ${member.awards.map((award) => `${award.title} ${award.organizer} ${award.rank}`).join(' ')}`
           .toLowerCase()
           .includes(normalizedQuery),
       )
@@ -83,6 +91,8 @@ export function LeaderboardPage() {
   return (
     <section className="coala-content coala-content--activity">
       <div className="activity-page activity-page--directory">
+        <CommunityBanner title="유저" tone="board" />
+
         <div className="activity-table-shell surface-card">
           <div className="activity-table-toolbar">
             <label className="activity-search">
@@ -158,6 +168,24 @@ export function LeaderboardPage() {
                     {selectedMember.sharedRepos.map((repo) => (
                       <span key={repo}>{repo}</span>
                     ))}
+                  </div>
+                  <div className="activity-award-preview">
+                    <strong>수상 내역</strong>
+                    {selectedMember.awards.length > 0 ? (
+                      <ul className="activity-award-list">
+                        {selectedMember.awards.slice(0, 2).map((award) => (
+                          <li key={award.awardId} className="activity-award-item">
+                            <span className="activity-award-rank">{award.rank}</span>
+                            <span className="activity-award-body">
+                              <span>{award.title}</span>
+                              <small>{award.organizer} · {formatAwardDate(award.awardedAt)}</small>
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      <p>등록된 수상 내역이 없습니다.</p>
+                    )}
                   </div>
                   <Link className="activity-profile-link" to={`/users/${selectedUserId}`}>
                     프로필 보기

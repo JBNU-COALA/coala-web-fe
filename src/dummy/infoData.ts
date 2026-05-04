@@ -1,12 +1,13 @@
 export type InfoFilterId = 'news' | 'contest' | 'lab' | 'resource'
 
 type ResourceCard = {
-  id: string
+  id: number
   filter: InfoFilterId
   tag: string
   title: string
   meta: string
   source: string
+  content: string
   imageUrl: string
 }
 
@@ -59,62 +60,107 @@ export const featuredArticle: FeaturedArticle = {
 
 export const resourceCards: ResourceCard[] = [
   {
-    id: 'resource-001',
+    id: 1,
     filter: 'news',
     tag: 'NEWS',
     title: '5월 코알라 운영진 공지',
     meta: '공지',
     source: '운영진 | 2026.05.02',
+    content: `이번 달 운영 일정입니다.
+
+- 정기 모임: 매주 목요일
+- 프로젝트 점검: 5월 둘째 주
+- 서비스 배포 신청: 상시
+
+변경되는 내용은 정보공유에 다시 올리겠습니다.`,
     imageUrl:
       'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    id: 'resource-002',
+    id: 2,
     filter: 'contest',
     tag: 'CONTEST',
     title: '2026 AI 해커톤 참가팀 모집',
     meta: '외부 대회',
     source: '대회팀 | 2026.05.01',
+    content: `AI 해커톤 참가팀을 모집합니다.
+
+- 주제: 서비스 기획과 AI 기능 구현
+- 팀 구성: 2명 이상 5명 이하
+- 신청 마감: 2026년 5월 10일
+
+참가를 원하는 부원은 모집 게시판에서 팀원을 먼저 구해 주세요.`,
     imageUrl:
       'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    id: 'resource-003',
+    id: 3,
     filter: 'lab',
     tag: 'LAB',
     title: '지능형소프트웨어 연구실 학부생 인턴 안내',
     meta: '연구실',
     source: '연구연계팀 | 2026.04.29',
+    content: `지능형소프트웨어 연구실 학부생 인턴 안내입니다.
+
+- 대상: 2학년 이상
+- 분야: 웹 서비스, 데이터 처리, 모델 활용
+- 문의: 연구연계팀
+
+지원 전 관심 분야와 가능한 시간을 정리해 두면 좋습니다.`,
     imageUrl:
       'https://images.unsplash.com/photo-1581093458791-9d15482442f6?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    id: 'resource-004',
+    id: 4,
     filter: 'resource',
     tag: 'PDF',
     title: 'React 상태관리 패턴 정리',
     meta: '3.4 MB',
     source: '김예린 | 2026.04.27',
+    content: `React 상태관리 패턴을 정리한 자료입니다.
+
+## 포함 내용
+
+- Context 사용 기준
+- Zustand 상태 분리
+- TanStack Query 캐시 전략
+
+프로젝트 규모별로 어떤 선택을 하면 좋은지 비교했습니다.`,
     imageUrl:
       'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    id: 'resource-005',
+    id: 5,
     filter: 'contest',
     tag: 'CONTEST',
     title: '교내 캡스톤 경진대회 일정',
     meta: '교내 대회',
     source: '박세연 | 2026.04.25',
+    content: `교내 캡스톤 경진대회 일정입니다.
+
+- 예선 접수: 5월 20일
+- 발표 자료 제출: 5월 27일
+- 본선 발표: 6월 3일
+
+팀별 산출물과 시연 영상을 미리 준비해 주세요.`,
     imageUrl:
       'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=1200&q=80',
   },
   {
-    id: 'resource-006',
+    id: 6,
     filter: 'resource',
     tag: 'LINK',
     title: '백엔드 보안 체크리스트',
     meta: '외부 링크',
     source: '최민호 | 2026.04.23',
+    content: `백엔드 보안 점검용 체크리스트입니다.
+
+- 인증 토큰 만료와 재발급
+- 권한별 API 접근 제어
+- 파일 업로드 검증
+- 관리자 API 감사 로그
+
+배포 전 최소 한 번은 팀원끼리 함께 확인해 주세요.`,
     imageUrl:
       'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80',
   },

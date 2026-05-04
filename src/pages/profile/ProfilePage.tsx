@@ -6,9 +6,9 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
-import { activityMembers } from '../leaderboard/leaderboardData'
+import { activityMembers, type UserAward } from '../leaderboard/leaderboardData'
 
-type ProfileTab = 'overview' | 'activity' | 'posts'
+type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
 type AuthoredContentKind = 'board' | 'info' | 'recruit'
 
 type AuthoredContentItem = {
@@ -38,6 +38,13 @@ const academicStatusLabel = {
   ON_LEAVE: '휴학',
   GRADUATED: '졸업',
 } as const
+
+const awardCategoryLabel: Record<UserAward['category'], string> = {
+  competition: '대회',
+  hackathon: '해커톤',
+  research: '연구',
+  club: '동아리',
+}
 
 type ProfilePageProps = {
   profileUserId?: string
@@ -113,6 +120,12 @@ function formatDate(dateStr: string) {
   return parsed.toLocaleDateString('ko-KR')
 }
 
+function formatAwardDate(dateStr: string) {
+  const parsed = new Date(dateStr)
+  if (Number.isNaN(parsed.getTime())) return dateStr
+  return parsed.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
+}
+
 function findPublicMember(profileUserId?: string) {
   const numericId = Number(profileUserId)
   const indexedMember = Number.isFinite(numericId) ? activityMembers[numericId - 1] : null
@@ -144,6 +157,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : ''
   const profileGithub = isOwnProfile ? user?.githubId ?? profileMember.githubHandle : profileMember.githubHandle
+  const profileAwards = profileMember.awards
 
   useEffect(() => {
     setEditing(false)
@@ -181,6 +195,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: 'overview', label: '개요' },
     { id: 'activity', label: '활동 내역' },
+    { id: 'awards', label: '수상 내역' },
     { id: 'posts', label: '작성 내용' },
   ]
 
@@ -220,6 +235,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
           <div className="profile-stat-card surface-card">
             <p className="profile-stat-value">{profileMember.sharedRepos.length}개</p>
             <p className="profile-stat-label">공유 저장소</p>
+          </div>
+          <div className="profile-stat-card surface-card">
+            <p className="profile-stat-value profile-stat-value--award">{profileAwards.length}개</p>
+            <p className="profile-stat-label">수상 내역</p>
           </div>
           <div className="profile-stat-card surface-card">
             <p className="profile-stat-value">{authoredContents.length}개</p>
@@ -365,6 +384,39 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                 </div>
               </div>
             </div>
+          </div>
+        ) : null}
+
+        {tab === 'awards' ? (
+          <div className="surface-card profile-section-card">
+            <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
+            {profileAwards.length === 0 ? (
+              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>등록된 수상 내역이 없습니다.</p>
+            ) : (
+              <ul className="profile-award-list">
+                {profileAwards.map((award) => (
+                  <li key={award.awardId} className="profile-award-item">
+                    <div className="profile-award-main">
+                      <span className={`profile-award-category profile-award-category--${award.category}`}>
+                        {awardCategoryLabel[award.category]}
+                      </span>
+                      <p className="profile-award-title">{award.title}</p>
+                      <p className="profile-award-description">{award.description}</p>
+                    </div>
+                    <div className="profile-award-meta">
+                      <strong>{award.rank}</strong>
+                      <span>{award.organizer}</span>
+                      <span>{formatAwardDate(award.awardedAt)}</span>
+                      {award.credentialUrl ? (
+                        <a href={award.credentialUrl} target="_blank" rel="noreferrer">
+                          확인 링크
+                        </a>
+                      ) : null}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         ) : null}
 

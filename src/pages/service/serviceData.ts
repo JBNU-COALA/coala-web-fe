@@ -6,6 +6,7 @@ export type JcloudApplication = {
   id: string
   applicantName: string
   studentId: string
+  keyEmail?: string
   instanceType: InstanceType
   purpose: string
   duration: string
@@ -57,10 +58,9 @@ export const instanceTypes: {
 ]
 
 export const durationOptions = [
-  { id: '1w', label: '1주' },
-  { id: '1m', label: '1개월' },
-  { id: '3m', label: '3개월' },
   { id: '6m', label: '6개월' },
+  { id: '1y', label: '1년' },
+  { id: 'permanent', label: '영구', description: '메일 보내주세요 : coala.jbnu@gmail.com', disabled: true },
 ]
 
 export const mockApplications: JcloudApplication[] = [
@@ -68,13 +68,14 @@ export const mockApplications: JcloudApplication[] = [
     id: 'jc-001',
     applicantName: '김코알라',
     studentId: '20211234',
+    keyEmail: 'coala.member@example.com',
     instanceType: 'medium',
     purpose: '캡스톤 프로젝트 API 서버 배포',
-    duration: '3개월',
+    duration: '6개월',
     requestedAt: '2026-03-10',
     approvedAt: '2026-03-12',
     status: 'approved',
-    adminNote: '승인되었습니다. 첨부 파일에서 접속 정보를 확인하세요.',
+    adminNote: '승인되었습니다. 접속 키와 안내 메일을 확인하세요.',
     attachedFiles: [
       { name: 'jc-001-connection-info.pdf', size: '128 KB', uploadedAt: '2026-03-12' },
     ],
@@ -84,9 +85,10 @@ export const mockApplications: JcloudApplication[] = [
     id: 'jc-002',
     applicantName: '박알고',
     studentId: '20220987',
+    keyEmail: 'algorithm@example.com',
     instanceType: 'micro',
     purpose: '동아리 스터디 실습 서버',
-    duration: '1개월',
+    duration: '1년',
     requestedAt: '2026-03-28',
     status: 'pending',
     specs: { cpu: '2 vCPU', ram: '2 GB RAM', disk: '10 GB Disk' },

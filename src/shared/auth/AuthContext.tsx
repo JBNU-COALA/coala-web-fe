@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest } from '../api/auth'
 import { createDemoAuthResponse, isDemoCredential } from './demoAccount'
+import { clearAuthSession, getStoredUser, setAuthSession } from './tokenStorage'
 
 type AuthState = {
   user: UserData | null
@@ -12,41 +13,27 @@ type AuthState = {
 
 const AuthContext = createContext<AuthState | null>(null)
 
-function loadUserFromStorage(): UserData | null {
-  try {
-    const stored = localStorage.getItem('user')
-    return stored ? (JSON.parse(stored) as UserData) : null
-  } catch {
-    return null
-  }
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserData | null>(loadUserFromStorage)
+  const [user, setUser] = useState<UserData | null>(getStoredUser)
 
   const login = async (email: string, password: string) => {
-    const data = isDemoCredential(email, password)
+    const canUseDemoAccount = import.meta.env.DEV && isDemoCredential(email, password)
+    const data = canUseDemoAccount
       ? createDemoAuthResponse()
       : await authApi.login({ email, password })
-    localStorage.setItem('accessToken', data.accessToken)
-    localStorage.setItem('refreshToken', data.refreshToken)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    setAuthSession(data)
     setUser(data.user)
   }
 
   const signup = async (signupData: SignupRequest) => {
     const data = await authApi.signup(signupData)
-    localStorage.setItem('accessToken', data.accessToken)
-    localStorage.setItem('refreshToken', data.refreshToken)
-    localStorage.setItem('user', JSON.stringify(data.user))
+    setAuthSession(data)
     setUser(data.user)
   }
 
   const logout = async () => {
     await authApi.logout().catch(() => {})
-    localStorage.removeItem('accessToken')
-    localStorage.removeItem('refreshToken')
-    localStorage.removeItem('user')
+    clearAuthSession()
     setUser(null)
   }
 

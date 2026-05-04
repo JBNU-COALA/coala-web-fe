@@ -13,6 +13,7 @@ export type IconName =
   | 'image'
   | 'layout'
   | 'link'
+  | 'list'
   | 'message'
   | 'moon'
   | 'network'
@@ -124,6 +125,17 @@ const iconShape = (name: IconName) => {
           <path d="M10 14l4-4" />
           <path d="M7 9.5l-1.5 1.5a3.2 3.2 0 1 0 4.5 4.5L11.5 14" />
           <path d="M13 10l1.5-1.5a3.2 3.2 0 1 1 4.5 4.5L17 14.5" />
+        </>
+      )
+    case 'list':
+      return (
+        <>
+          <path d="M8 6.5h12" />
+          <path d="M8 12h12" />
+          <path d="M8 17.5h12" />
+          <path d="M4 6.5h.01" />
+          <path d="M4 12h.01" />
+          <path d="M4 17.5h.01" />
         </>
       )
     case 'image':

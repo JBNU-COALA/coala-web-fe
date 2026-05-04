@@ -1,4 +1,5 @@
 import type { IconName } from '../shared/ui/Icon'
+import { routes } from '../shared/routes'
 
 export type AppRoute =
   | 'home'
@@ -53,12 +54,12 @@ type ContextActionDefinition = {
 }
 
 export const routePathById: Record<AppRoute, string> = {
-  home: '/',
-  community: '/community',
-  recruit: '/community/recruit',
-  game: '/users',
-  service: '/services',
-  services: '/services',
+  home: routes.home,
+  community: routes.community.root,
+  recruit: routes.community.recruit,
+  game: routes.users.root,
+  service: routes.services.root,
+  services: routes.services.root,
   settings: '/settings',
   login: '/login',
   signup: '/signup',
@@ -87,14 +88,14 @@ export const headerNavItems: HeaderNavItem[] = [
 
 export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>> = {
   community: [
-    { id: 'community-board', label: '게시판', icon: 'message', path: '/community/board' },
-    { id: 'community-info', label: '정보공유', icon: 'book', path: '/community/info' },
-    { id: 'community-recruit', label: '모집', icon: 'users', path: '/community/recruit' },
+    { id: 'community-board', label: '게시판', icon: 'message', path: routes.community.board },
+    { id: 'community-info', label: '정보공유', icon: 'book', path: routes.community.info },
+    { id: 'community-recruit', label: '모집', icon: 'users', path: routes.community.recruit },
   ],
   services: [
-    { id: 'services-coas', label: 'COAS', icon: 'layout', path: '/services' },
-    { id: 'services-official', label: '공식 서비스', icon: 'network', path: '/services/official/instance' },
-    { id: 'services-unofficial', label: '비공식 서비스', icon: 'link', path: '/services/unofficial' },
+    { id: 'services-coas', label: 'COAS', icon: 'layout', path: routes.services.root },
+    { id: 'services-official', label: '공식 서비스', icon: 'network', path: routes.services.officialInstance },
+    { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],
 }
 
@@ -154,8 +155,8 @@ const servicesActions: ContextActionDefinition[] = [
     description: '',
   },
   {
-    id: 'services-unofficial',
-    label: '비공식 서비스',
+    id: 'services-user',
+    label: '유저 서비스',
     icon: 'link',
     description: '',
   },
@@ -217,7 +218,11 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
 const toServicesItems = (pathname: string): ContextPanelItem[] => {
   const query = typeof window !== 'undefined' ? window.location.search : ''
   const isOfficial = pathname.startsWith('/services/official') || query.includes('tab=official')
-  const isUnofficial = pathname.startsWith('/services/unofficial') || query.includes('tab=unofficial')
+  const isUserService =
+    pathname.startsWith('/services/user') ||
+    pathname.startsWith('/services/unofficial') ||
+    query.includes('tab=user') ||
+    query.includes('tab=unofficial')
   const isLegacyServiceRoute = pathname === '/service' || pathname.startsWith('/service/')
 
   return servicesActions.map((item) => ({
@@ -228,12 +233,12 @@ const toServicesItems = (pathname: string): ContextPanelItem[] => {
     kind: 'action',
     value: item.id,
     isActive:
-      item.id === 'services-unofficial'
-        ? isUnofficial
+      item.id === 'services-user'
+        ? isUserService
         : item.id === 'services-official'
           ? isOfficial || isLegacyServiceRoute
           : item.id === 'services-coas'
-            ? !isOfficial && !isUnofficial && !isLegacyServiceRoute
+            ? !isOfficial && !isUserService && !isLegacyServiceRoute
             : false,
   }))
 }

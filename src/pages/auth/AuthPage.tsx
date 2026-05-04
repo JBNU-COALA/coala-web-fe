@@ -18,6 +18,7 @@ const linkedinProfilePattern = /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9
 
 export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
+  const showDemoAccount = import.meta.env.DEV
   const { login, signup } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
@@ -101,7 +102,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
-          {isLogin ? (
+          {isLogin && showDemoAccount ? (
             <div className="auth-demo-box">
               <div>
                 <strong>임시 로그인 계정</strong>
