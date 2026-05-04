@@ -4,7 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { ServicePage } from '../service/ServicePage'
 
 type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
-type ServicesTab = 'official' | 'unofficial'
+type ServicesTab = 'cossp' | 'official' | 'unofficial'
 
 type MemberService = {
   id: string
@@ -13,14 +13,11 @@ type MemberService = {
   owner: string
   summary: string
   url: string
+  githubUrl: string
+  imageUrl: string
   tags: string[]
   status: '운영 중' | '베타' | '준비 중'
 }
-
-const tabs: { id: ServicesTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'official', label: '공식 서비스', icon: 'network' },
-  { id: 'unofficial', label: '비공식 서비스', icon: 'link' },
-]
 
 const categories: { id: ServiceCategory | 'all'; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -38,6 +35,8 @@ const memberServices: MemberService[] = [
     owner: '최민호',
     summary: '관심 키워드로 논문을 모으고 요약하는 리서치 도구입니다.',
     url: 'paper-scout.coala.dev',
+    githubUrl: 'https://github.com/JBNU-COALA/paper-scout',
+    imageUrl: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&w=900&q=80',
     tags: ['LLM', '논문', '요약'],
     status: '베타',
   },
@@ -48,6 +47,8 @@ const memberServices: MemberService[] = [
     owner: '이도윤',
     summary: '스터디 일정, 과제, 출석을 한 번에 관리하는 서비스입니다.',
     url: 'study-mate.coala.dev',
+    githubUrl: 'https://github.com/JBNU-COALA/study-mate',
+    imageUrl: 'https://images.unsplash.com/photo-1497366811353-6870744d04b2?auto=format&fit=crop&w=900&q=80',
     tags: ['스터디', '일정', '과제'],
     status: '운영 중',
   },
@@ -56,8 +57,10 @@ const memberServices: MemberService[] = [
     title: 'Deploy Note',
     category: 'productivity',
     owner: '박세연',
-    summary: '배포 체크리스트와 릴리즈 노트를 팀 단위로 관리합니다.',
+    summary: '팀 배포 체크리스트와 릴리즈 노트',
     url: 'deploy-note.coala.dev',
+    githubUrl: 'https://github.com/JBNU-COALA/deploy-note',
+    imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=900&q=80',
     tags: ['배포', '문서', '팀'],
     status: '운영 중',
   },
@@ -66,7 +69,8 @@ const memberServices: MemberService[] = [
 export function ServicesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const initialParam = searchParams.get('tab')
-  const initialTab: ServicesTab = initialParam === 'unofficial' ? 'unofficial' : 'official'
+  const initialTab: ServicesTab =
+    initialParam === 'official' ? 'official' : initialParam === 'unofficial' ? 'unofficial' : 'cossp'
   const [activeTab, setActiveTab] = useState<ServicesTab>(initialTab)
   const [activeCategory, setActiveCategory] = useState<ServiceCategory | 'all'>('all')
   const [query, setQuery] = useState('')
@@ -75,21 +79,16 @@ export function ServicesPage() {
 
   useEffect(() => {
     const tab = searchParams.get('tab')
-    if (tab === 'unofficial') {
-      setActiveTab('unofficial')
+    if (tab === 'official' || tab === 'unofficial' || tab === 'cossp') {
+      setActiveTab(tab)
       return
     }
 
-    setActiveTab('official')
+    setActiveTab('cossp')
     if (tab) {
       setSearchParams({}, { replace: true })
     }
   }, [searchParams, setSearchParams])
-
-  const changeTab = (nextTab: ServicesTab) => {
-    setActiveTab(nextTab)
-    setSearchParams(nextTab === 'official' ? {} : { tab: nextTab })
-  }
 
   const visibleServices = useMemo(() => {
     return memberServices.filter((service) => {
@@ -108,39 +107,35 @@ export function ServicesPage() {
         <header className="member-services-hero">
           <div>
             <h2>서비스</h2>
-            <p>공식 서비스는 동아리 오피셜, 비공식 서비스는 부원들이 올린 서비스입니다.</p>
           </div>
         </header>
 
-        <div className="community-section-tabs">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              className={activeTab === tab.id ? 'community-section-tab is-active' : 'community-section-tab'}
-              onClick={() => changeTab(tab.id)}
-            >
-              <Icon name={tab.icon} size={14} />
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {activeTab === 'official' ? (
-          <div className="official-service-panel">
-            <section className="surface-card official-service-card official-service-card--single">
-              <span className="official-service-icon">
-                <Icon name="network" size={22} />
-              </span>
-              <span className="member-service-status">공식</span>
-              <h3>인스턴스 신청</h3>
-              <p>동아리 프로젝트와 실습에 필요한 서버 환경을 신청하고 관리합니다.</p>
-              <div className="member-service-tags">
-                <span>신청하기</span>
-                <span>신청 내역</span>
-                <span>문의사항</span>
+        {activeTab === 'cossp' ? (
+          <section className="surface-card cossp-panel">
+            <div className="cossp-visual" role="img" aria-label="Coala Open Source Project typography">
+              <span>Coala</span>
+              <span>Open Source</span>
+              <span>Project</span>
+            </div>
+            <div className="cossp-copy">
+              <p className="services-hub-eyebrow">COSSP</p>
+              <h3>코알라 오픈소스 프로젝트</h3>
+              <div className="cossp-feature-grid">
+                <span>도메인 배포</span>
+                <span>GitHub 협업</span>
+                <span>서비스 운영 기록</span>
+                <span>오픈소스 기여</span>
               </div>
-            </section>
+            </div>
+          </section>
+        ) : activeTab === 'official' ? (
+          <div className="official-service-panel">
+            <div className="service-menu-tabs surface-card" aria-label="공식 서비스 메뉴">
+              <button type="button" className="service-menu-tab is-active">
+                <Icon name="network" size={22} />
+                <span>인스턴스 대여</span>
+              </button>
+            </div>
             <ServicePage embedded />
           </div>
         ) : (
@@ -176,7 +171,8 @@ export function ServicesPage() {
 
             <ul className="member-service-grid">
               {visibleServices.map((service) => (
-                <li key={service.id} className="surface-card member-service-card">
+                <li key={service.id} className="surface-card member-service-card member-service-card--with-media">
+                  <div className="member-service-media" style={{ backgroundImage: `url(${service.imageUrl})` }} />
                   <div className="member-service-card-head">
                     <span className="member-service-status">{service.status}</span>
                     <Icon name="link" size={15} />
@@ -197,7 +193,7 @@ export function ServicesPage() {
             </ul>
 
             <section className="surface-card member-service-form">
-              <h3>비공식 서비스 등록</h3>
+              <h3>비공식 서비스 추가</h3>
               <div className="member-service-form-grid">
                 <label className="jcloud-field">
                   <span className="jcloud-label">서비스명</span>
@@ -207,13 +203,25 @@ export function ServicesPage() {
                   <span className="jcloud-label">URL</span>
                   <input className="jcloud-input" placeholder="https:// 또는 도메인" />
                 </label>
+                <label className="jcloud-field">
+                  <span className="jcloud-label">GitHub 링크</span>
+                  <input className="jcloud-input" placeholder="https://github.com/..." />
+                </label>
+                <label className="jcloud-field">
+                  <span className="jcloud-label">태그</span>
+                  <input className="jcloud-input" placeholder="AI, 생산성, 스터디" />
+                </label>
+                <label className="jcloud-field member-service-form-wide">
+                  <span className="jcloud-label">이미지</span>
+                  <input className="jcloud-input" placeholder="대표 이미지 URL" />
+                </label>
                 <label className="jcloud-field member-service-form-wide">
                   <span className="jcloud-label">소개</span>
-                  <textarea className="jcloud-textarea" rows={4} placeholder="서비스가 해결하는 문제를 적어주세요." />
+                  <textarea className="jcloud-textarea" rows={5} placeholder="서비스가 해결하는 문제와 주요 기능을 적어주세요." />
                 </label>
               </div>
               <div className="recruit-write-footer">
-                <button type="button" className="jcloud-submit-button">등록하기</button>
+                <button type="button" className="jcloud-submit-button">서비스 추가하기</button>
               </div>
             </section>
           </>

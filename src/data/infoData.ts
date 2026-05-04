@@ -51,7 +51,7 @@ export const infoFilters: { id: InfoFilterId; label: string }[] = [
 
 export const featuredArticle: FeaturedArticle = {
   title: '코알라 커뮤니티 정보공유 개편',
-  description: '동아리 소식, 대회, 연구실 정보, 자료를 한 곳에서 확인할 수 있도록 분류를 정리했습니다.',
+  description: '',
   category: '소식',
   imageUrl:
     'https://images.unsplash.com/photo-1553877522-43269d4ea984?auto=format&fit=crop&w=1200&q=80',
@@ -207,7 +207,7 @@ export const latestInfoUpdates: LatestInfoUpdate[] = [
   {
     id: 'latest-001',
     title: '5월 코알라 운영 소식이 올라왔습니다',
-    summary: '이번 달 운영 일정과 커뮤니티 변경사항을 확인해주세요.',
+    summary: '운영 일정과 커뮤니티 변경사항',
     timestamp: '방금 전',
     category: '소식',
     type: 'news',
@@ -223,7 +223,7 @@ export const latestInfoUpdates: LatestInfoUpdate[] = [
   {
     id: 'latest-003',
     title: '지능형소프트웨어 연구실 인턴 모집 안내',
-    summary: '관심 있는 멤버는 연구실 소개 자료를 먼저 확인해주세요.',
+    summary: '학부생 인턴 모집',
     timestamp: '어제',
     category: '연구실',
     type: 'lab',
@@ -231,7 +231,7 @@ export const latestInfoUpdates: LatestInfoUpdate[] = [
   {
     id: 'latest-004',
     title: 'React 상태관리 자료가 추가되었습니다',
-    summary: '자료 탭에서 PDF와 예제 링크를 확인할 수 있습니다.',
+    summary: 'PDF와 예제 링크',
     timestamp: '2일 전',
     category: '자료',
     type: 'resource',

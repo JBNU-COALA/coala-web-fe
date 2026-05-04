@@ -11,19 +11,16 @@ const communitySections = [
   {
     id: 'board',
     title: '게시판',
-    description: '공지, 자유, 유머 게시글을 확인합니다.',
     icon: 'message',
   },
   {
     id: 'info',
     title: '정보공유',
-    description: '소식, 대회, 연구실, 자료를 모아봅니다.',
     icon: 'book',
   },
   {
     id: 'recruit',
     title: '모집',
-    description: '프로젝트와 팀 모집을 확인하고 참여합니다.',
     icon: 'users',
   },
 ] as const
@@ -80,7 +77,6 @@ export function CommunityHubPage({
               </span>
               <span>
                 <strong>{section.title}</strong>
-                <small>{section.description}</small>
               </span>
               <Icon name="chevron-right" size={16} />
             </button>

@@ -78,21 +78,21 @@ export const profileSummary: ProfileSummary = {
 export const homeHeroSlides: HeroSlide[] = [
   {
     id: 'slide-1',
-    eyebrow: '코알라 대시보드',
-    title: '전북대학교 컴퓨터인공지능학부 동아리 코알라입니다.\n',
-    subtitle: '(준비중입니다)',
+    eyebrow: '',
+    title: '준비중입니다',
+    subtitle: '',
   },
   {
     id: 'slide-2',
-    eyebrow: '정보공유',
-    title: '동아리 자료와 외부 개발 자료를 모아 공유합니다.\n',
-    subtitle: '(준비중입니다)',
+    eyebrow: '',
+    title: '준비중입니다',
+    subtitle: '',
   },
   {
     id: 'slide-3',
-    eyebrow: '커뮤니티',
-    title: '공지와 인기글을 중심으로 커뮤니티 흐름을 보여줍니다.\n',
-    subtitle: '(준비중입니다)',
+    eyebrow: '',
+    title: '준비중입니다',
+    subtitle: '',
   },
 ]
 
