@@ -26,9 +26,12 @@ const fileToDataUrl = (file: File) => (
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
     reader.addEventListener('load', () => {
-      typeof reader.result === 'string'
-        ? resolve(reader.result)
-        : reject(new Error('이미지를 읽지 못했습니다.'))
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('이미지를 읽지 못했습니다.'))
     })
     reader.addEventListener('error', () => reject(new Error('이미지를 읽지 못했습니다.')))
     reader.readAsDataURL(file)

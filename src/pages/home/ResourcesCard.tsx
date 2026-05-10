@@ -11,7 +11,6 @@ export function ResourcesCard({ onOpenInfo, dashboard = false }: ResourcesCardPr
     <section className={dashboard ? 'surface-card panel resources-panel resources-panel--dashboard' : 'surface-card panel resources-panel'}>
       <header className="panel-header">
         <div>
-          {dashboard ? <p className="portal-section-eyebrow">Info Share</p> : null}
           <h2 className="panel-title">
             <Icon name="book" size={16} />
             <span>{dashboard ? '정보공유' : '정보공유 업데이트'}</span>

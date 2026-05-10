@@ -10,6 +10,7 @@ export type AppRoute =
   | 'service'
   | 'services'
   | 'settings'
+  | 'admin'
   | 'login'
   | 'signup'
   | 'verifyEmail'
@@ -64,6 +65,7 @@ export const routePathById: Record<AppRoute, string> = {
   service: routes.services.root,
   services: routes.services.root,
   settings: '/settings',
+  admin: '/admin',
   login: '/login',
   signup: '/signup',
   verifyEmail: routes.auth.verifyEmail,
@@ -79,6 +81,7 @@ export function getRouteFromPath(pathname: string): AppRoute {
   if (pathname.startsWith('/services')) return 'services'
   if (pathname.startsWith('/service')) return 'services'
   if (pathname.startsWith('/settings')) return 'settings'
+  if (pathname.startsWith('/admin')) return 'admin'
   if (pathname.startsWith('/login')) return 'login'
   if (pathname.startsWith('/signup')) return 'signup'
   if (pathname.startsWith('/email-verification')) return 'verifyEmail'
@@ -114,6 +117,7 @@ export const routeLabelById: Record<AppRoute, string> = {
   service: '인스턴스',
   services: '서비스',
   settings: '프로필 설정',
+  admin: '관리자',
   login: '로그인',
   signup: '회원가입',
   verifyEmail: '이메일 인증',
@@ -294,6 +298,8 @@ export function buildContextPanel(route: AppRoute, pathname = ''): ContextPanelD
         description: '',
         items: toActionPanelItems(settingsActions),
       }
+    case 'admin':
+      return null
     case 'login':
     case 'signup':
       return null

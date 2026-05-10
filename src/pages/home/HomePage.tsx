@@ -27,7 +27,6 @@ export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
       <section className="surface-card panel portal-updates-panel">
         <header className="panel-header">
           <div>
-            <p className="portal-section-eyebrow">Updates</p>
             <h2 className="panel-title">인기글</h2>
           </div>
           <button type="button" className="panel-action" onClick={onOpenAllPosts}>

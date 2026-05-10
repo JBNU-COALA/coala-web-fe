@@ -8,6 +8,7 @@ import {
   type PostBoardFilterId,
 } from '../../dummy/postsData'
 import { Icon } from '../../shared/ui/Icon'
+import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { fallbackCommunityBoardIds, resolveCommunityBoardFilter } from '../../shared/communityBoards'
@@ -170,15 +171,12 @@ export function AllPostsPage({
           </div>
 
           <div className="community-list-actions">
-            <label className="community-list-search">
-              <Icon name="search" size={15} />
-              <input
-                type="search"
-                placeholder="게시글 제목을 검색하세요"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-              />
-            </label>
+            <SearchField
+              className="community-list-search"
+              value={query}
+              onChange={setQuery}
+              placeholder="게시글 제목을 검색하세요"
+            />
 
             <label className="board-sort-field">
               <span>정렬</span>

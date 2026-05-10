@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
 import { clearAuthSession, getStoredUser, setAuthSession } from './tokenStorage'

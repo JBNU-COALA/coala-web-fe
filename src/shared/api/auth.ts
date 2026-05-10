@@ -34,6 +34,7 @@ export type UserData = {
   linkedinUrl: string | null
   academicStatus: 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
   verified: boolean
+  role?: 'USER' | 'ADMIN' | 'ROLE_USER' | 'ROLE_ADMIN' | string
   createdAt: string
   updatedAt: string
 }

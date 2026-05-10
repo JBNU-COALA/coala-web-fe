@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+/* eslint-disable react-hooks/set-state-in-effect */
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { communityPosts } from '../../dummy/postsData'
 import { latestInfoUpdates, resourceCards } from '../../dummy/infoData'
 import { recruitItems } from '../../dummy/recruitData'
@@ -45,6 +46,8 @@ const awardCategoryLabel: Record<UserAward['category'], string> = {
   research: '연구',
   club: '동아리',
 }
+
+const PROFILE_PHOTO_MAX_SIZE = 3 * 1024 * 1024
 
 type ProfilePageProps = {
   profileUserId?: string
@@ -133,12 +136,25 @@ function findPublicMember(profileUserId?: string) {
   return indexedMember ?? activityMembers.find((member) => member.isMe) ?? activityMembers[0]
 }
 
+function normalizeGithubHandle(value?: string | null) {
+  return value?.trim().replace(/^@+/, '') ?? ''
+}
+
+function getGithubProfileUrl(value?: string | null) {
+  const handle = normalizeGithubHandle(value)
+  if (!/^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/.test(handle)) return null
+  return `https://github.com/${encodeURIComponent(handle)}`
+}
+
 export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const { user } = useAuth()
+  const photoInputRef = useRef<HTMLInputElement | null>(null)
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('코알라에서 함께 개발하고 있습니다.')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
+  const [photoError, setPhotoError] = useState<string | null>(null)
 
   const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '1')
   const isOwnProfile = Boolean(user && String(user.id) === effectiveProfileUserId)
@@ -157,7 +173,17 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : ''
   const profileGithub = isOwnProfile ? user?.githubId ?? profileMember.githubHandle : profileMember.githubHandle
+  const profileGithubHandle = normalizeGithubHandle(profileGithub)
+  const profileGithubLabel = profileGithubHandle ? `@${profileGithubHandle}` : '-'
+  const profileGithubUrl = getGithubProfileUrl(profileGithub)
   const profileAwards = profileMember.awards
+  const profilePhotoStorageKey = `coala-profile-photo:${effectiveProfileUserId}`
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    setProfilePhoto(window.localStorage.getItem(profilePhotoStorageKey))
+    setPhotoError(null)
+  }, [profilePhotoStorageKey])
 
   useEffect(() => {
     setEditing(false)
@@ -199,15 +225,89 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     { id: 'posts', label: '작성 내용' },
   ]
 
+  const handlePhotoSelect = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setPhotoError('이미지 파일만 등록할 수 있습니다.')
+      return
+    }
+
+    if (file.size > PROFILE_PHOTO_MAX_SIZE) {
+      setPhotoError('프로필 사진은 3MB 이하만 등록할 수 있습니다.')
+      return
+    }
+
+    const reader = new FileReader()
+    reader.addEventListener('load', () => {
+      if (typeof reader.result !== 'string') {
+        setPhotoError('이미지를 읽지 못했습니다.')
+        return
+      }
+
+      window.localStorage.setItem(profilePhotoStorageKey, reader.result)
+      setProfilePhoto(reader.result)
+      setPhotoError(null)
+    })
+    reader.addEventListener('error', () => setPhotoError('이미지를 읽지 못했습니다.'))
+    reader.readAsDataURL(file)
+  }
+
+  const removeProfilePhoto = () => {
+    window.localStorage.removeItem(profilePhotoStorageKey)
+    setProfilePhoto(null)
+    setPhotoError(null)
+  }
+
   return (
     <section className="coala-content coala-content--profile">
       <div className="profile-page">
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
-            <span className="profile-page-avatar">{initial}</span>
+            <div className="profile-photo-panel">
+              <div className={profilePhoto ? 'profile-page-avatar profile-page-avatar--image' : 'profile-page-avatar'}>
+                {profilePhoto ? (
+                  <img src={profilePhoto} alt={`${displayName} 프로필 사진`} />
+                ) : (
+                  <span>{initial}</span>
+                )}
+              </div>
+              {canEdit ? (
+                <div className="profile-photo-controls">
+                  <button type="button" className="profile-photo-button" onClick={() => photoInputRef.current?.click()}>
+                    사진 변경
+                  </button>
+                  {profilePhoto ? (
+                    <button type="button" className="profile-photo-button profile-photo-button--muted" onClick={removeProfilePhoto}>
+                      삭제
+                    </button>
+                  ) : null}
+                  <input
+                    ref={photoInputRef}
+                    type="file"
+                    accept="image/*"
+                    className="profile-photo-input"
+                    onChange={handlePhotoSelect}
+                  />
+                  {photoError ? <p className="profile-photo-error">{photoError}</p> : null}
+                </div>
+              ) : null}
+            </div>
             <div className="profile-page-identity">
               <h2 className="profile-page-name">{displayName}</h2>
               <p className="profile-page-role">{displayRole}</p>
+              <div className="profile-page-meta">
+                <span>{isOwnProfile ? user?.department ?? '소속 미입력' : profileMember.lab}</span>
+                {profileGithubUrl ? (
+                  <a href={profileGithubUrl} target="_blank" rel="noreferrer">
+                    {profileGithubLabel}
+                  </a>
+                ) : (
+                  <span>{profileGithubLabel}</span>
+                )}
+              </div>
               {joinedAt ? <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p> : null}
             </div>
           </div>
@@ -260,7 +360,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         </div>
 
         {tab === 'overview' ? (
-          <div className="profile-section-grid">
+          <div className="profile-section-grid profile-section-grid--overview">
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">소개</h3>
               {editing ? (
@@ -276,7 +376,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             </div>
 
             <div className="surface-card profile-section-card">
-              <h3 className="profile-section-title">계정 정보</h3>
+              <h3 className="profile-section-title">기본 정보</h3>
               {canEdit ? (
                 <ul className="profile-handles-list">
                   <li className="profile-handle-item">
@@ -315,7 +415,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     </span>
                     <span className="profile-handle-body">
                       <span className="profile-handle-service">GitHub</span>
-                      <span className="profile-handle-value">{profileGithub ? `@${profileGithub}` : '-'}</span>
+                      {profileGithubUrl ? (
+                        <a className="profile-handle-value profile-handle-link" href={profileGithubUrl} target="_blank" rel="noreferrer">
+                          {profileGithubLabel}
+                        </a>
+                      ) : (
+                        <span className="profile-handle-value">{profileGithubLabel}</span>
+                      )}
                     </span>
                   </li>
                   <li className="profile-handle-item">
@@ -336,7 +442,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     </span>
                     <span className="profile-handle-body">
                       <span className="profile-handle-service">GitHub</span>
-                      <span className="profile-handle-value">@{profileGithub}</span>
+                      {profileGithubUrl ? (
+                        <a className="profile-handle-value profile-handle-link" href={profileGithubUrl} target="_blank" rel="noreferrer">
+                          {profileGithubLabel}
+                        </a>
+                      ) : (
+                        <span className="profile-handle-value">{profileGithubLabel}</span>
+                      )}
                     </span>
                   </li>
                   <li className="profile-handle-item">
@@ -370,7 +482,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
               <div className="profile-activity-block">
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">핸들</span>
-                  <span className="profile-activity-value profile-activity-value--mono">@{profileGithub}</span>
+                  {profileGithubUrl ? (
+                    <a className="profile-activity-value profile-activity-link" href={profileGithubUrl} target="_blank" rel="noreferrer">
+                      {profileGithubLabel}
+                    </a>
+                  ) : (
+                    <span className="profile-activity-value profile-activity-value--mono">{profileGithubLabel}</span>
+                  )}
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">최근 커밋</span>

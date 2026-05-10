@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { resourceCards, type InfoFilterId } from '../../dummy/infoData'
 import { Icon } from '../../shared/ui/Icon'
+import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 
@@ -139,15 +140,12 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
           </div>
 
           <div className="community-list-actions">
-            <label className="community-list-search">
-              <Icon name="search" size={15} />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="소식, 대회, 연구실, 자료 검색"
-              />
-            </label>
+            <SearchField
+              className="community-list-search"
+              value={query}
+              onChange={setQuery}
+              placeholder="소식, 대회, 연구실, 자료 검색"
+            />
             <button
               type="button"
               className="write-post-button write-post-button--info"

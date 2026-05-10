@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { activityMembers, type ActivityMember } from '../../dummy/leaderboardData'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { Icon } from '../../shared/ui/Icon'
+import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 
 function getPublicUserId(member: ActivityMember, index: number, currentUserId?: number) {
@@ -95,15 +95,12 @@ export function LeaderboardPage() {
 
         <div className="activity-table-shell surface-card">
           <div className="activity-table-toolbar">
-            <label className="activity-search">
-              <Icon name="search" size={14} />
-              <input
-                type="search"
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="이름, GitHub, 저장소, 글 검색"
-              />
-            </label>
+            <SearchField
+              className="activity-search"
+              value={query}
+              onChange={setQuery}
+              placeholder="이름, GitHub, 저장소, 글 검색"
+            />
           </div>
 
           <div className="activity-filter-row">

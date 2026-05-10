@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
+import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
 import {
   recruitItems,
@@ -35,13 +36,9 @@ const recruitCategoryTabs = writeCategories
 
 const filters: { id: RecruitFilterId; label: string }[] = [
   { id: 'all', label: '전체' },
-  { id: 'open', label: '모집 중' },
+  { id: 'open', label: '모집중' },
   { id: 'closing-soon', label: '마감 임박' },
 ]
-
-const recruitStatusTabs = filters.filter(
-  (filter): filter is { id: Exclude<RecruitFilterId, 'all'>; label: string } => filter.id !== 'all',
-)
 
 const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
   { id: 'list', label: '모집 공고', icon: 'file' },
@@ -81,7 +78,7 @@ const defaultRecruitDraft: RecruitDraft = {
 }
 
 const getStatusLabel = (status: RecruitStatus) => {
-  if (status === 'open') return '모집 중'
+  if (status === 'open') return '모집중'
   if (status === 'closing-soon') return '마감 임박'
   return '마감'
 }
@@ -601,15 +598,12 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
                 <p>{activeCategoryLabel}</p>
                 <strong>모집 {visibleItems.length}개</strong>
               </div>
-              <label className="community-list-search recruit-search">
-                <Icon name="search" size={15} />
-                <input
-                  type="search"
-                  placeholder="주제, 기술 스택, 역할 검색"
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                />
-              </label>
+              <SearchField
+                className="community-list-search recruit-search"
+                value={query}
+                onChange={setQuery}
+                placeholder="주제, 기술 스택, 역할 검색"
+              />
             </div>
 
             <div className="recruit-filter-grid">
@@ -645,31 +639,19 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
               <div className="recruit-filter-group">
                 <span>상태</span>
-                <div className="recruit-segmented recruit-segmented--with-all" role="tablist" aria-label="모집 상태">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeFilter === 'all'}
-                    className={activeFilter === 'all' ? 'is-active' : ''}
-                    onClick={() => setActiveFilter('all')}
-                  >
-                    전체
-                  </button>
-                  <span className="recruit-segmented-divider" aria-hidden="true" />
-                  <div className="recruit-segmented-group">
-                    {recruitStatusTabs.map((filter) => (
-                      <button
-                        key={filter.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={activeFilter === filter.id}
-                        className={activeFilter === filter.id ? 'is-active' : ''}
-                        onClick={() => setActiveFilter(filter.id)}
-                      >
-                        {filter.label}
-                      </button>
-                    ))}
-                  </div>
+                <div className="recruit-segmented recruit-segmented--status" role="tablist" aria-label="모집 상태">
+                  {filters.map((filter) => (
+                    <button
+                      key={filter.id}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeFilter === filter.id}
+                      className={activeFilter === filter.id ? 'is-active' : ''}
+                      onClick={() => setActiveFilter(filter.id)}
+                    >
+                      {filter.label}
+                    </button>
+                  ))}
                 </div>
               </div>
 

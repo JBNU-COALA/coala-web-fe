@@ -1,4 +1,12 @@
-import { useEffect, useMemo, useState, type ClipboardEvent, type DragEvent, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import type {
+  ClipboardEvent,
+  CSSProperties,
+  DragEvent,
+  FormEvent,
+  KeyboardEvent,
+  PointerEvent as ReactPointerEvent,
+} from 'react'
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
@@ -181,6 +189,9 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
   const [showPreview, setShowPreview] = useState(true)
+  const editorWrapRef = useRef<HTMLDivElement | null>(null)
+  const [editorSplitPercent, setEditorSplitPercent] = useState(50)
+  const [isResizingEditor, setIsResizingEditor] = useState(false)
   const [boards, setBoards] = useState<BoardData[]>(fallbackBoardsByType[writerType])
   const [selectedBoardId, setSelectedBoardId] = useState<number | null>(fallbackBoardsByType[writerType][0]?.boardId ?? null)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -197,6 +208,33 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [content, title])
+
+  const updateEditorSplit = (clientX: number) => {
+    const rect = editorWrapRef.current?.getBoundingClientRect()
+    if (!rect || rect.width <= 0) return
+
+    const nextPercent = ((clientX - rect.left) / rect.width) * 100
+    setEditorSplitPercent(Math.min(72, Math.max(28, nextPercent)))
+  }
+
+  useEffect(() => {
+    if (!isResizingEditor) return undefined
+
+    const handlePointerMove = (event: PointerEvent) => updateEditorSplit(event.clientX)
+    const stopResizing = () => setIsResizingEditor(false)
+
+    document.body.classList.add('is-editor-resizing')
+    window.addEventListener('pointermove', handlePointerMove)
+    window.addEventListener('pointerup', stopResizing)
+    window.addEventListener('pointercancel', stopResizing)
+
+    return () => {
+      document.body.classList.remove('is-editor-resizing')
+      window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('pointerup', stopResizing)
+      window.removeEventListener('pointercancel', stopResizing)
+    }
+  }, [isResizingEditor])
 
   useEffect(() => {
     const fallbackBoards = fallbackBoardsByType[writerType]
@@ -415,29 +453,20 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     }
   }
 
+  const handleEditorResizePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
+    event.preventDefault()
+    updateEditorSplit(event.clientX)
+    setIsResizingEditor(true)
+  }
+
   return (
     <section className="coala-content coala-content--post-writer coala-content--velog-writer">
       <form className="post-writer-layout post-writer-layout--velog" onSubmit={handlePublish}>
         <article className="post-writer post-writer--velog">
           <header className="velog-writer-topbar">
             <div className="velog-writer-type">
-              <p className="post-writer-label">{copy.label}</p>
-              {boards.length > 0 && (
-                <label className="velog-select-field">
-                  <span>분류</span>
-                  <select
-                    className="velog-select"
-                    value={selectedBoardId ?? ''}
-                    onChange={(e) => setSelectedBoardId(Number(e.target.value))}
-                  >
-                    {boards.map((b) => (
-                      <option key={b.boardId} value={b.boardId}>
-                        {b.boardName}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              )}
+              <p className="post-writer-label">{copy.title}</p>
+              <span className="velog-writer-context">{copy.label}</span>
             </div>
 
             <div className="post-writer-actions velog-writer-actions">
@@ -465,6 +494,29 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
           </header>
 
           <div className="post-writer-fields velog-writer-fields">
+            {boards.length > 0 && (
+              <section className="velog-board-picker" aria-label={`${copy.label} 선택`}>
+                <div className="velog-board-picker-head">
+                  <span>{copy.label} 선택</span>
+                </div>
+                <div className="velog-board-options" role="radiogroup" aria-label={`${copy.label} 분류`}>
+                  {boards.map((board) => (
+                    <button
+                      key={board.boardId}
+                      type="button"
+                      role="radio"
+                      aria-checked={selectedBoardId === board.boardId}
+                      className={selectedBoardId === board.boardId ? 'velog-board-option is-active' : 'velog-board-option'}
+                      onClick={() => setSelectedBoardId(board.boardId)}
+                    >
+                      <span>{board.boardName}</span>
+                      <small>{board.description || `${copy.label} 게시글`}</small>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
             {publishError && <p className="auth-error">{publishError}</p>}
             {imageError && <p className="auth-error">{imageError}</p>}
 
@@ -505,7 +557,12 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
               </div>
             )}
 
-            <div className="pw-editor-wrap velog-editor-wrap" data-color-mode="light">
+            <div
+              ref={editorWrapRef}
+              className={isResizingEditor ? 'pw-editor-wrap velog-editor-wrap is-resizing' : 'pw-editor-wrap velog-editor-wrap'}
+              style={{ '--editor-edit-width': `${editorSplitPercent}%` } as CSSProperties}
+              data-color-mode="light"
+            >
               <MDEditor
                 value={content}
                 onChange={(value) => setContent(value ?? '')}
@@ -524,6 +581,17 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                   onDragOver: handleEditorDragOver,
                 }}
               />
+              {showPreview && (
+                <button
+                  type="button"
+                  className="velog-editor-resizer"
+                  style={{ left: `${editorSplitPercent}%` }}
+                  aria-label="마크다운 미리보기 너비 조절"
+                  onPointerDown={handleEditorResizePointerDown}
+                >
+                  <span />
+                </button>
+              )}
             </div>
           </div>
 

@@ -34,4 +34,5 @@ export const routes = {
     root: '/users',
     detail: (userId: string | number) => `/users/${userId}`,
   },
+  admin: '/admin',
 } as const

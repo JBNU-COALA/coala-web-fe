@@ -10,6 +10,7 @@ import {
 } from '../../dummy/postsData'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
+import type { UserData } from '../../shared/api/auth'
 import { copyMarkdown, htmlToReadableMarkdown, type MarkdownCopyState } from '../../shared/markdown'
 import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
 
@@ -137,26 +138,67 @@ function isHtmlPostContent(content: string) {
 const fallbackComments: CommentItem[] = [
   {
     commentId: 1,
+    parentCommentId: null,
     userId: 2,
     authorName: '김예린',
     content: '댓글 예시입니다.',
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
+    replies: [],
   },
 ]
 
+function getCurrentUserName(user: UserData | null) {
+  return user?.nickname || user?.name || user?.email || '나'
+}
+
+function normalizeComment(comment: CommentItem, user: UserData | null, parentCommentId: number | null = null): CommentItem {
+  const commentParentId = comment.parentCommentId ?? parentCommentId
+  return {
+    ...comment,
+    parentCommentId: commentParentId,
+    userId: comment.userId ?? user?.id,
+    authorName: comment.authorName ?? (user ? getCurrentUserName(user) : undefined),
+    updatedAt: comment.updatedAt ?? comment.createdAt,
+    replies: (comment.replies ?? []).map((reply) => normalizeComment(reply, user, comment.commentId)),
+  }
+}
+
+function countCommentTree(comments: CommentItem[]): number {
+  return comments.reduce((sum, comment) => sum + 1 + countCommentTree(comment.replies ?? []), 0)
+}
+
+function appendReply(comments: CommentItem[], parentCommentId: number, reply: CommentItem): CommentItem[] {
+  return comments.map((comment) => {
+    if (comment.commentId === parentCommentId) {
+      return {
+        ...comment,
+        replies: [...(comment.replies ?? []), reply],
+      }
+    }
+
+    return {
+      ...comment,
+      replies: appendReply(comment.replies ?? [], parentCommentId, reply),
+    }
+  })
+}
+
 export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPageProps) {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, user } = useAuth()
   const [post, setPost] = useState<PostDetail | null>(null)
   const [comments, setComments] = useState<CommentItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [newComment, setNewComment] = useState('')
+  const [activeReplyId, setActiveReplyId] = useState<number | null>(null)
+  const [replyInputs, setReplyInputs] = useState<Record<number, string>>({})
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
+  const [submittingReplyId, setSubmittingReplyId] = useState<number | null>(null)
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
 
-  const parsed = parseCompositeId(postId)
+  const parsed = useMemo(() => parseCompositeId(postId), [postId])
 
   useEffect(() => {
     if (!parsed) {
@@ -175,7 +217,11 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     ])
       .then(([postData, commentData]) => {
         setPost(postData)
-        setComments(commentData.length > 0 ? commentData : fallbackComments)
+        setComments(
+          commentData.length > 0
+            ? commentData.map((comment) => normalizeComment(comment, null))
+            : fallbackComments,
+        )
       })
       .catch(() => {
         const fallbackPost = buildFallbackPost(realPostId)
@@ -187,7 +233,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
         setError('게시글을 찾을 수 없습니다.')
       })
       .finally(() => setIsLoading(false))
-  }, [postId])
+  }, [parsed])
 
   const fallbackDetail = useMemo(
     () => (parsed ? getFallbackDetail(parsed.postId) : undefined),
@@ -210,24 +256,61 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     setIsSubmittingComment(true)
     try {
       const created = await postsApi.createComment(parsed.postId, newComment.trim())
-      setComments((prev) => [...prev, created])
+      setComments((prev) => [...prev, normalizeComment(created, user)])
       setNewComment('')
     } catch {
       setComments((prev) => [
         ...prev,
         {
           commentId: Date.now(),
-          userId: 0,
-          authorName: '나',
+          parentCommentId: null,
+          userId: user?.id ?? 0,
+          authorName: getCurrentUserName(user),
           content: newComment.trim(),
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          replies: [],
         },
       ])
       setNewComment('')
     } finally {
       setIsSubmittingComment(false)
     }
+  }
+
+  const handleSubmitReply = async (parentCommentId: number, e: FormEvent) => {
+    e.preventDefault()
+    if (!parsed) return
+    const content = (replyInputs[parentCommentId] ?? '').trim()
+    if (!content) return
+
+    setSubmittingReplyId(parentCommentId)
+    try {
+      const created = await postsApi.createReply(parsed.postId, parentCommentId, content)
+      setComments((prev) => appendReply(prev, parentCommentId, normalizeComment(created, user, parentCommentId)))
+      setStatusAfterReply(parentCommentId)
+    } catch {
+      setComments((prev) =>
+        appendReply(prev, parentCommentId, {
+          commentId: Date.now(),
+          parentCommentId,
+          userId: user?.id ?? 0,
+          authorName: getCurrentUserName(user),
+          content,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          replies: [],
+        }),
+      )
+      setStatusAfterReply(parentCommentId)
+    } finally {
+      setSubmittingReplyId(null)
+    }
+  }
+
+  const setStatusAfterReply = (parentCommentId: number) => {
+    setReplyInputs((prev) => ({ ...prev, [parentCommentId]: '' }))
+    setActiveReplyId(null)
   }
 
   if (isLoading) {
@@ -275,6 +358,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const sourceMarkdown = isHtmlContent
     ? htmlToReadableMarkdown(visiblePost.content)
     : visiblePost.content
+  const totalCommentCount = countCommentTree(comments)
 
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(sourceMarkdown) ? 'copied' : 'error')
@@ -293,7 +377,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
           <div className="post-header-actions">
             <button type="button" className="ghost-button" onClick={onWrite}>
               <Icon name="edit" size={15} />
-              <span>새 글 쓰기</span>
+              <span>글쓰기</span>
             </button>
             <button type="button" className="ghost-button" onClick={onEdit}>
               <Icon name="edit" size={15} />
@@ -313,7 +397,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
               onClick={handleCopyShareLink}
             >
               <Icon name={shareCopied === 'copied' ? 'copy' : 'link'} size={15} />
-              <span>{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
+              <span>{shareCopied === 'copied' ? '복사 완료' : '공유하기'}</span>
             </button>
           </div>
         </header>
@@ -340,7 +424,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
 
             <div className="post-meta-stats">
               <span><Icon name="eye" size={15} />{visiblePost.viewCount}</span>
-              <span><Icon name="message" size={15} />{visiblePost.commentCount ?? comments.length}</span>
+              <span><Icon name="message" size={15} />{totalCommentCount}</span>
               <span><Icon name="bell" size={15} />{visiblePost.likeCount ?? 0}</span>
             </div>
           </div>
@@ -368,13 +452,63 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
           )}
 
           <section className="post-comments">
-            <h3>댓글 {comments.length}개</h3>
+            <h3>댓글 {totalCommentCount}개</h3>
 
             {comments.map((comment) => (
-              <div key={comment.commentId} className="post-comment-item">
-                <strong>{comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}</strong>
-                <p>{comment.content}</p>
-                <span>{formatDate(comment.createdAt)}</span>
+              <div key={comment.commentId} className="post-comment-thread">
+                <div className="post-comment-item">
+                  <strong>{comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}</strong>
+                  <p>{comment.content}</p>
+                  <span>{formatDate(comment.createdAt)}</span>
+                  {isLoggedIn ? (
+                    <button
+                      type="button"
+                      className="post-comment-reply-toggle"
+                      aria-expanded={activeReplyId === comment.commentId}
+                      onClick={() =>
+                        setActiveReplyId((current) => (current === comment.commentId ? null : comment.commentId))
+                      }
+                    >
+                      답글
+                    </button>
+                  ) : null}
+                </div>
+
+                {(comment.replies ?? []).length > 0 ? (
+                  <div className="post-comment-replies">
+                    {(comment.replies ?? []).map((reply) => (
+                      <div key={reply.commentId} className="post-comment-item post-comment-item--reply">
+                        <strong>{reply.authorName ?? (reply.userId ? `사용자 ${reply.userId}` : '익명')}</strong>
+                        <p>{reply.content}</p>
+                        <span>{formatDate(reply.createdAt)}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+
+                {isLoggedIn && activeReplyId === comment.commentId ? (
+                  <form
+                    onSubmit={(event) => handleSubmitReply(comment.commentId, event)}
+                    className="post-comment-form post-comment-form--reply"
+                  >
+                    <input
+                      type="text"
+                      className="auth-input"
+                      placeholder="답글을 입력하세요."
+                      value={replyInputs[comment.commentId] ?? ''}
+                      onChange={(event) =>
+                        setReplyInputs((prev) => ({ ...prev, [comment.commentId]: event.target.value }))
+                      }
+                    />
+                    <button
+                      type="submit"
+                      className="write-post-button"
+                      disabled={submittingReplyId === comment.commentId || !(replyInputs[comment.commentId] ?? '').trim()}
+                    >
+                      답글 등록
+                    </button>
+                  </form>
+                ) : null}
               </div>
             ))}
 

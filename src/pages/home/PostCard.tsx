@@ -29,9 +29,23 @@ const fallbackPosts: PostListItem[] = communityPosts.map((post, index) => ({
   title: post.title,
   content: post.excerpt,
   viewCount: Number(post.views.replace('k', '00').replace('.', '')),
+  commentCount: post.comments,
+  likeCount: post.solved ? 12 : Math.max(3, post.comments * 2),
   createdAt: new Date(Date.now() - index * 3600000 * 6).toISOString(),
   updatedAt: new Date(Date.now() - index * 3600000 * 6).toISOString(),
 }))
+
+function getPopularityScore(post: PostListItem) {
+  return post.viewCount + (post.commentCount ?? 0) * 12 + (post.likeCount ?? 0) * 8
+}
+
+function sortByPopularity(posts: PostListItem[]) {
+  return [...posts].sort((a, b) => {
+    const scoreDiff = getPopularityScore(b) - getPopularityScore(a)
+    if (scoreDiff !== 0) return scoreDiff
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  })
+}
 
 export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostCardProps) {
   const [posts, setPosts] = useState<PostListItem[]>([])
@@ -41,12 +55,10 @@ export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostC
       try {
         const boards = await boardsApi.getBoards(true)
         const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
-        const all = postsArrays
-          .flat()
-          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-        setPosts((all.length > 0 ? all : fallbackPosts).slice(0, limit))
+        const all = sortByPopularity(postsArrays.flat())
+        setPosts((all.length > 0 ? all : sortByPopularity(fallbackPosts)).slice(0, limit))
       } catch {
-        setPosts(fallbackPosts.slice(0, limit))
+        setPosts(sortByPopularity(fallbackPosts).slice(0, limit))
       }
     }
     fetchRecentPosts()
@@ -56,10 +68,9 @@ export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostC
     <section className={dashboard ? 'surface-card panel posts-panel posts-panel--dashboard' : 'surface-card panel posts-panel'}>
       <header className="panel-header">
         <div>
-          {dashboard ? <p className="portal-section-eyebrow">Community</p> : null}
           <h2 className="panel-title">
             <Icon name="file" size={16} />
-            <span>{dashboard ? '전체 게시글 업데이트' : '전체 게시글'}</span>
+            <span>{dashboard ? '인기글' : '전체 게시글'}</span>
           </h2>
         </div>
         <button type="button" className="panel-action panel-action--solid" onClick={onOpenAllPosts}>

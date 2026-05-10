@@ -1,6 +1,8 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
+import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
 import { memberServiceDetails, memberServices } from '../../dummy/memberServices'
@@ -177,7 +179,7 @@ export function ServicesPage() {
                       목록으로 돌아가기
                     </button>
                     <div>
-                      <p className="services-hub-eyebrow">USER SERVICE</p>
+                      <p className="services-hub-eyebrow">유저 서비스</p>
                       <h3>{selectedService.title}</h3>
                       <span>{selectedService.owner}</span>
                     </div>
@@ -332,15 +334,12 @@ export function ServicesPage() {
               </div>
 
               <div className="member-services-toolbar-bottom">
-                <label className="resource-search-bar">
-                  <Icon name="search" size={15} />
-                  <input
-                    type="search"
-                    value={query}
-                    onChange={(event) => setQuery(event.target.value)}
-                    placeholder="서비스명, 만든 유저, 태그 검색"
-                  />
-                </label>
+                <SearchField
+                  className="resource-search-bar"
+                  value={query}
+                  onChange={setQuery}
+                  placeholder="서비스명, 만든 유저, 태그 검색"
+                />
               </div>
             </div>
 

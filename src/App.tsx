@@ -13,6 +13,7 @@ import { ContextPanel } from './navigation/ContextPanel'
 import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
 import { RequireAuth } from './shared/auth/RequireAuth'
+import { isAdminUser } from './shared/auth/adminAccess'
 import { routes } from './shared/routes'
 import {
   getFallbackInfoBoardIdByPostId,
@@ -37,6 +38,7 @@ const RecruitApplyPage = lazy(() => import('./pages/recruit/RecruitApplyPage').t
 const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const ServicesPage = lazy(() => import('./pages/services/ServicesPage').then((m) => ({ default: m.ServicesPage })))
+const AdminPage = lazy(() => import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
 
 function PostDetailRoute() {
   const { boardId, postId } = useParams<{ boardId: string; postId: string }>()
@@ -201,6 +203,7 @@ function App() {
   const closeSubNavTimerRef = useRef<number | null>(null)
   const releaseSubNavTimerRef = useRef<number | null>(null)
   const { isLoggedIn, user, logout } = useAuth()
+  const isAdmin = isAdminUser(user)
 
   const clearSubNavTimers = useCallback(() => {
     if (closeSubNavTimerRef.current) {
@@ -378,6 +381,11 @@ function App() {
     }
   }
 
+  const handleOpenAdmin = () => {
+    setProfileMenuOpen(false)
+    navigate(routes.admin)
+  }
+
   const handleMainNavClick = (itemId: string, hasSubItems: boolean) => {
     if (hasSubItems) {
       clearSubNavTimers()
@@ -499,6 +507,14 @@ function App() {
           element={
             <RequireAuth>
               <SettingsRedirect />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <RequireAuth>
+              <AdminPage />
             </RequireAuth>
           }
         />
@@ -656,6 +672,12 @@ function App() {
                       <Icon name="user" size={14} />
                       마이프로필
                     </button>
+                    {isAdmin ? (
+                      <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
+                        <Icon name="settings" size={14} />
+                        관리자
+                      </button>
+                    ) : null}
                     <button type="button" className="header-profile-menu-item" onClick={handleLogout}>
                       <Icon name="chevron-right" size={14} />
                       로그아웃하기

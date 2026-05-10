@@ -30,11 +30,13 @@ export type CreatePostResponse = {
 
 export type CommentItem = {
   commentId: number
+  parentCommentId?: number | null
   userId?: number
   authorName?: string
   content: string
   createdAt: string
   updatedAt?: string
+  replies?: CommentItem[]
 }
 
 export type PostLikeResponse = {
@@ -74,6 +76,17 @@ export const postsApi = {
 
   createComment: (postId: number, content: string) =>
     client.post<CommentItem>(`/api/posts/${postId}/comments`, { content }).then((r) => r.data),
+
+  createReply: (postId: number, commentId: number, content: string) =>
+    client
+      .post<CommentItem>(`/api/posts/${postId}/comments/${commentId}/replies`, {
+        content,
+        parentCommentId: commentId,
+      })
+      .then((r) => r.data),
+
+  getReplies: (postId: number, commentId: number) =>
+    client.get<CommentItem[]>(`/api/posts/${postId}/comments/${commentId}/replies`).then((r) => r.data),
 
   updateComment: (postId: number, commentId: number, content: string) =>
     client.patch<{ commentId: number; content: string; updatedAt: string }>(
