@@ -7,6 +7,7 @@ import type {
   KeyboardEvent,
   PointerEvent as ReactPointerEvent,
 } from 'react'
+import { isAxiosError } from 'axios'
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
@@ -35,7 +36,7 @@ import {
 import { infoApi, type InfoFilterId } from '../../shared/api/info'
 
 const TITLE_MAX = 100
-const CONTENT_MAX = 12000
+const CONTENT_MAX = 5000
 
 type PostWriterPageProps = {
   onClose: () => void
@@ -117,7 +118,6 @@ const baseMarkdownCommands: ICommand[] = [
   commands.title3,
   commands.divider,
   commands.link,
-  commands.image,
   commands.quote,
   commands.code,
   commands.codeBlock,
@@ -134,6 +134,19 @@ const markdownExtraCommands: ICommand[] = [
   commands.codePreview,
   commands.fullscreen,
 ]
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (!isAxiosError<{ message?: string; errorCode?: string }>(error)) return fallback
+
+  const message = error.response?.data?.message
+  if (message) return message
+
+  if (error.response?.status === 401) return '로그인 후 다시 시도해주세요.'
+  if (error.response?.status === 403) return '게시글 작성 권한이 없습니다.'
+  if (error.response?.status === 429) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
+
+  return fallback
+}
 
 function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
   const parts = compositeId.split('-')
@@ -281,9 +294,9 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   )
   const markdownCommands = useMemo(
     () => [
-      ...baseMarkdownCommands.slice(0, 11),
+      ...baseMarkdownCommands.slice(0, 10),
       imageUploadCommand,
-      ...baseMarkdownCommands.slice(11),
+      ...baseMarkdownCommands.slice(10),
     ],
     [imageUploadCommand],
   )
@@ -430,12 +443,12 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         })
       }
       onClose()
-    } catch {
+    } catch (error) {
       if (editPostId) {
-        setPublishError('게시글 수정 권한이 없거나 저장에 실패했습니다.')
+        setPublishError(getApiErrorMessage(error, '게시글 수정 권한이 없거나 저장에 실패했습니다.'))
         return
       }
-      setPublishError('게시글 발행에 실패했습니다. 다시 시도해주세요.')
+      setPublishError(getApiErrorMessage(error, '게시글 발행에 실패했습니다. 다시 시도해주세요.'))
     } finally {
       setIsPublishing(false)
     }

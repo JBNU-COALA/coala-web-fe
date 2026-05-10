@@ -23,6 +23,58 @@ const imageAltFromName = (name: string) => (
     .trim() || 'image'
 )
 
+const imageAltFromUrl = (url: string) => {
+  try {
+    const parsed = new URL(url)
+    const filename = decodeURIComponent(parsed.pathname.split('/').filter(Boolean).at(-1) ?? '')
+    return imageAltFromName(filename || parsed.hostname)
+  } catch {
+    return 'image'
+  }
+}
+
+const htmlDecode = (value: string) => {
+  const textarea = document.createElement('textarea')
+  textarea.innerHTML = value
+  return textarea.value
+}
+
+const isHttpUrl = (value: string) => {
+  try {
+    const parsed = new URL(value)
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+const isLikelyImageUrl = (value: string) => {
+  if (!isHttpUrl(value)) return false
+
+  try {
+    const parsed = new URL(value)
+    const pathname = parsed.pathname.toLowerCase()
+    const format = (parsed.searchParams.get('format') || parsed.searchParams.get('fm') || '').toLowerCase()
+    return (
+      /\.(png|jpe?g|webp|gif|avif)(?:$|[?#])/i.test(`${pathname}${parsed.search}`) ||
+      ['png', 'jpg', 'jpeg', 'webp', 'gif', 'avif'].includes(format) ||
+      parsed.hostname === 'images.unsplash.com' ||
+      parsed.hostname.endsWith('.imagekit.io') ||
+      parsed.hostname.endsWith('.cloudinary.com')
+    )
+  } catch {
+    return false
+  }
+}
+
+const markdownImageFromUrl = (url: string) => `![${imageAltFromUrl(url)}](<${url}>)`
+
+function getImageUrlFromClipboardHtml(html: string) {
+  const match = html.match(/<img\b[^>]*\bsrc=(["'])(.*?)\1/i)
+  const src = match?.[2] ? htmlDecode(match[2]).trim() : ''
+  return src && isHttpUrl(src) ? src : null
+}
+
 const fileToDataUrl = (file: File) => (
   new Promise<string>((resolve, reject) => {
     const reader = new FileReader()
@@ -173,10 +225,24 @@ export async function readMarkdownImagesFromClipboard(
   options: MarkdownImageOptions = {},
 ) {
   const files = getMarkdownImageFiles(Array.from(event.clipboardData.files))
-  if (files.length === 0) return null
+  if (files.length > 0) {
+    event.preventDefault()
+    return createMarkdownImagesText(files, options)
+  }
 
-  event.preventDefault()
-  return createMarkdownImagesText(files, options)
+  const htmlImageUrl = getImageUrlFromClipboardHtml(event.clipboardData.getData('text/html'))
+  if (htmlImageUrl) {
+    event.preventDefault()
+    return markdownImageFromUrl(htmlImageUrl)
+  }
+
+  const text = event.clipboardData.getData('text/plain').trim()
+  if (text && !/\s/.test(text) && isLikelyImageUrl(text)) {
+    event.preventDefault()
+    return markdownImageFromUrl(text)
+  }
+
+  return null
 }
 
 export async function readMarkdownImagesFromDrop(
