@@ -13,6 +13,7 @@ export type SignupRequest = {
   birthDate?: string
   gender: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
   department?: string
+  lab?: string
   studentId: string
   grade: number
   githubId: string
@@ -28,6 +29,7 @@ export type UserData = {
   birthDate: string | null
   gender: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY' | null
   department: string
+  lab: string | null
   studentId: string
   grade: number | null
   githubId: string | null

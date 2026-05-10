@@ -626,6 +626,8 @@ export function AdminPage() {
                       <Detail label="이름" value={selectedUser.name} />
                       <Detail label="이메일" value={selectedUser.email} />
                       <Detail label="닉네임" value={selectedUser.nickname ?? '-'} />
+                      <Detail label="소속" value={selectedUser.department || '-'} />
+                      <Detail label="연구실" value={selectedUser.lab || '-'} />
                       <Detail label="학적" value={academicStatusLabel[selectedUser.academicStatus]} />
                       <Detail label="학번" value={selectedUser.studentId || '-'} />
                       <Detail label="GitHub" value={selectedUser.githubId || '-'} />

@@ -155,6 +155,9 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const displayRole = isOwnProfile && user?.academicStatus
     ? `${academicStatusLabel[user.academicStatus]} · ${user.grade ?? '-'}학년`
     : `${profileMember.grade} · ${profileMember.role}`
+  const profileAffiliation = isOwnProfile
+    ? firstNonBlank(user?.lab, user?.department, profileMember.lab, '소속 미입력')
+    : profileMember.lab
   const initial = displayName.charAt(0)
   const joinedAt = isOwnProfile && user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
@@ -326,7 +329,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
               <h2 className="profile-page-name">{displayName}</h2>
               <p className="profile-page-role">{displayRole}</p>
               <div className="profile-page-meta">
-                <span>{isOwnProfile ? user?.department ?? '소속 미입력' : profileMember.lab}</span>
+                <span>{profileAffiliation}</span>
                 {profileGithubUrl ? (
                   <a href={profileGithubUrl} target="_blank" rel="noreferrer">
                     {profileGithubLabel}
@@ -422,6 +425,17 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     <span className="profile-handle-body">
                       <span className="profile-handle-service">학번</span>
                       <span className="profile-handle-value">{user?.studentId ?? '-'}</span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
+                    <span className="profile-handle-icon profile-handle-icon--github">
+                      <Icon name="users" size={14} />
+                    </span>
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service">소속 / 연구실</span>
+                      <span className="profile-handle-value">
+                        {firstNonBlank(user?.department, '소속 미입력')} · {firstNonBlank(user?.lab, '연구실 미입력')}
+                      </span>
                     </span>
                   </li>
                   <li className="profile-handle-item">

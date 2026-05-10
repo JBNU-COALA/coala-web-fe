@@ -18,6 +18,7 @@ type LabInputMode = 'preset' | 'custom'
 const githubUsernamePattern = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/
 const linkedinProfilePattern = /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/
 const jbnuEmailPattern = /^[A-Za-z0-9._%+-]+@jbnu\.ac\.kr$/i
+const DEFAULT_DEPARTMENT = '컴퓨터인공지능학부'
 
 export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const isLogin = mode === 'login'
@@ -89,7 +90,8 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           name: name.trim(),
           gender,
           studentId: studentId.trim(),
-          department: resolvedLab || undefined,
+          department: academicStatus === 'GENERAL' ? '일반' : DEFAULT_DEPARTMENT,
+          lab: resolvedLab || undefined,
           academicStatus,
           grade,
           githubId: trimmedGithubId,

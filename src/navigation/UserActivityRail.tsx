@@ -77,7 +77,7 @@ export function UserActivityRail({
     githubHandle: 'coala',
   }
   const displayName = user?.name ?? user?.email ?? '게스트'
-  const displayRole = user?.department ?? '게스트'
+  const displayRole = user?.lab ?? user?.department ?? '게스트'
   const initial = displayName.charAt(0)
   const meta = routeMeta[route]
 

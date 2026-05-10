@@ -665,7 +665,7 @@ function App() {
                       </span>
                       <div>
                         <strong>{user?.name ?? user?.email}</strong>
-                        <span>{user?.department ?? user?.email}</span>
+                        <span>{user?.lab ?? user?.department ?? user?.email}</span>
                       </div>
                     </div>
                     <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>

@@ -22,9 +22,10 @@ function MemberCard({ member, isSelected, onSelect }: {
   onSelect: () => void
 }) {
   return (
-    <button
-      type="button"
+    <Link
+      to={`/users/${member.id}`}
       className={isSelected ? 'activity-member-card is-active' : 'activity-member-card'}
+      style={{ color: 'inherit', textDecoration: 'none' }}
       onClick={onSelect}
     >
       <span className={`activity-avatar activity-avatar--${member.tone}`}>{member.initials}</span>
@@ -44,7 +45,7 @@ function MemberCard({ member, isSelected, onSelect }: {
           <span>{member.lab}</span>
         </span>
       </span>
-    </button>
+    </Link>
   )
 }
 
