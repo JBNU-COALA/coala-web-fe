@@ -5,6 +5,7 @@ import {
   getRouteFromPath,
   headerNavItems,
   headerSubNavItems,
+  resolveServicesTab,
   routePathById,
   type AppRoute,
   type ContextPanelItem,
@@ -242,8 +243,8 @@ function App() {
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup' || activeRoute === 'verifyEmail'
   const isAdminRoute = location.pathname.startsWith(routes.admin)
   const contextPanel = useMemo(
-    () => buildContextPanel(activeRoute, location.pathname),
-    [activeRoute, location.pathname],
+    () => buildContextPanel(activeRoute, location.pathname, location.search),
+    [activeRoute, location.pathname, location.search],
   )
 
   useEffect(() => {
@@ -299,7 +300,6 @@ function App() {
 
   const isHeaderSubNavActive = (path: string) => {
     const [targetPath, targetQuery = ''] = path.split('?')
-    const currentQuery = new URLSearchParams(location.search)
 
     if (targetPath === '/community/board') {
       return location.pathname.startsWith('/community/board') || location.pathname.startsWith('/community/posts')
@@ -325,20 +325,11 @@ function App() {
     }
 
     if (targetPath.startsWith('/services') || targetPath === '/service') {
-      const legacyTab = currentQuery.get('tab')
-      const isOfficial =
-        location.pathname.startsWith('/services/official') ||
-        location.pathname.startsWith('/service') ||
-        legacyTab === 'official'
-      const isUserService =
-        location.pathname.startsWith('/services/user') ||
-        location.pathname.startsWith('/services/unofficial') ||
-        legacyTab === 'user' ||
-        legacyTab === 'unofficial'
+      const activeServicesTab = resolveServicesTab(location.pathname, location.search)
 
-      if (targetPath === '/services/official/instance') return isOfficial
-      if (targetPath === '/services/user') return isUserService
-      if (targetPath === '/services') return location.pathname === '/services' && !isOfficial && !isUserService && !targetQuery
+      if (targetPath === routes.services.officialInstance) return activeServicesTab === 'official'
+      if (targetPath === routes.services.user) return activeServicesTab === 'user'
+      if (targetPath === routes.services.root) return activeServicesTab === 'coas' && !targetQuery
     }
 
     return location.pathname === targetPath
@@ -402,7 +393,11 @@ function App() {
   const handleMainNavClick = (itemId: string, hasSubItems: boolean) => {
     if (hasSubItems) {
       clearSubNavTimers()
-      setExpandedMainNav((current) => (current === itemId ? null : itemId))
+      setExpandedMainNav((current) => {
+        const next = current === itemId ? null : itemId
+        if (!next && document.activeElement instanceof HTMLElement) document.activeElement.blur()
+        return next
+      })
       return
     }
 

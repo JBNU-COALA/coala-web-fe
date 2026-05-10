@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
@@ -8,9 +7,9 @@ import { ServicePage } from '../service/ServicePage'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { servicesApi } from '../../shared/api/services'
 import { attachmentsApi } from '../../shared/api/attachments'
+import { resolveServicesTab, type ServicesTab } from '../../navigation/navigationData'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
-type ServicesTab = 'coas' | 'official' | 'user'
 type UserServiceViewMode = 'card' | 'list'
 export type MemberServiceStatus = '운영중' | '운영중지' | '운영종료'
 type ServiceStatusFilter = 'all' | MemberServiceStatus
@@ -79,15 +78,7 @@ export function ServicesPage() {
   })
 
   const normalizedQuery = query.trim().toLowerCase()
-  const legacyTab = new URLSearchParams(location.search).get('tab')
-  const activeTab: ServicesTab = location.pathname.startsWith('/services/official') || legacyTab === 'official'
-    ? 'official'
-    : location.pathname.startsWith('/services/user') ||
-        location.pathname.startsWith('/services/unofficial') ||
-        legacyTab === 'user' ||
-        legacyTab === 'unofficial'
-      ? 'user'
-      : 'coas'
+  const activeTab: ServicesTab = resolveServicesTab(location.pathname, location.search)
   const activeBannerTitle =
     activeTab === 'coas'
       ? 'COAS'

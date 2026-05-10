@@ -67,57 +67,89 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
         </header>
 
         {activeService ? (
-          <div className="portal-service-slider">
-            <button
-              type="button"
-              className="portal-service-feature"
-              onClick={() => openService(activeService.id)}
-              aria-label={`${activeService.title} 서비스 안내 열기`}
-            >
-              {activeService.imageUrl ? (
-                <span
-                  className="portal-service-feature-image"
-                  style={{ backgroundImage: `url(${activeService.imageUrl})` }}
-                />
-              ) : (
-                <span className="portal-service-feature-image portal-service-feature-image--empty">
-                  <Icon name="image" size={28} />
-                </span>
-              )}
-              <span className="portal-service-feature-shade" />
-              <span className="portal-service-feature-copy">
-                <span className="portal-service-status">{activeService.status}</span>
-                <strong>{activeService.title}</strong>
-                <span>{activeService.summary}</span>
-              </span>
-            </button>
-
-            <div className="portal-service-rail" aria-label="유저 서비스 목록">
-              {services.map((service, index) => (
-                <button
-                  key={service.id}
-                  type="button"
-                  className={index === activeServiceIndex ? 'portal-service-thumb is-active' : 'portal-service-thumb'}
-                  onClick={() => setActiveServiceIndex(index)}
-                >
-                  {service.imageUrl ? (
-                    <span
-                      className="portal-service-thumb-image"
-                      style={{ backgroundImage: `url(${service.imageUrl})` }}
-                    />
-                  ) : (
-                    <span className="portal-service-thumb-image portal-service-thumb-image--empty">
-                      <Icon name="image" size={16} />
-                    </span>
-                  )}
-                  <span className="portal-service-thumb-copy">
-                    <strong>{service.title}</strong>
-                    <small>{service.owner}</small>
+          <>
+            <div className="portal-service-slider">
+              <button
+                type="button"
+                className="portal-service-feature"
+                onClick={() => openService(activeService.id)}
+                aria-label={`${activeService.title} 서비스 안내 열기`}
+              >
+                {activeService.imageUrl ? (
+                  <span
+                    className="portal-service-feature-image"
+                    style={{ backgroundImage: `url(${activeService.imageUrl})` }}
+                  />
+                ) : (
+                  <span className="portal-service-feature-image portal-service-feature-image--empty">
+                    <Icon name="image" size={28} />
                   </span>
-                </button>
-              ))}
+                )}
+                <span className="portal-service-feature-shade" />
+                <span className="portal-service-feature-copy">
+                  <span className="portal-service-status">{activeService.status}</span>
+                  <strong>{activeService.title}</strong>
+                  <span>{activeService.summary}</span>
+                </span>
+              </button>
+
+              <div className="portal-service-rail" aria-label="유저 서비스 목록">
+                {services.map((service, index) => (
+                  <button
+                    key={service.id}
+                    type="button"
+                    className={index === activeServiceIndex ? 'portal-service-thumb is-active' : 'portal-service-thumb'}
+                    onClick={() => setActiveServiceIndex(index)}
+                  >
+                    {service.imageUrl ? (
+                      <span
+                        className="portal-service-thumb-image"
+                        style={{ backgroundImage: `url(${service.imageUrl})` }}
+                      />
+                    ) : (
+                      <span className="portal-service-thumb-image portal-service-thumb-image--empty">
+                        <Icon name="image" size={16} />
+                      </span>
+                    )}
+                    <span className="portal-service-thumb-copy">
+                      <strong>{service.title}</strong>
+                      <small>{service.owner}</small>
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+
+            <ul className="portal-service-mobile-list" aria-label="유저 서비스 목록">
+              {services.map((service) => (
+                <li key={service.id}>
+                  <button
+                    type="button"
+                    className="portal-service-mobile-item"
+                    onClick={() => openService(service.id)}
+                    aria-label={`${service.title} 서비스 안내 열기`}
+                  >
+                    {service.imageUrl ? (
+                      <span
+                        className="portal-service-mobile-media"
+                        style={{ backgroundImage: `url(${service.imageUrl})` }}
+                      />
+                    ) : (
+                      <span className="portal-service-mobile-media portal-service-mobile-media--empty">
+                        <Icon name="image" size={18} />
+                      </span>
+                    )}
+                    <span className="portal-service-mobile-copy">
+                      <span className="portal-service-status">{service.status}</span>
+                      <strong>{service.title}</strong>
+                      <span>{service.summary}</span>
+                      <small>{service.owner}</small>
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
         ) : (
           <div className="portal-service-empty">
             등록된 유저 서비스가 없습니다.

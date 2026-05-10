@@ -30,6 +30,8 @@ export type HeaderSubNavItem = {
   path: string
 }
 
+export type ServicesTab = 'coas' | 'official' | 'user'
+
 export type ContextItemKind = 'action'
 
 export type ContextPanelItem = {
@@ -121,6 +123,28 @@ export const routeLabelById: Record<AppRoute, string> = {
   login: '로그인',
   signup: '회원가입',
   verifyEmail: '이메일 인증',
+}
+
+export function resolveServicesTab(pathname: string, search = ''): ServicesTab {
+  const normalizedSearch = search.startsWith('?') ? search : search ? `?${search}` : ''
+  const query = new URLSearchParams(normalizedSearch)
+  const legacyTab = query.get('tab')
+  const isLegacyOfficialRoute = pathname === '/service' || pathname.startsWith('/service/')
+
+  if (
+    pathname.startsWith('/services/user') ||
+    pathname.startsWith('/services/unofficial') ||
+    legacyTab === 'user' ||
+    legacyTab === 'unofficial'
+  ) {
+    return 'user'
+  }
+
+  if (pathname.startsWith('/services/official') || isLegacyOfficialRoute || legacyTab === 'official') {
+    return 'official'
+  }
+
+  return 'coas'
 }
 
 const communityActions: ContextActionDefinition[] = [
@@ -227,16 +251,8 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
   }))
 }
 
-const toServicesItems = (pathname: string): ContextPanelItem[] => {
-  const query = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()
-  const legacyTab = query.get('tab')
-  const isOfficial = pathname.startsWith('/services/official') || legacyTab === 'official'
-  const isUserService =
-    pathname.startsWith('/services/user') ||
-    pathname.startsWith('/services/unofficial') ||
-    legacyTab === 'user' ||
-    legacyTab === 'unofficial'
-  const isLegacyServiceRoute = pathname === '/service' || pathname.startsWith('/service/')
+const toServicesItems = (pathname: string, search = ''): ContextPanelItem[] => {
+  const activeTab = resolveServicesTab(pathname, search)
 
   return servicesActions.map((item) => ({
     id: item.id,
@@ -247,11 +263,11 @@ const toServicesItems = (pathname: string): ContextPanelItem[] => {
     value: item.id,
     isActive:
       item.id === 'services-user'
-        ? isUserService
+        ? activeTab === 'user'
         : item.id === 'services-official'
-          ? isOfficial || isLegacyServiceRoute
+          ? activeTab === 'official'
           : item.id === 'services-coas'
-            ? !isOfficial && !isUserService && !isLegacyServiceRoute
+            ? activeTab === 'coas'
             : false,
   }))
 }
@@ -268,7 +284,7 @@ const toActivityItems = (): ContextPanelItem[] => {
   }))
 }
 
-export function buildContextPanel(route: AppRoute, pathname = ''): ContextPanelData | null {
+export function buildContextPanel(route: AppRoute, pathname = '', search = ''): ContextPanelData | null {
   switch (route) {
     case 'home':
     case 'about':
@@ -291,7 +307,7 @@ export function buildContextPanel(route: AppRoute, pathname = ''): ContextPanelD
       return {
         title: '서비스',
         description: '',
-        items: toServicesItems(pathname),
+        items: toServicesItems(pathname, search),
       }
     case 'settings':
       return {
