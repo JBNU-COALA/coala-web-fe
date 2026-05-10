@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { activityMembers, type ActivityMember } from '../../dummy/leaderboardData'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { SearchField } from '../../shared/ui/SearchField'
+import { usersApi, type ActivityMember } from '../../shared/api/users'
 import { CommunityBanner } from '../community/CommunityBanner'
 
 function getPublicUserId(member: ActivityMember, index: number, currentUserId?: number) {
   if (member.isMe && currentUserId) return String(currentUserId)
-  return String(index + 1)
+  return member.id || String(index + 1)
 }
 
 function formatAwardDate(value: string) {
@@ -53,37 +53,47 @@ export function LeaderboardPage() {
   const [query, setQuery] = useState('')
   const [gradeFilter, setGradeFilter] = useState('all')
   const [labFilter, setLabFilter] = useState('all')
-  const [selectedMemberId, setSelectedMemberId] = useState(activityMembers[0]?.id ?? '')
+  const [selectedMemberId, setSelectedMemberId] = useState('')
+  const [members, setMembers] = useState<ActivityMember[]>([])
 
   const normalizedQuery = query.trim().toLowerCase()
-  const gradeOptions = ['all', ...Array.from(new Set(activityMembers.map((member) => member.grade)))]
-  const labOptions = ['all', ...Array.from(new Set(activityMembers.map((member) => member.lab)))]
+  const gradeOptions = ['all', ...Array.from(new Set(members.map((member) => member.grade)))]
+  const labOptions = ['all', ...Array.from(new Set(members.map((member) => member.lab)))]
+
+  useEffect(() => {
+    usersApi.getUsers()
+      .then((items) => {
+        setMembers(items)
+        setSelectedMemberId(items[0]?.id ?? '')
+      })
+      .catch(() => setMembers([]))
+  }, [])
 
   const filteredMembers = useMemo(() => {
-    let members = activityMembers
+    let filtered = members
 
     if (gradeFilter !== 'all') {
-      members = members.filter((member) => member.grade === gradeFilter)
+      filtered = filtered.filter((member) => member.grade === gradeFilter)
     }
 
     if (labFilter !== 'all') {
-      members = members.filter((member) => member.lab === labFilter)
+      filtered = filtered.filter((member) => member.lab === labFilter)
     }
 
     if (normalizedQuery) {
-      members = members.filter((member) =>
+      filtered = filtered.filter((member) =>
         `${member.name} ${member.githubHandle} ${member.focus} ${member.sharedRepos.join(' ')} ${member.awards.map((award) => `${award.title} ${award.organizer} ${award.rank}`).join(' ')}`
           .toLowerCase()
           .includes(normalizedQuery),
       )
     }
 
-    return members
-  }, [gradeFilter, labFilter, normalizedQuery])
+    return filtered
+  }, [gradeFilter, labFilter, members, normalizedQuery])
 
   const selectedMember =
-    activityMembers.find((member) => member.id === selectedMemberId) ?? activityMembers[0]
-  const selectedMemberIndex = activityMembers.findIndex((member) => member.id === selectedMember?.id)
+    members.find((member) => member.id === selectedMemberId) ?? members[0]
+  const selectedMemberIndex = members.findIndex((member) => member.id === selectedMember?.id)
   const selectedUserId = selectedMember
     ? getPublicUserId(selectedMember, Math.max(selectedMemberIndex, 0), user?.id)
     : '1'

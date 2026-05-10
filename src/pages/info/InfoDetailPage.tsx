@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
-import { resourceCards } from '../../dummy/infoData'
+import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
 import { copyMarkdown, type MarkdownCopyState } from '../../shared/markdown'
 
@@ -10,30 +10,6 @@ type InfoDetailPageProps = {
   onBack: () => void
   onWrite: () => void
   onEdit: () => void
-}
-
-type LocalPostEdit = {
-  title: string
-  content: string
-  tagsInput: string
-  boardId: number | null
-  writerType: string
-  updatedAt: string
-}
-
-const LOCAL_POST_EDIT_STORAGE_KEY = 'coala-local-post-edits'
-
-function loadLocalPostEdits(): Record<string, LocalPostEdit> {
-  if (typeof window === 'undefined') return {}
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_POST_EDIT_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
-  } catch {
-    return {}
-  }
 }
 
 function formatDate(dateStr: string) {
@@ -80,17 +56,36 @@ const categoryCopy = {
 export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPageProps) {
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
-  const item = resourceCards.find((resource) => String(resource.id) === infoId) ?? resourceCards[0]
+  const [item, setItem] = useState<InfoArticle | null>(null)
+
+  useEffect(() => {
+    const numericId = Number(infoId)
+    if (Number.isNaN(numericId)) return
+    infoApi.getArticle(numericId)
+      .then(setItem)
+      .catch(() => setItem(null))
+  }, [infoId])
+
+  if (!item) {
+    return (
+      <section className="coala-content coala-content--post-detail">
+        <article className="surface-card post-detail info-detail-page">
+          <header className="post-detail-header">
+            <button type="button" className="post-back-button" onClick={onBack}>
+              <Icon name="chevron-left" size={16} />
+              <span>정보공유로 돌아가기</span>
+            </button>
+          </header>
+          <p className="empty-post-state">정보공유 글을 불러오는 중입니다.</p>
+        </article>
+      </section>
+    )
+  }
+
   const copy = categoryCopy[item.filter]
-  const localEdits = loadLocalPostEdits()
-  const localEdit =
-    localEdits[String(item.id)] ?? localEdits[`resource-${String(item.id).padStart(3, '0')}`]
-  const title = localEdit?.title ?? item.title
-  const markdown = localEdit?.content ?? item.content
-  const tags = (localEdit?.tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean) ?? [
-    copy.label,
-    item.tag,
-  ])
+  const title = item.title
+  const markdown = item.content
+  const tags = [copy.label, item.tag]
   const source = splitSource(item.source)
 
   const handleCopyMarkdown = async () => {
@@ -177,7 +172,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
             {tags.map((tag) => (
               <span key={tag} className="post-tag">#{tag}</span>
             ))}
-            <span className="post-meta-updated">최종 수정: {localEdit?.updatedAt ? formatDate(localEdit.updatedAt) : source.date}</span>
+            <span className="post-meta-updated">최종 수정: {formatDate(source.date)}</span>
           </div>
 
           <MDEditor.Markdown

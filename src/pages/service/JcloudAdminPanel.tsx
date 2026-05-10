@@ -1,6 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
-import { mockApplications } from '../../dummy/serviceData'
 import {
   instanceTypes,
   statusMeta,
@@ -8,6 +7,7 @@ import {
   type AttachedFile,
   type JcloudApplication,
 } from './serviceData'
+import { servicesApi } from '../../shared/api/services'
 
 const pendingFilters: { id: 'all' | ApplyStatus; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -24,15 +24,21 @@ type AppState = JcloudApplication & {
 export function JcloudAdminPanel() {
   const [filter, setFilter] = useState<'all' | ApplyStatus>('all')
   const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [appStates, setAppStates] = useState<Record<string, AppState>>(() =>
-    Object.fromEntries(
-      mockApplications.map((a) => [
-        a.id,
-        { ...a, adminNoteInput: a.adminNote ?? '', files: a.attachedFiles ?? [] },
-      ]),
-    ),
-  )
+  const [appStates, setAppStates] = useState<Record<string, AppState>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    servicesApi.getInstanceApplications()
+      .then((applications) => {
+        setAppStates(Object.fromEntries(
+          (applications as JcloudApplication[]).map((a) => [
+            a.id,
+            { ...a, adminNoteInput: a.adminNote ?? '', files: a.attachedFiles ?? [] },
+          ]),
+        ))
+      })
+      .catch(() => setAppStates({}))
+  }, [])
 
   const filtered = Object.values(appStates).filter((a) =>
     filter === 'all' ? true : a.status === filter,
@@ -43,12 +49,24 @@ export function JcloudAdminPanel() {
   const update = (id: string, patch: Partial<AppState>) =>
     setAppStates((prev) => ({ ...prev, [id]: { ...prev[id], ...patch } }))
 
-  const handleDecision = (id: string, decision: 'approved' | 'rejected') => {
-    update(id, {
-      status: decision,
-      approvedAt: new Date().toISOString().slice(0, 10),
-      adminNote: appStates[id].adminNoteInput,
-    })
+  const handleDecision = async (id: string, decision: 'approved' | 'rejected') => {
+    try {
+      const updated = await servicesApi.updateInstanceApplication(id, {
+        status: decision,
+        adminNote: appStates[id].adminNoteInput,
+      })
+      update(id, {
+        ...(updated as JcloudApplication),
+        adminNoteInput: updated.adminNote ?? '',
+        files: updated.attachedFiles ?? [],
+      })
+    } catch {
+      update(id, {
+        status: decision,
+        approvedAt: new Date().toISOString().slice(0, 10),
+        adminNote: appStates[id].adminNoteInput,
+      })
+    }
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

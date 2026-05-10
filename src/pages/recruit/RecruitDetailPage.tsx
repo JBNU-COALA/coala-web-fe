@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { recruitItems, type RecruitComment, type RecruitItem } from '../../dummy/recruitData'
+import { recruitsApi, type RecruitComment, type RecruitItem } from '../../shared/api/recruits'
 import { Icon } from '../../shared/ui/Icon'
 
 type RecruitDetailPageProps = {
@@ -34,20 +34,36 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const [comment, setComment] = useState('')
   const [localComments, setLocalComments] = useState<RecruitComment[]>([])
   const [saved, setSaved] = useState(false)
+  const [remoteItem, setRemoteItem] = useState<RecruitItem | null>(null)
 
   const item = useMemo(() => {
     const localRecruitItems = loadLocalRecruitItems()
     return (
       localRecruitItems.find((recruit) => recruit.id === recruitId)
-      ?? recruitItems.find((recruit) => recruit.id === recruitId)
-      ?? recruitItems[0]
+      ?? remoteItem
     )
-  }, [recruitId])
+  }, [recruitId, remoteItem])
 
   useEffect(() => {
     setLocalComments([])
     setSaved(false)
+    recruitsApi.getRecruit(recruitId)
+      .then(setRemoteItem)
+      .catch(() => setRemoteItem(null))
   }, [recruitId])
+
+  if (!item) {
+    return (
+      <section className="coala-content coala-content--recruit">
+        <div className="surface-card recruit-application-empty">
+          <strong>모집 공고를 불러오는 중입니다.</strong>
+          <button type="button" className="recruit-row-button recruit-row-button--primary" onClick={onBack}>
+            목록으로 돌아가기
+          </button>
+        </div>
+      </section>
+    )
+  }
 
   const comments = [...item.comments, ...localComments]
   const totalCurrent = item.roles.reduce((sum, role) => sum + role.current, 0)
@@ -55,22 +71,28 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const participationRate = totalMax > 0 ? (totalCurrent / totalMax) * 100 : 0
   const isOpen = item.status !== 'closed'
 
-  const handleSubmitComment = (event: FormEvent) => {
+  const handleSubmitComment = async (event: FormEvent) => {
     event.preventDefault()
     const trimmedComment = comment.trim()
     if (!trimmedComment) return
-    setLocalComments((current) => [
-      ...current,
-      {
-        id: `local-${Date.now()}`,
-        author: '나',
-        authorInitials: '나',
-        authorTone: 'mint',
-        timeLabel: '방금 전',
-        content: trimmedComment,
-      },
-    ])
-    setComment('')
+    try {
+      const created = await recruitsApi.createComment(item.id, trimmedComment)
+      setLocalComments((current) => [...current, created])
+      setComment('')
+    } catch {
+      setLocalComments((current) => [
+        ...current,
+        {
+          id: `local-${Date.now()}`,
+          author: '나',
+          authorInitials: '나',
+          authorTone: 'mint',
+          timeLabel: '방금 전',
+          content: trimmedComment,
+        },
+      ])
+      setComment('')
+    }
   }
 
   return (
@@ -241,7 +263,10 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
               type="button"
               className={saved ? 'recruit-interest-button recruit-interest-button--active' : 'recruit-interest-button'}
               aria-pressed={saved}
-              onClick={() => setSaved((current) => !current)}
+              onClick={() => {
+                setSaved((current) => !current)
+                recruitsApi.bookmark(item.id).catch(() => {})
+              }}
             >
               {saved ? '관심 프로젝트 저장됨' : '관심 프로젝트로 저장'}
             </button>

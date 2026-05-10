@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { activityMembers } from '../dummy/leaderboardData'
 import { boardsApi } from '../shared/api/boards'
 import { postsApi } from '../shared/api/posts'
+import { usersApi, type ActivityMember } from '../shared/api/users'
 import { useAuth } from '../shared/auth/AuthContext'
 import { Icon, type IconName } from '../shared/ui/Icon'
 import type { AppRoute } from './navigationData'
@@ -26,6 +26,8 @@ type RailSignal = {
   detail?: string
   icon: IconName
 }
+
+type RailMemberSummary = Pick<ActivityMember, 'role' | 'grade' | 'lab' | 'githubHandle'>
 
 const routeMeta: Record<RailRoute, { eyebrow: string; title: string; primaryLabel: string; primaryIcon: IconName }> = {
   community: {
@@ -63,12 +65,37 @@ export function UserActivityRail({
   const { user, isLoggedIn } = useAuth()
   const [myPostCount, setMyPostCount] = useState(0)
   const [myRecentPost, setMyRecentPost] = useState<string | null>(null)
+  const [members, setMembers] = useState<ActivityMember[]>([])
 
-  const me = activityMembers.find((member) => member.isMe) ?? activityMembers[activityMembers.length - 1]
+  const me: RailMemberSummary = members.find((member) => user && member.id === String(user.id))
+    ?? members.find((member) => member.isMe)
+    ?? members[0]
+    ?? {
+    role: '회원',
+    grade: '1학년',
+    lab: '코알라',
+    githubHandle: 'coala',
+  }
   const displayName = user?.name ?? user?.email ?? '게스트'
   const displayRole = user?.department ?? '게스트'
   const initial = displayName.charAt(0)
   const meta = routeMeta[route]
+
+  useEffect(() => {
+    let active = true
+
+    usersApi.getUsers()
+      .then((items) => {
+        if (active) setMembers(items)
+      })
+      .catch(() => {
+        if (active) setMembers([])
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   useEffect(() => {
     if (!user) {

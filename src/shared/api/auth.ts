@@ -17,7 +17,7 @@ export type SignupRequest = {
   grade: number
   githubId: string
   linkedinUrl?: string
-  academicStatus: 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
+  academicStatus: 'PROFESSOR' | 'ASSISTANT' | 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED' | 'GENERAL'
 }
 
 export type UserData = {
@@ -32,9 +32,9 @@ export type UserData = {
   grade: number | null
   githubId: string | null
   linkedinUrl: string | null
-  academicStatus: 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED'
+  academicStatus: 'PROFESSOR' | 'ASSISTANT' | 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED' | 'GENERAL'
   verified: boolean
-  role?: 'USER' | 'ADMIN' | 'ROLE_USER' | 'ROLE_ADMIN' | string
+  role?: 'USER' | 'STAFF' | 'SUPER_ADMIN' | 'ADMIN' | 'ROLE_USER' | 'ROLE_ADMIN' | string
   createdAt: string
   updatedAt: string
 }

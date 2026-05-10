@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
-import { clearAuthSession, getStoredUser, setAuthSession } from './tokenStorage'
+import { clearAuthSession, getRefreshToken, getStoredUser, setAuthSession } from './tokenStorage'
 
 type AuthState = {
   user: UserData | null
@@ -15,6 +15,29 @@ const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserData | null>(getStoredUser)
+
+  useEffect(() => {
+    const refreshToken = getRefreshToken()
+    if (!refreshToken) return
+
+    let active = true
+
+    authApi.refresh(refreshToken)
+      .then((data) => {
+        if (!active) return
+        setAuthSession(data)
+        setUser(data.user)
+      })
+      .catch(() => {
+        if (!active) return
+        clearAuthSession()
+        setUser(null)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
 
   const login = async (email: string, password: string) => {
     const data = await authApi.login({ email, password })

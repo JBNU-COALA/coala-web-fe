@@ -1,12 +1,12 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useMemo, useState, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
-import { memberServiceDetails, memberServices } from '../../dummy/memberServices'
 import { CommunityBanner } from '../community/CommunityBanner'
+import { servicesApi } from '../../shared/api/services'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type ServicesTab = 'coas' | 'official' | 'user'
@@ -25,6 +25,12 @@ export type MemberService = {
   imageUrl: string
   tags: string[]
   status: MemberServiceStatus
+  audience?: string
+  visibility?: string
+  period?: string
+  description?: string
+  features?: string[]
+  stack?: string[]
 }
 
 export type MemberServiceDetail = {
@@ -58,6 +64,16 @@ export function ServicesPage() {
   const [viewMode, setViewMode] = useState<UserServiceViewMode>('card')
   const [currentPage, setCurrentPage] = useState(1)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [memberServices, setMemberServices] = useState<MemberService[]>([])
+  const [serviceError, setServiceError] = useState<string | null>(null)
+  const [addDraft, setAddDraft] = useState({
+    title: '',
+    url: '',
+    githubUrl: '',
+    tags: '',
+    imageUrl: '',
+    summary: '',
+  })
 
   const normalizedQuery = query.trim().toLowerCase()
   const legacyTab = new URLSearchParams(location.search).get('tab')
@@ -78,11 +94,11 @@ export function ServicesPage() {
   const selectedService = activeTab === 'user' && serviceId
     ? memberServices.find((service) => service.id === serviceId)
     : null
-  const selectedServiceDetail = selectedService ? memberServiceDetails[selectedService.id] : null
+  const selectedServiceDetail = selectedService
 
   const serviceTags = useMemo(
     () => Array.from(new Set(memberServices.flatMap((service) => service.tags))),
-    [],
+    [memberServices],
   )
   const visibleTagOptions = serviceTags.slice(0, 5)
 
@@ -108,6 +124,15 @@ export function ServicesPage() {
     setCurrentPage(1)
   }, [normalizedQuery, selectedStatus, selectedTags])
 
+  useEffect(() => {
+    servicesApi.getMemberServices()
+      .then((services) => {
+        setMemberServices(services as MemberService[])
+        setServiceError(null)
+      })
+      .catch(() => setServiceError('서비스 목록을 불러오지 못했습니다.'))
+  }, [])
+
   const toggleSelectedTag = (tag: string) => {
     setSelectedTags((current) =>
       current.includes(tag)
@@ -124,6 +149,25 @@ export function ServicesPage() {
     if (event.key !== 'Enter' && event.key !== ' ') return
     event.preventDefault()
     openServiceDetail(id)
+  }
+
+  const handleCreateService = async (event: FormEvent) => {
+    event.preventDefault()
+    try {
+      const created = await servicesApi.createMemberService({
+        title: addDraft.title.trim(),
+        category: 'productivity',
+        summary: addDraft.summary.trim(),
+        url: addDraft.url.trim(),
+        tags: addDraft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+      })
+      setMemberServices((current) => [created as MemberService, ...current])
+      setShowAddForm(false)
+      setAddDraft({ title: '', url: '', githubUrl: '', tags: '', imageUrl: '', summary: '' })
+      setServiceError(null)
+    } catch {
+      setServiceError('서비스를 추가하지 못했습니다.')
+    }
   }
 
   return (
@@ -343,8 +387,10 @@ export function ServicesPage() {
               </div>
             </div>
 
+            {serviceError ? <p className="auth-error">{serviceError}</p> : null}
+
             {showAddForm ? (
-              <section className="surface-card member-service-form">
+              <form className="surface-card member-service-form" onSubmit={handleCreateService}>
                 <div className="member-service-form-head">
                   <div>
                     <h3>유저 서비스 추가</h3>
@@ -363,33 +409,68 @@ export function ServicesPage() {
                 <div className="member-service-form-grid">
                   <label className="jcloud-field">
                     <span className="jcloud-label">서비스명</span>
-                    <input className="jcloud-input" placeholder="서비스 이름" />
+                    <input
+                      className="jcloud-input"
+                      placeholder="서비스 이름"
+                      value={addDraft.title}
+                      onChange={(event) => setAddDraft({ ...addDraft, title: event.target.value })}
+                      required
+                    />
                   </label>
                   <label className="jcloud-field">
                     <span className="jcloud-label">URL</span>
-                    <input className="jcloud-input" placeholder="https:// 또는 도메인" />
+                    <input
+                      className="jcloud-input"
+                      placeholder="https:// 또는 도메인"
+                      value={addDraft.url}
+                      onChange={(event) => setAddDraft({ ...addDraft, url: event.target.value })}
+                      required
+                    />
                   </label>
                   <label className="jcloud-field">
                     <span className="jcloud-label">GitHub 링크</span>
-                    <input className="jcloud-input" placeholder="https://github.com/..." />
+                    <input
+                      className="jcloud-input"
+                      placeholder="https://github.com/..."
+                      value={addDraft.githubUrl}
+                      onChange={(event) => setAddDraft({ ...addDraft, githubUrl: event.target.value })}
+                    />
                   </label>
                   <label className="jcloud-field">
                     <span className="jcloud-label">태그</span>
-                    <input className="jcloud-input" placeholder="AI, 생산성, 스터디" />
+                    <input
+                      className="jcloud-input"
+                      placeholder="AI, 생산성, 스터디"
+                      value={addDraft.tags}
+                      onChange={(event) => setAddDraft({ ...addDraft, tags: event.target.value })}
+                      required
+                    />
                   </label>
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">이미지</span>
-                    <input className="jcloud-input" placeholder="대표 이미지 URL" />
+                    <input
+                      className="jcloud-input"
+                      placeholder="대표 이미지 URL"
+                      value={addDraft.imageUrl}
+                      onChange={(event) => setAddDraft({ ...addDraft, imageUrl: event.target.value })}
+                    />
                   </label>
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">소개</span>
-                    <textarea className="jcloud-textarea" rows={5} placeholder="서비스가 해결하는 문제와 주요 기능을 적어주세요." />
+                    <textarea
+                      className="jcloud-textarea"
+                      rows={5}
+                      placeholder="서비스가 해결하는 문제와 주요 기능을 적어주세요."
+                      value={addDraft.summary}
+                      onChange={(event) => setAddDraft({ ...addDraft, summary: event.target.value })}
+                      required
+                    />
                   </label>
                 </div>
                 <div className="recruit-write-footer">
-                  <button type="button" className="jcloud-submit-button">추가하기</button>
+                  <button type="submit" className="jcloud-submit-button">추가하기</button>
                 </div>
-              </section>
+              </form>
             ) : null}
 
             <ul className={viewMode === 'card' ? 'member-service-grid' : 'member-service-list'}>

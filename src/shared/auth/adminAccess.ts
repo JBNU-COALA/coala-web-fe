@@ -4,7 +4,7 @@ export function isAdminUser(user: UserData | null) {
   if (!user) return false
 
   const role = user.role?.toUpperCase()
-  if (role === 'ADMIN' || role === 'ROLE_ADMIN') return true
+  if (role === 'SUPER_ADMIN' || role === 'STAFF' || role === 'ADMIN' || role === 'ROLE_ADMIN') return true
 
   const email = user.email.toLowerCase()
   const localPart = email.includes('@') ? email.slice(0, email.indexOf('@')) : email

@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { JcloudAdminPanel } from './JcloudAdminPanel'
 import { JcloudApplyForm } from './JcloudApplyForm'
 import { JcloudApplyList } from './JcloudApplyList'
-import { inquiryItems } from '../../dummy/serviceData'
+import { servicesApi, type ServiceInquiry } from '../../shared/api/services'
 
 type ServiceTab = 'apply' | 'list' | 'inquiry' | 'admin'
 
@@ -85,6 +85,30 @@ export function ServicePage({ embedded = false }: ServicePageProps) {
 
 function InstanceInquiryPanel() {
   const [isWriting, setIsWriting] = useState(false)
+  const [inquiries, setInquiries] = useState<ServiceInquiry[]>([])
+  const [draft, setDraft] = useState({ title: '', content: '' })
+
+  useEffect(() => {
+    servicesApi.getInquiries()
+      .then(setInquiries)
+      .catch(() => setInquiries([]))
+  }, [])
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!draft.title.trim() || !draft.content.trim()) return
+    try {
+      const created = await servicesApi.createInquiry({
+        title: draft.title.trim(),
+        content: draft.content.trim(),
+      })
+      setInquiries((current) => [created, ...current])
+      setDraft({ title: '', content: '' })
+      setIsWriting(false)
+    } catch {
+      // 화면은 입력 상태를 유지해 재시도할 수 있게 둔다.
+    }
+  }
 
   return (
     <section className="jcloud-inquiry-shell">
@@ -103,23 +127,34 @@ function InstanceInquiryPanel() {
       </header>
 
       {isWriting ? (
-        <form className="jcloud-inquiry-form">
+        <form className="jcloud-inquiry-form" onSubmit={handleSubmit}>
           <label className="jcloud-field">
             <span className="jcloud-label">제목</span>
-            <input className="jcloud-input" placeholder="문의 제목을 입력하세요" />
+            <input
+              className="jcloud-input"
+              placeholder="문의 제목을 입력하세요"
+              value={draft.title}
+              onChange={(event) => setDraft({ ...draft, title: event.target.value })}
+            />
           </label>
           <label className="jcloud-field">
             <span className="jcloud-label">내용</span>
-            <textarea className="jcloud-textarea" rows={4} placeholder="문의 내용을 입력하세요" />
+            <textarea
+              className="jcloud-textarea"
+              rows={4}
+              placeholder="문의 내용을 입력하세요"
+              value={draft.content}
+              onChange={(event) => setDraft({ ...draft, content: event.target.value })}
+            />
           </label>
-          <button type="button" className="jcloud-submit-button">
+          <button type="submit" className="jcloud-submit-button">
             문의 등록
           </button>
         </form>
       ) : null}
 
       <ul className="jcloud-inquiry-list">
-        {inquiryItems.map((item) => (
+        {inquiries.map((item) => (
           <li key={item.id} className="jcloud-inquiry-item surface-card">
             <div>
               <span className={`jcloud-status-badge ${item.statusClass}`}>{item.status}</span>

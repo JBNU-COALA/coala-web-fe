@@ -1,17 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
-import {
-  communityPosts,
-  postCategoryFilters,
-  postCategoryMeta,
-  type PostBoardFilterId,
-} from '../../dummy/postsData'
+import { postCategoryFilters, postCategoryMeta, type PostBoardFilterId } from '../../shared/postCategories'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { fallbackCommunityBoardIds, resolveCommunityBoardFilter } from '../../shared/communityBoards'
+import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
 
 type AllPostsPageProps = {
   onOpenPost: (boardId: number, postId: number) => void
@@ -35,30 +30,6 @@ function toAuthorTone(userId: number) {
   return avatarTones[userId % avatarTones.length]
 }
 
-const fallbackCommunityPosts: EnrichedPost[] = communityPosts.map((post, index) => ({
-  postId: index + 1,
-  boardId: fallbackCommunityBoardIds[post.category],
-  boardName: postCategoryMeta[post.category].label,
-  userId: index + 1,
-  authorName: post.author,
-  title: post.title,
-  content: post.excerpt,
-  viewCount: Number(post.views.replace('k', '00').replace('.', '')),
-  commentCount: post.comments,
-  likeCount: post.solved ? 12 : Math.max(3, post.comments * 2),
-  createdAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
-  updatedAt: new Date(Date.now() - index * 3600000 * 8).toISOString(),
-  board: {
-    boardId: fallbackCommunityBoardIds[post.category],
-    boardName: postCategoryMeta[post.category].label,
-    boardType: 'NORMAL',
-    description: post.excerpt,
-    isActive: true,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  },
-}))
-
 export function AllPostsPage({
   onOpenPost,
   onWritePost,
@@ -80,9 +51,9 @@ export function AllPostsPage({
         const combined: EnrichedPost[] = postsArrays.flatMap((posts, i) =>
           posts.map((p) => ({ ...p, board: boards[i] })),
         )
-        setEnrichedPosts(combined.length > 0 ? combined : fallbackCommunityPosts)
+        setEnrichedPosts(combined)
       } catch {
-        setEnrichedPosts(fallbackCommunityPosts)
+        setEnrichedPosts([])
       } finally {
         setIsLoading(false)
       }
@@ -92,10 +63,7 @@ export function AllPostsPage({
 
   const currentBoardLabel = activeBoard === 'all' ? '전체' : postCategoryMeta[activeBoard].label
   const normalizedQuery = query.trim().toLowerCase()
-  const isOperator =
-    Boolean(user?.email?.toLowerCase().includes('admin')) ||
-    Boolean(user?.name?.includes('관리자')) ||
-    Boolean(user?.nickname?.includes('운영'))
+  const isOperator = user?.role === 'STAFF' || user?.role === 'SUPER_ADMIN'
   const canWriteCurrentBoard = activeBoard !== 'notice' || isOperator
 
   const visiblePosts = useMemo(() => {

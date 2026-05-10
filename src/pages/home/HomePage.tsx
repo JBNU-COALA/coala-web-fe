@@ -1,4 +1,5 @@
-import { portalUpdates } from '../../dummy/homeData'
+import { useEffect, useState } from 'react'
+import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { PostCard } from './PostCard'
 import { ResourcesCard } from './ResourcesCard'
 
@@ -8,6 +9,14 @@ type HomePageProps = {
 }
 
 export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
+  const [portalUpdates, setPortalUpdates] = useState<InfoArticle[]>([])
+
+  useEffect(() => {
+    infoApi.getArticles('all')
+      .then((items) => setPortalUpdates(items.slice(0, 3)))
+      .catch(() => setPortalUpdates([]))
+  }, [])
+
   return (
     <section className="coala-content coala-content--portal">
       <section className="portal-hero portal-hero--slider" aria-label="홈 배너">
@@ -37,10 +46,10 @@ export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
         <ul className="portal-update-list">
           {portalUpdates.map((update) => (
             <li key={update.id} className="portal-update-item">
-              <span className="portal-update-category">{update.category}</span>
+              <span className="portal-update-category">{update.tag}</span>
               <div>
                 <p className="portal-update-title">{update.title}</p>
-                <p className="portal-update-meta">{update.meta}</p>
+                <p className="portal-update-meta">조회 {update.viewCount} · 저장 {update.bookmarkCount}</p>
               </div>
             </li>
           ))}

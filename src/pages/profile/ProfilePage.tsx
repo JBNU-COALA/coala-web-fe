@@ -1,13 +1,10 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { communityPosts } from '../../dummy/postsData'
-import { latestInfoUpdates, resourceCards } from '../../dummy/infoData'
-import { recruitItems } from '../../dummy/recruitData'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
+import { usersApi, type ActivityMember, type UserAward } from '../../shared/api/users'
 import { Icon } from '../../shared/ui/Icon'
-import { activityMembers, type UserAward } from '../../dummy/leaderboardData'
 
 type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
 type AuthoredContentKind = 'board' | 'info' | 'recruit'
@@ -35,9 +32,12 @@ const genderLabel = {
 } as const
 
 const academicStatusLabel = {
-  ENROLLED: '재학',
-  ON_LEAVE: '휴학',
-  GRADUATED: '졸업',
+  PROFESSOR: '교수',
+  ASSISTANT: '조교',
+  ENROLLED: '재학생',
+  ON_LEAVE: '휴학생',
+  GRADUATED: '졸업생',
+  GENERAL: '일반',
 } as const
 
 const awardCategoryLabel: Record<UserAward['category'], string> = {
@@ -48,6 +48,28 @@ const awardCategoryLabel: Record<UserAward['category'], string> = {
 }
 
 const PROFILE_PHOTO_MAX_SIZE = 3 * 1024 * 1024
+
+const fallbackProfileMember: ActivityMember = {
+  id: '0',
+  name: '사용자',
+  initials: '사',
+  tone: 'slate',
+  role: '회원',
+  grade: '1학년',
+  lab: '코알라',
+  githubHandle: 'coala',
+  githubUrl: 'https://github.com',
+  focus: '코알라에서 함께 개발하고 있습니다.',
+  recentCommit: '-',
+  sharedRepos: [],
+  logs: [],
+  solvedHandle: '',
+  solvedTier: 'unrated',
+  solvedCount: 0,
+  githubCommits: 0,
+  totalPoints: 0,
+  awards: [],
+}
 
 type ProfilePageProps = {
   profileUserId?: string
@@ -70,53 +92,6 @@ function apiPostToAuthoredContent(post: PostListItem): AuthoredContentItem {
   }
 }
 
-function parseViewCount(value: string) {
-  if (value.includes('k')) return Math.round(Number(value.replace('k', '')) * 1000)
-  return Number(value.replace(/[^0-9]/g, '')) || 0
-}
-
-function createFallbackAuthoredContents(displayName: string): AuthoredContentItem[] {
-  const boardItems = communityPosts.slice(0, 2).map((post) => ({
-    id: `board-${post.id}`,
-    kind: 'board' as const,
-    title: post.title,
-    excerpt: post.excerpt,
-    createdAt: post.publishedAt,
-    viewCount: parseViewCount(post.views),
-  }))
-
-  const infoItems = [
-    ...latestInfoUpdates.slice(0, 1).map((item) => ({
-      id: `info-${item.id}`,
-      kind: 'info' as const,
-      title: item.title,
-      excerpt: item.summary,
-      createdAt: item.timestamp,
-    })),
-    ...resourceCards.slice(0, 1).map((item) => ({
-      id: `resource-${item.id}`,
-      kind: 'info' as const,
-      title: item.title,
-      excerpt: `${item.tag} · ${item.source}`,
-      createdAt: item.meta,
-    })),
-  ]
-
-  const recruitAuthoredItems = recruitItems.slice(0, 2).map((item) => ({
-    id: `recruit-${item.id}`,
-    kind: 'recruit' as const,
-    title: item.title,
-    excerpt: item.shortDesc,
-    createdAt: item.createdAt,
-    viewCount: item.views,
-  }))
-
-  return [...boardItems, ...infoItems, ...recruitAuthoredItems].map((item, index) => ({
-    ...item,
-    excerpt: index === 0 ? `${displayName}님이 작성한 예시 콘텐츠입니다. ${item.excerpt}` : item.excerpt,
-  }))
-}
-
 function formatDate(dateStr: string) {
   const parsed = new Date(dateStr)
   if (Number.isNaN(parsed.getTime())) return dateStr
@@ -129,11 +104,18 @@ function formatAwardDate(dateStr: string) {
   return parsed.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
 }
 
-function findPublicMember(profileUserId?: string) {
-  const numericId = Number(profileUserId)
-  const indexedMember = Number.isFinite(numericId) ? activityMembers[numericId - 1] : null
+function memberLogsToAuthoredContents(member: ActivityMember): AuthoredContentItem[] {
+  return member.logs.map((log) => ({
+    id: `log-${member.id}-${log.id}`,
+    kind: log.type === 'note' ? 'info' : log.type === 'release' ? 'recruit' : 'board',
+    title: log.title,
+    excerpt: `${log.repository} · ${log.description}`,
+    createdAt: log.timeLabel,
+  }))
+}
 
-  return indexedMember ?? activityMembers.find((member) => member.isMe) ?? activityMembers[0]
+function firstNonBlank(...values: Array<string | null | undefined>) {
+  return values.find((value) => value !== null && value !== undefined && value.trim() !== '') ?? ''
 }
 
 function normalizeGithubHandle(value?: string | null) {
@@ -155,24 +137,31 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [publicMembers, setPublicMembers] = useState<ActivityMember[]>([])
+  const [profileDetail, setProfileDetail] = useState<ActivityMember | null>(null)
 
   const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '1')
-  const isOwnProfile = Boolean(user && String(user.id) === effectiveProfileUserId)
-  const publicMember = findPublicMember(effectiveProfileUserId)
-  const profileMember = isOwnProfile
-    ? activityMembers.find((member) => member.isMe) ?? publicMember
-    : publicMember
+  const matchedPublicMember = publicMembers.find((member) => member.id === effectiveProfileUserId)
+  const publicMember =
+    profileDetail ??
+    matchedPublicMember ??
+    (profileUserId ? null : publicMembers[0]) ??
+    fallbackProfileMember
+  const profileMember = publicMember
+  const isOwnProfile = Boolean(profileMember.isMe) || Boolean(user && String(user.id) === effectiveProfileUserId)
   const canEdit = isOwnProfile
 
-  const displayName = isOwnProfile ? user?.name ?? user?.email ?? '사용자' : profileMember.name
+  const displayName = isOwnProfile ? user?.name ?? profileMember.name ?? user?.email ?? '사용자' : profileMember.name
   const displayRole = isOwnProfile && user?.academicStatus
     ? `${academicStatusLabel[user.academicStatus]} · ${user.grade ?? '-'}학년`
     : `${profileMember.grade} · ${profileMember.role}`
   const initial = displayName.charAt(0)
   const joinedAt = isOwnProfile && user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
-    : ''
-  const profileGithub = isOwnProfile ? user?.githubId ?? profileMember.githubHandle : profileMember.githubHandle
+    : profileMember.recentCommit.replace(' 가입', '')
+  const profileGithub = isOwnProfile
+    ? firstNonBlank(user?.githubId, profileMember.githubHandle)
+    : firstNonBlank(profileMember.githubHandle)
   const profileGithubHandle = normalizeGithubHandle(profileGithub)
   const profileGithubLabel = profileGithubHandle ? `@${profileGithubHandle}` : '-'
   const profileGithubUrl = getGithubProfileUrl(profileGithub)
@@ -186,13 +175,51 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   }, [profilePhotoStorageKey])
 
   useEffect(() => {
+    let active = true
+
+    usersApi.getUsers()
+      .then((members) => {
+        if (active) setPublicMembers(members)
+      })
+      .catch(() => {
+        if (active) setPublicMembers([])
+      })
+
+    return () => {
+      active = false
+    }
+  }, [])
+
+  useEffect(() => {
+    const numericProfileUserId = Number(effectiveProfileUserId)
+    if (!Number.isSafeInteger(numericProfileUserId) || numericProfileUserId <= 0) {
+      setProfileDetail(null)
+      return
+    }
+
+    let active = true
+
+    usersApi.getUser(numericProfileUserId)
+      .then((member) => {
+        if (active) setProfileDetail(member)
+      })
+      .catch(() => {
+        if (active) setProfileDetail(null)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [effectiveProfileUserId])
+
+  useEffect(() => {
     setEditing(false)
     setBio(canEdit ? '코알라에서 함께 개발하고 있습니다.' : profileMember.focus)
   }, [canEdit, effectiveProfileUserId, profileMember.focus])
 
   useEffect(() => {
     if (!isOwnProfile || !user) {
-      setAuthoredContents(createFallbackAuthoredContents(displayName))
+      setAuthoredContents(memberLogsToAuthoredContents(profileMember))
       return
     }
 
@@ -208,15 +235,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         setAuthoredContents(
           apiContents.length > 0
             ? apiContents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            : createFallbackAuthoredContents(displayName),
+            : memberLogsToAuthoredContents(profileMember),
         )
       } catch {
-        setAuthoredContents(createFallbackAuthoredContents(displayName))
+        setAuthoredContents(memberLogsToAuthoredContents(profileMember))
       }
     }
 
     fetchAuthoredContents()
-  }, [displayName, isOwnProfile, user])
+  }, [isOwnProfile, profileMember, user])
 
   const tabs: { id: ProfileTab; label: string }[] = [
     { id: 'overview', label: '개요' },

@@ -1,12 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
-import { mockApplications } from '../../dummy/serviceData'
 import {
   instanceTypes,
   statusMeta,
   type ApplyStatus,
   type JcloudApplication,
 } from './serviceData'
+import { servicesApi } from '../../shared/api/services'
 
 const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -18,10 +18,17 @@ const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
 export function JcloudApplyList() {
   const [filter, setFilter] = useState<'all' | ApplyStatus>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [applications, setApplications] = useState<JcloudApplication[]>([])
+
+  useEffect(() => {
+    servicesApi.getInstanceApplications()
+      .then((items) => setApplications(items as JcloudApplication[]))
+      .catch(() => setApplications([]))
+  }, [])
 
   const items = filter === 'all'
-    ? mockApplications
-    : mockApplications.filter((a) => a.status === filter)
+    ? applications
+    : applications.filter((a) => a.status === filter)
 
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id)
 

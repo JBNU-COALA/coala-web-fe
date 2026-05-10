@@ -8,9 +8,13 @@ export type PostListItem = {
   authorName?: string
   title: string
   content: string
+  status?: 'ACTIVE' | 'HIDDEN' | 'DELETED' | 'ADMIN_DELETED' | 'BLOCKED' | 'PENDING'
+  locked?: boolean
+  notice?: boolean
   viewCount: number
   commentCount?: number
   likeCount?: number
+  thumbnailAttachmentId?: number | null
   createdAt: string
   updatedAt: string
 }
@@ -20,6 +24,8 @@ export type PostDetail = PostListItem
 export type CreatePostRequest = {
   title: string
   content: string
+  attachmentIds?: number[]
+  thumbnailAttachmentId?: number | null
 }
 
 export type CreatePostResponse = {
@@ -34,6 +40,7 @@ export type CommentItem = {
   userId?: number
   authorName?: string
   content: string
+  status?: 'ACTIVE' | 'HIDDEN' | 'DELETED' | 'ADMIN_DELETED' | 'BLOCKED'
   createdAt: string
   updatedAt?: string
   replies?: CommentItem[]

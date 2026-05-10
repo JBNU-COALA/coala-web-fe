@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react'
-import { resourceCards, type InfoFilterId } from '../../dummy/infoData'
+import { useEffect, useMemo, useState } from 'react'
+import { infoApi, type InfoArticle, type InfoFilterId } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
@@ -44,6 +44,7 @@ const markdownToSummary = (markdown: string) => (
 export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
   const [query, setQuery] = useState('')
+  const [resources, setResources] = useState<InfoArticle[]>([])
   const [savedResourceIds, setSavedResourceIds] = useState<Set<number>>(() => new Set())
   const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
 
@@ -51,11 +52,17 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const activeFilterLabel =
     infoTabFilters.find((filter) => filter.id === activeFilter)?.label ?? '전체'
 
+  useEffect(() => {
+    infoApi.getArticles(activeFilter, query)
+      .then(setResources)
+      .catch(() => setResources([]))
+  }, [activeFilter, query])
+
   const visibleResources = useMemo(() => {
     const filteredByType =
       activeFilter === 'all'
-        ? resourceCards
-        : resourceCards.filter((card) => card.filter === activeFilter)
+        ? resources
+        : resources.filter((card) => card.filter === activeFilter)
 
     if (!normalizedQuery) {
       return filteredByType
@@ -65,7 +72,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
       const searchable = `${card.title} ${card.meta} ${card.source} ${card.tag}`.toLowerCase()
       return searchable.includes(normalizedQuery)
     })
-  }, [activeFilter, normalizedQuery])
+  }, [activeFilter, normalizedQuery, resources])
 
   const toggleSavedResource = (resourceId: number) => {
     setSavedResourceIds((current) => {
@@ -213,7 +220,10 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                           }
                           aria-label="정보 저장"
                           aria-pressed={savedResourceIds.has(card.id)}
-                          onClick={() => toggleSavedResource(card.id)}
+                          onClick={() => {
+                            toggleSavedResource(card.id)
+                            infoApi.bookmarkArticle(card.id).catch(() => {})
+                          }}
                         >
                           <Icon name="book" size={14} />
                         </button>

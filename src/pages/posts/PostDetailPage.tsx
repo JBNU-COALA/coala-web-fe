@@ -1,13 +1,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import DOMPurify from 'dompurify'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { postsApi, type CommentItem, type PostDetail } from '../../shared/api/posts'
-import {
-  communityPosts,
-  postCategoryMeta,
-  postDetailContentById,
-  type PostDetailContent,
-} from '../../dummy/postsData'
+import { moderationApi, type ReportReasonType } from '../../shared/api/moderation'
+import { postCategoryMeta } from '../../shared/postCategories'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
 import type { UserData } from '../../shared/api/auth'
@@ -20,17 +17,6 @@ type PostDetailPageProps = {
   onWrite: () => void
   onEdit: () => void
 }
-
-type LocalPostEdit = {
-  title: string
-  content: string
-  tagsInput: string
-  boardId: number | null
-  writerType: string
-  updatedAt: string
-}
-
-const LOCAL_POST_EDIT_STORAGE_KEY = 'coala-local-post-edits'
 
 function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
   const parts = compositeId.split('-')
@@ -53,100 +39,15 @@ function formatDate(dateStr: string) {
   }
 }
 
-function toFallbackKey(realPostId: number) {
-  return `post-${String(realPostId).padStart(3, '0')}`
-}
-
-function buildFallbackPost(realPostId: number): PostDetail | null {
-  const fallbackKey = toFallbackKey(realPostId)
-  const item = communityPosts.find((post) => post.id === fallbackKey)
-  if (!item) return null
-
-  const detail = postDetailContentById[fallbackKey]
-  const content = detail
-    ? detail.content
-        .map((block) => {
-          if (block.type === 'heading') return `<h2>${block.text}</h2>`
-          if (block.type === 'quote') return `<blockquote>${block.text}</blockquote>`
-          if (block.type === 'code') return `<pre><code>${block.code}</code></pre>`
-          if (block.type === 'list') {
-            return `<ul>${block.items.map((listItem) => `<li>${listItem}</li>`).join('')}</ul>`
-          }
-          return `<p>${block.text}</p>`
-        })
-        .join('')
-    : `<p>${item.excerpt}</p>`
-
-  return {
-    postId: realPostId,
-    boardId: realPostId,
-    boardName: postCategoryMeta[item.category].label,
-    userId: realPostId,
-    authorName: item.author,
-    title: item.title,
-    content,
-    viewCount: Number(item.views.replace('k', '00').replace('.', '')),
-    commentCount: item.comments,
-    likeCount: item.solved ? 12 : Math.max(3, item.comments * 2),
-    createdAt: new Date(Date.now() - realPostId * 3600000 * 8).toISOString(),
-    updatedAt: new Date().toISOString(),
-  }
-}
-
-function getFallbackDetail(realPostId: number): PostDetailContent | undefined {
-  return postDetailContentById[toFallbackKey(realPostId)]
-}
-
-function loadLocalPostEdits(): Record<string, LocalPostEdit> {
-  if (typeof window === 'undefined') return {}
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_POST_EDIT_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
-  } catch {
-    return {}
-  }
-}
-
 function sanitizePostContent(content: string) {
-  const template = document.createElement('template')
-  template.innerHTML = content
-
-  template.content.querySelectorAll('script, style, iframe, object, embed').forEach((node) => {
-    node.remove()
+  return DOMPurify.sanitize(content, {
+    USE_PROFILES: { html: true },
   })
-
-  template.content.querySelectorAll('*').forEach((node) => {
-    Array.from(node.attributes).forEach((attribute) => {
-      const name = attribute.name.toLowerCase()
-      const value = attribute.value.trim().toLowerCase()
-      if (name.startsWith('on') || (name === 'href' && value.startsWith('javascript:'))) {
-        node.removeAttribute(attribute.name)
-      }
-    })
-  })
-
-  return template.innerHTML
 }
 
 function isHtmlPostContent(content: string) {
   return /<\/?(p|h[1-6]|ul|ol|li|blockquote|pre|div|table|section|article)\b/i.test(content)
 }
-
-const fallbackComments: CommentItem[] = [
-  {
-    commentId: 1,
-    parentCommentId: null,
-    userId: 2,
-    authorName: '김예린',
-    content: '댓글 예시입니다.',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    replies: [],
-  },
-]
 
 function getCurrentUserName(user: UserData | null) {
   return user?.nickname || user?.name || user?.email || '나'
@@ -190,9 +91,14 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const [comments, setComments] = useState<CommentItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [postActionError, setPostActionError] = useState<string | null>(null)
   const [newComment, setNewComment] = useState('')
   const [activeReplyId, setActiveReplyId] = useState<number | null>(null)
   const [replyInputs, setReplyInputs] = useState<Record<number, string>>({})
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null)
+  const [commentEditDrafts, setCommentEditDrafts] = useState<Record<number, string>>({})
+  const [commentActionError, setCommentActionError] = useState<string | null>(null)
+  const [reportMessage, setReportMessage] = useState<string | null>(null)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [submittingReplyId, setSubmittingReplyId] = useState<number | null>(null)
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
@@ -210,6 +116,9 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     const { boardId, postId: realPostId } = parsed
     setIsLoading(true)
     setError(null)
+    setPostActionError(null)
+    setCommentActionError(null)
+    setReportMessage(null)
 
     Promise.all([
       postsApi.getPostDetail(boardId, realPostId),
@@ -217,28 +126,13 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     ])
       .then(([postData, commentData]) => {
         setPost(postData)
-        setComments(
-          commentData.length > 0
-            ? commentData.map((comment) => normalizeComment(comment, null))
-            : fallbackComments,
-        )
+        setComments(commentData.map((comment) => normalizeComment(comment, null)))
       })
       .catch(() => {
-        const fallbackPost = buildFallbackPost(realPostId)
-        if (fallbackPost) {
-          setPost(fallbackPost)
-          setComments(fallbackComments)
-          return
-        }
         setError('게시글을 찾을 수 없습니다.')
       })
       .finally(() => setIsLoading(false))
   }, [parsed])
-
-  const fallbackDetail = useMemo(
-    () => (parsed ? getFallbackDetail(parsed.postId) : undefined),
-    [parsed],
-  )
 
   const handleCopyShareLink = async () => {
     try {
@@ -254,25 +148,13 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     e.preventDefault()
     if (!newComment.trim() || !parsed) return
     setIsSubmittingComment(true)
+    setCommentActionError(null)
     try {
       const created = await postsApi.createComment(parsed.postId, newComment.trim())
       setComments((prev) => [...prev, normalizeComment(created, user)])
       setNewComment('')
     } catch {
-      setComments((prev) => [
-        ...prev,
-        {
-          commentId: Date.now(),
-          parentCommentId: null,
-          userId: user?.id ?? 0,
-          authorName: getCurrentUserName(user),
-          content: newComment.trim(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          replies: [],
-        },
-      ])
-      setNewComment('')
+      setCommentActionError('댓글 작성 권한이 없거나 등록에 실패했습니다.')
     } finally {
       setIsSubmittingComment(false)
     }
@@ -285,24 +167,13 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     if (!content) return
 
     setSubmittingReplyId(parentCommentId)
+    setCommentActionError(null)
     try {
       const created = await postsApi.createReply(parsed.postId, parentCommentId, content)
       setComments((prev) => appendReply(prev, parentCommentId, normalizeComment(created, user, parentCommentId)))
       setStatusAfterReply(parentCommentId)
     } catch {
-      setComments((prev) =>
-        appendReply(prev, parentCommentId, {
-          commentId: Date.now(),
-          parentCommentId,
-          userId: user?.id ?? 0,
-          authorName: getCurrentUserName(user),
-          content,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          replies: [],
-        }),
-      )
-      setStatusAfterReply(parentCommentId)
+      setCommentActionError('답글 작성 권한이 없거나 등록에 실패했습니다.')
     } finally {
       setSubmittingReplyId(null)
     }
@@ -311,6 +182,92 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const setStatusAfterReply = (parentCommentId: number) => {
     setReplyInputs((prev) => ({ ...prev, [parentCommentId]: '' }))
     setActiveReplyId(null)
+  }
+
+  const updateCommentInTree = (
+    items: CommentItem[],
+    commentId: number,
+    patch: Partial<CommentItem>,
+  ): CommentItem[] => items.map((item) => (
+    item.commentId === commentId
+      ? { ...item, ...patch }
+      : { ...item, replies: item.replies ? updateCommentInTree(item.replies, commentId, patch) : item.replies }
+  ))
+
+  const removeCommentFromTree = (items: CommentItem[], commentId: number): CommentItem[] => items
+    .filter((item) => item.commentId !== commentId)
+    .map((item) => ({
+      ...item,
+      replies: item.replies ? removeCommentFromTree(item.replies, commentId) : item.replies,
+    }))
+
+  const startEditComment = (comment: CommentItem) => {
+    setEditingCommentId(comment.commentId)
+    setCommentEditDrafts((current) => ({ ...current, [comment.commentId]: comment.content }))
+    setCommentActionError(null)
+  }
+
+  const handleUpdateComment = async (commentId: number) => {
+    if (!parsed) return
+    const content = commentEditDrafts[commentId]?.trim()
+    if (!content) return
+    setCommentActionError(null)
+    try {
+      const updated = await postsApi.updateComment(parsed.postId, commentId, content)
+      setComments((prev) => updateCommentInTree(prev, commentId, {
+        content: updated.content,
+        updatedAt: updated.updatedAt,
+      }))
+      setEditingCommentId(null)
+    } catch {
+      setCommentActionError('댓글 수정 권한이 없거나 저장에 실패했습니다.')
+    }
+  }
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!parsed) return
+    setCommentActionError(null)
+    try {
+      await postsApi.deleteComment(parsed.postId, commentId)
+      setComments((prev) => removeCommentFromTree(prev, commentId))
+      setEditingCommentId((current) => (current === commentId ? null : current))
+    } catch {
+      setCommentActionError('댓글 삭제 권한이 없거나 삭제에 실패했습니다.')
+    }
+  }
+
+  const handleDeletePost = async () => {
+    if (!parsed || !post) return
+    const confirmed = window.confirm('게시글을 삭제할까요? 댓글과 첨부 자료도 함께 삭제됩니다.')
+    if (!confirmed) return
+
+    setPostActionError(null)
+    try {
+      await postsApi.deletePost(parsed.postId)
+      onBack()
+    } catch {
+      setPostActionError('게시글 삭제 권한이 없거나 삭제에 실패했습니다.')
+    }
+  }
+
+  const handleReport = async (targetType: 'POST' | 'COMMENT', targetId: number) => {
+    const reasonDetail = window.prompt('신고 사유를 입력해주세요.')
+    if (reasonDetail === null) return
+
+    const normalized = reasonDetail.trim()
+    const reasonType: ReportReasonType = normalized ? 'OTHER' : 'SPAM'
+    setReportMessage(null)
+    try {
+      await moderationApi.report({
+        targetType,
+        targetId,
+        reasonType,
+        reasonDetail: normalized || undefined,
+      })
+      setReportMessage('신고가 접수되었습니다.')
+    } catch {
+      setReportMessage('이미 신고했거나 신고 접수에 실패했습니다.')
+    }
   }
 
   if (isLoading) {
@@ -344,15 +301,8 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     boardType: 'NORMAL',
   }) ?? 'free'
   const category = postCategoryMeta[categoryKey]
-  const localEdit = loadLocalPostEdits()[postId]
-  const visiblePost = localEdit
-    ? {
-        ...post,
-        title: localEdit.title,
-        content: localEdit.content,
-        updatedAt: localEdit.updatedAt,
-      }
-    : post
+  const visiblePost = post
+  const canManagePost = Boolean(user && user.id === post.userId && !post.locked && post.status === 'ACTIVE')
   const safeContent = sanitizePostContent(visiblePost.content)
   const isHtmlContent = isHtmlPostContent(visiblePost.content)
   const sourceMarkdown = isHtmlContent
@@ -363,6 +313,109 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(sourceMarkdown) ? 'copied' : 'error')
     setTimeout(() => setMarkdownCopied('idle'), 2000)
+  }
+
+  const renderComment = (comment: CommentItem, isReply = false) => {
+    const canManageComment = Boolean(user && comment.userId === user.id && comment.status !== 'DELETED' && comment.status !== 'ADMIN_DELETED')
+    const isEditing = editingCommentId === comment.commentId
+    const replyValue = replyInputs[comment.commentId] ?? ''
+
+    return (
+      <div
+        key={comment.commentId}
+        className={isReply ? 'post-comment-item post-comment-item--reply' : 'post-comment-thread'}
+        style={isReply ? { marginLeft: 24 } : undefined}
+      >
+        <div className={isReply ? undefined : 'post-comment-item'}>
+          <strong>{comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}</strong>
+          {isEditing ? (
+            <div className="post-comment-form">
+              <input
+                type="text"
+                className="auth-input"
+                value={commentEditDrafts[comment.commentId] ?? comment.content}
+                onChange={(event) => setCommentEditDrafts((current) => ({
+                  ...current,
+                  [comment.commentId]: event.target.value,
+                }))}
+              />
+              <button
+                type="button"
+                className="write-post-button"
+                disabled={!commentEditDrafts[comment.commentId]?.trim()}
+                onClick={() => handleUpdateComment(comment.commentId)}
+              >
+                저장
+              </button>
+              <button type="button" className="ghost-button" onClick={() => setEditingCommentId(null)}>
+                취소
+              </button>
+            </div>
+          ) : (
+            <p>{comment.content}</p>
+          )}
+          <span>{formatDate(comment.updatedAt ?? comment.createdAt)}</span>
+          {canManageComment && !isEditing ? (
+            <div className="post-header-actions">
+              <button type="button" className="ghost-button" onClick={() => startEditComment(comment)}>
+                수정
+              </button>
+              <button type="button" className="ghost-button" onClick={() => handleDeleteComment(comment.commentId)}>
+                삭제
+              </button>
+            </div>
+          ) : null}
+          {isLoggedIn && !canManageComment && comment.status === 'ACTIVE' ? (
+            <div className="post-header-actions">
+              <button type="button" className="ghost-button" onClick={() => handleReport('COMMENT', comment.commentId)}>
+                신고
+              </button>
+            </div>
+          ) : null}
+          {isLoggedIn && !isReply && !isEditing ? (
+            <button
+              type="button"
+              className="post-comment-reply-toggle"
+              aria-expanded={activeReplyId === comment.commentId}
+              onClick={() => setActiveReplyId((current) => (current === comment.commentId ? null : comment.commentId))}
+            >
+              답글
+            </button>
+          ) : null}
+        </div>
+
+        {(comment.replies ?? []).length > 0 ? (
+          <div className="post-comment-replies">
+            {(comment.replies ?? []).map((reply) => renderComment(reply, true))}
+          </div>
+        ) : null}
+
+        {isLoggedIn && !isReply && activeReplyId === comment.commentId ? (
+          <form
+            onSubmit={(event) => handleSubmitReply(comment.commentId, event)}
+            className="post-comment-form post-comment-form--reply"
+          >
+            <input
+              type="text"
+              className="auth-input"
+              placeholder="답글을 입력하세요."
+              value={replyValue}
+              onChange={(event) => setReplyInputs((current) => ({
+                ...current,
+                [comment.commentId]: event.target.value,
+              }))}
+            />
+            <button
+              type="submit"
+              className="write-post-button"
+              disabled={submittingReplyId === comment.commentId || !replyValue.trim()}
+            >
+              답글 등록
+            </button>
+          </form>
+        ) : null}
+      </div>
+    )
   }
 
   return (
@@ -379,10 +432,24 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
               <Icon name="edit" size={15} />
               <span>글쓰기</span>
             </button>
-            <button type="button" className="ghost-button" onClick={onEdit}>
-              <Icon name="edit" size={15} />
-              <span>수정</span>
-            </button>
+            {canManagePost ? (
+              <>
+                <button type="button" className="ghost-button" onClick={onEdit}>
+                  <Icon name="edit" size={15} />
+                  <span>수정</span>
+                </button>
+                <button type="button" className="ghost-button" onClick={handleDeletePost}>
+                  <Icon name="file" size={15} />
+                  <span>삭제</span>
+                </button>
+              </>
+            ) : null}
+            {isLoggedIn && !canManagePost ? (
+              <button type="button" className="ghost-button" onClick={() => handleReport('POST', visiblePost.postId)}>
+                <Icon name="bell" size={15} />
+                <span>신고</span>
+              </button>
+            ) : null}
             <button
               type="button"
               className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
@@ -401,13 +468,15 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
             </button>
           </div>
         </header>
+        {postActionError ? <p className="auth-error">{postActionError}</p> : null}
+        {reportMessage ? <p className="auth-error">{reportMessage}</p> : null}
 
-        <div className="post-cover" style={{ background: fallbackDetail?.coverGradient }}>
+        <div className="post-cover">
           <div className="post-cover-text">
             <span className={`board-context-pill board-context-pill--${category.tone} post-cover-pill`}>
               {category.label}
             </span>
-            <p className="post-cover-subtitle">{fallbackDetail?.subtitle ?? '커뮤니티 게시글'}</p>
+            <p className="post-cover-subtitle">{category.label} 게시글</p>
             <h1 className="post-cover-title">{visiblePost.title}</h1>
           </div>
 
@@ -432,7 +501,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
 
         <div className="post-body">
           <div className="post-tags">
-            {(fallbackDetail?.tags ?? ['커뮤니티']).map((tag) => (
+            {[category.label].map((tag) => (
               <span key={tag} className="post-tag">#{tag}</span>
             ))}
             <span className="post-meta-updated">최종 수정: {formatDate(visiblePost.updatedAt)}</span>
@@ -453,64 +522,9 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
 
           <section className="post-comments">
             <h3>댓글 {totalCommentCount}개</h3>
+            {commentActionError ? <p className="auth-error">{commentActionError}</p> : null}
 
-            {comments.map((comment) => (
-              <div key={comment.commentId} className="post-comment-thread">
-                <div className="post-comment-item">
-                  <strong>{comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}</strong>
-                  <p>{comment.content}</p>
-                  <span>{formatDate(comment.createdAt)}</span>
-                  {isLoggedIn ? (
-                    <button
-                      type="button"
-                      className="post-comment-reply-toggle"
-                      aria-expanded={activeReplyId === comment.commentId}
-                      onClick={() =>
-                        setActiveReplyId((current) => (current === comment.commentId ? null : comment.commentId))
-                      }
-                    >
-                      답글
-                    </button>
-                  ) : null}
-                </div>
-
-                {(comment.replies ?? []).length > 0 ? (
-                  <div className="post-comment-replies">
-                    {(comment.replies ?? []).map((reply) => (
-                      <div key={reply.commentId} className="post-comment-item post-comment-item--reply">
-                        <strong>{reply.authorName ?? (reply.userId ? `사용자 ${reply.userId}` : '익명')}</strong>
-                        <p>{reply.content}</p>
-                        <span>{formatDate(reply.createdAt)}</span>
-                      </div>
-                    ))}
-                  </div>
-                ) : null}
-
-                {isLoggedIn && activeReplyId === comment.commentId ? (
-                  <form
-                    onSubmit={(event) => handleSubmitReply(comment.commentId, event)}
-                    className="post-comment-form post-comment-form--reply"
-                  >
-                    <input
-                      type="text"
-                      className="auth-input"
-                      placeholder="답글을 입력하세요."
-                      value={replyInputs[comment.commentId] ?? ''}
-                      onChange={(event) =>
-                        setReplyInputs((prev) => ({ ...prev, [comment.commentId]: event.target.value }))
-                      }
-                    />
-                    <button
-                      type="submit"
-                      className="write-post-button"
-                      disabled={submittingReplyId === comment.commentId || !(replyInputs[comment.commentId] ?? '').trim()}
-                    >
-                      답글 등록
-                    </button>
-                  </form>
-                ) : null}
-              </div>
-            ))}
+            {comments.map((comment) => renderComment(comment))}
 
             {isLoggedIn ? (
               <form onSubmit={handleSubmitComment} className="post-comment-form">

@@ -1,11 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useMemo, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-md-editor/markdown-editor.css'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
-import { recruitItems, type RecruitItem } from '../../dummy/recruitData'
+import { recruitsApi, type RecruitItem } from '../../shared/api/recruits'
 import { copyMarkdown, downloadMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
@@ -80,19 +80,24 @@ const createDefaultApplicationDraft = (item: RecruitItem): RecruitApplicationDra
 
 export function RecruitApplyPage() {
   const navigate = useNavigate()
+  const editorRootRef = useRef<HTMLDivElement | null>(null)
   const [searchParams] = useSearchParams()
   const recruitId = searchParams.get('id')
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
-  const allRecruitItems = useMemo(() => [...loadLocalRecruitItems(), ...recruitItems], [])
+  const [remoteItem, setRemoteItem] = useState<RecruitItem | null>(null)
+  const allRecruitItems = useMemo(() => [...loadLocalRecruitItems(), ...(remoteItem ? [remoteItem] : [])], [remoteItem])
   const item = allRecruitItems.find((recruit) => recruit.id === recruitId) ?? null
   const [draft, setDraft] = useState<RecruitApplicationDraft>(() => (
     item ? createDefaultApplicationDraft(item) : { role: '', body: '' }
   ))
   const imageUploadCommand = useMemo(
-    () => createMarkdownImageCommand({ onError: setImageError }),
+    () => createMarkdownImageCommand({
+      onError: setImageError,
+      getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
+    }),
     [],
   )
   const applicationCommands = useMemo(
@@ -103,6 +108,12 @@ export function RecruitApplyPage() {
     ],
     [imageUploadCommand],
   )
+
+  useEffect(() => {
+    if (recruitId) {
+      recruitsApi.getRecruit(recruitId).then(setRemoteItem).catch(() => setRemoteItem(null))
+    }
+  }, [recruitId])
 
   useEffect(() => {
     if (!item) return
@@ -169,7 +180,7 @@ export function RecruitApplyPage() {
     }
   }
 
-  const handleSubmit = (event: FormEvent) => {
+  const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!item) return
 
@@ -179,16 +190,21 @@ export function RecruitApplyPage() {
       return
     }
 
-    const applications = loadStoredApplications()
-    applications[item.id] = {
-      recruitId: item.id,
-      role: draft.role.trim(),
-      body: draft.body,
-      submittedAt: new Date().toISOString(),
+    try {
+      await recruitsApi.apply(item.id, { role: draft.role.trim(), body: draft.body })
+      const applications = loadStoredApplications()
+      applications[item.id] = {
+        recruitId: item.id,
+        role: draft.role.trim(),
+        body: draft.body,
+        submittedAt: new Date().toISOString(),
+      }
+      window.localStorage.setItem(LOCAL_APPLICATION_STORAGE_KEY, JSON.stringify(applications))
+      setSubmitted(true)
+      setError(null)
+    } catch {
+      setError('지원서를 제출하지 못했습니다. 로그인 상태를 확인해주세요.')
     }
-    window.localStorage.setItem(LOCAL_APPLICATION_STORAGE_KEY, JSON.stringify(applications))
-    setSubmitted(true)
-    setError(null)
   }
 
   if (!item) {
@@ -255,7 +271,7 @@ export function RecruitApplyPage() {
 
         <label className="jcloud-field recruit-application-editor-field">
           <span className="jcloud-label">지원 내용</span>
-          <div className="recruit-application-editor" data-color-mode="light">
+          <div ref={editorRootRef} className="recruit-application-editor" data-color-mode="light">
             <MDEditor
               value={draft.body}
               onChange={(value) => setDraft({ ...draft, body: value ?? '' })}

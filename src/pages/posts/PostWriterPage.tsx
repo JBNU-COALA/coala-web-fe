@@ -11,7 +11,9 @@ import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighli
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
+import { attachmentsApi } from '../../shared/api/attachments'
 import { postsApi } from '../../shared/api/posts'
+import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
 import { copyMarkdown } from '../../shared/markdown'
 import {
@@ -27,9 +29,10 @@ import {
   fallbackRecruitBoardId,
   isCommunityBoard,
   isInfoBoard,
+  resolveCommunityBoardFilter,
+  resolveInfoBoardFilter,
 } from '../../shared/communityBoards'
-import { resourceCards } from '../../dummy/infoData'
-import { communityPosts, postCategoryMeta, postDetailContentById, type PostDetailContent } from '../../dummy/postsData'
+import { infoApi, type InfoFilterId } from '../../shared/api/info'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 12000
@@ -41,6 +44,7 @@ type PostWriterPageProps = {
 }
 
 const nowIso = new Date().toISOString()
+const noticeWriterRoles = new Set(['STAFF', 'SUPER_ADMIN'])
 
 const fallbackBoardsByType: Record<NonNullable<PostWriterPageProps['writerType']>, BoardData[]> = {
   community: [
@@ -131,17 +135,6 @@ const markdownExtraCommands: ICommand[] = [
   commands.fullscreen,
 ]
 
-const LOCAL_POST_EDIT_STORAGE_KEY = 'coala-local-post-edits'
-
-type LocalPostEdit = {
-  title: string
-  content: string
-  tagsInput: string
-  boardId: number | null
-  writerType: NonNullable<PostWriterPageProps['writerType']>
-  updatedAt: string
-}
-
 function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
   const parts = compositeId.split('-')
   if (parts.length < 2) return null
@@ -151,38 +144,15 @@ function parseCompositeId(compositeId: string): { boardId: number; postId: numbe
   return { boardId, postId }
 }
 
-function markdownFromDetail(detail?: PostDetailContent) {
-  if (!detail) return ''
-
-  return detail.content.map((block) => {
-    if (block.type === 'heading') return `## ${block.text}`
-    if (block.type === 'quote') return `> ${block.text}`
-    if (block.type === 'code') return `\`\`\`${block.language}\n${block.code}\n\`\`\``
-    if (block.type === 'list') return block.items.map((item) => `- ${item}`).join('\n')
-    return block.text
-  }).join('\n\n')
-}
-
-function loadLocalPostEdits(): Record<string, LocalPostEdit> {
-  if (typeof window === 'undefined') return {}
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_POST_EDIT_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
-  } catch {
-    return {}
-  }
-}
-
-function saveLocalPostEdit(key: string, edit: LocalPostEdit) {
-  const edits = loadLocalPostEdits()
-  edits[key] = edit
-  window.localStorage.setItem(LOCAL_POST_EDIT_STORAGE_KEY, JSON.stringify(edits))
-}
-
 export function PostWriterPage({ onClose, writerType = 'community', editPostId }: PostWriterPageProps) {
+  const { user } = useAuth()
+  const editorRootRef = useRef<HTMLDivElement | null>(null)
+  const canWriteNotice = noticeWriterRoles.has(user?.role ?? '')
+  const getWritableBoards = (list: BoardData[]) => (
+    writerType === 'community' && !canWriteNotice
+      ? list.filter((board) => resolveCommunityBoardFilter(board) !== 'notice')
+      : list
+  )
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [tagsInput, setTagsInput] = useState('')
@@ -192,8 +162,10 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const editorWrapRef = useRef<HTMLDivElement | null>(null)
   const [editorSplitPercent, setEditorSplitPercent] = useState(50)
   const [isResizingEditor, setIsResizingEditor] = useState(false)
-  const [boards, setBoards] = useState<BoardData[]>(fallbackBoardsByType[writerType])
-  const [selectedBoardId, setSelectedBoardId] = useState<number | null>(fallbackBoardsByType[writerType][0]?.boardId ?? null)
+  const [boards, setBoards] = useState<BoardData[]>(getWritableBoards(fallbackBoardsByType[writerType]))
+  const [selectedBoardId, setSelectedBoardId] = useState<number | null>(getWritableBoards(fallbackBoardsByType[writerType])[0]?.boardId ?? null)
+  const [attachmentIds, setAttachmentIds] = useState<number[]>([])
+  const [thumbnailAttachmentId, setThumbnailAttachmentId] = useState<number | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
   const isEditMode = Boolean(editPostId)
@@ -237,7 +209,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   }, [isResizingEditor])
 
   useEffect(() => {
-    const fallbackBoards = fallbackBoardsByType[writerType]
+    const fallbackBoards = getWritableBoards(fallbackBoardsByType[writerType])
     setBoards(fallbackBoards)
     setSelectedBoardId(fallbackBoards[0]?.boardId ?? null)
 
@@ -251,65 +223,60 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
               ? list.filter(isCommunityBoard)
               : list.filter((board) => board.boardType === 'NORMAL')
 
-      const nextBoards = preferredBoards.length > 0 ? preferredBoards : fallbackBoards
+      const nextBoards = getWritableBoards(preferredBoards.length > 0 ? preferredBoards : fallbackBoards)
       setBoards(nextBoards)
       setSelectedBoardId(nextBoards[0]?.boardId ?? null)
     }).catch(() => {})
-  }, [writerType])
+  }, [canWriteNotice, writerType])
 
   useEffect(() => {
     if (!editPostId) {
       setTitle('')
       setContent('')
       setTagsInput('')
-      return
-    }
-
-    const stored = loadLocalPostEdits()[editPostId]
-    if (stored) {
-      setTitle(stored.title)
-      setContent(stored.content)
-      setTagsInput(stored.tagsInput)
-      setSelectedBoardId(stored.boardId)
+      setAttachmentIds([])
+      setThumbnailAttachmentId(null)
       return
     }
 
     const parsed = parseCompositeId(editPostId)
     if (parsed) {
-      const fallbackKey = `post-${String(parsed.postId).padStart(3, '0')}`
-      const fallbackPost = communityPosts.find((post) => post.id === fallbackKey)
-      const fallbackDetail = postDetailContentById[fallbackKey]
-
-      if (fallbackPost) {
-        setTitle(fallbackPost.title)
-        setContent(markdownFromDetail(fallbackDetail) || fallbackPost.excerpt)
-        setTagsInput(fallbackDetail?.tags.join(', ') ?? postCategoryMeta[fallbackPost.category].label)
-        setSelectedBoardId(parsed.boardId)
-      }
-
       postsApi.getPostDetail(parsed.boardId, parsed.postId).then((post) => {
         setTitle(post.title)
         setContent(post.content)
         setTagsInput(post.boardName ?? '')
         setSelectedBoardId(post.boardId)
-      }).catch(() => {})
+      }).catch(() => {
+        setPublishError('수정할 게시글을 불러오지 못했습니다.')
+      })
       return
     }
 
-    const infoItem = resourceCards.find((item) => String(item.id) === editPostId)
-    if (infoItem) {
-      setTitle(infoItem.title)
-      setContent(infoItem.content)
-      setTagsInput(infoItem.tag)
+    const infoArticleId = Number(editPostId)
+    if (writerType === 'info' && Number.isFinite(infoArticleId)) {
+      infoApi.getArticle(infoArticleId).then((article) => {
+        setTitle(article.title)
+        setContent(article.content)
+        setTagsInput(article.tag)
+      }).catch(() => {})
     }
-  }, [editPostId])
+  }, [editPostId, writerType])
 
   const tags = useMemo(
     () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
     [tagsInput],
   )
   const imageUploadCommand = useMemo(
-    () => createMarkdownImageCommand({ onError: setImageError }),
+    () => createMarkdownImageCommand({
+      uploadImage: async (file) => {
+        const uploaded = await attachmentsApi.uploadImage(file)
+        setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
+        setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+        return uploaded.url
+      },
+      onError: setImageError,
+      getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
+    }),
     [],
   )
   const markdownCommands = useMemo(
@@ -342,7 +309,15 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
 
   const handleEditorPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
     try {
-      const markdown = await readMarkdownImagesFromClipboard(event, { onError: setImageError })
+      const markdown = await readMarkdownImagesFromClipboard(event, {
+        uploadImage: async (file) => {
+          const uploaded = await attachmentsApi.uploadImage(file)
+          setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
+          setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+          return uploaded.url
+        },
+        onError: setImageError,
+      })
       if (markdown) {
         insertImagesIntoEditor(event.currentTarget, markdown)
         setImageError(null)
@@ -354,7 +329,15 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
 
   const handleEditorDrop = async (event: DragEvent<HTMLTextAreaElement>) => {
     try {
-      const markdown = await readMarkdownImagesFromDrop(event, { onError: setImageError })
+      const markdown = await readMarkdownImagesFromDrop(event, {
+        uploadImage: async (file) => {
+          const uploaded = await attachmentsApi.uploadImage(file)
+          setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
+          setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+          return uploaded.url
+        },
+        onError: setImageError,
+      })
       if (markdown) {
         insertImagesIntoEditor(event.currentTarget, markdown)
         setImageError(null)
@@ -408,35 +391,48 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     setIsPublishing(true)
     setPublishError(null)
     try {
-      if (editPostId) {
+      if (writerType === 'info') {
+        const selectedBoard = boards.find((board) => board.boardId === selectedBoardId)
+        const filter = (selectedBoard ? resolveInfoBoardFilter(selectedBoard) : null) ?? 'news'
+        const payload = {
+          filter: filter as InfoFilterId,
+          tag: tags[0] ?? selectedBoard?.boardName ?? '소식',
+          title: trimmedTitle,
+          meta: tagsInput.trim() || selectedBoard?.boardName || '정보공유',
+          sourceName: '코알라',
+          sourceDate: new Date().toISOString().slice(0, 10),
+          content: trimmedContent,
+          imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80',
+        }
+        if (editPostId && Number.isFinite(Number(editPostId))) {
+          await infoApi.updateArticle(Number(editPostId), payload)
+        } else {
+          await infoApi.createArticle(payload)
+        }
+      } else if (editPostId) {
         const parsed = parseCompositeId(editPostId)
         if (parsed) {
-          await postsApi.updatePost(parsed.postId, { title: trimmedTitle, content: trimmedContent })
+          await postsApi.updatePost(parsed.postId, {
+            title: trimmedTitle,
+            content: trimmedContent,
+            attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
+            thumbnailAttachmentId: thumbnailAttachmentId ?? undefined,
+          })
+        } else {
+          throw new Error('invalid post id')
         }
-
-        saveLocalPostEdit(editPostId, {
+      } else {
+        await postsApi.createPost(selectedBoardId, {
           title: trimmedTitle,
           content: trimmedContent,
-          tagsInput,
-          boardId: selectedBoardId,
-          writerType,
-          updatedAt: new Date().toISOString(),
+          attachmentIds,
+          thumbnailAttachmentId,
         })
-      } else {
-        await postsApi.createPost(selectedBoardId, { title: trimmedTitle, content: trimmedContent })
       }
       onClose()
     } catch {
       if (editPostId) {
-        saveLocalPostEdit(editPostId, {
-          title: trimmedTitle,
-          content: trimmedContent,
-          tagsInput,
-          boardId: selectedBoardId,
-          writerType,
-          updatedAt: new Date().toISOString(),
-        })
-        onClose()
+        setPublishError('게시글 수정 권한이 없거나 저장에 실패했습니다.')
         return
       }
       setPublishError('게시글 발행에 실패했습니다. 다시 시도해주세요.')
@@ -558,7 +554,10 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
             )}
 
             <div
-              ref={editorWrapRef}
+              ref={(node) => {
+                editorRootRef.current = node
+                editorWrapRef.current = node
+              }}
               className={isResizingEditor ? 'pw-editor-wrap velog-editor-wrap is-resizing' : 'pw-editor-wrap velog-editor-wrap'}
               style={{ '--editor-edit-width': `${editorSplitPercent}%` } as CSSProperties}
               data-color-mode="light"

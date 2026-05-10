@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { durationOptions, instanceTypes, type InstanceType } from './serviceData'
+import { servicesApi } from '../../shared/api/services'
 
 type JcloudApplyFormProps = {
   onSubmit: () => void
@@ -12,18 +13,31 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
   const [selectedDuration, setSelectedDuration] = useState('6m')
   const [purpose, setPurpose] = useState('')
   const [keyEmail, setKeyEmail] = useState('')
+  const [applicantName, setApplicantName] = useState('')
+  const [studentId, setStudentId] = useState('')
   const [agreed, setAgreed] = useState(false)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const selectedSpec = instanceTypes.find((t) => t.id === selectedType)
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!agreed || !purpose.trim() || !keyEmail.trim()) return
-    setSubmitted(true)
-    setTimeout(() => {
+    if (!agreed || !purpose.trim() || !keyEmail.trim() || !applicantName.trim() || !studentId.trim()) return
+    try {
+      await servicesApi.createInstanceApplication({
+        applicantName: applicantName.trim(),
+        studentId: studentId.trim(),
+        keyEmail: keyEmail.trim(),
+        instanceType: selectedType,
+        duration: durationOptions.find((d) => d.id === selectedDuration)?.label ?? selectedDuration,
+        purpose: purpose.trim(),
+      })
+      setSubmitted(true)
       onSubmit()
-    }, 800)
+    } catch {
+      setError('신청 접수에 실패했습니다. 다시 시도해주세요.')
+    }
   }
 
   if (submitted) {
@@ -89,7 +103,15 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
           <div className="jcloud-field-row">
             <div className="jcloud-field">
               <label className="jcloud-label" htmlFor="apply-name">이름</label>
-              <input id="apply-name" type="text" className="jcloud-input" placeholder="홍길동" required />
+              <input
+                id="apply-name"
+                type="text"
+                className="jcloud-input"
+                placeholder="홍길동"
+                value={applicantName}
+                onChange={(e) => setApplicantName(e.target.value)}
+                required
+              />
             </div>
             <div className="jcloud-field">
               <label className="jcloud-label" htmlFor="apply-student-id">학번</label>
@@ -99,6 +121,8 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
                 className="jcloud-input"
                 placeholder="20210000"
                 pattern="\d{8}"
+                value={studentId}
+                onChange={(e) => setStudentId(e.target.value)}
                 required
               />
             </div>
@@ -198,11 +222,12 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
       <button
         type="submit"
         className="jcloud-submit-button"
-        disabled={!agreed || !purpose.trim() || !keyEmail.trim()}
+        disabled={!agreed || !purpose.trim() || !keyEmail.trim() || !applicantName.trim() || !studentId.trim()}
       >
         <Icon name="plus" size={15} />
         신청하기
       </button>
+      {error ? <p className="auth-error">{error}</p> : null}
     </form>
   )
 }

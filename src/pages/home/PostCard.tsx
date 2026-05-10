@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { Icon } from '../../shared/ui/Icon'
-import { communityPosts, postCategoryMeta } from '../../dummy/postsData'
 
 type PostCardProps = {
   onOpenAllPosts?: () => void
@@ -20,21 +19,6 @@ function formatRelativeTime(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('ko-KR')
 }
 
-const fallbackPosts: PostListItem[] = communityPosts.map((post, index) => ({
-  postId: index + 1,
-  boardId: index + 1,
-  boardName: postCategoryMeta[post.category].label,
-  userId: index + 1,
-  authorName: post.author,
-  title: post.title,
-  content: post.excerpt,
-  viewCount: Number(post.views.replace('k', '00').replace('.', '')),
-  commentCount: post.comments,
-  likeCount: post.solved ? 12 : Math.max(3, post.comments * 2),
-  createdAt: new Date(Date.now() - index * 3600000 * 6).toISOString(),
-  updatedAt: new Date(Date.now() - index * 3600000 * 6).toISOString(),
-}))
-
 function getPopularityScore(post: PostListItem) {
   return post.viewCount + (post.commentCount ?? 0) * 12 + (post.likeCount ?? 0) * 8
 }
@@ -46,7 +30,6 @@ function sortByPopularity(posts: PostListItem[]) {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 }
-
 export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostCardProps) {
   const [posts, setPosts] = useState<PostListItem[]>([])
 
@@ -56,9 +39,9 @@ export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostC
         const boards = await boardsApi.getBoards(true)
         const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
         const all = sortByPopularity(postsArrays.flat())
-        setPosts((all.length > 0 ? all : sortByPopularity(fallbackPosts)).slice(0, limit))
+        setPosts(all.slice(0, limit))
       } catch {
-        setPosts(sortByPopularity(fallbackPosts).slice(0, limit))
+        setPosts([])
       }
     }
     fetchRecentPosts()

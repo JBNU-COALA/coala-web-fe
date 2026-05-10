@@ -1,5 +1,5 @@
 import type { ClipboardEvent, DragEvent } from 'react'
-import type { ICommand, TextAreaTextApi, TextState } from '@uiw/react-md-editor/nohighlight'
+import { TextAreaTextApi, type ICommand, type TextState } from '@uiw/react-md-editor/nohighlight'
 import { Icon } from './ui/Icon'
 
 const MARKDOWN_IMAGE_MAX_SIZE = 4 * 1024 * 1024
@@ -8,6 +8,7 @@ const MARKDOWN_IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif'
 type MarkdownImageOptions = {
   uploadImage?: (file: File) => Promise<string>
   onError?: (message: string) => void
+  getTextArea?: () => HTMLTextAreaElement | null
 }
 
 type InsertResult = {
@@ -112,16 +113,27 @@ export function insertMarkdownBlockAtRange(
   }
 }
 
-function insertMarkdownWithApi(api: TextAreaTextApi, state: TextState, markdown: string) {
-  const selection = {
-    start: api.textArea.selectionStart ?? state.selection.start,
-    end: api.textArea.selectionEnd ?? state.selection.end,
+function insertMarkdownWithApi(
+  api: TextAreaTextApi | null | undefined,
+  state: TextState,
+  markdown: string,
+  options: MarkdownImageOptions,
+) {
+  const textArea = ((api?.textArea ?? null) as HTMLTextAreaElement | null) ?? options.getTextArea?.() ?? null
+  if (!textArea) {
+    throw new Error('편집기 입력창을 찾지 못했습니다.')
   }
-  const result = insertMarkdownBlockAtRange(api.textArea.value, markdown, selection.start, selection.end)
 
-  api.setSelectionRange(selection)
-  api.replaceSelection(result.value.slice(selection.start, result.cursor))
-  api.setSelectionRange({ start: result.cursor, end: result.cursor })
+  const textApi = api?.textArea ? api : new TextAreaTextApi(textArea)
+  const selection = {
+    start: textArea.selectionStart ?? state.selection.start,
+    end: textArea.selectionEnd ?? state.selection.end,
+  }
+  const result = insertMarkdownBlockAtRange(textArea.value, markdown, selection.start, selection.end)
+
+  textApi.setSelectionRange(selection)
+  textApi.replaceSelection(result.value.slice(selection.start, result.cursor))
+  textApi.setSelectionRange({ start: result.cursor, end: result.cursor })
 }
 
 export function createMarkdownImageCommand(options: MarkdownImageOptions = {}): ICommand {
@@ -143,7 +155,7 @@ export function createMarkdownImageCommand(options: MarkdownImageOptions = {}): 
         try {
           if (!input.files || input.files.length === 0) return
           const markdown = await createMarkdownImagesText(input.files, options)
-          if (markdown) insertMarkdownWithApi(api, state, markdown)
+          if (markdown) insertMarkdownWithApi(api, state, markdown, options)
         } catch (error) {
           options.onError?.(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
         } finally {
