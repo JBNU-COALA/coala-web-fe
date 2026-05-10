@@ -675,7 +675,7 @@ function App() {
                     {isAdmin ? (
                       <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
                         <Icon name="settings" size={14} />
-                        관리자
+                        관리자 대시보드
                       </button>
                     ) : null}
                     <button type="button" className="header-profile-menu-item" onClick={handleLogout}>

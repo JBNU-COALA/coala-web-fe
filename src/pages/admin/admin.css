@@ -162,7 +162,8 @@
 
 .admin-field input,
 .admin-field textarea,
-.admin-field select {
+.admin-field select,
+.admin-inline-select {
   width: 100%;
   border: 1px solid #cfdcd5;
   border-radius: 7px;
@@ -174,6 +175,13 @@
 
 .admin-field textarea {
   resize: vertical;
+}
+
+.admin-inline-select {
+  width: auto;
+  min-width: 132px;
+  padding: 8px 10px;
+  font-weight: 800;
 }
 
 .admin-field-row {
@@ -220,6 +228,14 @@
   justify-self: start;
   background: #17563c;
   color: #ffffff;
+}
+
+.admin-primary-button:disabled,
+.admin-danger-button:disabled,
+.admin-ghost-button:disabled,
+.admin-row-actions button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
 }
 
 .admin-danger-button {
@@ -367,6 +383,38 @@
 
 .admin-table td {
   color: #24352e;
+}
+
+.admin-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.admin-detail-item {
+  min-width: 0;
+  border: 1px solid #e1e9e5;
+  border-radius: 7px;
+  background: #fbfdfc;
+  padding: 10px;
+}
+
+.admin-detail-item span,
+.admin-detail-item strong {
+  display: block;
+}
+
+.admin-detail-item span {
+  color: #728278;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-detail-item strong {
+  margin-top: 4px;
+  color: #20342b;
+  font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .admin-list {
@@ -526,13 +574,43 @@
 
 .admin-row-actions {
   display: flex;
+  align-items: center;
   gap: 6px;
+}
+
+.admin-row-actions--wrap {
+  flex-wrap: wrap;
 }
 
 .admin-row-actions button {
   border: 1px solid #ccd9d3;
   background: #ffffff;
   color: #344a41;
+}
+
+.admin-row-actions .admin-primary-button {
+  border-color: #17563c;
+  background: #17563c;
+  color: #ffffff;
+}
+
+.admin-row-actions .admin-danger-button {
+  border-color: #ffd2cd;
+  background: #fff0ee;
+  color: #bd3028;
+}
+
+.admin-post-preview {
+  max-height: 280px;
+  overflow: auto;
+  border: 1px solid #e1e9e5;
+  border-radius: 7px;
+  background: #fbfdfc;
+  color: #40554b;
+  padding: 12px;
+  white-space: pre-wrap;
+  line-height: 1.55;
+  font-size: 13px;
 }
 
 .admin-empty {
@@ -591,7 +669,8 @@
   }
 
   .admin-field-row,
-  .admin-metric-grid {
+  .admin-metric-grid,
+  .admin-detail-grid {
     grid-template-columns: 1fr;
   }
 }
