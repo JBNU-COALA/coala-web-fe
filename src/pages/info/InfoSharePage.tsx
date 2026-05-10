@@ -50,22 +50,14 @@ function getInfoImageUrl(card: InfoArticle) {
 
 function InfoListThumbnail({
   imageUrl,
-  title,
   viewMode,
 }: {
-  imageUrl: string | null
-  title: string
+  imageUrl: string
   viewMode: InfoListViewMode
 }) {
   return (
-    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}${imageUrl ? '' : ' board-post-thumbnail--empty'}`}>
-      {imageUrl ? (
-        <img src={imageUrl} alt="" loading="lazy" />
-      ) : (
-        <span aria-label={`${title} 이미지 없음`}>
-          <Icon name="image" size={22} />
-        </span>
-      )}
+    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}`}>
+      <img src={imageUrl} alt="" loading="lazy" />
     </div>
   )
 }
@@ -222,10 +214,19 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               const imageUrl = getInfoImageUrl(card)
               const categoryLabel = infoLabelByFilter[card.filter]
 
-              return (
-                <li key={card.id} className={`board-post-row info-post-row board-post-row--${viewMode}`}>
-                  <div className={`board-post-card info-post-card board-post-card--${viewMode}`}>
-                    <InfoListThumbnail imageUrl={imageUrl} title={card.title} viewMode={viewMode} />
+	              return (
+	                <li key={card.id} className={`board-post-row info-post-row board-post-row--${viewMode}`}>
+	                  <div
+	                    className={[
+	                      'board-post-card',
+	                      'info-post-card',
+	                      `board-post-card--${viewMode}`,
+	                      imageUrl ? 'board-post-card--has-image' : '',
+	                    ].filter(Boolean).join(' ')}
+	                  >
+	                    {viewMode === 'card' && imageUrl ? (
+	                      <InfoListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
+	                    ) : null}
 
                     <button
                       type="button"
@@ -259,9 +260,9 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                       </div>
                     </button>
 
-                    {viewMode === 'list' ? (
-                      <InfoListThumbnail imageUrl={imageUrl} title={card.title} viewMode={viewMode} />
-                    ) : null}
+	                    {viewMode === 'list' && imageUrl ? (
+	                      <InfoListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
+	                    ) : null}
 
                     <div className="board-post-stats info-post-stats">
                       <span className="board-stat">

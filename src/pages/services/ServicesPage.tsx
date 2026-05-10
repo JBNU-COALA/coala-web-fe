@@ -54,6 +54,26 @@ const toExternalUrl = (url: string) => (
   /^https?:\/\//i.test(url) ? url : `https://${url}`
 )
 
+const emptyServiceDraft = {
+  title: '',
+  url: '',
+  githubUrl: '',
+  tags: '',
+  imageUrl: '',
+  summary: '',
+}
+
+function serviceToDraft(service: MemberService) {
+  return {
+    title: service.title,
+    url: service.url,
+    githubUrl: service.githubUrl,
+    tags: service.tags.join(', '),
+    imageUrl: service.imageUrl,
+    summary: service.summary,
+  }
+}
+
 export function ServicesPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -64,18 +84,12 @@ export function ServicesPage() {
   const [viewMode, setViewMode] = useState<UserServiceViewMode>('card')
   const [currentPage, setCurrentPage] = useState(1)
   const [showAddForm, setShowAddForm] = useState(false)
+  const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
   const [serviceError, setServiceError] = useState<string | null>(null)
   const [serviceImageError, setServiceImageError] = useState<string | null>(null)
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false)
-  const [addDraft, setAddDraft] = useState({
-    title: '',
-    url: '',
-    githubUrl: '',
-    tags: '',
-    imageUrl: '',
-    summary: '',
-  })
+  const [addDraft, setAddDraft] = useState(emptyServiceDraft)
 
   const normalizedQuery = query.trim().toLowerCase()
   const activeTab: ServicesTab = resolveServicesTab(location.pathname, location.search)
@@ -89,6 +103,7 @@ export function ServicesPage() {
     ? memberServices.find((service) => service.id === serviceId)
     : null
   const selectedServiceDetail = selectedService
+  const showServiceForm = showAddForm || editingServiceId !== null
 
   const serviceTags = useMemo(
     () => Array.from(new Set(memberServices.flatMap((service) => service.tags))),
@@ -145,10 +160,33 @@ export function ServicesPage() {
     openServiceDetail(id)
   }
 
-  const handleCreateService = async (event: FormEvent) => {
+  const startCreateService = () => {
+    const shouldClose = showAddForm && editingServiceId === null
+    setEditingServiceId(null)
+    setAddDraft(emptyServiceDraft)
+    setServiceError(null)
+    setShowAddForm(!shouldClose)
+  }
+
+  const startEditService = (service: MemberService) => {
+    setEditingServiceId(service.id)
+    setAddDraft(serviceToDraft(service))
+    setServiceError(null)
+    setShowAddForm(true)
+    navigate(routes.services.user)
+  }
+
+  const closeServiceForm = () => {
+    setShowAddForm(false)
+    setEditingServiceId(null)
+    setAddDraft(emptyServiceDraft)
+    setServiceImageError(null)
+  }
+
+  const handleSaveService = async (event: FormEvent) => {
     event.preventDefault()
     try {
-      const created = await servicesApi.createMemberService({
+      const payload = {
         title: addDraft.title.trim(),
         category: 'productivity',
         summary: addDraft.summary.trim(),
@@ -156,13 +194,20 @@ export function ServicesPage() {
         githubUrl: addDraft.githubUrl.trim(),
         imageUrl: addDraft.imageUrl.trim(),
         tags: addDraft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+      }
+      const saved = editingServiceId
+        ? await servicesApi.updateMemberService(editingServiceId, payload)
+        : await servicesApi.createMemberService(payload)
+      setMemberServices((current) => {
+        const nextService = saved as MemberService
+        return current.some((service) => service.id === nextService.id)
+          ? current.map((service) => (service.id === nextService.id ? nextService : service))
+          : [nextService, ...current]
       })
-      setMemberServices((current) => [created as MemberService, ...current])
-      setShowAddForm(false)
-      setAddDraft({ title: '', url: '', githubUrl: '', tags: '', imageUrl: '', summary: '' })
+      closeServiceForm()
       setServiceError(null)
     } catch {
-      setServiceError('서비스를 추가하지 못했습니다.')
+      setServiceError(editingServiceId ? '서비스 수정 권한이 없거나 저장에 실패했습니다.' : '서비스를 추가하지 못했습니다.')
     }
   }
 
@@ -273,6 +318,14 @@ export function ServicesPage() {
                         GitHub
                       </a>
                     ) : null}
+                    <button
+                      type="button"
+                      className="member-service-detail-button"
+                      onClick={() => startEditService(selectedService)}
+                    >
+                      <Icon name="edit" size={15} />
+                      수정
+                    </button>
                   </div>
 
                   <dl className="member-service-detail-meta">
@@ -355,7 +408,7 @@ export function ServicesPage() {
                   <button
                     type="button"
                     className="member-service-add-button"
-                    onClick={() => setShowAddForm((current) => !current)}
+                    onClick={startCreateService}
                   >
                     <Icon name="plus" size={15} />
                     서비스 추가
@@ -422,19 +475,19 @@ export function ServicesPage() {
 
             {serviceError ? <p className="auth-error">{serviceError}</p> : null}
 
-            {showAddForm ? (
-              <form className="surface-card member-service-form" onSubmit={handleCreateService}>
+            {showServiceForm ? (
+              <form className="surface-card member-service-form" onSubmit={handleSaveService}>
                 <div className="member-service-form-head">
                   <div>
-                    <h3>유저 서비스 추가</h3>
+                    <h3>{editingServiceId ? '유저 서비스 수정' : '유저 서비스 추가'}</h3>
                     <p>
-                      서비스 등록 요청은 아래 내용을 정리해서 coala.jbnu@gmail.com 으로 보내주세요.
+                      대표 이미지는 URL 입력 대신 이미지 첨부로 등록됩니다.
                     </p>
                   </div>
                   <button
                     type="button"
                     className="ghost-button"
-                    onClick={() => setShowAddForm(false)}
+                    onClick={closeServiceForm}
                   >
                     닫기
                   </button>
@@ -516,7 +569,9 @@ export function ServicesPage() {
                   </label>
                 </div>
                 <div className="recruit-write-footer">
-                  <button type="submit" className="jcloud-submit-button">추가하기</button>
+                  <button type="submit" className="jcloud-submit-button">
+                    {editingServiceId ? '저장하기' : '추가하기'}
+                  </button>
                 </div>
               </form>
             ) : null}
@@ -546,7 +601,17 @@ export function ServicesPage() {
                       </div>
                       <div className="member-service-card-head">
                         <span className="member-service-status">{service.status}</span>
-                        <Icon name="link" size={15} />
+                        <button
+                          type="button"
+                          className="member-service-edit-button"
+                          aria-label={`${service.title} 수정`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            startEditService(service)
+                          }}
+                        >
+                          <Icon name="edit" size={14} />
+                        </button>
                       </div>
                       <h3>{service.title}</h3>
                       <p>{service.summary}</p>
@@ -574,6 +639,18 @@ export function ServicesPage() {
                       <div className="member-service-list-side">
                         <span>{service.owner}</span>
                         <strong>{service.url}</strong>
+                        <button
+                          type="button"
+                          className="member-service-edit-button"
+                          aria-label={`${service.title} 수정`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            startEditService(service)
+                          }}
+                        >
+                          <Icon name="edit" size={14} />
+                          수정
+                        </button>
                         <span className="member-service-open-hint">안내 보기</span>
                       </div>
                     </>

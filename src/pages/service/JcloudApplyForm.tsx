@@ -3,32 +3,43 @@ import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { durationOptions, instanceTypes, type InstanceType } from './serviceData'
 import { servicesApi } from '../../shared/api/services'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 type JcloudApplyFormProps = {
   onSubmit: () => void
 }
 
 export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
+  const { user, isLoggedIn } = useAuth()
   const [selectedType, setSelectedType] = useState<InstanceType>('micro')
   const [selectedDuration, setSelectedDuration] = useState('6m')
   const [purpose, setPurpose] = useState('')
-  const [keyEmail, setKeyEmail] = useState('')
-  const [applicantName, setApplicantName] = useState('')
-  const [studentId, setStudentId] = useState('')
+  const [keyEmail, setKeyEmail] = useState<string | null>(null)
+  const [applicantName, setApplicantName] = useState<string | null>(null)
+  const [studentId, setStudentId] = useState<string | null>(null)
   const [agreed, setAgreed] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const selectedSpec = instanceTypes.find((t) => t.id === selectedType)
+  const resolvedApplicantName = applicantName ?? user?.name ?? ''
+  const resolvedStudentId = studentId ?? user?.studentId ?? ''
+  const resolvedKeyEmail = keyEmail ?? user?.email ?? ''
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
-    if (!agreed || !purpose.trim() || !keyEmail.trim() || !applicantName.trim() || !studentId.trim()) return
+    if (
+      !agreed ||
+      !purpose.trim() ||
+      !resolvedKeyEmail.trim() ||
+      !resolvedApplicantName.trim() ||
+      !resolvedStudentId.trim()
+    ) return
     try {
       await servicesApi.createInstanceApplication({
-        applicantName: applicantName.trim(),
-        studentId: studentId.trim(),
-        keyEmail: keyEmail.trim(),
+        applicantName: resolvedApplicantName.trim(),
+        studentId: resolvedStudentId.trim(),
+        keyEmail: resolvedKeyEmail.trim(),
         instanceType: selectedType,
         duration: durationOptions.find((d) => d.id === selectedDuration)?.label ?? selectedDuration,
         purpose: purpose.trim(),
@@ -50,6 +61,23 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         <p className="jcloud-success-desc">
           승인 후 접속 키와 안내는 입력한 메일로 발송됩니다.
         </p>
+      </div>
+    )
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="jcloud-login-required">
+        <div className="jcloud-success-icon">
+          <Icon name="settings" size={28} />
+        </div>
+        <h3 className="jcloud-success-title">로그인 후 신청할 수 있습니다.</h3>
+        <p className="jcloud-success-desc">
+          인스턴스 신청 정보는 로그인된 사용자 정보로 기본 설정됩니다.
+        </p>
+        <Link className="jcloud-login-link" to="/login">
+          로그인하기
+        </Link>
       </div>
     )
   }
@@ -108,7 +136,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
                 type="text"
                 className="jcloud-input"
                 placeholder="홍길동"
-                value={applicantName}
+                value={resolvedApplicantName}
                 onChange={(e) => setApplicantName(e.target.value)}
                 required
               />
@@ -121,7 +149,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
                 className="jcloud-input"
                 placeholder="20210000"
                 pattern="\d{8}"
-                value={studentId}
+                value={resolvedStudentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 required
               />
@@ -136,7 +164,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
               type="email"
               className="jcloud-input"
               placeholder="coala.jbnu@gmail.com"
-              value={keyEmail}
+              value={resolvedKeyEmail}
               onChange={(e) => setKeyEmail(e.target.value)}
               required
             />
@@ -179,7 +207,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         </div>
         <div className="jcloud-summary-row">
           <span className="jcloud-summary-label">키 수신 메일</span>
-          <span className="jcloud-summary-value">{keyEmail || '-'}</span>
+          <span className="jcloud-summary-value">{resolvedKeyEmail || '-'}</span>
         </div>
       </div>
 
@@ -213,7 +241,13 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
       <button
         type="submit"
         className="jcloud-submit-button"
-        disabled={!agreed || !purpose.trim() || !keyEmail.trim() || !applicantName.trim() || !studentId.trim()}
+        disabled={
+          !agreed ||
+          !purpose.trim() ||
+          !resolvedKeyEmail.trim() ||
+          !resolvedApplicantName.trim() ||
+          !resolvedStudentId.trim()
+        }
       >
         <Icon name="plus" size={15} />
         신청하기

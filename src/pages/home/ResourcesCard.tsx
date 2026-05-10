@@ -16,6 +16,13 @@ function getResourceThumbnailUrl(resource: InfoArticle) {
   return resource.imageUrl && !resource.imageUrl.includes('images.unsplash.com') ? resource.imageUrl : ''
 }
 
+const infoResourceLabelByFilter: Record<InfoArticle['filter'], string> = {
+  news: '소식',
+  contest: '대회',
+  lab: '연구실',
+  resource: '자료',
+}
+
 export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false }: ResourcesCardProps) {
   const [resources, setResources] = useState<InfoArticle[]>([])
 
@@ -52,7 +59,7 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
             <li key={resource.id} className="resource-item">
               <button
                 type="button"
-                className="resource-item-button"
+                className={thumbnailUrl ? 'resource-item-button resource-item-button--with-thumbnail' : 'resource-item-button'}
                 onClick={() => onOpenInfoArticle?.(getFallbackInfoBoardId(resource.filter), resource.id)}
               >
                 {thumbnailUrl ? (
@@ -69,7 +76,7 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
                 <span className="resource-item-content">
                   <span className="resource-title">{resource.title}</span>
                   <span className="resource-subtitle">{toPlainContentPreview(resource.content).slice(0, 80)}</span>
-                  <span className="resource-meta">정보공유 · {resource.meta}</span>
+                  <span className="resource-meta">정보공유 · {infoResourceLabelByFilter[resource.filter] ?? resource.meta}</span>
                 </span>
               </button>
             </li>

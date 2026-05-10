@@ -39,22 +39,14 @@ function getPostImageUrl(post: PostListItem) {
 
 function PostListThumbnail({
   imageUrl,
-  title,
   viewMode,
 }: {
-  imageUrl: string | null
-  title: string
+  imageUrl: string
   viewMode: PostListViewMode
 }) {
   return (
-    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}${imageUrl ? '' : ' board-post-thumbnail--empty'}`}>
-      {imageUrl ? (
-        <img src={imageUrl} alt="" loading="lazy" />
-      ) : (
-        <span aria-label={`${title} 이미지 없음`}>
-          <Icon name="image" size={22} />
-        </span>
-      )}
+    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}`}>
+      <img src={imageUrl} alt="" loading="lazy" />
     </div>
   )
 }
@@ -234,16 +226,22 @@ export function AllPostsPage({
                 const imageUrl = getPostImageUrl(post)
                 const summary = toPlainContentPreview(post.content)
 
-                return (
-                  <li key={compositeId} className={`board-post-row board-post-row--${viewMode}`}>
-                    <button
-                      type="button"
-                      className={`board-post-card board-post-card--${viewMode}`}
-                      onClick={() => onOpenPost(post.boardId, post.postId)}
-                    >
-                      <PostListThumbnail imageUrl={imageUrl} title={post.title} viewMode={viewMode} />
+	                return (
+	                  <li key={compositeId} className={`board-post-row board-post-row--${viewMode}`}>
+	                    <button
+	                      type="button"
+	                      className={[
+	                        'board-post-card',
+	                        `board-post-card--${viewMode}`,
+	                        imageUrl ? 'board-post-card--has-image' : '',
+	                      ].filter(Boolean).join(' ')}
+	                      onClick={() => onOpenPost(post.boardId, post.postId)}
+	                    >
+	                      {viewMode === 'card' && imageUrl ? (
+	                        <PostListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
+	                      ) : null}
 
-                      <div className="board-post-main">
+	                      <div className="board-post-main">
                         <div className="board-post-heading">
                           <span className={`board-tag board-tag--${categoryMeta.tone}`}>
                             {post.board?.boardName ?? categoryMeta.label}
@@ -267,9 +265,9 @@ export function AllPostsPage({
                         </p>
                       </div>
 
-                      {viewMode === 'list' ? (
-                        <PostListThumbnail imageUrl={imageUrl} title={post.title} viewMode={viewMode} />
-                      ) : null}
+	                      {viewMode === 'list' && imageUrl ? (
+	                        <PostListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
+	                      ) : null}
 
                       <div className="board-post-stats">
                         <span className="board-stat">

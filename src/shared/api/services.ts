@@ -79,6 +79,9 @@ export const servicesApi = {
   createMemberService: (data: MemberServicePayload) =>
     client.post<MemberService>('/api/services', data).then((response) => response.data),
 
+  updateMemberService: (serviceId: string, data: MemberServicePayload) =>
+    client.patch<MemberService>(`/api/services/${serviceId}`, data).then((response) => response.data),
+
   getInstanceApplications: () =>
     client.get<InstanceApplication[]>('/api/services/instances/applications').then((response) => response.data),
 

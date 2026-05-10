@@ -75,36 +75,40 @@ export function PostCard({ onOpenAllPosts, onOpenPost, limit = 3, dashboard = fa
             게시글이 없습니다.
           </li>
         ) : (
-          posts.map((post) => (
-            <li key={`${post.boardId}-${post.postId}`} className="post-item">
-              <button
-                type="button"
-                className="post-item-button"
-                onClick={() => onOpenPost?.(post.boardId, post.postId)}
-              >
-                {getPostThumbnailUrl(post) ? (
-                  <span
-                    className="post-item-thumbnail"
-                    style={{ backgroundImage: `url(${getPostThumbnailUrl(post)})` }}
-                    aria-hidden="true"
-                  />
-                ) : null}
-                <span className="post-item-content">
-                  <span className="post-item-heading">
-                    <span className="post-board-chip">{post.boardName ?? `게시판 ${post.boardId}`}</span>
-                    <span className="post-title">{post.title}</span>
+          posts.map((post) => {
+            const thumbnailUrl = getPostThumbnailUrl(post)
+
+            return (
+              <li key={`${post.boardId}-${post.postId}`} className="post-item">
+                <button
+                  type="button"
+                  className={thumbnailUrl ? 'post-item-button post-item-button--with-thumbnail' : 'post-item-button'}
+                  onClick={() => onOpenPost?.(post.boardId, post.postId)}
+                >
+                  {thumbnailUrl ? (
+                    <span
+                      className="post-item-thumbnail"
+                      style={{ backgroundImage: `url(${thumbnailUrl})` }}
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <span className="post-item-content">
+                    <span className="post-item-heading">
+                      <span className="post-board-chip">{post.boardName ?? `게시판 ${post.boardId}`}</span>
+                      <span className="post-title">{post.title}</span>
+                    </span>
+                    <span className="post-meta">
+                      <span>{formatRelativeTime(post.createdAt)}</span>
+                      <span className="dot-divider" />
+                      <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
+                      <span className="dot-divider" />
+                      <span>조회 {post.viewCount}</span>
+                    </span>
                   </span>
-                  <span className="post-meta">
-                    <span>{formatRelativeTime(post.createdAt)}</span>
-                    <span className="dot-divider" />
-                    <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
-                    <span className="dot-divider" />
-                    <span>조회 {post.viewCount}</span>
-                  </span>
-                </span>
-              </button>
-            </li>
-          ))
+                </button>
+              </li>
+            )
+          })
         )}
       </ul>
     </section>

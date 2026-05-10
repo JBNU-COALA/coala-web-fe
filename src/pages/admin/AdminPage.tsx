@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
   adminApi,
@@ -12,6 +12,7 @@ import {
 import type { UserData } from '../../shared/api/auth'
 import type { BoardData, BoardType } from '../../shared/api/boards'
 import type { PostListItem } from '../../shared/api/posts'
+import { siteApi, type SiteAboutContent } from '../../shared/api/site'
 import type { ApplyStatus, InstanceApplication, MemberService, MemberServicePayload, ServiceInquiry } from '../../shared/api/services'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -19,7 +20,7 @@ import { routes } from '../../shared/routes'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 
-type AdminTab = 'stats' | 'users' | 'posts' | 'services' | 'instances'
+type AdminTab = 'stats' | 'users' | 'posts' | 'services' | 'instances' | 'about'
 
 type ServiceDraft = {
   title: string
@@ -37,12 +38,19 @@ type InstanceDraft = {
   adminNote: string
 }
 
+type AboutDraft = {
+  title: string
+  description: string
+  chipsText: string
+}
+
 const adminTabs: { id: AdminTab; label: string; icon: IconName }[] = [
   { id: 'stats', label: '통계', icon: 'chart' },
   { id: 'users', label: '유저 관리', icon: 'users' },
   { id: 'posts', label: '게시글 관리', icon: 'message' },
   { id: 'services', label: '서비스 관리', icon: 'network' },
   { id: 'instances', label: '인스턴스 관리', icon: 'settings' },
+  { id: 'about', label: '소개 관리', icon: 'edit' },
 ]
 
 const roleOptions: { value: AdminUserRole; label: string }[] = [
@@ -92,6 +100,12 @@ const emptyServiceDraft: ServiceDraft = {
   summary: '',
   url: '',
   tagsText: '',
+}
+
+const defaultAboutContent: SiteAboutContent = {
+  title: '함께 만들고 운영하는 개발 동아리',
+  description: '코알라는 프로젝트, 스터디, 서비스 운영을 통해 개발 경험을 쌓는 전북대학교 개발 동아리입니다.',
+  chips: ['프로젝트', '스터디', '서비스 운영', '커뮤니티'],
 }
 
 function formatDate(value?: string | null) {
@@ -149,6 +163,14 @@ function serviceToDraft(service: MemberService): ServiceDraft {
   }
 }
 
+function aboutToDraft(content: SiteAboutContent): AboutDraft {
+  return {
+    title: content.title,
+    description: content.description,
+    chipsText: content.chips.join(', '),
+  }
+}
+
 function instanceToDraft(instance: InstanceApplication): InstanceDraft {
   return {
     instanceType: instance.instanceType,
@@ -182,6 +204,7 @@ export function AdminPage() {
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
   const [instanceApplications, setInstanceApplications] = useState<InstanceApplication[]>([])
   const [inquiries, setInquiries] = useState<ServiceInquiry[]>([])
+  const [aboutContent, setAboutContent] = useState<SiteAboutContent>(defaultAboutContent)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null)
@@ -206,6 +229,7 @@ export function AdminPage() {
     status: 'pending',
     adminNote: '',
   })
+  const [aboutDraft, setAboutDraft] = useState<AboutDraft>(() => aboutToDraft(defaultAboutContent))
 
   const selectedUser = users.find((item) => item.id === selectedUserId) ?? null
   const selectedPost = posts.find((item) => item.postId === selectedPostId) ?? null
@@ -238,6 +262,34 @@ export function AdminPage() {
     [posts],
   )
 
+  const roleBreakdown = useMemo(
+    () => roleOptions.map((option) => ({
+      label: option.label,
+      value: users.filter((item) => normalizeRole(item.role) === option.value).length,
+    })),
+    [users],
+  )
+
+  const serviceBreakdown = useMemo(() => {
+    const labels = ['운영중', '운영중지', '운영종료']
+    return labels.map((label) => ({
+      label,
+      value: memberServices.filter((service) => service.status === label).length,
+    }))
+  }, [memberServices])
+
+  const instanceBreakdown = useMemo(() => {
+    const labels: { id: ApplyStatus; label: string }[] = [
+      { id: 'pending', label: '대기' },
+      { id: 'approved', label: '승인' },
+      { id: 'rejected', label: '반려' },
+    ]
+    return labels.map((label) => ({
+      label: label.label,
+      value: instanceApplications.filter((instance) => instance.status === label.id).length,
+    }))
+  }, [instanceApplications])
+
   const loadAdminData = async () => {
     if (!hasAdminAccess) return
     setIsLoading(true)
@@ -251,6 +303,7 @@ export function AdminPage() {
       servicesResult,
       instancesResult,
       inquiriesResult,
+      aboutResult,
     ] = await Promise.allSettled([
       adminApi.getUsers(),
       adminApi.getBoards(),
@@ -260,6 +313,7 @@ export function AdminPage() {
       adminApi.getMemberServices(),
       adminApi.getInstanceApplications(),
       adminApi.getInstanceInquiries(),
+      siteApi.getAbout(),
     ])
 
     const failures = [
@@ -271,6 +325,7 @@ export function AdminPage() {
       servicesResult,
       instancesResult,
       inquiriesResult,
+      aboutResult,
     ].filter((result) => result.status === 'rejected').length
 
     if (usersResult.status === 'fulfilled') {
@@ -293,6 +348,10 @@ export function AdminPage() {
       setSelectedInstanceId((current) => current ?? instancesResult.value[0]?.id ?? null)
     }
     if (inquiriesResult.status === 'fulfilled') setInquiries(inquiriesResult.value)
+    if (aboutResult.status === 'fulfilled') {
+      setAboutContent(aboutResult.value)
+      setAboutDraft(aboutToDraft(aboutResult.value))
+    }
 
     setStatusMessage(
       failures === 0
@@ -501,6 +560,23 @@ export function AdminPage() {
     }
   }
 
+  const saveAbout = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!aboutDraft.title.trim() || !aboutDraft.description.trim()) return
+    try {
+      const saved = await siteApi.updateAbout({
+        title: aboutDraft.title.trim(),
+        description: aboutDraft.description.trim(),
+        chips: aboutDraft.chipsText.split(',').map((chip) => chip.trim()).filter(Boolean),
+      })
+      setAboutContent(saved)
+      setAboutDraft(aboutToDraft(saved))
+      setStatusMessage('소개 페이지를 저장했습니다.')
+    } catch {
+      setStatusMessage('소개 페이지 저장에 실패했습니다.')
+    }
+  }
+
   return (
     <section className="admin-page">
       <aside className="admin-sidebar">
@@ -551,6 +627,24 @@ export function AdminPage() {
               <Metric label="미처리 신고" value={stats.pendingReports} icon="bell" />
               <Metric label="서비스" value={stats.activeServices} icon="network" />
               <Metric label="인스턴스 대기" value={stats.pendingInstances} icon="layout" />
+            </div>
+            <div className="admin-chart-grid">
+              <DonutChart
+                label="운영 권한 비율"
+                value={stats.staffCount}
+                total={stats.userCount}
+                detail={`운영진 ${formatNumber(stats.staffCount)}명`}
+              />
+              <DonutChart
+                label="공개 게시글 비율"
+                value={stats.visiblePosts}
+                total={stats.postCount}
+                detail={`공개 ${formatNumber(stats.visiblePosts)}개`}
+                accent="#456fa8"
+              />
+              <MiniBarChart title="유저 권한" items={roleBreakdown} total={stats.userCount} />
+              <MiniBarChart title="인스턴스 상태" items={instanceBreakdown} total={instanceApplications.length} />
+              <MiniBarChart title="서비스 상태" items={serviceBreakdown} total={memberServices.length} />
             </div>
             <div className="admin-two-column">
               <div className="admin-panel">
@@ -1009,8 +1103,127 @@ export function AdminPage() {
             </div>
           </div>
         ) : null}
+
+        {activeTab === 'about' ? (
+          <div className="admin-two-column admin-two-column--wide-left">
+            <form className="admin-panel admin-form" onSubmit={saveAbout}>
+              <div className="admin-panel-header">
+                <h3>소개 페이지 수정</h3>
+                <span>동아리 소개</span>
+              </div>
+              <Field label="제목">
+                <input
+                  value={aboutDraft.title}
+                  onChange={(event) => setAboutDraft((current) => ({ ...current, title: event.target.value }))}
+                />
+              </Field>
+              <Field label="소개 문구">
+                <textarea
+                  rows={5}
+                  value={aboutDraft.description}
+                  onChange={(event) => setAboutDraft((current) => ({ ...current, description: event.target.value }))}
+                />
+              </Field>
+              <Field label="키워드">
+                <input
+                  value={aboutDraft.chipsText}
+                  onChange={(event) => setAboutDraft((current) => ({ ...current, chipsText: event.target.value }))}
+                />
+              </Field>
+              <button type="submit" className="admin-primary-button">
+                <Icon name="edit" size={15} />
+                소개 저장
+              </button>
+            </form>
+            <div className="admin-panel">
+              <div className="admin-panel-header">
+                <h3>현재 소개</h3>
+                <span>미리보기</span>
+              </div>
+              <div className="admin-about-preview">
+                <p className="admin-kicker">COALA</p>
+                <h3>{aboutContent.title}</h3>
+                <p>{aboutContent.description}</p>
+                <div className="admin-about-chips">
+                  {aboutContent.chips.map((chip) => (
+                    <span key={chip}>{chip}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
+  )
+}
+
+function DonutChart({
+  label,
+  value,
+  total,
+  detail,
+  accent = '#1f6b4a',
+}: {
+  label: string
+  value: number
+  total: number
+  detail: string
+  accent?: string
+}) {
+  const percent = total > 0 ? Math.round((value / total) * 100) : 0
+
+  return (
+    <div className="admin-chart-card admin-chart-card--donut">
+      <div
+        className="admin-donut"
+        style={{
+          '--chart-percent': `${percent}%`,
+          '--chart-accent': accent,
+        } as CSSProperties}
+      >
+        <strong>{percent}%</strong>
+      </div>
+      <div>
+        <h3>{label}</h3>
+        <p>{detail}</p>
+        <span>{formatNumber(value)} / {formatNumber(total)}</span>
+      </div>
+    </div>
+  )
+}
+
+function MiniBarChart({
+  title,
+  items,
+  total,
+}: {
+  title: string
+  items: { label: string; value: number }[]
+  total: number
+}) {
+  return (
+    <div className="admin-chart-card">
+      <div className="admin-chart-title">
+        <h3>{title}</h3>
+        <span>{formatNumber(total)}건</span>
+      </div>
+      <div className="admin-mini-bar-list">
+        {items.map((item) => {
+          const percent = total > 0 ? Math.max(3, (item.value / total) * 100) : 0
+
+          return (
+            <div key={item.label} className="admin-mini-bar-row">
+              <span>{item.label}</span>
+              <div className="admin-mini-bar-track">
+                <i style={{ width: `${percent}%` }} />
+              </div>
+              <strong>{formatNumber(item.value)}</strong>
+            </div>
+          )
+        })}
+      </div>
+    </div>
   )
 }
 

@@ -94,6 +94,7 @@ const infoFilterLabelById: Record<InfoFilterId, string> = {
   lab: '연구실',
   resource: '자료',
 }
+const infoCategoryLabels = new Set(Object.values(infoFilterLabelById))
 
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (!isAxiosError<{ message?: string; errorCode?: string }>(error)) return fallback
@@ -370,11 +371,13 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         const filter = (selectedBoard ? resolveInfoBoardFilter(selectedBoard) : null) ?? 'news'
         const categoryLabel = selectedBoard?.boardName ?? infoFilterLabelById[filter]
         const imageUrl = extractFirstMarkdownImageUrl(trimmedContent) ?? ''
+        const trimmedMeta = tagsInput.trim()
+        const meta = !trimmedMeta || infoCategoryLabels.has(trimmedMeta) ? categoryLabel : trimmedMeta
         const payload = {
           filter: filter as InfoFilterId,
           tag: categoryLabel,
           title: trimmedTitle,
-          meta: tagsInput.trim() || categoryLabel,
+          meta,
           sourceName: infoSourceName,
           sourceDate: infoSourceDate,
           content: trimmedContent,
