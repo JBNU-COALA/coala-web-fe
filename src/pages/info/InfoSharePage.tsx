@@ -4,6 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
+import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 
 type InfoSharePageProps = {
   onWriteInfo?: () => void
@@ -31,15 +32,6 @@ const filterIconById: Record<InfoTabId, Parameters<typeof Icon>[0]['name']> = {
   lab: 'network',
   resource: 'file',
 }
-
-const markdownToSummary = (markdown: string) => (
-  markdown
-    .replace(/!\[[^\]]*]\([^)]*\)/g, '')
-    .replace(/\[[^\]]+]\([^)]*\)/g, (match) => match.replace(/^\[|\]\([^)]*\)$/g, ''))
-    .replace(/[#>*_`~-]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-)
 
 export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
@@ -168,16 +160,25 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
           <ul className="board-post-list info-list info-list--editorial">
             {visibleResources.map((card) => {
               const [sourceName, sourceDate] = card.source.split('|').map((part) => part.trim())
-              const summary = markdownToSummary(card.content)
+              const summary = toPlainContentPreview(card.content)
+              const previewImageUrl = card.imageUrl || extractFirstContentImage(card.content)
 
               return (
                 <li key={card.id} className="board-post-row info-post-row">
                   <div className="board-post-card info-post-card">
                     <button
                       type="button"
-                      className="info-post-open"
+                      className={previewImageUrl ? 'info-post-open info-post-open--with-image' : 'info-post-open'}
                       onClick={() => onOpenInfo?.(getFallbackInfoBoardId(card.filter), card.id)}
                     >
+                      {previewImageUrl ? (
+                        <span
+                          className="board-post-thumbnail"
+                          style={{ backgroundImage: `url(${previewImageUrl})` }}
+                          aria-hidden="true"
+                        />
+                      ) : null}
+
                       <div className="board-post-main">
                         <div className="board-post-heading">
                           <span className={`board-tag info-tag info-tag--${card.filter}`}>

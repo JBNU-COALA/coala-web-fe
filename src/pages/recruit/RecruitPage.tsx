@@ -4,6 +4,7 @@ import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
+import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import {
   recruitsApi,
   type RecruitCategory,
@@ -43,7 +44,7 @@ const filters: { id: RecruitFilterId; label: string }[] = [
 
 const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
   { id: 'list', label: '모집 공고', icon: 'file' },
-  { id: 'applications', label: '지원 내역', icon: 'users' },
+  { id: 'applications', label: '지원내역', icon: 'users' },
   { id: 'manage', label: '모집 관리', icon: 'settings' },
 ]
 
@@ -225,21 +226,31 @@ function RecruitList({
         const isClosingSoon = item.status === 'closing-soon'
         const canApply = isOpen || isClosingSoon
         const isApplied = appliedIds.has(item.id)
+        const previewSource = [item.shortDesc, ...item.detailContent].join('\n')
+        const previewImageUrl = extractFirstContentImage(previewSource)
+        const summary = toPlainContentPreview(item.shortDesc) || toPlainContentPreview(item.detailContent.join(' '))
 
         return (
           <li key={item.id} className="recruit-list-row surface-card">
             <button
               type="button"
-              className="recruit-row-main"
+              className={previewImageUrl ? 'recruit-row-main recruit-row-main--with-image' : 'recruit-row-main'}
               onClick={() => onSelectRecruit(item.id)}
             >
+              {previewImageUrl ? (
+                <span
+                  className="recruit-row-thumbnail"
+                  style={{ backgroundImage: `url(${previewImageUrl})` }}
+                  aria-hidden="true"
+                />
+              ) : null}
               <span className={`recruit-status-pill ${getStatusClass(item.status)}`}>
                 <span className="recruit-status-dot" />
                 {getStatusLabel(item.status)}
               </span>
               <span className="recruit-row-copy">
                 <strong>{item.title}</strong>
-                <span>{item.shortDesc}</span>
+                <span>{summary}</span>
               </span>
             </button>
 
@@ -569,34 +580,35 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         <section className="recruit-dashboard-panel">
           <header className="recruit-dashboard-header">
             <div>
-              <h3>지원 내역</h3>
+              <h3>지원내역</h3>
               <p>{applicationView === 'applied' ? appliedItems.length : savedItems.length}개</p>
             </div>
           </header>
-          <div className="surface-card recruit-history-tabs" role="tablist" aria-label="모집 지원 내역">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={applicationView === 'applied'}
-              className={applicationView === 'applied' ? 'recruit-history-tab is-active' : 'recruit-history-tab'}
-              onClick={() => setApplicationView('applied')}
-            >
-              지원서
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={applicationView === 'saved'}
-              className={applicationView === 'saved' ? 'recruit-history-tab is-active' : 'recruit-history-tab'}
-              onClick={() => setApplicationView('saved')}
-            >
-              관심 공고
-            </button>
+          <div className="surface-card recruit-history-filter" role="group" aria-label="모집 내역 필터">
+            <span>구분</span>
+            <div className="recruit-history-filter-options">
+              <button
+                type="button"
+                aria-pressed={applicationView === 'applied'}
+                className={applicationView === 'applied' ? 'recruit-history-filter-chip is-active' : 'recruit-history-filter-chip'}
+                onClick={() => setApplicationView('applied')}
+              >
+                지원내역
+              </button>
+              <button
+                type="button"
+                aria-pressed={applicationView === 'saved'}
+                className={applicationView === 'saved' ? 'recruit-history-filter-chip is-active' : 'recruit-history-filter-chip'}
+                onClick={() => setApplicationView('saved')}
+              >
+                관심공고
+              </button>
+            </div>
           </div>
           <RecruitList
             items={applicationView === 'applied' ? appliedItems : savedItems}
             variant={applicationView === 'applied' ? 'applied' : 'public'}
-            emptyText={applicationView === 'applied' ? '지원한 모집이 없습니다.' : '관심 공고가 없습니다.'}
+            emptyText={applicationView === 'applied' ? '지원내역이 없습니다.' : '관심공고가 없습니다.'}
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}

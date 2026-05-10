@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { postCategoryFilters, postCategoryMeta, type PostBoardFilterId } from '../../shared/postCategories'
+import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
@@ -180,14 +181,24 @@ export function AllPostsPage({
                 const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
                 const categoryMeta = postCategoryMeta[category]
                 const compositeId = `${post.boardId}-${post.postId}`
+                const previewImageUrl = extractFirstContentImage(post.content)
+                const summary = toPlainContentPreview(post.content)
 
                 return (
                   <li key={compositeId} className="board-post-row">
                     <button
                       type="button"
-                      className="board-post-card"
+                      className={previewImageUrl ? 'board-post-card board-post-card--with-image' : 'board-post-card'}
                       onClick={() => onOpenPost(post.boardId, post.postId)}
                     >
+                      {previewImageUrl ? (
+                        <span
+                          className="board-post-thumbnail"
+                          style={{ backgroundImage: `url(${previewImageUrl})` }}
+                          aria-hidden="true"
+                        />
+                      ) : null}
+
                       <div className="board-post-main">
                         <div className="board-post-heading">
                           <span className={`board-tag board-tag--${categoryMeta.tone}`}>
@@ -197,7 +208,7 @@ export function AllPostsPage({
                         </div>
 
                         <p className="board-post-excerpt">
-                          {post.content.replace(/<[^>]+>/g, '').slice(0, 120)}
+                          {summary.slice(0, 120)}
                         </p>
 
                         <p className="board-post-meta">

@@ -1,8 +1,8 @@
 import type { ClipboardEvent, DragEvent } from 'react'
-import { TextAreaTextApi, type ICommand, type TextState } from '@uiw/react-md-editor/nohighlight'
+import type { ICommand } from '@uiw/react-md-editor/nohighlight'
 import { Icon } from './ui/Icon'
 
-const MARKDOWN_IMAGE_MAX_SIZE = 4 * 1024 * 1024
+const MARKDOWN_IMAGE_MAX_SIZE = 8 * 1024 * 1024
 const MARKDOWN_IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif'
 
 type MarkdownImageOptions = {
@@ -147,45 +147,34 @@ export function insertMarkdownBlockAtRange(
 ): InsertResult {
   const before = value.slice(0, start)
   const after = value.slice(end)
-  const prefix = before.length === 0 || before.endsWith('\n\n')
-    ? ''
-    : before.endsWith('\n')
-      ? '\n'
-      : '\n\n'
-  const suffix = after.length === 0 || after.startsWith('\n\n')
-    ? ''
-    : after.startsWith('\n')
-      ? '\n'
-      : '\n\n'
-  const insertion = `${prefix}${markdown}${suffix}`
 
   return {
-    value: `${before}${insertion}${after}`,
-    cursor: before.length + insertion.length,
+    value: `${before}${markdown}${after}`,
+    cursor: before.length + markdown.length,
   }
 }
 
-function insertMarkdownWithApi(
-  api: TextAreaTextApi | null | undefined,
-  state: TextState,
-  markdown: string,
-  options: MarkdownImageOptions,
-) {
-  const textArea = ((api?.textArea ?? null) as HTMLTextAreaElement | null) ?? options.getTextArea?.() ?? null
-  if (!textArea) {
-    throw new Error('편집기 입력창을 찾지 못했습니다.')
-  }
+function insertMarkdownIntoTextArea(textarea: HTMLTextAreaElement, markdown: string) {
+  if (typeof window === 'undefined') return false
 
-  const textApi = api?.textArea ? api : new TextAreaTextApi(textArea)
-  const selection = {
-    start: textArea.selectionStart ?? state.selection.start,
-    end: textArea.selectionEnd ?? state.selection.end,
-  }
-  const result = insertMarkdownBlockAtRange(textArea.value, markdown, selection.start, selection.end)
+  const result = insertMarkdownBlockAtRange(
+    textarea.value,
+    markdown,
+    textarea.selectionStart,
+    textarea.selectionEnd,
+  )
+  const valueSetter = Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')?.set
 
-  textApi.setSelectionRange(selection)
-  textApi.replaceSelection(result.value.slice(selection.start, result.cursor))
-  textApi.setSelectionRange({ start: result.cursor, end: result.cursor })
+  if (valueSetter) valueSetter.call(textarea, result.value)
+  else textarea.value = result.value
+
+  textarea.dispatchEvent(new Event('input', { bubbles: true }))
+  window.requestAnimationFrame(() => {
+    textarea.focus()
+    textarea.setSelectionRange(result.cursor, result.cursor)
+  })
+
+  return true
 }
 
 export function createMarkdownImageCommand(options: MarkdownImageOptions = {}): ICommand {
@@ -197,7 +186,7 @@ export function createMarkdownImageCommand(options: MarkdownImageOptions = {}): 
       title: '이미지 첨부',
     },
     icon: <Icon name="image" size={13} />,
-    execute: (state, api) => {
+    execute: (_state, api) => {
       const input = document.createElement('input')
       input.type = 'file'
       input.accept = MARKDOWN_IMAGE_ACCEPT
@@ -207,7 +196,12 @@ export function createMarkdownImageCommand(options: MarkdownImageOptions = {}): 
         try {
           if (!input.files || input.files.length === 0) return
           const markdown = await createMarkdownImagesText(input.files, options)
-          if (markdown) insertMarkdownWithApi(api, state, markdown, options)
+          if (!markdown) return
+
+          const textarea = options.getTextArea?.()
+          if (textarea && insertMarkdownIntoTextArea(textarea, markdown)) return
+
+          api.replaceSelection(markdown)
         } catch (error) {
           options.onError?.(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
         } finally {

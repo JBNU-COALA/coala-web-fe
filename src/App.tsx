@@ -234,6 +234,7 @@ function App() {
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
   const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup' || activeRoute === 'verifyEmail'
+  const isAdminRoute = location.pathname.startsWith(routes.admin)
   const contextPanel = useMemo(
     () => buildContextPanel(activeRoute, location.pathname),
     [activeRoute, location.pathname],
@@ -569,7 +570,7 @@ function App() {
   )
 
   return (
-    <div className="coala-app">
+    <div className={isAdminRoute ? 'coala-app coala-app--admin' : 'coala-app'}>
       <header className="coala-header">
         <div className="coala-header-inner">
           <button type="button" className="coala-brand" onClick={() => navigate('/')}>
@@ -713,7 +714,7 @@ function App() {
         </div>
       ) : null}
 
-      <main className={isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}>
+      <main className={isAdminRoute ? 'coala-shell coala-shell--admin' : isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}>
         {appRoutes}
       </main>
 
