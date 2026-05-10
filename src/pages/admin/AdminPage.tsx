@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
-import { Navigate } from 'react-router-dom'
+import { Link, Navigate } from 'react-router-dom'
 import {
   adminApi,
   type AdminActionLog,
@@ -15,6 +15,7 @@ import type { PostListItem } from '../../shared/api/posts'
 import type { ApplyStatus, InstanceApplication, MemberService, MemberServicePayload, ServiceInquiry } from '../../shared/api/services'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { routes } from '../../shared/routes'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 
@@ -521,6 +522,10 @@ export function AdminPage() {
             </button>
           ))}
         </nav>
+        <Link className="admin-home-link" to={routes.home}>
+          <Icon name="chevron-left" size={15} />
+          홈으로
+        </Link>
       </aside>
 
       <div className="admin-main">

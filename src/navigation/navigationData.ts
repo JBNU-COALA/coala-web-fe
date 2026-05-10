@@ -228,13 +228,14 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
 }
 
 const toServicesItems = (pathname: string): ContextPanelItem[] => {
-  const query = typeof window !== 'undefined' ? window.location.search : ''
-  const isOfficial = pathname.startsWith('/services/official') || query.includes('tab=official')
+  const query = typeof window !== 'undefined' ? new URLSearchParams(window.location.search) : new URLSearchParams()
+  const legacyTab = query.get('tab')
+  const isOfficial = pathname.startsWith('/services/official') || legacyTab === 'official'
   const isUserService =
     pathname.startsWith('/services/user') ||
     pathname.startsWith('/services/unofficial') ||
-    query.includes('tab=user') ||
-    query.includes('tab=unofficial')
+    legacyTab === 'user' ||
+    legacyTab === 'unofficial'
   const isLegacyServiceRoute = pathname === '/service' || pathname.startsWith('/service/')
 
   return servicesActions.map((item) => ({

@@ -44,7 +44,7 @@ const filters: { id: RecruitFilterId; label: string }[] = [
 
 const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
   { id: 'list', label: '모집 공고', icon: 'file' },
-  { id: 'applications', label: '지원내역', icon: 'users' },
+  { id: 'applications', label: '지원내역/관심공고', icon: 'users' },
   { id: 'manage', label: '모집 관리', icon: 'settings' },
 ]
 
@@ -198,6 +198,12 @@ const buildRecruitPayload = (draft: RecruitDraft): RecruitPostPayload => {
   }
 }
 
+function dedupeRecruitItems(items: RecruitItem[]) {
+  const byId = new Map<string, RecruitItem>()
+  items.forEach((item) => byId.set(item.id, item))
+  return [...byId.values()]
+}
+
 type RecruitListProps = {
   items: RecruitItem[]
   variant: RecruitListVariant
@@ -322,7 +328,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
   const normalizedQuery = query.trim().toLowerCase()
   const allRecruitItems = useMemo(
-    () => [...localRecruitItems, ...remoteRecruitItems],
+    () => dedupeRecruitItems([...localRecruitItems, ...remoteRecruitItems]),
     [localRecruitItems, remoteRecruitItems],
   )
   const activeCategoryLabel =
@@ -336,6 +342,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     recruitsApi.getRecruits()
       .then(setRemoteRecruitItems)
       .catch(() => setRemoteRecruitItems([]))
+  }, [])
+
+  useEffect(() => {
+    recruitsApi.getMyApplications()
+      .then((applications) => {
+        setAppliedIds((current) => new Set([...current, ...applications.map((application) => application.recruitId)]))
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -580,16 +594,16 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         <section className="recruit-dashboard-panel">
           <header className="recruit-dashboard-header">
             <div>
-              <h3>지원내역</h3>
+              <h3>지원내역/관심공고</h3>
               <p>{applicationView === 'applied' ? appliedItems.length : savedItems.length}개</p>
             </div>
           </header>
-          <div className="surface-card recruit-history-filter" role="group" aria-label="모집 내역 필터">
-            <span>구분</span>
+          <div className="surface-card recruit-history-filter" role="tablist" aria-label="지원내역 및 관심공고">
             <div className="recruit-history-filter-options">
               <button
                 type="button"
-                aria-pressed={applicationView === 'applied'}
+                role="tab"
+                aria-selected={applicationView === 'applied'}
                 className={applicationView === 'applied' ? 'recruit-history-filter-chip is-active' : 'recruit-history-filter-chip'}
                 onClick={() => setApplicationView('applied')}
               >
@@ -597,7 +611,8 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               </button>
               <button
                 type="button"
-                aria-pressed={applicationView === 'saved'}
+                role="tab"
+                aria-selected={applicationView === 'saved'}
                 className={applicationView === 'saved' ? 'recruit-history-filter-chip is-active' : 'recruit-history-filter-chip'}
                 onClick={() => setApplicationView('saved')}
               >

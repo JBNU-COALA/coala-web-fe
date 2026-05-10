@@ -60,6 +60,9 @@ const fallbackProfileMember: ActivityMember = {
   githubHandle: 'coala',
   githubUrl: 'https://github.com',
   focus: '코알라에서 함께 개발하고 있습니다.',
+  bio: '',
+  activityNote: '',
+  awardNote: '',
   recentCommit: '-',
   sharedRepos: [],
   logs: [],
@@ -134,6 +137,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('코알라에서 함께 개발하고 있습니다.')
+  const [activityNote, setActivityNote] = useState('')
+  const [awardNote, setAwardNote] = useState('')
+  const [sharedReposInput, setSharedReposInput] = useState('')
+  const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
@@ -169,6 +176,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const profileGithubLabel = profileGithubHandle ? `@${profileGithubHandle}` : '-'
   const profileGithubUrl = getGithubProfileUrl(profileGithub)
   const profileAwards = profileMember.awards
+  const profileSharedRepos = sharedReposInput
+    .split(/[\n,]/)
+    .map((repo) => repo.trim())
+    .filter(Boolean)
   const profilePhotoStorageKey = `coala-profile-photo:${effectiveProfileUserId}`
 
   useEffect(() => {
@@ -217,8 +228,20 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
   useEffect(() => {
     setEditing(false)
-    setBio(canEdit ? '코알라에서 함께 개발하고 있습니다.' : profileMember.focus)
-  }, [canEdit, effectiveProfileUserId, profileMember.focus])
+    setProfileSaveState('idle')
+    setBio(firstNonBlank(profileMember.bio, canEdit ? '코알라에서 함께 개발하고 있습니다.' : profileMember.focus))
+    setActivityNote(profileMember.activityNote ?? '')
+    setAwardNote(profileMember.awardNote ?? '')
+    setSharedReposInput(profileMember.sharedRepos.join('\n'))
+  }, [
+    canEdit,
+    effectiveProfileUserId,
+    profileMember.activityNote,
+    profileMember.awardNote,
+    profileMember.bio,
+    profileMember.focus,
+    profileMember.sharedRepos,
+  ])
 
   useEffect(() => {
     if (!isOwnProfile || !user) {
@@ -291,6 +314,34 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setPhotoError(null)
   }
 
+  const saveProfile = async () => {
+    if (!canEdit) return
+    setProfileSaveState('saving')
+    try {
+      const updated = await usersApi.updateMyProfile({
+        bio,
+        activityNote,
+        awardNote,
+        sharedRepositories: sharedReposInput,
+      })
+      setProfileDetail(updated)
+      setPublicMembers((members) => members.map((member) => (member.id === updated.id ? updated : member)))
+      setEditing(false)
+      setProfileSaveState('saved')
+    } catch {
+      setProfileSaveState('error')
+    }
+  }
+
+  const handleEditClick = () => {
+    if (!editing) {
+      setEditing(true)
+      setProfileSaveState('idle')
+      return
+    }
+    void saveProfile()
+  }
+
   return (
     <section className="coala-content coala-content--profile">
       <div className="profile-page">
@@ -345,13 +396,16 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             <button
               type="button"
               className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
-              onClick={() => setEditing((v) => !v)}
+              onClick={handleEditClick}
+              disabled={profileSaveState === 'saving'}
             >
               <Icon name="edit" size={13} />
-              {editing ? '완료' : '프로필 편집'}
+              {editing ? (profileSaveState === 'saving' ? '저장 중' : '저장') : '편집'}
             </button>
           ) : null}
         </div>
+        {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error">프로필을 저장하지 못했습니다.</p> : null}
+        {profileSaveState === 'saved' ? <p className="profile-save-message">프로필을 저장했습니다.</p> : null}
 
         <div className="profile-stats-grid">
           <div className="profile-stat-card surface-card">
@@ -517,7 +571,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         ) : null}
 
         {tab === 'activity' ? (
-          <div className="profile-section-grid">
+          <div className="profile-section-grid profile-section-grid--single">
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">GitHub 현황</h3>
               <div className="profile-activity-block">
@@ -539,9 +593,41 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                 </div>
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">저장소</span>
-                  <span className="profile-activity-value">{profileMember.sharedRepos.join(', ')}</span>
+                  {editing ? (
+                    <textarea
+                      className="profile-bio-textarea profile-repo-textarea"
+                      value={sharedReposInput}
+                      onChange={(event) => setSharedReposInput(event.target.value)}
+                      rows={4}
+                      placeholder="owner/repository 형식으로 한 줄에 하나씩 입력"
+                    />
+                  ) : (
+                    <span className="profile-repo-list">
+                      {profileSharedRepos.length > 0 ? (
+                        profileSharedRepos.map((repo) => <span key={repo}>{repo}</span>)
+                      ) : (
+                        <span className="profile-empty-text">공유 저장소가 없습니다.</span>
+                      )}
+                    </span>
+                  )}
                 </div>
               </div>
+            </div>
+            <div className="surface-card profile-section-card">
+              <h3 className="profile-section-title">활동 내역</h3>
+              {editing ? (
+                <textarea
+                  className="profile-bio-textarea"
+                  value={activityNote}
+                  onChange={(event) => setActivityNote(event.target.value)}
+                  rows={6}
+                  placeholder="공유하고 싶은 활동 내역을 입력하세요."
+                />
+              ) : activityNote ? (
+                <p className="profile-bio-text">{activityNote}</p>
+              ) : (
+                <p className="profile-empty-text">등록된 활동 내역이 없습니다.</p>
+              )}
             </div>
           </div>
         ) : null}
@@ -549,8 +635,19 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         {tab === 'awards' ? (
           <div className="surface-card profile-section-card">
             <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
+            {editing ? (
+              <textarea
+                className="profile-bio-textarea profile-award-textarea"
+                value={awardNote}
+                onChange={(event) => setAwardNote(event.target.value)}
+                rows={6}
+                placeholder="수상명, 주최, 등수, 날짜 등을 자유롭게 입력하세요."
+              />
+            ) : awardNote ? (
+              <p className="profile-bio-text profile-award-note">{awardNote}</p>
+            ) : null}
             {profileAwards.length === 0 ? (
-              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>등록된 수상 내역이 없습니다.</p>
+              <p className="profile-empty-text">등록된 수상 내역이 없습니다.</p>
             ) : (
               <ul className="profile-award-list">
                 {profileAwards.map((award) => (

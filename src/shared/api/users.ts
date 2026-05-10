@@ -44,6 +44,9 @@ export type ActivityMember = {
   githubHandle: string
   githubUrl: string
   focus: string
+  bio: string
+  activityNote: string
+  awardNote: string
   recentCommit: string
   sharedRepos: string[]
   logs: ActivityLog[]
@@ -63,5 +66,14 @@ export const usersApi = {
 
   getUser: (userId: number) =>
     client.get<Omit<ActivityMember, 'id'> & { id: number | string }>(`/api/users/${userId}`)
+      .then((response) => ({ ...response.data, id: String(response.data.id) })),
+
+  updateMyProfile: (data: {
+    bio: string
+    activityNote: string
+    awardNote: string
+    sharedRepositories: string
+  }) =>
+    client.patch<Omit<ActivityMember, 'id'> & { id: number | string }>('/api/users/me/profile', data)
       .then((response) => ({ ...response.data, id: String(response.data.id) })),
 }

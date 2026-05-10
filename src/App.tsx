@@ -78,7 +78,10 @@ function BoardPostEditorRoute() {
   return (
     <PostWriterPage
       editPostId={postKey}
-      onClose={() => navigate(routes.community.boardPost(parsedBoardId, parsedPostId))}
+      onClose={(nextPost) => navigate(routes.community.boardPost(
+        nextPost?.boardId ?? parsedBoardId,
+        nextPost?.postId ?? parsedPostId,
+      ))}
     />
   )
 }
@@ -163,7 +166,10 @@ function InfoPostEditorRoute() {
     <PostWriterPage
       writerType="info"
       editPostId={normalizedInfoId}
-      onClose={() => navigate(routes.community.infoPost(parsedBoardId, normalizedInfoId))}
+      onClose={(nextPost) => navigate(routes.community.infoPost(
+        nextPost?.boardId ?? parsedBoardId,
+        nextPost?.postId ?? normalizedInfoId,
+      ))}
     />
   )
 }
@@ -293,6 +299,7 @@ function App() {
 
   const isHeaderSubNavActive = (path: string) => {
     const [targetPath, targetQuery = ''] = path.split('?')
+    const currentQuery = new URLSearchParams(location.search)
 
     if (targetPath === '/community/board') {
       return location.pathname.startsWith('/community/board') || location.pathname.startsWith('/community/posts')
@@ -317,16 +324,21 @@ function App() {
       return location.pathname === '/users'
     }
 
-    if (targetPath === '/services/official/instance') {
-      return location.pathname.startsWith('/services/official/instance') || location.pathname.startsWith('/service')
-    }
+    if (targetPath.startsWith('/services') || targetPath === '/service') {
+      const legacyTab = currentQuery.get('tab')
+      const isOfficial =
+        location.pathname.startsWith('/services/official') ||
+        location.pathname.startsWith('/service') ||
+        legacyTab === 'official'
+      const isUserService =
+        location.pathname.startsWith('/services/user') ||
+        location.pathname.startsWith('/services/unofficial') ||
+        legacyTab === 'user' ||
+        legacyTab === 'unofficial'
 
-    if (targetPath === '/services/user') {
-      return location.pathname.startsWith('/services/user') || location.pathname.startsWith('/services/unofficial')
-    }
-
-    if (targetPath === '/services') {
-      return location.pathname === '/services' && location.search === (targetQuery ? `?${targetQuery}` : '')
+      if (targetPath === '/services/official/instance') return isOfficial
+      if (targetPath === '/services/user') return isUserService
+      if (targetPath === '/services') return location.pathname === '/services' && !isOfficial && !isUserService && !targetQuery
     }
 
     return location.pathname === targetPath
@@ -425,6 +437,8 @@ function App() {
             <HomePage
               onOpenAllPosts={() => navigate(routes.community.board)}
               onOpenInfo={() => navigate(routes.community.info)}
+              onOpenPost={(boardId, postId) => navigate(routes.community.boardPost(boardId, postId))}
+              onOpenInfoArticle={(boardId, infoId) => navigate(routes.community.infoPost(boardId, infoId))}
             />
           }
         />

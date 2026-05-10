@@ -2,8 +2,12 @@ import type { ClipboardEvent, DragEvent } from 'react'
 import type { ICommand } from '@uiw/react-md-editor/nohighlight'
 import { Icon } from './ui/Icon'
 
-const MARKDOWN_IMAGE_MAX_SIZE = 8 * 1024 * 1024
+const MARKDOWN_IMAGE_MAX_SOURCE_SIZE = 10 * 1024 * 1024
+const MARKDOWN_IMAGE_UPLOAD_TARGET_SIZE = 900 * 1024
+const MARKDOWN_IMAGE_DIMENSION_STEPS = [1600, 1280, 1024]
+const MARKDOWN_IMAGE_QUALITY_STEPS = [0.82, 0.72, 0.62]
 const MARKDOWN_IMAGE_ACCEPT = 'image/png,image/jpeg,image/webp,image/gif'
+const MARKDOWN_IMAGE_COMPRESSIBLE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp'])
 
 type MarkdownImageOptions = {
   uploadImage?: (file: File) => Promise<string>
@@ -21,6 +25,13 @@ const imageAltFromName = (name: string) => (
     .replace(/\.[^.]+$/, '')
     .replace(/[_-]+/g, ' ')
     .trim() || 'image'
+)
+
+const imageStoredNameFromName = (name: string) => (
+  imageAltFromName(name)
+    .replace(/[^\da-z.-]+/gi, '-')
+    .replace(/^-+|-+$/g, '')
+    .toLowerCase() || 'image'
 )
 
 const imageAltFromUrl = (url: string) => {
@@ -91,6 +102,51 @@ const fileToDataUrl = (file: File) => (
   })
 )
 
+const loadImageElement = (file: File) => (
+  new Promise<HTMLImageElement>((resolve, reject) => {
+    const image = new Image()
+    const objectUrl = URL.createObjectURL(file)
+
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl)
+      resolve(image)
+    }
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl)
+      reject(new Error('이미지를 읽지 못했습니다.'))
+    }
+    image.src = objectUrl
+  })
+)
+
+const canvasToBlob = (canvas: HTMLCanvasElement, contentType: string, quality: number) => (
+  new Promise<Blob | null>((resolve) => {
+    canvas.toBlob(resolve, contentType, quality)
+  })
+)
+
+async function compressMarkdownImage(file: File, maxDimension: number, quality: number) {
+  const image = await loadImageElement(file)
+  const scale = Math.min(1, maxDimension / image.naturalWidth, maxDimension / image.naturalHeight)
+  const width = Math.max(1, Math.round(image.naturalWidth * scale))
+  const height = Math.max(1, Math.round(image.naturalHeight * scale))
+  const canvas = document.createElement('canvas')
+  canvas.width = width
+  canvas.height = height
+
+  const context = canvas.getContext('2d')
+  if (!context) throw new Error('이미지를 압축하지 못했습니다.')
+
+  context.drawImage(image, 0, 0, width, height)
+  const blob = await canvasToBlob(canvas, 'image/webp', quality)
+  if (!blob) throw new Error('이미지를 압축하지 못했습니다.')
+
+  return new File([blob], `${imageStoredNameFromName(file.name)}.webp`, {
+    type: 'image/webp',
+    lastModified: Date.now(),
+  })
+}
+
 export function getMarkdownImageFiles(files: FileList | File[] | null | undefined) {
   return Array.from(files ?? []).filter((file) => file.type.startsWith('image/'))
 }
@@ -104,21 +160,47 @@ export function validateMarkdownImageFile(file: File) {
     return 'PNG, JPG, WebP, GIF 이미지만 첨부할 수 있습니다.'
   }
 
-  if (file.size > MARKDOWN_IMAGE_MAX_SIZE) {
-    return '이미지는 4MB 이하만 첨부할 수 있습니다.'
+  if (file.size > MARKDOWN_IMAGE_MAX_SOURCE_SIZE) {
+    return '이미지는 10MB 이하만 첨부할 수 있습니다.'
   }
 
   return null
+}
+
+export async function prepareMarkdownImageFile(file: File) {
+  const error = validateMarkdownImageFile(file)
+  if (error) throw new Error(error)
+
+  if (file.size <= MARKDOWN_IMAGE_UPLOAD_TARGET_SIZE) return file
+
+  if (!MARKDOWN_IMAGE_COMPRESSIBLE_TYPES.has(file.type)) {
+    throw new Error('GIF 이미지는 900KB 이하만 첨부할 수 있습니다.')
+  }
+
+  let bestFile: File | null = null
+  for (const maxDimension of MARKDOWN_IMAGE_DIMENSION_STEPS) {
+    for (const quality of MARKDOWN_IMAGE_QUALITY_STEPS) {
+      const compressed = await compressMarkdownImage(file, maxDimension, quality)
+      if (!bestFile || compressed.size < bestFile.size) {
+        bestFile = compressed
+      }
+      if (compressed.size <= MARKDOWN_IMAGE_UPLOAD_TARGET_SIZE) {
+        return compressed
+      }
+    }
+  }
+
+  if (bestFile && bestFile.size <= MARKDOWN_IMAGE_UPLOAD_TARGET_SIZE) return bestFile
+
+  throw new Error('이미지 용량이 너무 큽니다. 1MB 이하로 줄인 뒤 다시 첨부해주세요.')
 }
 
 export async function createMarkdownImageText(
   file: File,
   uploadImage: MarkdownImageOptions['uploadImage'] = fileToDataUrl,
 ) {
-  const error = validateMarkdownImageFile(file)
-  if (error) throw new Error(error)
-
-  const imageUrl = await uploadImage(file)
+  const uploadFile = await prepareMarkdownImageFile(file)
+  const imageUrl = await uploadImage(uploadFile)
   return `![${imageAltFromName(file.name)}](${imageUrl})`
 }
 

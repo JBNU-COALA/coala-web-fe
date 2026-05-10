@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
+import { extractFirstContentImage } from '../../shared/contentPreview'
 import { Icon } from '../../shared/ui/Icon'
 
 type PostCardProps = {
   onOpenAllPosts?: () => void
+  onOpenPost?: (boardId: number, postId: number) => void
   limit?: number
   dashboard?: boolean
 }
@@ -30,7 +32,13 @@ function sortByPopularity(posts: PostListItem[]) {
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   })
 }
-export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostCardProps) {
+
+function getPostThumbnailUrl(post: PostListItem) {
+  const contentImageUrl = extractFirstContentImage(post.content)
+  return contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : '')
+}
+
+export function PostCard({ onOpenAllPosts, onOpenPost, limit = 3, dashboard = false }: PostCardProps) {
   const [posts, setPosts] = useState<PostListItem[]>([])
 
   useEffect(() => {
@@ -69,17 +77,32 @@ export function PostCard({ onOpenAllPosts, limit = 3, dashboard = false }: PostC
         ) : (
           posts.map((post) => (
             <li key={`${post.boardId}-${post.postId}`} className="post-item">
-              <div className="post-item-heading">
-                <span className="post-board-chip">{post.boardName ?? `게시판 ${post.boardId}`}</span>
-                <p className="post-title">{post.title}</p>
-              </div>
-              <p className="post-meta">
-                <span>{formatRelativeTime(post.createdAt)}</span>
-                <span className="dot-divider" />
-                <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
-                <span className="dot-divider" />
-                <span>조회 {post.viewCount}</span>
-              </p>
+              <button
+                type="button"
+                className="post-item-button"
+                onClick={() => onOpenPost?.(post.boardId, post.postId)}
+              >
+                {getPostThumbnailUrl(post) ? (
+                  <span
+                    className="post-item-thumbnail"
+                    style={{ backgroundImage: `url(${getPostThumbnailUrl(post)})` }}
+                    aria-hidden="true"
+                  />
+                ) : null}
+                <span className="post-item-content">
+                  <span className="post-item-heading">
+                    <span className="post-board-chip">{post.boardName ?? `게시판 ${post.boardId}`}</span>
+                    <span className="post-title">{post.title}</span>
+                  </span>
+                  <span className="post-meta">
+                    <span>{formatRelativeTime(post.createdAt)}</span>
+                    <span className="dot-divider" />
+                    <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
+                    <span className="dot-divider" />
+                    <span>조회 {post.viewCount}</span>
+                  </span>
+                </span>
+              </button>
             </li>
           ))
         )}

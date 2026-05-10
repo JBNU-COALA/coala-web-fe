@@ -185,9 +185,6 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
 
       <section className="jcloud-terms-box" aria-label="인스턴스 대여 약관">
         <h3>인스턴스 대여 약관</h3>
-        <p className="jcloud-terms-domain-note">
-          위 인스턴스를 사용하면 본인의 서비스를 코알라 도메인을 통해 배포할 수 있습니다.
-        </p>
         <ul>
           <li>인스턴스는 동아리 프로젝트, 학습, 실습 목적 안에서 사용합니다.</li>
           <li>접속 키와 계정 정보는 본인만 사용하며 외부 공유를 금지합니다.</li>
@@ -212,12 +209,6 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         />
         <span>위 대여 약관에 동의합니다.</span>
       </label>
-
-      <p className="jcloud-open-source-notice">
-        * 위 인스턴스 사용시 본인의 서비스를 코알라 도메인을 통해 배포할 수 있게 됩니다. 이후 코알라 오픈소스 프로젝트에 참여하게 됩니다.
-        <br />
-        코알라 오픈소스 프로젝트 안내
-      </p>
 
       <button
         type="submit"

@@ -27,6 +27,8 @@ export type MemberServicePayload = {
   category: string
   summary: string
   url: string
+  githubUrl?: string
+  imageUrl?: string
   tags: string[]
 }
 

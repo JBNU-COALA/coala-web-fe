@@ -22,6 +22,7 @@ export type PostListItem = {
 export type PostDetail = PostListItem
 
 export type CreatePostRequest = {
+  boardId?: number
   title: string
   content: string
   attachmentIds?: number[]
@@ -67,7 +68,7 @@ export const postsApi = {
     client.post<CreatePostResponse>(`/api/boards/${boardId}/posts`, data).then((r) => r.data),
 
   updatePost: (postId: number, data: CreatePostRequest) =>
-    client.patch<{ postId: number; title: string; content: string; updatedAt: string }>(
+    client.patch<{ postId: number; boardId: number; boardName?: string; title: string; content: string; updatedAt: string }>(
       `/api/posts/${postId}`,
       data,
     ).then((r) => r.data),

@@ -12,6 +12,7 @@ type InfoSharePageProps = {
 }
 
 type InfoTabId = 'all' | InfoFilterId
+type InfoListViewMode = 'card' | 'list'
 
 const infoTabFilters: { id: InfoTabId; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -33,12 +34,49 @@ const filterIconById: Record<InfoTabId, Parameters<typeof Icon>[0]['name']> = {
   resource: 'file',
 }
 
+const infoLabelByFilter: Record<InfoFilterId, string> = {
+  news: '소식',
+  contest: '대회',
+  lab: '연구실',
+  resource: '자료',
+}
+
+function getInfoImageUrl(card: InfoArticle) {
+  const contentImageUrl = extractFirstContentImage(card.content)
+  if (contentImageUrl) return contentImageUrl
+  if (card.imageUrl && !card.imageUrl.includes('images.unsplash.com')) return card.imageUrl
+  return null
+}
+
+function InfoListThumbnail({
+  imageUrl,
+  title,
+  viewMode,
+}: {
+  imageUrl: string | null
+  title: string
+  viewMode: InfoListViewMode
+}) {
+  return (
+    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}${imageUrl ? '' : ' board-post-thumbnail--empty'}`}>
+      {imageUrl ? (
+        <img src={imageUrl} alt="" loading="lazy" />
+      ) : (
+        <span aria-label={`${title} 이미지 없음`}>
+          <Icon name="image" size={22} />
+        </span>
+      )}
+    </div>
+  )
+}
+
 export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
   const [query, setQuery] = useState('')
   const [resources, setResources] = useState<InfoArticle[]>([])
   const [savedResourceIds, setSavedResourceIds] = useState<Set<number>>(() => new Set())
   const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
+  const [viewMode, setViewMode] = useState<InfoListViewMode>('card')
 
   const normalizedQuery = query.trim().toLowerCase()
   const activeFilterLabel =
@@ -145,6 +183,26 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               onChange={setQuery}
               placeholder="소식, 대회, 연구실, 자료 검색"
             />
+            <div className="view-mode-toggle" role="group" aria-label="정보공유 보기 방식">
+              <button
+                type="button"
+                className={viewMode === 'card' ? 'view-mode-button is-active' : 'view-mode-button'}
+                aria-pressed={viewMode === 'card'}
+                title="카드형"
+                onClick={() => setViewMode('card')}
+              >
+                <Icon name="layout" size={15} />
+              </button>
+              <button
+                type="button"
+                className={viewMode === 'list' ? 'view-mode-button is-active' : 'view-mode-button'}
+                aria-pressed={viewMode === 'list'}
+                title="리스트형"
+                onClick={() => setViewMode('list')}
+              >
+                <Icon name="list" size={15} />
+              </button>
+            </div>
             <button
               type="button"
               className="write-post-button write-post-button--info"
@@ -156,33 +214,28 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
           </div>
         </section>
 
-        <article className="surface-card board-shell info-board-shell" aria-label="정보공유 목록">
-          <ul className="board-post-list info-list info-list--editorial">
+        <article className={`surface-card board-shell info-board-shell board-shell--${viewMode}`} aria-label="정보공유 목록">
+          <ul className={`board-post-list info-list info-list--editorial board-post-list--${viewMode}`}>
             {visibleResources.map((card) => {
               const [sourceName, sourceDate] = card.source.split('|').map((part) => part.trim())
               const summary = toPlainContentPreview(card.content)
-              const previewImageUrl = card.imageUrl || extractFirstContentImage(card.content)
+              const imageUrl = getInfoImageUrl(card)
+              const categoryLabel = infoLabelByFilter[card.filter]
 
               return (
-                <li key={card.id} className="board-post-row info-post-row">
-                  <div className="board-post-card info-post-card">
+                <li key={card.id} className={`board-post-row info-post-row board-post-row--${viewMode}`}>
+                  <div className={`board-post-card info-post-card board-post-card--${viewMode}`}>
+                    <InfoListThumbnail imageUrl={imageUrl} title={card.title} viewMode={viewMode} />
+
                     <button
                       type="button"
-                      className={previewImageUrl ? 'info-post-open info-post-open--with-image' : 'info-post-open'}
+                      className="info-post-open"
                       onClick={() => onOpenInfo?.(getFallbackInfoBoardId(card.filter), card.id)}
                     >
-                      {previewImageUrl ? (
-                        <span
-                          className="board-post-thumbnail"
-                          style={{ backgroundImage: `url(${previewImageUrl})` }}
-                          aria-hidden="true"
-                        />
-                      ) : null}
-
                       <div className="board-post-main">
                         <div className="board-post-heading">
                           <span className={`board-tag info-tag info-tag--${card.filter}`}>
-                            {card.tag}
+                            {categoryLabel}
                           </span>
                           <h3 className="board-post-title">{card.title}</h3>
                         </div>
@@ -205,6 +258,10 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         </p>
                       </div>
                     </button>
+
+                    {viewMode === 'list' ? (
+                      <InfoListThumbnail imageUrl={imageUrl} title={card.title} viewMode={viewMode} />
+                    ) : null}
 
                     <div className="board-post-stats info-post-stats">
                       <span className="board-stat">

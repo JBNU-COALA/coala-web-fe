@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
@@ -96,7 +95,6 @@ export function RecruitApplyPage() {
   const imageUploadCommand = useMemo(
     () => createMarkdownImageCommand({
       onError: setImageError,
-      getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
     }),
     [],
   )

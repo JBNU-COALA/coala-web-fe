@@ -54,6 +54,30 @@ export function toMarkdownFilename(title: string, fallback = 'coala-markdown') {
   return `${normalized || fallback}.md`
 }
 
+export function extractFirstMarkdownImageUrl(markdown: string) {
+  const markdownImageMatch = markdown.match(/!\[[^\]]*]\(\s*<?([^)\s>]+)>?(?:\s+["'][^"']*["'])?\s*\)/)
+  const markdownImageUrl = markdownImageMatch?.[1]?.trim()
+  if (markdownImageUrl && !markdownImageUrl.startsWith('data:image/')) return markdownImageUrl
+
+  const htmlImageMatch = markdown.match(/<img\b[^>]*\bsrc=(["'])(.*?)\1/i)
+  const htmlImageUrl = htmlImageMatch?.[2]?.trim()
+  if (htmlImageUrl && !htmlImageUrl.startsWith('data:image/')) return htmlImageUrl
+
+  return null
+}
+
+export function markdownToPlainText(markdown: string) {
+  return markdown
+    .replace(/!\[[^\]]*]\([^)]*\)/g, '')
+    .replace(/\[[^\]]+]\([^)]*\)/g, (match) => match.replace(/^\[|\]\([^)]*\)$/g, ''))
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/[#>*_~|-]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 export function htmlToReadableMarkdown(html: string) {
   return html
     .replace(/<h1[^>]*>(.*?)<\/h1>/gis, '# $1\n\n')

@@ -2,15 +2,18 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { servicesApi, type MemberService } from '../../shared/api/services'
 import { routes } from '../../shared/routes'
+import { Icon } from '../../shared/ui/Icon'
 import { PostCard } from './PostCard'
 import { ResourcesCard } from './ResourcesCard'
 
 type HomePageProps = {
   onOpenAllPosts?: () => void
   onOpenInfo?: () => void
+  onOpenPost?: (boardId: number, postId: number) => void
+  onOpenInfoArticle?: (boardId: number, infoId: number) => void
 }
 
-export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
+export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArticle }: HomePageProps) {
   const navigate = useNavigate()
   const [services, setServices] = useState<MemberService[]>([])
   const [activeServiceIndex, setActiveServiceIndex] = useState(0)
@@ -48,8 +51,8 @@ export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
       </section>
 
       <div className="portal-grid portal-grid--dashboard">
-        <ResourcesCard onOpenInfo={onOpenInfo} dashboard />
-        <PostCard onOpenAllPosts={onOpenAllPosts} limit={8} dashboard />
+        <ResourcesCard onOpenInfo={onOpenInfo} onOpenInfoArticle={onOpenInfoArticle} dashboard />
+        <PostCard onOpenAllPosts={onOpenAllPosts} onOpenPost={onOpenPost} limit={8} dashboard />
       </div>
 
       <section className="surface-card panel portal-services-panel">
@@ -71,10 +74,16 @@ export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
               onClick={() => openService(activeService.id)}
               aria-label={`${activeService.title} 서비스 안내 열기`}
             >
-              <span
-                className="portal-service-feature-image"
-                style={{ backgroundImage: `url(${activeService.imageUrl})` }}
-              />
+              {activeService.imageUrl ? (
+                <span
+                  className="portal-service-feature-image"
+                  style={{ backgroundImage: `url(${activeService.imageUrl})` }}
+                />
+              ) : (
+                <span className="portal-service-feature-image portal-service-feature-image--empty">
+                  <Icon name="image" size={28} />
+                </span>
+              )}
               <span className="portal-service-feature-shade" />
               <span className="portal-service-feature-copy">
                 <span className="portal-service-status">{activeService.status}</span>
@@ -91,10 +100,16 @@ export function HomePage({ onOpenAllPosts, onOpenInfo }: HomePageProps) {
                   className={index === activeServiceIndex ? 'portal-service-thumb is-active' : 'portal-service-thumb'}
                   onClick={() => setActiveServiceIndex(index)}
                 >
-                  <span
-                    className="portal-service-thumb-image"
-                    style={{ backgroundImage: `url(${service.imageUrl})` }}
-                  />
+                  {service.imageUrl ? (
+                    <span
+                      className="portal-service-thumb-image"
+                      style={{ backgroundImage: `url(${service.imageUrl})` }}
+                    />
+                  ) : (
+                    <span className="portal-service-thumb-image portal-service-thumb-image--empty">
+                      <Icon name="image" size={16} />
+                    </span>
+                  )}
                   <span className="portal-service-thumb-copy">
                     <strong>{service.title}</strong>
                     <small>{service.owner}</small>

@@ -1,14 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
   ClipboardEvent,
-  CSSProperties,
   DragEvent,
   FormEvent,
   KeyboardEvent,
-  PointerEvent as ReactPointerEvent,
 } from 'react'
 import { isAxiosError } from 'axios'
-import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
+import MDEditor, { type ICommand } from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
@@ -16,7 +14,7 @@ import { attachmentsApi } from '../../shared/api/attachments'
 import { postsApi } from '../../shared/api/posts'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
-import { copyMarkdown } from '../../shared/markdown'
+import { copyMarkdown, extractFirstMarkdownImageUrl } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
   getMarkdownLengthWithoutInlineImageData,
@@ -39,7 +37,7 @@ const TITLE_MAX = 100
 const CONTENT_MAX = 5000
 
 type PostWriterPageProps = {
-  onClose: () => void
+  onClose: (nextPost?: { boardId: number; postId: number }) => void
   writerType?: 'community' | 'info' | 'inquiry' | 'recruit'
   editPostId?: string
 }
@@ -90,50 +88,12 @@ const writerCopy = {
   },
 }
 
-const highlightCommand: ICommand = {
-  name: 'highlight',
-  keyCommand: 'highlight',
-  buttonProps: { 'aria-label': '형광펜' },
-  icon: <span className="pw-md-command-text">형광</span>,
-  execute: (state, api) => {
-    const selectedText = state.selectedText || '형광펜'
-    const prefix = '<mark>'
-    const suffix = '</mark>'
-    api.replaceSelection(`${prefix}${selectedText}${suffix}`)
-    api.setSelectionRange({
-      start: state.selection.start + prefix.length,
-      end: state.selection.start + prefix.length + selectedText.length,
-    })
-  },
+const infoFilterLabelById: Record<InfoFilterId, string> = {
+  news: '소식',
+  contest: '대회',
+  lab: '연구실',
+  resource: '자료',
 }
-
-const baseMarkdownCommands: ICommand[] = [
-  commands.bold,
-  commands.italic,
-  commands.strikethrough,
-  highlightCommand,
-  commands.divider,
-  commands.title1,
-  commands.title2,
-  commands.title3,
-  commands.divider,
-  commands.link,
-  commands.quote,
-  commands.code,
-  commands.codeBlock,
-  commands.divider,
-  commands.unorderedListCommand,
-  commands.orderedListCommand,
-  commands.checkedListCommand,
-  commands.table,
-]
-
-const markdownExtraCommands: ICommand[] = [
-  commands.codeEdit,
-  commands.codeLive,
-  commands.codePreview,
-  commands.fullscreen,
-]
 
 function getApiErrorMessage(error: unknown, fallback: string) {
   if (!isAxiosError<{ message?: string; errorCode?: string }>(error)) return fallback
@@ -143,9 +103,14 @@ function getApiErrorMessage(error: unknown, fallback: string) {
 
   if (error.response?.status === 401) return '로그인 후 다시 시도해주세요.'
   if (error.response?.status === 403) return '게시글 작성 권한이 없습니다.'
+  if (error.response?.status === 413) return '첨부 이미지나 본문 용량이 너무 큽니다. 이미지를 줄인 뒤 다시 시도해주세요.'
   if (error.response?.status === 429) return '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.'
 
   return fallback
+}
+
+function hasInlineBase64Image(markdown: string) {
+  return /!\[[^\]]*]\(\s*data:image\//i.test(markdown) || /<img\b[^>]*\bsrc=(["'])data:image\//i.test(markdown)
 }
 
 function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
@@ -161,22 +126,21 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const { user } = useAuth()
   const editorRootRef = useRef<HTMLDivElement | null>(null)
   const canWriteNotice = noticeWriterRoles.has(user?.role ?? '')
-  const getWritableBoards = (list: BoardData[]) => (
+  const getWritableBoards = useCallback((list: BoardData[]) => (
     writerType === 'community' && !canWriteNotice
       ? list.filter((board) => resolveCommunityBoardFilter(board) !== 'notice')
       : list
-  )
+  ), [canWriteNotice, writerType])
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [tagsInput, setTagsInput] = useState('')
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
-  const [showPreview, setShowPreview] = useState(true)
-  const editorWrapRef = useRef<HTMLDivElement | null>(null)
-  const [editorSplitPercent, setEditorSplitPercent] = useState(50)
-  const [isResizingEditor, setIsResizingEditor] = useState(false)
   const [boards, setBoards] = useState<BoardData[]>(getWritableBoards(fallbackBoardsByType[writerType]))
   const [selectedBoardId, setSelectedBoardId] = useState<number | null>(getWritableBoards(fallbackBoardsByType[writerType])[0]?.boardId ?? null)
+  const [infoEditFilter, setInfoEditFilter] = useState<InfoFilterId | null>(null)
+  const [infoSourceName, setInfoSourceName] = useState('코알라')
+  const [infoSourceDate, setInfoSourceDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [attachmentIds, setAttachmentIds] = useState<number[]>([])
   const [thumbnailAttachmentId, setThumbnailAttachmentId] = useState<number | null>(null)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -194,37 +158,14 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     return () => window.removeEventListener('beforeunload', handler)
   }, [content, title])
 
-  const updateEditorSplit = (clientX: number) => {
-    const rect = editorWrapRef.current?.getBoundingClientRect()
-    if (!rect || rect.width <= 0) return
-
-    const nextPercent = ((clientX - rect.left) / rect.width) * 100
-    setEditorSplitPercent(Math.min(72, Math.max(28, nextPercent)))
-  }
-
-  useEffect(() => {
-    if (!isResizingEditor) return undefined
-
-    const handlePointerMove = (event: PointerEvent) => updateEditorSplit(event.clientX)
-    const stopResizing = () => setIsResizingEditor(false)
-
-    document.body.classList.add('is-editor-resizing')
-    window.addEventListener('pointermove', handlePointerMove)
-    window.addEventListener('pointerup', stopResizing)
-    window.addEventListener('pointercancel', stopResizing)
-
-    return () => {
-      document.body.classList.remove('is-editor-resizing')
-      window.removeEventListener('pointermove', handlePointerMove)
-      window.removeEventListener('pointerup', stopResizing)
-      window.removeEventListener('pointercancel', stopResizing)
-    }
-  }, [isResizingEditor])
-
   useEffect(() => {
     const fallbackBoards = getWritableBoards(fallbackBoardsByType[writerType])
     setBoards(fallbackBoards)
-    setSelectedBoardId(fallbackBoards[0]?.boardId ?? null)
+    setSelectedBoardId((current) => (
+      editPostId && current && fallbackBoards.some((board) => board.boardId === current)
+        ? current
+        : fallbackBoards[0]?.boardId ?? null
+    ))
 
     boardsApi.getBoards(true).then((list) => {
       const preferredBoards =
@@ -238,9 +179,13 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
 
       const nextBoards = getWritableBoards(preferredBoards.length > 0 ? preferredBoards : fallbackBoards)
       setBoards(nextBoards)
-      setSelectedBoardId(nextBoards[0]?.boardId ?? null)
+      setSelectedBoardId((current) => (
+        editPostId && current && nextBoards.some((board) => board.boardId === current)
+          ? current
+          : nextBoards[0]?.boardId ?? null
+      ))
     }).catch(() => {})
-  }, [canWriteNotice, writerType])
+  }, [editPostId, getWritableBoards, writerType])
 
   useEffect(() => {
     if (!editPostId) {
@@ -249,6 +194,9 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       setTagsInput('')
       setAttachmentIds([])
       setThumbnailAttachmentId(null)
+      setInfoEditFilter(null)
+      setInfoSourceName('코알라')
+      setInfoSourceDate(new Date().toISOString().slice(0, 10))
       return
     }
 
@@ -270,10 +218,19 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       infoApi.getArticle(infoArticleId).then((article) => {
         setTitle(article.title)
         setContent(article.content)
-        setTagsInput(article.tag)
+        setTagsInput(article.meta || article.tag)
+        setInfoEditFilter(article.filter)
+        setInfoSourceName(article.sourceName || '코알라')
+        setInfoSourceDate(article.sourceDate || new Date().toISOString().slice(0, 10))
       }).catch(() => {})
     }
   }, [editPostId, writerType])
+
+  useEffect(() => {
+    if (writerType !== 'info' || !infoEditFilter) return
+    const matchingBoard = boards.find((board) => resolveInfoBoardFilter(board) === infoEditFilter)
+    if (matchingBoard) setSelectedBoardId(matchingBoard.boardId)
+  }, [boards, infoEditFilter, writerType])
 
   const tags = useMemo(
     () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
@@ -292,12 +249,11 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     }),
     [],
   )
-  const markdownCommands = useMemo(
-    () => [
-      ...baseMarkdownCommands.slice(0, 10),
-      imageUploadCommand,
-      ...baseMarkdownCommands.slice(10),
-    ],
+  const markdownCommandFilter = useMemo(
+    () => (command: ICommand, isExtra: boolean) => {
+      if (!isExtra && command.name === 'image') return imageUploadCommand
+      return command
+    },
     [imageUploadCommand],
   )
 
@@ -396,6 +352,11 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       return
     }
 
+    if (hasInlineBase64Image(trimmedContent)) {
+      setPublishError('이미지는 본문에 base64로 넣지 말고 이미지 첨부 버튼이나 붙여넣기로 업로드해주세요.')
+      return
+    }
+
     if (!selectedBoardId) {
       setPublishError('게시판을 선택해주세요.')
       return
@@ -407,18 +368,22 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       if (writerType === 'info') {
         const selectedBoard = boards.find((board) => board.boardId === selectedBoardId)
         const filter = (selectedBoard ? resolveInfoBoardFilter(selectedBoard) : null) ?? 'news'
+        const categoryLabel = selectedBoard?.boardName ?? infoFilterLabelById[filter]
+        const imageUrl = extractFirstMarkdownImageUrl(trimmedContent) ?? ''
         const payload = {
           filter: filter as InfoFilterId,
-          tag: tags[0] ?? selectedBoard?.boardName ?? '소식',
+          tag: categoryLabel,
           title: trimmedTitle,
-          meta: tagsInput.trim() || selectedBoard?.boardName || '정보공유',
-          sourceName: '코알라',
-          sourceDate: new Date().toISOString().slice(0, 10),
+          meta: tagsInput.trim() || categoryLabel,
+          sourceName: infoSourceName,
+          sourceDate: infoSourceDate,
           content: trimmedContent,
-          imageUrl: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?auto=format&fit=crop&w=1200&q=80',
+          imageUrl,
         }
         if (editPostId && Number.isFinite(Number(editPostId))) {
-          await infoApi.updateArticle(Number(editPostId), payload)
+          const updatedArticle = await infoApi.updateArticle(Number(editPostId), payload)
+          onClose({ boardId: selectedBoardId, postId: updatedArticle.id })
+          return
         } else {
           await infoApi.createArticle(payload)
         }
@@ -426,11 +391,14 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         const parsed = parseCompositeId(editPostId)
         if (parsed) {
           await postsApi.updatePost(parsed.postId, {
+            boardId: selectedBoardId,
             title: trimmedTitle,
             content: trimmedContent,
             attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
             thumbnailAttachmentId: thumbnailAttachmentId ?? undefined,
           })
+          onClose({ boardId: selectedBoardId, postId: parsed.postId })
+          return
         } else {
           throw new Error('invalid post id')
         }
@@ -462,12 +430,6 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     }
   }
 
-  const handleEditorResizePointerDown = (event: ReactPointerEvent<HTMLButtonElement>) => {
-    event.preventDefault()
-    updateEditorSplit(event.clientX)
-    setIsResizingEditor(true)
-  }
-
   return (
     <section className="coala-content coala-content--post-writer coala-content--velog-writer">
       <form className="post-writer-layout post-writer-layout--velog" onSubmit={handlePublish}>
@@ -481,22 +443,13 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
             <div className="post-writer-actions velog-writer-actions">
               <button
                 type="button"
-                className={showPreview ? 'ghost-button' : 'ghost-button ghost-button--active'}
-                aria-pressed={!showPreview}
-                onClick={() => setShowPreview((value) => !value)}
-              >
-                <Icon name="eye" size={15} />
-                {showPreview ? '미리보기 끄기' : '미리보기 켜기'}
-              </button>
-              <button
-                type="button"
                 className={copyState === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
                 onClick={handleCopyMarkdown}
               >
                 <Icon name="copy" size={15} />
                 {copyState === 'copied' ? '복사됨' : copyState === 'error' ? '복사 실패' : '마크다운 복사'}
               </button>
-              <button type="button" className="ghost-button" onClick={onClose}>
+              <button type="button" className="ghost-button" onClick={() => onClose()}>
                 나가기
               </button>
             </div>
@@ -567,12 +520,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
             )}
 
             <div
-              ref={(node) => {
-                editorRootRef.current = node
-                editorWrapRef.current = node
-              }}
-              className={isResizingEditor ? 'pw-editor-wrap velog-editor-wrap is-resizing' : 'pw-editor-wrap velog-editor-wrap'}
-              style={{ '--editor-edit-width': `${editorSplitPercent}%` } as CSSProperties}
+              ref={editorRootRef}
+              className="pw-editor-wrap velog-editor-wrap"
               data-color-mode="light"
             >
               <MDEditor
@@ -580,10 +529,9 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 onChange={(value) => setContent(value ?? '')}
                 height="calc(100vh - 330px)"
                 minHeight={420}
-                preview={showPreview ? 'live' : 'edit'}
-                visibleDragbar={false}
-                commands={markdownCommands}
-                extraCommands={markdownExtraCommands}
+                preview="live"
+                visibleDragbar
+                commandsFilter={markdownCommandFilter}
                 textareaProps={{
                   placeholder: copy.placeholder,
                   'aria-label': '게시글 본문 입력',
@@ -593,17 +541,6 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                   onDragOver: handleEditorDragOver,
                 }}
               />
-              {showPreview && (
-                <button
-                  type="button"
-                  className="velog-editor-resizer"
-                  style={{ left: `${editorSplitPercent}%` }}
-                  aria-label="마크다운 미리보기 너비 조절"
-                  onPointerDown={handleEditorResizePointerDown}
-                >
-                  <span />
-                </button>
-              )}
             </div>
           </div>
 

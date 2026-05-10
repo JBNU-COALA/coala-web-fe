@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useMemo, useState, type FormEvent, type KeyboardEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
@@ -7,6 +7,7 @@ import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { servicesApi } from '../../shared/api/services'
+import { attachmentsApi } from '../../shared/api/attachments'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type ServicesTab = 'coas' | 'official' | 'user'
@@ -42,7 +43,7 @@ export type MemberServiceDetail = {
   stack: string[]
 }
 
-const USER_SERVICE_PAGE_SIZE = 4
+const USER_SERVICE_PAGE_SIZE = 6
 const serviceStatusFilters: { id: ServiceStatusFilter; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: '운영중', label: '운영중' },
@@ -66,6 +67,8 @@ export function ServicesPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
   const [serviceError, setServiceError] = useState<string | null>(null)
+  const [serviceImageError, setServiceImageError] = useState<string | null>(null)
+  const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false)
   const [addDraft, setAddDraft] = useState({
     title: '',
     url: '',
@@ -112,7 +115,7 @@ export function ServicesPage() {
         .toLowerCase()
         .includes(normalizedQuery)
     })
-  }, [normalizedQuery, selectedStatus, selectedTags])
+  }, [memberServices, normalizedQuery, selectedStatus, selectedTags])
   const totalUserServicePages = Math.max(1, Math.ceil(visibleServices.length / USER_SERVICE_PAGE_SIZE))
   const safeCurrentPage = Math.min(currentPage, totalUserServicePages)
   const paginatedServices = visibleServices.slice(
@@ -159,6 +162,8 @@ export function ServicesPage() {
         category: 'productivity',
         summary: addDraft.summary.trim(),
         url: addDraft.url.trim(),
+        githubUrl: addDraft.githubUrl.trim(),
+        imageUrl: addDraft.imageUrl.trim(),
         tags: addDraft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
       })
       setMemberServices((current) => [created as MemberService, ...current])
@@ -169,6 +174,34 @@ export function ServicesPage() {
       setServiceError('서비스를 추가하지 못했습니다.')
     }
   }
+
+  const handleServiceImageSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    if (!file.type.startsWith('image/')) {
+      setServiceImageError('이미지 파일만 첨부할 수 있습니다.')
+      return
+    }
+
+    setIsUploadingServiceImage(true)
+    setServiceImageError(null)
+    try {
+      const uploaded = await attachmentsApi.uploadImage(file)
+      setAddDraft((current) => ({ ...current, imageUrl: uploaded.url }))
+    } catch (error) {
+      setServiceImageError(error instanceof Error ? error.message : '이미지를 업로드하지 못했습니다.')
+    } finally {
+      setIsUploadingServiceImage(false)
+    }
+  }
+
+  const renderServiceTags = (tags: string[]) => (
+    tags.length > 0
+      ? tags.map((tag) => <span key={tag}>{tag}</span>)
+      : <span className="member-service-tag-empty">태그가 없습니다</span>
+  )
 
   return (
     <section className="coala-content coala-content--services">
@@ -206,9 +239,14 @@ export function ServicesPage() {
         ) : selectedService ? (
               <article className="surface-card member-service-detail">
                 <div
-                  className="member-service-detail-media"
-                  style={{ backgroundImage: `url(${selectedService.imageUrl})` }}
+                  className={
+                    selectedService.imageUrl
+                      ? 'member-service-detail-media'
+                      : 'member-service-detail-media member-service-detail-media--empty'
+                  }
+                  style={selectedService.imageUrl ? { backgroundImage: `url(${selectedService.imageUrl})` } : undefined}
                 >
+                  {!selectedService.imageUrl ? <Icon name="image" size={28} /> : null}
                   <span className="member-service-status">{selectedService.status}</span>
                 </div>
 
@@ -238,10 +276,12 @@ export function ServicesPage() {
                       <Icon name="link" size={15} />
                       서비스 열기
                     </a>
-                    <a href={selectedService.githubUrl} target="_blank" rel="noreferrer">
-                      <Icon name="network" size={15} />
-                      GitHub
-                    </a>
+                    {selectedService.githubUrl ? (
+                      <a href={toExternalUrl(selectedService.githubUrl)} target="_blank" rel="noreferrer">
+                        <Icon name="network" size={15} />
+                        GitHub
+                      </a>
+                    ) : null}
                   </div>
 
                   <dl className="member-service-detail-meta">
@@ -275,9 +315,7 @@ export function ServicesPage() {
                     <section>
                       <h4>기술 스택</h4>
                       <div className="member-service-detail-tags">
-                        {(selectedServiceDetail?.stack ?? selectedService.tags).map((stack) => (
-                          <span key={stack}>{stack}</span>
-                        ))}
+                        {renderServiceTags(selectedServiceDetail?.stack ?? selectedService.tags)}
                       </div>
                     </section>
                   </div>
@@ -362,17 +400,21 @@ export function ServicesPage() {
                     ) : null}
                   </div>
                   <div className="member-service-tag-cloud" aria-label="유저 서비스 태그">
-                    {visibleTagOptions.map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        className={selectedTags.includes(tag) ? 'member-service-tag-chip is-active' : 'member-service-tag-chip'}
-                        aria-pressed={selectedTags.includes(tag)}
-                        onClick={() => toggleSelectedTag(tag)}
-                      >
-                        #{tag}
-                      </button>
-                    ))}
+                    {visibleTagOptions.length > 0 ? (
+                      visibleTagOptions.map((tag) => (
+                        <button
+                          key={tag}
+                          type="button"
+                          className={selectedTags.includes(tag) ? 'member-service-tag-chip is-active' : 'member-service-tag-chip'}
+                          aria-pressed={selectedTags.includes(tag)}
+                          onClick={() => toggleSelectedTag(tag)}
+                        >
+                          #{tag}
+                        </button>
+                      ))
+                    ) : (
+                      <span className="member-service-tag-empty">태그가 없습니다</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -448,12 +490,27 @@ export function ServicesPage() {
                   </label>
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">이미지</span>
-                    <input
-                      className="jcloud-input"
-                      placeholder="대표 이미지 URL"
-                      value={addDraft.imageUrl}
-                      onChange={(event) => setAddDraft({ ...addDraft, imageUrl: event.target.value })}
-                    />
+                    <div className="member-service-image-upload">
+                      <label className="ghost-button member-service-image-upload-button">
+                        <Icon name="image" size={15} />
+                        {isUploadingServiceImage ? '업로드 중...' : '이미지 첨부'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleServiceImageSelect}
+                          disabled={isUploadingServiceImage}
+                        />
+                      </label>
+                      {addDraft.imageUrl ? (
+                        <span
+                          className="member-service-image-preview"
+                          style={{ backgroundImage: `url(${addDraft.imageUrl})` }}
+                        />
+                      ) : (
+                        <span className="member-service-image-empty">첨부된 이미지가 없습니다</span>
+                      )}
+                    </div>
+                    {serviceImageError ? <p className="auth-error">{serviceImageError}</p> : null}
                   </label>
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">소개</span>
@@ -490,7 +547,12 @@ export function ServicesPage() {
                 >
                   {viewMode === 'card' ? (
                     <>
-                      <div className="member-service-media" style={{ backgroundImage: `url(${service.imageUrl})` }} />
+                      <div
+                        className={service.imageUrl ? 'member-service-media' : 'member-service-media member-service-media--empty'}
+                        style={service.imageUrl ? { backgroundImage: `url(${service.imageUrl})` } : undefined}
+                      >
+                        {!service.imageUrl ? <Icon name="image" size={22} /> : null}
+                      </div>
                       <div className="member-service-card-head">
                         <span className="member-service-status">{service.status}</span>
                         <Icon name="link" size={15} />
@@ -498,9 +560,7 @@ export function ServicesPage() {
                       <h3>{service.title}</h3>
                       <p>{service.summary}</p>
                       <div className="member-service-tags">
-                        {service.tags.map((tag) => (
-                          <span key={tag}>{tag}</span>
-                        ))}
+                        {renderServiceTags(service.tags)}
                       </div>
                       <footer className="member-service-card-footer">
                         <div>
@@ -517,9 +577,7 @@ export function ServicesPage() {
                         <h3>{service.title}</h3>
                         <p>{service.summary}</p>
                         <div className="member-service-tags">
-                          {service.tags.map((tag) => (
-                            <span key={tag}>{tag}</span>
-                          ))}
+                          {renderServiceTags(service.tags)}
                         </div>
                       </div>
                       <div className="member-service-list-side">

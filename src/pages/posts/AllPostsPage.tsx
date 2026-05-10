@@ -17,6 +17,7 @@ type AllPostsPageProps = {
 
 type EnrichedPost = PostListItem & { board?: BoardData }
 type PostBoardTabId = 'all' | PostBoardFilterId
+type PostListViewMode = 'card' | 'list'
 
 const avatarTones = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
 
@@ -31,6 +32,33 @@ function toAuthorTone(userId: number) {
   return avatarTones[userId % avatarTones.length]
 }
 
+function getPostImageUrl(post: PostListItem) {
+  const contentImageUrl = extractFirstContentImage(post.content)
+  return contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : null)
+}
+
+function PostListThumbnail({
+  imageUrl,
+  title,
+  viewMode,
+}: {
+  imageUrl: string | null
+  title: string
+  viewMode: PostListViewMode
+}) {
+  return (
+    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}${imageUrl ? '' : ' board-post-thumbnail--empty'}`}>
+      {imageUrl ? (
+        <img src={imageUrl} alt="" loading="lazy" />
+      ) : (
+        <span aria-label={`${title} 이미지 없음`}>
+          <Icon name="image" size={22} />
+        </span>
+      )}
+    </div>
+  )
+}
+
 export function AllPostsPage({
   onOpenPost,
   onWritePost,
@@ -42,6 +70,7 @@ export function AllPostsPage({
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
+  const [viewMode, setViewMode] = useState<PostListViewMode>('card')
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,6 +188,27 @@ export function AllPostsPage({
               </select>
             </label>
 
+            <div className="view-mode-toggle" role="group" aria-label="게시글 보기 방식">
+              <button
+                type="button"
+                className={viewMode === 'card' ? 'view-mode-button is-active' : 'view-mode-button'}
+                aria-pressed={viewMode === 'card'}
+                title="카드형"
+                onClick={() => setViewMode('card')}
+              >
+                <Icon name="layout" size={15} />
+              </button>
+              <button
+                type="button"
+                className={viewMode === 'list' ? 'view-mode-button is-active' : 'view-mode-button'}
+                aria-pressed={viewMode === 'list'}
+                title="리스트형"
+                onClick={() => setViewMode('list')}
+              >
+                <Icon name="list" size={15} />
+              </button>
+            </div>
+
             <button
               type="button"
               className="write-post-button write-post-button--board"
@@ -172,8 +222,8 @@ export function AllPostsPage({
           </div>
         </section>
 
-        <article className="surface-card board-shell">
-          <ul className="board-post-list">
+        <article className={`surface-card board-shell board-shell--${viewMode}`}>
+          <ul className={`board-post-list board-post-list--${viewMode}`}>
             {isLoading ? (
               <li className="empty-post-state">게시글을 불러오는 중...</li>
             ) : (
@@ -181,23 +231,17 @@ export function AllPostsPage({
                 const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
                 const categoryMeta = postCategoryMeta[category]
                 const compositeId = `${post.boardId}-${post.postId}`
-                const previewImageUrl = extractFirstContentImage(post.content)
+                const imageUrl = getPostImageUrl(post)
                 const summary = toPlainContentPreview(post.content)
 
                 return (
-                  <li key={compositeId} className="board-post-row">
+                  <li key={compositeId} className={`board-post-row board-post-row--${viewMode}`}>
                     <button
                       type="button"
-                      className={previewImageUrl ? 'board-post-card board-post-card--with-image' : 'board-post-card'}
+                      className={`board-post-card board-post-card--${viewMode}`}
                       onClick={() => onOpenPost(post.boardId, post.postId)}
                     >
-                      {previewImageUrl ? (
-                        <span
-                          className="board-post-thumbnail"
-                          style={{ backgroundImage: `url(${previewImageUrl})` }}
-                          aria-hidden="true"
-                        />
-                      ) : null}
+                      <PostListThumbnail imageUrl={imageUrl} title={post.title} viewMode={viewMode} />
 
                       <div className="board-post-main">
                         <div className="board-post-heading">
@@ -222,6 +266,10 @@ export function AllPostsPage({
                           <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
                         </p>
                       </div>
+
+                      {viewMode === 'list' ? (
+                        <PostListThumbnail imageUrl={imageUrl} title={post.title} viewMode={viewMode} />
+                      ) : null}
 
                       <div className="board-post-stats">
                         <span className="board-stat">
