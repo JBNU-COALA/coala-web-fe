@@ -15,6 +15,7 @@ import { Icon } from './shared/ui/Icon'
 import { useAuth } from './shared/auth/AuthContext'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { isAdminUser } from './shared/auth/adminAccess'
+import { notificationsApi, type NotificationItem } from './shared/api/notifications'
 import { routes } from './shared/routes'
 import {
   getFallbackInfoBoardIdByPostId,
@@ -33,6 +34,7 @@ const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then((m) =
 const InfoDetailPage = lazy(() => import('./pages/info/InfoDetailPage').then((m) => ({ default: m.InfoDetailPage })))
 const AuthPage = lazy(() => import('./pages/auth/AuthPage').then((m) => ({ default: m.AuthPage })))
 const EmailVerificationPage = lazy(() => import('./pages/auth/EmailVerificationPage').then((m) => ({ default: m.EmailVerificationPage })))
+const PasswordResetPage = lazy(() => import('./pages/auth/PasswordResetPage').then((m) => ({ default: m.PasswordResetPage })))
 const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then((m) => ({ default: m.RecruitPage })))
 const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then((m) => ({ default: m.RecruitDetailPage })))
 const RecruitApplyPage = lazy(() => import('./pages/recruit/RecruitApplyPage').then((m) => ({ default: m.RecruitApplyPage })))
@@ -199,6 +201,20 @@ function SettingsRedirect() {
   return <Navigate to={routes.users.detail(user.id)} replace />
 }
 
+function formatNotificationTime(value?: string | null) {
+  if (!value) return ''
+  try {
+    return new Date(value).toLocaleDateString('ko-KR', {
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+  } catch {
+    return value
+  }
+}
+
 function App() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -206,6 +222,11 @@ function App() {
   const [expandedMainNav, setExpandedMainNav] = useState<string | null>(null)
   const [suppressedMainNav, setSuppressedMainNav] = useState<string | null>(null)
   const [profileMenuOpen, setProfileMenuOpen] = useState(false)
+  const [notificationMenuOpen, setNotificationMenuOpen] = useState(false)
+  const [notifications, setNotifications] = useState<NotificationItem[]>([])
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
+  const [isNotificationLoading, setIsNotificationLoading] = useState(false)
+  const [notificationError, setNotificationError] = useState<string | null>(null)
   const mainNavRef = useRef<HTMLElement | null>(null)
   const closeSubNavTimerRef = useRef<number | null>(null)
   const releaseSubNavTimerRef = useRef<number | null>(null)
@@ -240,7 +261,11 @@ function App() {
   }, [clearSubNavTimers])
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
-  const isAuthRoute = activeRoute === 'login' || activeRoute === 'signup' || activeRoute === 'verifyEmail'
+  const isAuthRoute =
+    activeRoute === 'login' ||
+    activeRoute === 'signup' ||
+    activeRoute === 'verifyEmail' ||
+    activeRoute === 'passwordReset'
   const isAdminRoute = location.pathname.startsWith(routes.admin)
   const contextPanel = useMemo(
     () => buildContextPanel(activeRoute, location.pathname, location.search),
@@ -250,6 +275,7 @@ function App() {
   useEffect(() => {
     const closeOnRouteChange = window.setTimeout(() => {
       setProfileMenuOpen(false)
+      setNotificationMenuOpen(false)
       setExpandedMainNav(null)
     }, 0)
 
@@ -281,6 +307,38 @@ function App() {
   useEffect(() => {
     return clearSubNavTimers
   }, [clearSubNavTimers])
+
+  const loadNotifications = useCallback(async () => {
+    if (!isLoggedIn) return
+
+    setIsNotificationLoading(true)
+    setNotificationError(null)
+    try {
+      const [items, unread] = await Promise.all([
+        notificationsApi.getNotifications(),
+        notificationsApi.getUnreadCount(),
+      ])
+      setNotifications(items)
+      setUnreadNotificationCount(unread.count)
+    } catch {
+      setNotificationError('알림을 불러오지 못했습니다.')
+    } finally {
+      setIsNotificationLoading(false)
+    }
+  }, [isLoggedIn])
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setNotifications([])
+      setUnreadNotificationCount(0)
+      setNotificationMenuOpen(false)
+      return
+    }
+
+    notificationsApi.getUnreadCount()
+      .then((response) => setUnreadNotificationCount(response.count))
+      .catch(() => setUnreadNotificationCount(0))
+  }, [isLoggedIn, user?.id])
 
   const handleHeaderSubNavSelect = (path: string, parentId: string) => {
     navigate(path)
@@ -375,6 +433,7 @@ function App() {
   const handleLogout = async () => {
     await logout()
     setProfileMenuOpen(false)
+    setNotificationMenuOpen(false)
     navigate('/')
   }
 
@@ -388,6 +447,40 @@ function App() {
   const handleOpenAdmin = () => {
     setProfileMenuOpen(false)
     navigate(routes.admin)
+  }
+
+  const handleToggleNotifications = () => {
+    setProfileMenuOpen(false)
+    setNotificationMenuOpen((current) => {
+      const next = !current
+      if (next) void loadNotifications()
+      return next
+    })
+  }
+
+  const handleOpenNotification = async (notification: NotificationItem) => {
+    if (!notification.read) {
+      setNotifications((current) =>
+        current.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
+      )
+      setUnreadNotificationCount((current) => Math.max(0, current - 1))
+      notificationsApi.markRead(notification.id).catch(() => {})
+    }
+
+    setNotificationMenuOpen(false)
+    if (notification.linkUrl) {
+      navigate(notification.linkUrl)
+    }
+  }
+
+  const handleMarkAllNotificationsRead = async () => {
+    try {
+      await notificationsApi.markAllRead()
+      setNotifications((current) => current.map((item) => ({ ...item, read: true })))
+      setUnreadNotificationCount(0)
+    } catch {
+      setNotificationError('알림 읽음 처리에 실패했습니다.')
+    }
   }
 
   const handleMainNavClick = (itemId: string, hasSubItems: boolean) => {
@@ -573,6 +666,7 @@ function App() {
             )
           }
         />
+        <Route path="/password-reset" element={<PasswordResetPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>
@@ -654,47 +748,114 @@ function App() {
               <Icon name={mobileNavOpen ? 'chevron-down' : 'layout'} size={16} />
             </button>
             {isLoggedIn ? (
-              <div className="header-profile-menu">
-                <button
-                  type="button"
-                  className={`header-user-button${profileMenuOpen ? ' is-open' : ''}`}
-                  aria-expanded={profileMenuOpen}
-                  onClick={() => setProfileMenuOpen((value) => !value)}
-                >
-                  <span className="header-user-avatar">
-                    {(user?.name ?? user?.email ?? 'U').charAt(0)}
-                  </span>
-                  <span className="header-user-name">{user?.name ?? user?.email}</span>
-                  <Icon name={profileMenuOpen ? 'chevron-down' : 'chevron-right'} size={13} />
-                </button>
-                {profileMenuOpen ? (
-                  <div className="header-profile-popover">
-                    <div className="header-profile-summary">
-                      <span className="header-profile-summary-avatar">
-                        {(user?.name ?? user?.email ?? 'U').charAt(0)}
+              <>
+                <div className="header-notification-menu">
+                  <button
+                    type="button"
+                    className={`header-icon-button${notificationMenuOpen ? ' is-open' : ''}`}
+                    aria-label={`알림 ${unreadNotificationCount}개`}
+                    aria-expanded={notificationMenuOpen}
+                    onClick={handleToggleNotifications}
+                  >
+                    <Icon name="bell" size={17} />
+                    {unreadNotificationCount > 0 ? (
+                      <span className="header-notification-badge">
+                        {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
                       </span>
-                      <div>
-                        <strong>{user?.name ?? user?.email}</strong>
-                        <span>{user?.lab ?? user?.department ?? user?.email}</span>
-                      </div>
-                    </div>
-                    <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>
-                      <Icon name="user" size={14} />
-                      마이프로필
-                    </button>
-                    {isAdmin ? (
-                      <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
-                        <Icon name="settings" size={14} />
-                        관리자 대시보드
-                      </button>
                     ) : null}
-                    <button type="button" className="header-profile-menu-item" onClick={handleLogout}>
-                      <Icon name="chevron-right" size={14} />
-                      로그아웃하기
-                    </button>
-                  </div>
-                ) : null}
-              </div>
+                  </button>
+                  {notificationMenuOpen ? (
+                    <div className="header-notification-popover">
+                      <div className="header-notification-head">
+                        <strong>알림</strong>
+                        <button
+                          type="button"
+                          onClick={handleMarkAllNotificationsRead}
+                          disabled={unreadNotificationCount === 0}
+                        >
+                          모두 읽음
+                        </button>
+                      </div>
+                      {isNotificationLoading ? (
+                        <p className="header-notification-empty">알림을 불러오는 중...</p>
+                      ) : notificationError ? (
+                        <p className="header-notification-empty">{notificationError}</p>
+                      ) : notifications.length > 0 ? (
+                        <ul className="header-notification-list">
+                          {notifications.map((notification) => (
+                            <li key={notification.id}>
+                              <button
+                                type="button"
+                                className={
+                                  notification.read
+                                    ? 'header-notification-item'
+                                    : 'header-notification-item is-unread'
+                                }
+                                onClick={() => handleOpenNotification(notification)}
+                              >
+                                <span className="header-notification-icon">
+                                  <Icon name={notification.type === 'COMMENT' ? 'message' : 'book'} size={14} />
+                                </span>
+                                <span className="header-notification-copy">
+                                  <strong>{notification.title}</strong>
+                                  <span>{notification.message}</span>
+                                  <small>{formatNotificationTime(notification.createdAt)}</small>
+                                </span>
+                              </button>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="header-notification-empty">새 알림이 없습니다.</p>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
+                <div className="header-profile-menu">
+                  <button
+                    type="button"
+                    className={`header-user-button${profileMenuOpen ? ' is-open' : ''}`}
+                    aria-expanded={profileMenuOpen}
+                    onClick={() => {
+                      setNotificationMenuOpen(false)
+                      setProfileMenuOpen((value) => !value)
+                    }}
+                  >
+                    <span className="header-user-avatar">
+                      {(user?.name ?? user?.email ?? 'U').charAt(0)}
+                    </span>
+                    <span className="header-user-name">{user?.name ?? user?.email}</span>
+                    <Icon name={profileMenuOpen ? 'chevron-down' : 'chevron-right'} size={13} />
+                  </button>
+                  {profileMenuOpen ? (
+                    <div className="header-profile-popover">
+                      <div className="header-profile-summary">
+                        <span className="header-profile-summary-avatar">
+                          {(user?.name ?? user?.email ?? 'U').charAt(0)}
+                        </span>
+                        <div>
+                          <strong>{user?.name ?? user?.email}</strong>
+                          <span>{user?.lab ?? user?.department ?? user?.email}</span>
+                        </div>
+                      </div>
+                      <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>
+                        <Icon name="user" size={14} />
+                        마이프로필
+                      </button>
+                      {isAdmin ? (
+                        <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
+                          <Icon name="settings" size={14} />
+                          관리자 대시보드
+                        </button>
+                      ) : null}
+                      <button type="button" className="header-profile-menu-item" onClick={handleLogout}>
+                        <Icon name="chevron-right" size={14} />
+                        로그아웃하기
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </>
             ) : (
               <>
                 <button

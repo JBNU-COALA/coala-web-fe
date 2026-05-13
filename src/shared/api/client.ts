@@ -47,6 +47,7 @@ function isAuthEndpoint(url?: string) {
     '/api/auth/signup',
     '/api/auth/refresh',
     '/api/auth/email-verification',
+    '/api/auth/password-reset',
   ].some((endpoint) => pathname.startsWith(endpoint))
 }
 

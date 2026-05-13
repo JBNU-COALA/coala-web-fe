@@ -14,6 +14,7 @@ export type AppRoute =
   | 'login'
   | 'signup'
   | 'verifyEmail'
+  | 'passwordReset'
 
 export type HeaderRoute = 'about' | 'community' | 'game' | 'services'
 
@@ -71,6 +72,7 @@ export const routePathById: Record<AppRoute, string> = {
   login: '/login',
   signup: '/signup',
   verifyEmail: routes.auth.verifyEmail,
+  passwordReset: routes.auth.passwordReset,
 }
 
 export function getRouteFromPath(pathname: string): AppRoute {
@@ -87,6 +89,7 @@ export function getRouteFromPath(pathname: string): AppRoute {
   if (pathname.startsWith('/login')) return 'login'
   if (pathname.startsWith('/signup')) return 'signup'
   if (pathname.startsWith('/email-verification')) return 'verifyEmail'
+  if (pathname.startsWith('/password-reset')) return 'passwordReset'
   return 'home'
 }
 
@@ -123,6 +126,7 @@ export const routeLabelById: Record<AppRoute, string> = {
   login: '로그인',
   signup: '회원가입',
   verifyEmail: '이메일 인증',
+  passwordReset: '비밀번호 변경',
 }
 
 export function resolveServicesTab(pathname: string, search = ''): ServicesTab {

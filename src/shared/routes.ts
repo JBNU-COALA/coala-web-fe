@@ -23,6 +23,7 @@ export const routes = {
   },
   auth: {
     verifyEmail: '/email-verification',
+    passwordReset: '/password-reset',
   },
   services: {
     root: '/services',

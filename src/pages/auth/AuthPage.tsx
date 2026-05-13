@@ -326,6 +326,16 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
             {isLoading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
           </button>
 
+          {isLogin ? (
+            <button
+              type="button"
+              className="auth-switch"
+              onClick={() => navigate(routes.auth.passwordReset, { state: { email: email.trim().toLowerCase() } })}
+            >
+              비밀번호를 잊으셨나요? 비밀번호 변경
+            </button>
+          ) : null}
+
           <button type="button" className="auth-switch" onClick={onSwitchMode}>
             {isLogin ? '아직 계정이 없나요? 회원가입' : '이미 계정이 있나요? 로그인'}
           </button>

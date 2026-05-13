@@ -54,6 +54,16 @@ export type EmailVerificationResponse = {
   message: string
 }
 
+export type PasswordResetRequest = {
+  email: string
+}
+
+export type PasswordResetConfirmRequest = {
+  email: string
+  code: string
+  newPassword: string
+}
+
 export const authApi = {
   login: (data: LoginRequest) =>
     client.post<AuthResponse>('/api/auth/login', data).then((r) => r.data),
@@ -69,6 +79,16 @@ export const authApi = {
   confirmEmailVerification: (email: string, code: string) =>
     client
       .post<EmailVerificationResponse>('/api/auth/email-verification/confirm', { email, code })
+      .then((r) => r.data),
+
+  requestPasswordReset: (data: PasswordResetRequest) =>
+    client
+      .post<EmailVerificationResponse>('/api/auth/password-reset/request', data)
+      .then((r) => r.data),
+
+  confirmPasswordReset: (data: PasswordResetConfirmRequest) =>
+    client
+      .post<EmailVerificationResponse>('/api/auth/password-reset/confirm', data)
       .then((r) => r.data),
 
   logout: () => client.post('/api/auth/logout'),

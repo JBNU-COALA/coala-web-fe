@@ -214,8 +214,8 @@ export function AllPostsPage({
           </div>
         </section>
 
-        <article className={`surface-card board-shell board-shell--${viewMode}`}>
-          <ul className={`board-post-list board-post-list--${viewMode}`}>
+        <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
+          <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
             {isLoading ? (
               <li className="empty-post-state">게시글을 불러오는 중...</li>
             ) : (

@@ -147,8 +147,10 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
                 id="apply-student-id"
                 type="text"
                 className="jcloud-input"
-                placeholder="20210000"
-                pattern="\d{8}"
+                inputMode="numeric"
+                placeholder="202012237"
+                pattern="\d{9}"
+                title="학번은 202012237처럼 9자리 숫자로 입력해주세요."
                 value={resolvedStudentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 required

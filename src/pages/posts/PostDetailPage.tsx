@@ -327,7 +327,31 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
         style={isReply ? { marginLeft: 24 } : undefined}
       >
         <div className={isReply ? undefined : 'post-comment-item'}>
-          <strong>{comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}</strong>
+          <div className="post-comment-topline">
+            <div className="post-comment-author-block">
+              <strong className="post-comment-author">
+                {comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
+              </strong>
+              <span className="post-comment-time">{formatDate(comment.updatedAt ?? comment.createdAt)}</span>
+            </div>
+            {canManageComment && !isEditing ? (
+              <div className="post-comment-actions">
+                <button type="button" className="ghost-button" onClick={() => startEditComment(comment)}>
+                  수정
+                </button>
+                <button type="button" className="ghost-button" onClick={() => handleDeleteComment(comment.commentId)}>
+                  삭제
+                </button>
+              </div>
+            ) : null}
+            {isLoggedIn && !canManageComment && comment.status === 'ACTIVE' ? (
+              <div className="post-comment-actions">
+                <button type="button" className="ghost-button" onClick={() => handleReport('COMMENT', comment.commentId)}>
+                  신고
+                </button>
+              </div>
+            ) : null}
+          </div>
           {isEditing ? (
             <div className="post-comment-form">
               <input
@@ -352,26 +376,8 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
               </button>
             </div>
           ) : (
-            <p>{comment.content}</p>
+            <p className="post-comment-content">{comment.content}</p>
           )}
-          <span>{formatDate(comment.updatedAt ?? comment.createdAt)}</span>
-          {canManageComment && !isEditing ? (
-            <div className="post-header-actions">
-              <button type="button" className="ghost-button" onClick={() => startEditComment(comment)}>
-                수정
-              </button>
-              <button type="button" className="ghost-button" onClick={() => handleDeleteComment(comment.commentId)}>
-                삭제
-              </button>
-            </div>
-          ) : null}
-          {isLoggedIn && !canManageComment && comment.status === 'ACTIVE' ? (
-            <div className="post-header-actions">
-              <button type="button" className="ghost-button" onClick={() => handleReport('COMMENT', comment.commentId)}>
-                신고
-              </button>
-            </div>
-          ) : null}
           {isLoggedIn && !isReply && !isEditing ? (
             <button
               type="button"
