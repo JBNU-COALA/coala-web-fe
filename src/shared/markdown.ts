@@ -66,6 +66,23 @@ export function extractFirstMarkdownImageUrl(markdown: string) {
   return null
 }
 
+export function rewriteMarkdownImageUrls(markdown: string, rewriteUrl: (url: string) => string) {
+  return markdown
+    .replace(
+      /!\[([^\]]*)]\(\s*<?([^)\s>]+)>?(\s+["'][^"']*["'])?\s*\)/g,
+      (_match, alt: string, url: string, title: string | undefined) => {
+        const rewrittenUrl = rewriteUrl(url.trim())
+        return `![${alt}](<${rewrittenUrl}>${title ?? ''})`
+      },
+    )
+    .replace(
+      /(<img\b[^>]*\bsrc=(["']))([^"']+)(\2)/gi,
+      (_match, prefix: string, _quote: string, url: string, suffix: string) => (
+        `${prefix}${rewriteUrl(url.trim())}${suffix}`
+      ),
+    )
+}
+
 export function markdownToPlainText(markdown: string) {
   return markdown
     .replace(/!\[[^\]]*]\([^)]*\)/g, '')

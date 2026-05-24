@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
+import { resolveApiAssetUrl } from '../../shared/api/client'
+import { isCommunityBoard } from '../../shared/communityBoards'
 import { extractFirstContentImage } from '../../shared/contentPreview'
 import { Icon } from '../../shared/ui/Icon'
 
@@ -35,7 +37,8 @@ function sortByPopularity(posts: PostListItem[]) {
 
 function getPostThumbnailUrl(post: PostListItem) {
   const contentImageUrl = extractFirstContentImage(post.content)
-  return contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : '')
+  const thumbnailUrl = contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : '')
+  return resolveApiAssetUrl(thumbnailUrl)
 }
 
 export function PostCard({ onOpenAllPosts, onOpenPost, limit = 3, dashboard = false }: PostCardProps) {
@@ -45,8 +48,10 @@ export function PostCard({ onOpenAllPosts, onOpenPost, limit = 3, dashboard = fa
     const fetchRecentPosts = async () => {
       try {
         const boards = await boardsApi.getBoards(true)
-        const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
-        const all = sortByPopularity(postsArrays.flat())
+        const communityBoards = boards.filter(isCommunityBoard)
+        const targetBoards = communityBoards.length > 0 ? communityBoards : boards
+        const results = await Promise.allSettled(targetBoards.map((board) => postsApi.getPosts(board.boardId)))
+        const all = sortByPopularity(results.flatMap((result) => result.status === 'fulfilled' ? result.value : []))
         setPosts(all.slice(0, limit))
       } catch {
         setPosts([])

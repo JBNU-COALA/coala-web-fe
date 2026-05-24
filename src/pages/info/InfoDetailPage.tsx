@@ -3,7 +3,9 @@ import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
-import { copyMarkdown, type MarkdownCopyState } from '../../shared/markdown'
+import { copyMarkdown, rewriteMarkdownImageUrls, type MarkdownCopyState } from '../../shared/markdown'
+import { extractFirstContentImage } from '../../shared/contentPreview'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 
 type InfoDetailPageProps = {
   infoId: string
@@ -85,8 +87,10 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
   const copy = categoryCopy[item.filter]
   const title = item.title
   const markdown = item.content
+  const renderedMarkdown = rewriteMarkdownImageUrls(markdown, resolveApiAssetUrl)
   const tags = [copy.label, item.tag]
   const source = splitSource(item.source)
+  const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown))
 
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(markdown) ? 'copied' : 'error')
@@ -140,7 +144,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
           </div>
         </header>
 
-        <div className="post-cover post-cover--info">
+        <div className={coverImageUrl ? 'post-cover post-cover--info post-cover--has-media' : 'post-cover post-cover--info'}>
           <div className="post-cover-text">
             <span className={`board-context-pill board-context-pill--${copy.tone} post-cover-pill`}>
               {copy.label}
@@ -148,6 +152,12 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
             <p className="post-cover-subtitle">정보공유</p>
             <h1 className="post-cover-title">{title}</h1>
           </div>
+
+          {coverImageUrl ? (
+            <div className="post-cover-media" aria-hidden="true">
+              <img src={coverImageUrl} alt="" loading="lazy" />
+            </div>
+          ) : null}
 
           <div className="post-cover-meta">
             <div className="post-meta-author">
@@ -177,7 +187,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
 
           <MDEditor.Markdown
             className="post-content post-content--markdown"
-            source={markdown}
+            source={renderedMarkdown}
             style={{ whiteSpace: 'pre-wrap' }}
           />
         </div>

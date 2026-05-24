@@ -28,7 +28,19 @@ function resolveApiBaseUrl() {
   }
 }
 
-const apiBaseUrl = resolveApiBaseUrl()
+export const apiBaseUrl = resolveApiBaseUrl()
+
+export function resolveApiAssetUrl(url: string) {
+  if (!url || /^(?:data:|blob:|https?:\/\/|\/\/)/i.test(url)) return url
+  if (!url.startsWith('/api/')) return url
+
+  try {
+    const baseUrl = apiBaseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
+    return baseUrl ? new URL(url, baseUrl).toString() : url
+  } catch {
+    return url
+  }
+}
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean

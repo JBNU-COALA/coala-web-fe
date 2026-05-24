@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type {
+  ChangeEvent,
   ClipboardEvent,
   DragEvent,
   FormEvent,
   KeyboardEvent,
 } from 'react'
 import { isAxiosError } from 'axios'
-import MDEditor, { type ICommand } from '@uiw/react-md-editor/nohighlight'
+import MDEditor, { commands } from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
@@ -19,6 +20,7 @@ import {
   createMarkdownImageCommand,
   getMarkdownLengthWithoutInlineImageData,
   insertMarkdownBlockAtRange,
+  prepareMarkdownImageFile,
   readMarkdownImagesFromClipboard,
   readMarkdownImagesFromDrop,
 } from '../../shared/markdownImages'
@@ -123,6 +125,21 @@ function parseCompositeId(compositeId: string): { boardId: number; postId: numbe
   return { boardId, postId }
 }
 
+function getAttachmentIdFromUrl(value?: string | null) {
+  const match = value?.match(/\/api\/attachments\/(\d+)\/download\b/)
+  return match ? Number(match[1]) : null
+}
+
+function getAttachmentIdsFromText(value: string) {
+  return Array.from(value.matchAll(/\/api\/attachments\/(\d+)\/download\b/g))
+    .map((match) => Number(match[1]))
+    .filter((id) => Number.isFinite(id) && id > 0)
+}
+
+function uniqueIds(ids: Array<number | null | undefined>) {
+  return [...new Set(ids.filter((id): id is number => typeof id === 'number' && Number.isFinite(id) && id > 0))]
+}
+
 export function PostWriterPage({ onClose, writerType = 'community', editPostId }: PostWriterPageProps) {
   const { user } = useAuth()
   const editorRootRef = useRef<HTMLDivElement | null>(null)
@@ -142,8 +159,11 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [infoEditFilter, setInfoEditFilter] = useState<InfoFilterId | null>(null)
   const [infoSourceName, setInfoSourceName] = useState('코알라')
   const [infoSourceDate, setInfoSourceDate] = useState(() => new Date().toISOString().slice(0, 10))
+  const [infoImageUrl, setInfoImageUrl] = useState('')
+  const [infoImageAttachmentId, setInfoImageAttachmentId] = useState<number | null>(null)
   const [attachmentIds, setAttachmentIds] = useState<number[]>([])
   const [thumbnailAttachmentId, setThumbnailAttachmentId] = useState<number | null>(null)
+  const [isUploadingInfoImage, setIsUploadingInfoImage] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
   const isEditMode = Boolean(editPostId)
@@ -198,6 +218,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       setInfoEditFilter(null)
       setInfoSourceName('코알라')
       setInfoSourceDate(new Date().toISOString().slice(0, 10))
+      setInfoImageUrl('')
+      setInfoImageAttachmentId(null)
       return
     }
 
@@ -208,6 +230,10 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         setContent(post.content)
         setTagsInput(post.boardName ?? '')
         setSelectedBoardId(post.boardId)
+        setAttachmentIds([])
+        setThumbnailAttachmentId(post.thumbnailAttachmentId ?? null)
+        setInfoImageUrl('')
+        setInfoImageAttachmentId(null)
       }).catch(() => {
         setPublishError('수정할 게시글을 불러오지 못했습니다.')
       })
@@ -223,6 +249,16 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         setInfoEditFilter(article.filter)
         setInfoSourceName(article.sourceName || '코알라')
         setInfoSourceDate(article.sourceDate || new Date().toISOString().slice(0, 10))
+        const imageAttachmentId = getAttachmentIdFromUrl(article.imageUrl)
+        const nextAttachmentIds = uniqueIds([
+          ...(article.attachmentIds ?? []),
+          ...getAttachmentIdsFromText(article.content),
+          imageAttachmentId,
+        ])
+        setAttachmentIds(nextAttachmentIds)
+        setThumbnailAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? nextAttachmentIds[0] ?? null)
+        setInfoImageUrl(article.imageUrl || extractFirstMarkdownImageUrl(article.content) || '')
+        setInfoImageAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? null)
       }).catch(() => {})
     }
   }, [editPostId, writerType])
@@ -243,24 +279,74 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         const uploaded = await attachmentsApi.uploadImage(file)
         setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
         setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+        if (writerType === 'info') {
+          setInfoImageUrl((current) => current || uploaded.url)
+          setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
+        }
         return uploaded.url
       },
       onError: setImageError,
       getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
     }),
-    [],
+    [writerType],
   )
-  const markdownCommandFilter = useMemo(
-    () => (command: ICommand, isExtra: boolean) => {
-      if (!isExtra && command.name === 'image') return imageUploadCommand
-      return command
-    },
+  const editorCommands = useMemo(
+    () => [
+      commands.bold,
+      commands.italic,
+      commands.strikethrough,
+      commands.divider,
+      commands.title1,
+      commands.title2,
+      commands.title3,
+      commands.divider,
+      commands.link,
+      imageUploadCommand,
+      commands.quote,
+      commands.code,
+      commands.codeBlock,
+      commands.divider,
+      commands.unorderedListCommand,
+      commands.orderedListCommand,
+      commands.checkedListCommand,
+    ],
     [imageUploadCommand],
   )
 
   const handleCopyMarkdown = async () => {
     setCopyState(await copyMarkdown(content) ? 'copied' : 'error')
     setTimeout(() => setCopyState('idle'), 2000)
+  }
+
+  const handleInfoImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setIsUploadingInfoImage(true)
+    setImageError(null)
+    try {
+      const uploadFile = await prepareMarkdownImageFile(file)
+      const uploaded = await attachmentsApi.uploadImage(uploadFile)
+      setInfoImageUrl(uploaded.url)
+      setInfoImageAttachmentId(uploaded.attachmentId)
+      setAttachmentIds((current) => uniqueIds([...current, uploaded.attachmentId]))
+      setThumbnailAttachmentId(uploaded.attachmentId)
+    } catch (error) {
+      setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
+    } finally {
+      setIsUploadingInfoImage(false)
+    }
+  }
+
+  const clearInfoImage = () => {
+    const removedAttachmentId = infoImageAttachmentId ?? getAttachmentIdFromUrl(infoImageUrl)
+    setInfoImageUrl('')
+    setInfoImageAttachmentId(null)
+    if (removedAttachmentId) {
+      setAttachmentIds((current) => current.filter((id) => id !== removedAttachmentId))
+      setThumbnailAttachmentId((current) => (current === removedAttachmentId ? null : current))
+    }
   }
 
   const insertImagesIntoEditor = (textarea: HTMLTextAreaElement, markdown: string) => {
@@ -278,18 +364,23 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   }
 
   const handleEditorPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget
     try {
       const markdown = await readMarkdownImagesFromClipboard(event, {
         uploadImage: async (file) => {
           const uploaded = await attachmentsApi.uploadImage(file)
           setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
           setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+          if (writerType === 'info') {
+            setInfoImageUrl((current) => current || uploaded.url)
+            setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
+          }
           return uploaded.url
         },
         onError: setImageError,
       })
       if (markdown) {
-        insertImagesIntoEditor(event.currentTarget, markdown)
+        insertImagesIntoEditor(textarea, markdown)
         setImageError(null)
       }
     } catch (error) {
@@ -298,18 +389,23 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   }
 
   const handleEditorDrop = async (event: DragEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget
     try {
       const markdown = await readMarkdownImagesFromDrop(event, {
         uploadImage: async (file) => {
           const uploaded = await attachmentsApi.uploadImage(file)
           setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
           setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+          if (writerType === 'info') {
+            setInfoImageUrl((current) => current || uploaded.url)
+            setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
+          }
           return uploaded.url
         },
         onError: setImageError,
       })
       if (markdown) {
-        insertImagesIntoEditor(event.currentTarget, markdown)
+        insertImagesIntoEditor(textarea, markdown)
         setImageError(null)
       }
     } catch (error) {
@@ -370,9 +466,21 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         const selectedBoard = boards.find((board) => board.boardId === selectedBoardId)
         const filter = (selectedBoard ? resolveInfoBoardFilter(selectedBoard) : null) ?? 'news'
         const categoryLabel = selectedBoard?.boardName ?? infoFilterLabelById[filter]
-        const imageUrl = extractFirstMarkdownImageUrl(trimmedContent) ?? ''
+        const imageUrl = infoImageUrl.trim() || extractFirstMarkdownImageUrl(trimmedContent) || ''
         const trimmedMeta = tagsInput.trim()
         const meta = !trimmedMeta || infoCategoryLabels.has(trimmedMeta) ? categoryLabel : trimmedMeta
+        const nextAttachmentIds = uniqueIds([
+          ...attachmentIds,
+          ...getAttachmentIdsFromText(trimmedContent),
+          getAttachmentIdFromUrl(imageUrl),
+          infoImageAttachmentId,
+        ])
+        const nextThumbnailAttachmentId =
+          thumbnailAttachmentId
+          ?? infoImageAttachmentId
+          ?? getAttachmentIdFromUrl(imageUrl)
+          ?? nextAttachmentIds[0]
+          ?? null
         const payload = {
           filter: filter as InfoFilterId,
           tag: categoryLabel,
@@ -382,6 +490,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
           sourceDate: infoSourceDate,
           content: trimmedContent,
           imageUrl,
+          attachmentIds: nextAttachmentIds,
+          thumbnailAttachmentId: nextThumbnailAttachmentId,
         }
         if (editPostId && Number.isFinite(Number(editPostId))) {
           const updatedArticle = await infoApi.updateArticle(Number(editPostId), payload)
@@ -522,6 +632,37 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
               </div>
             )}
 
+            {writerType === 'info' ? (
+              <section className="info-writer-image-field" aria-label="정보공유 대표 이미지">
+                <div className="info-writer-image-copy">
+                  <strong>대표 이미지</strong>
+                  <span>{infoImageUrl ? '목록과 상세 상단에 표시됩니다.' : '이미지를 첨부하면 목록에서 바로 보입니다.'}</span>
+                </div>
+                {infoImageUrl ? (
+                  <div className="info-writer-image-preview">
+                    <img src={infoImageUrl} alt="" />
+                  </div>
+                ) : null}
+                <div className="info-writer-image-actions">
+                  <label className="ghost-button info-writer-image-button">
+                    <Icon name="image" size={15} />
+                    {isUploadingInfoImage ? '업로드 중...' : infoImageUrl ? '이미지 변경' : '이미지 첨부'}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp,image/gif"
+                      onChange={handleInfoImageChange}
+                      disabled={isUploadingInfoImage}
+                    />
+                  </label>
+                  {infoImageUrl ? (
+                    <button type="button" className="ghost-button" onClick={clearInfoImage}>
+                      제거
+                    </button>
+                  ) : null}
+                </div>
+              </section>
+            ) : null}
+
             <div
               ref={editorRootRef}
               className="pw-editor-wrap velog-editor-wrap"
@@ -534,7 +675,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 minHeight={420}
                 preview="live"
                 visibleDragbar
-                commandsFilter={markdownCommandFilter}
+                commands={editorCommands}
                 textareaProps={{
                   placeholder: copy.placeholder,
                   'aria-label': '게시글 본문 입력',

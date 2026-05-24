@@ -13,6 +13,8 @@ export type InfoArticle = {
   sourceDate: string
   content: string
   imageUrl: string
+  attachmentIds?: number[]
+  thumbnailAttachmentId?: number | null
   viewCount: number
   bookmarkCount: number
   createdAt?: string | null
@@ -28,6 +30,8 @@ export type InfoArticlePayload = {
   sourceDate: string
   content: string
   imageUrl: string
+  attachmentIds?: number[]
+  thumbnailAttachmentId?: number | null
 }
 
 export const infoApi = {

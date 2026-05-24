@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 
@@ -12,8 +13,8 @@ type ResourcesCardProps = {
 
 function getResourceThumbnailUrl(resource: InfoArticle) {
   const contentImageUrl = extractFirstContentImage(resource.content)
-  if (contentImageUrl) return contentImageUrl
-  return resource.imageUrl && !resource.imageUrl.includes('images.unsplash.com') ? resource.imageUrl : ''
+  const thumbnailUrl = contentImageUrl || resource.imageUrl || ''
+  return resolveApiAssetUrl(thumbnailUrl)
 }
 
 const infoResourceLabelByFilter: Record<InfoArticle['filter'], string> = {
@@ -28,9 +29,9 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
 
   useEffect(() => {
     infoApi.getArticles('all')
-      .then((items) => setResources(items.slice(0, 3)))
+      .then((items) => setResources(items.slice(0, dashboard ? 4 : 3)))
       .catch(() => setResources([]))
-  }, [])
+  }, [dashboard])
 
   return (
     <section className={dashboard ? 'surface-card panel resources-panel resources-panel--dashboard' : 'surface-card panel resources-panel'}>
@@ -51,12 +52,17 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
         </button>
       </header>
 
-      <ul className="resource-list">
-        {resources.map((resource) => {
+      <ul className={dashboard ? 'resource-list resource-list--cards' : 'resource-list'}>
+        {resources.length === 0 ? (
+          <li className="resource-item resource-item--empty">
+            정보공유 글이 없습니다.
+          </li>
+        ) : resources.map((resource) => {
           const thumbnailUrl = getResourceThumbnailUrl(resource)
+          const categoryLabel = infoResourceLabelByFilter[resource.filter] ?? resource.meta
 
           return (
-            <li key={resource.id} className="resource-item">
+            <li key={resource.id} className={dashboard ? 'resource-item resource-item--card' : 'resource-item'}>
               <button
                 type="button"
                 className={thumbnailUrl ? 'resource-item-button resource-item-button--with-thumbnail' : 'resource-item-button'}
@@ -69,14 +75,15 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
                     aria-hidden="true"
                   />
                 ) : (
-                  <span className="resource-icon resource-icon--mint">
+                  <span className={`resource-icon resource-icon--${resource.filter}`}>
                     <Icon name={resource.filter === 'resource' ? 'book' : resource.filter === 'contest' ? 'calendar' : 'file'} size={16} />
                   </span>
                 )}
                 <span className="resource-item-content">
+                  <span className={`resource-category resource-category--${resource.filter}`}>{categoryLabel}</span>
                   <span className="resource-title">{resource.title}</span>
                   <span className="resource-subtitle">{toPlainContentPreview(resource.content).slice(0, 80)}</span>
-                  <span className="resource-meta">정보공유 · {infoResourceLabelByFilter[resource.filter] ?? resource.meta}</span>
+                  <span className="resource-meta">정보공유 · 조회 {resource.viewCount}</span>
                 </span>
               </button>
             </li>

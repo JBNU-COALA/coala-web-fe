@@ -41,6 +41,17 @@ export type InstanceApplyPayload = {
   purpose: string
 }
 
+export type DomainApplyPayload = {
+  applicantName: string
+  studentId: string
+  contactEmail: string
+  serviceName: string
+  desiredAddress: string
+  repositoryUrl: string
+  targetUrl?: string
+  purpose: string
+}
+
 export type ApplyStatus = 'pending' | 'approved' | 'rejected'
 
 export type InstanceApplication = {
@@ -69,6 +80,23 @@ export type ServiceInquiry = {
   statusClass: string
 }
 
+export type DomainApplication = {
+  id: string
+  applicantName: string
+  studentId: string
+  contactEmail: string
+  serviceName: string
+  desiredAddress: string
+  requestedDomain: string
+  repositoryUrl: string
+  targetUrl?: string | null
+  purpose: string
+  requestedAt: string
+  processedAt?: string | null
+  status: ApplyStatus
+  adminNote?: string | null
+}
+
 export const servicesApi = {
   getMemberServices: () =>
     client.get<MemberService[]>('/api/services').then((response) => response.data),
@@ -90,6 +118,15 @@ export const servicesApi = {
 
   updateInstanceApplication: (applicationId: string, data: Partial<InstanceApplyPayload> & { status?: ApplyStatus; adminNote?: string }) =>
     client.patch<InstanceApplication>(`/api/services/instances/applications/${applicationId}`, data).then((response) => response.data),
+
+  getDomainApplications: () =>
+    client.get<DomainApplication[]>('/api/services/domains/applications').then((response) => response.data),
+
+  createDomainApplication: (data: DomainApplyPayload) =>
+    client.post<DomainApplication>('/api/services/domains/applications', data).then((response) => response.data),
+
+  updateDomainApplication: (applicationId: string, data: { status?: ApplyStatus; adminNote?: string }) =>
+    client.patch<DomainApplication>(`/api/services/domains/applications/${applicationId}`, data).then((response) => response.data),
 
   getInquiries: () =>
     client.get<ServiceInquiry[]>('/api/services/instances/inquiries').then((response) => response.data),

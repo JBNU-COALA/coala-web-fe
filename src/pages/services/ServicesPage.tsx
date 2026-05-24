@@ -4,6 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
+import { DomainApplyForm } from '../service/DomainApplyForm'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { servicesApi } from '../../shared/api/services'
 import { attachmentsApi } from '../../shared/api/attachments'
@@ -11,6 +12,7 @@ import { resolveServicesTab, type ServicesTab } from '../../navigation/navigatio
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type UserServiceViewMode = 'card' | 'list'
+type OfficialServiceMode = 'instance' | 'domain'
 export type MemberServiceStatus = '운영중' | '운영중지' | '운영종료'
 type ServiceStatusFilter = 'all' | MemberServiceStatus
 
@@ -90,6 +92,7 @@ export function ServicesPage() {
   const [serviceImageError, setServiceImageError] = useState<string | null>(null)
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false)
   const [addDraft, setAddDraft] = useState(emptyServiceDraft)
+  const [officialMode, setOfficialMode] = useState<OfficialServiceMode>('instance')
 
   const normalizedQuery = query.trim().toLowerCase()
   const activeTab: ServicesTab = resolveServicesTab(location.pathname, location.search)
@@ -265,12 +268,40 @@ export function ServicesPage() {
         ) : activeTab === 'official' ? (
           <div className="official-service-panel">
             <div className="service-menu-tabs surface-card" aria-label="공식 서비스 메뉴">
-              <button type="button" className="service-menu-tab is-active">
+              <button
+                type="button"
+                className={officialMode === 'instance' ? 'service-menu-tab is-active' : 'service-menu-tab'}
+                onClick={() => setOfficialMode('instance')}
+              >
                 <Icon name="network" size={22} />
                 <span>인스턴스 대여</span>
               </button>
+              <button
+                type="button"
+                className={officialMode === 'domain' ? 'service-menu-tab is-active' : 'service-menu-tab'}
+                onClick={() => setOfficialMode('domain')}
+              >
+                <Icon name="link" size={22} />
+                <span>도메인 신청</span>
+              </button>
             </div>
-            <ServicePage embedded />
+            {officialMode === 'instance' ? (
+              <ServicePage embedded />
+            ) : (
+              <div className="services-instance-panel">
+                <div className="jcloud-tab-shell surface-card">
+                  <div className="jcloud-tab-bar">
+                    <button type="button" className="jcloud-tab-btn is-active">
+                      <Icon name="plus" size={14} />
+                      신청 내역서
+                    </button>
+                  </div>
+                  <div className="jcloud-tab-content">
+                    <DomainApplyForm />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : selectedService ? (
               <article className="surface-card member-service-detail">

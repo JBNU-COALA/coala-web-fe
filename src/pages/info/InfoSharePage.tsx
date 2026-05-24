@@ -5,6 +5,7 @@ import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 
 type InfoSharePageProps = {
   onWriteInfo?: () => void
@@ -43,8 +44,8 @@ const infoLabelByFilter: Record<InfoFilterId, string> = {
 
 function getInfoImageUrl(card: InfoArticle) {
   const contentImageUrl = extractFirstContentImage(card.content)
-  if (contentImageUrl) return contentImageUrl
-  if (card.imageUrl && !card.imageUrl.includes('images.unsplash.com')) return card.imageUrl
+  if (contentImageUrl) return resolveApiAssetUrl(contentImageUrl)
+  if (card.imageUrl) return resolveApiAssetUrl(card.imageUrl)
   return null
 }
 
