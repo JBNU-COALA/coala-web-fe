@@ -8,6 +8,7 @@ import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 
 type AllPostsPageProps = {
   onOpenPost: (boardId: number, postId: number) => void
@@ -34,7 +35,8 @@ function toAuthorTone(userId: number) {
 
 function getPostImageUrl(post: PostListItem) {
   const contentImageUrl = extractFirstContentImage(post.content)
-  return contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : null)
+  const imageUrl = contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : '')
+  return imageUrl ? resolveApiAssetUrl(imageUrl) : null
 }
 
 function PostListThumbnail({

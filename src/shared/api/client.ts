@@ -75,22 +75,28 @@ client.interceptors.response.use(
   (response) => response,
   async (error) => {
     const original = error.config as RetryableRequestConfig | undefined
-    if (error.response?.status === 401 && original && !original._retry && !isAuthEndpoint(original.url)) {
+    const status = error.response?.status
+    const refreshToken = getRefreshToken()
+    const shouldRefresh =
+      (status === 401 || status === 403) &&
+      original &&
+      !original._retry &&
+      !isAuthEndpoint(original.url) &&
+      Boolean(refreshToken)
+
+    if (shouldRefresh) {
       original._retry = true
-      const refreshToken = getRefreshToken()
-      if (refreshToken) {
-        try {
-          const { data } = await axios.post(
-            `${apiBaseUrl || ''}/api/auth/refresh`,
-            { refreshToken },
-          ) as { data: AuthResponse }
-          setAuthSession(data)
-          original.headers.Authorization = `Bearer ${data.accessToken}`
-          return client(original)
-        } catch {
-          clearAuthSession()
-          window.location.href = '/login'
-        }
+      try {
+        const { data } = await axios.post(
+          `${apiBaseUrl || ''}/api/auth/refresh`,
+          { refreshToken },
+        ) as { data: AuthResponse }
+        setAuthSession(data)
+        original.headers.Authorization = `Bearer ${data.accessToken}`
+        return client(original)
+      } catch {
+        clearAuthSession()
+        window.location.href = '/login'
       }
     }
     return Promise.reject(error)

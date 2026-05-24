@@ -12,6 +12,7 @@ import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { attachmentsApi } from '../../shared/api/attachments'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 import { postsApi } from '../../shared/api/posts'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
@@ -640,7 +641,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 </div>
                 {infoImageUrl ? (
                   <div className="info-writer-image-preview">
-                    <img src={infoImageUrl} alt="" />
+                    <img src={resolveApiAssetUrl(infoImageUrl)} alt="" />
                   </div>
                 ) : null}
                 <div className="info-writer-image-actions">

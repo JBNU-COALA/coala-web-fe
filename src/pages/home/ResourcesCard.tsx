@@ -13,7 +13,10 @@ type ResourcesCardProps = {
 
 function getResourceThumbnailUrl(resource: InfoArticle) {
   const contentImageUrl = extractFirstContentImage(resource.content)
-  const thumbnailUrl = contentImageUrl || resource.imageUrl || ''
+  const thumbnailUrl =
+    contentImageUrl ||
+    resource.imageUrl ||
+    (resource.thumbnailAttachmentId ? `/api/attachments/${resource.thumbnailAttachmentId}/download` : '')
   return resolveApiAssetUrl(thumbnailUrl)
 }
 

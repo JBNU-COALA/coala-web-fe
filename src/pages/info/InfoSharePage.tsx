@@ -46,6 +46,7 @@ function getInfoImageUrl(card: InfoArticle) {
   const contentImageUrl = extractFirstContentImage(card.content)
   if (contentImageUrl) return resolveApiAssetUrl(contentImageUrl)
   if (card.imageUrl) return resolveApiAssetUrl(card.imageUrl)
+  if (card.thumbnailAttachmentId) return resolveApiAssetUrl(`/api/attachments/${card.thumbnailAttachmentId}/download`)
   return null
 }
 

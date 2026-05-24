@@ -8,8 +8,9 @@ import { postCategoryMeta } from '../../shared/postCategories'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
 import type { UserData } from '../../shared/api/auth'
-import { copyMarkdown, htmlToReadableMarkdown, type MarkdownCopyState } from '../../shared/markdown'
+import { copyMarkdown, htmlToReadableMarkdown, rewriteMarkdownImageUrls, type MarkdownCopyState } from '../../shared/markdown'
 import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 
 type PostDetailPageProps = {
   postId: string
@@ -303,7 +304,8 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const category = postCategoryMeta[categoryKey]
   const visiblePost = post
   const canManagePost = Boolean(user && user.id === post.userId && !post.locked && post.status === 'ACTIVE')
-  const safeContent = sanitizePostContent(visiblePost.content)
+  const renderedContent = rewriteMarkdownImageUrls(visiblePost.content, resolveApiAssetUrl)
+  const safeContent = sanitizePostContent(renderedContent)
   const isHtmlContent = isHtmlPostContent(visiblePost.content)
   const sourceMarkdown = isHtmlContent
     ? htmlToReadableMarkdown(visiblePost.content)
@@ -521,7 +523,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
           ) : (
             <MDEditor.Markdown
               className="post-content post-content--markdown"
-              source={visiblePost.content}
+              source={renderedContent}
               style={{ whiteSpace: 'pre-wrap' }}
             />
           )}

@@ -552,20 +552,62 @@ function App() {
             />
           }
         />
-        <Route path="/community/info/posts/new" element={<PostWriterPage writerType="info" onClose={() => navigate(routes.community.info)} />} />
-        <Route path="/community/info/:boardId/posts/:infoId/editor" element={<InfoPostEditorRoute />} />
+        <Route
+          path="/community/info/posts/new"
+          element={
+            <RequireAuth>
+              <PostWriterPage writerType="info" onClose={() => navigate(routes.community.info)} />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/community/info/:boardId/posts/:infoId/editor"
+          element={
+            <RequireAuth>
+              <InfoPostEditorRoute />
+            </RequireAuth>
+          }
+        />
         <Route path="/community/info/:boardId/posts/:infoId" element={<InfoDetailRoute />} />
-        <Route path="/community/info/posts/:infoId/editor" element={<LegacyInfoPostEditorRoute />} />
+        <Route
+          path="/community/info/posts/:infoId/editor"
+          element={
+            <RequireAuth>
+              <LegacyInfoPostEditorRoute />
+            </RequireAuth>
+          }
+        />
         <Route path="/community/info/posts/:infoId" element={<LegacyInfoDetailRoute />} />
         <Route
           path="/community/info/write"
           element={<Navigate to={routes.community.infoPostNew} replace />}
         />
         <Route path="/community/info/:infoId" element={<LegacyInfoDetailRoute />} />
-        <Route path="/community/board/posts/new" element={<PostWriterPage onClose={() => navigate(routes.community.board)} />} />
-        <Route path="/community/board/:boardId/posts/:postId/editor" element={<BoardPostEditorRoute />} />
+        <Route
+          path="/community/board/posts/new"
+          element={
+            <RequireAuth>
+              <PostWriterPage onClose={() => navigate(routes.community.board)} />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/community/board/:boardId/posts/:postId/editor"
+          element={
+            <RequireAuth>
+              <BoardPostEditorRoute />
+            </RequireAuth>
+          }
+        />
         <Route path="/community/board/:boardId/posts/:postId" element={<PostDetailRoute />} />
-        <Route path="/community/board/posts/:postId/editor" element={<LegacyBoardPostEditorRoute />} />
+        <Route
+          path="/community/board/posts/:postId/editor"
+          element={
+            <RequireAuth>
+              <LegacyBoardPostEditorRoute />
+            </RequireAuth>
+          }
+        />
         <Route path="/community/board/posts/:postId" element={<LegacyCommunityPostRoute />} />
         <Route path="/community/board/write" element={<Navigate to={routes.community.boardPostNew} replace />} />
         <Route path="/community/write" element={<Navigate to={routes.community.boardPostNew} replace />} />

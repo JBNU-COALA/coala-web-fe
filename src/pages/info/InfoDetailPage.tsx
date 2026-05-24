@@ -90,7 +90,10 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
   const renderedMarkdown = rewriteMarkdownImageUrls(markdown, resolveApiAssetUrl)
   const tags = [copy.label, item.tag]
   const source = splitSource(item.source)
-  const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown))
+  const fallbackAttachmentUrl = item.thumbnailAttachmentId
+    ? `/api/attachments/${item.thumbnailAttachmentId}/download`
+    : ''
+  const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown) || fallbackAttachmentUrl)
 
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(markdown) ? 'copied' : 'error')
