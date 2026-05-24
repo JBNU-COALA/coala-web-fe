@@ -620,13 +620,22 @@ function App() {
         <Route
           path="/community/recruit/notices/new"
           element={
-            <RecruitPage
-              initialMode="write"
-              onSelectRecruit={(id) => navigate(routes.community.recruitNotice(id))}
-            />
+            <RequireAuth>
+              <RecruitPage
+                initialMode="write"
+                onSelectRecruit={(id) => navigate(routes.community.recruitNotice(id))}
+              />
+            </RequireAuth>
           }
         />
-        <Route path="/community/recruit/applications/new" element={<RecruitApplyPage />} />
+        <Route
+          path="/community/recruit/applications/new"
+          element={
+            <RequireAuth>
+              <RecruitApplyPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/community/recruit/notices/:recruitId" element={<RecruitDetailRoute />} />
         <Route path="/community/recruit/write" element={<Navigate to={routes.community.recruitNoticeNew} replace />} />
         <Route path="/community/recruit/apply" element={<Navigate to={`/community/recruit/applications/new${location.search}`} replace />} />
