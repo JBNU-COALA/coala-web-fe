@@ -245,9 +245,11 @@ function RecruitList({
           <li key={item.id} className={`recruit-card recruit-card--page recruit-card--${item.category} surface-card`}>
             <button
               type="button"
-              className={previewImageUrl ? 'recruit-card-open recruit-card-open--with-image' : 'recruit-card-open'}
+              className="recruit-card-hitarea"
+              aria-label={`${item.title} 상세 모집 공고 보기`}
               onClick={() => onSelectRecruit(item.id)}
-            >
+            />
+            <div className={previewImageUrl ? 'recruit-card-open recruit-card-open--with-image' : 'recruit-card-open'}>
               {previewImageUrl ? (
                 <span
                   className="recruit-card-cover"
@@ -269,70 +271,69 @@ function RecruitList({
               <span className="recruit-card-author">
                 작성자 {item.authorName || item.host}
               </span>
-            </button>
 
-            <div className="recruit-card-meta-row" aria-label="모집 요약">
-              <span>{item.currentMembers}/{item.maxMembers}명</span>
-              <span>{item.createdAt}</span>
-              <span>{item.meetingType}</span>
-            </div>
+              <span className="recruit-card-meta-row" aria-label="모집 요약">
+                <span>{item.currentMembers}/{item.maxMembers}명</span>
+                <span>{item.createdAt}</span>
+                <span>{item.meetingType}</span>
+              </span>
 
-            <div className="recruit-card-techs" aria-label="기술 스택">
-              {techPreview.map((tech) => (
-                <span key={tech}>{tech}</span>
-              ))}
-            </div>
+              <span className="recruit-card-techs" aria-label="기술 스택">
+                {techPreview.map((tech) => (
+                  <span key={tech}>{tech}</span>
+                ))}
+              </span>
 
-            <div className="recruit-card-role-preview" aria-label="모집 역할">
-              {rolePreview.map((role) => (
-                <span key={role.label}>
-                  {role.label} {role.current}/{role.max}
-                </span>
-              ))}
-            </div>
+              <span className="recruit-card-role-preview" aria-label="모집 역할">
+                {rolePreview.map((role) => (
+                  <span key={role.label}>
+                    {role.label} {role.current}/{role.max}
+                  </span>
+                ))}
+              </span>
 
-            <div className="recruit-card-footer">
               <span className="recruit-card-members">
                 {item.expectedDuration}
               </span>
-              <div className="recruit-card-actions">
-                {variant === 'managed' ? (
+            </div>
+
+            <div className="recruit-card-actions recruit-card-actions--footer">
+              {variant === 'managed' ? (
+                <button
+                  type="button"
+                  className="recruit-save-chip"
+                  onClick={() => onSelectRecruit(item.id)}
+                >
+                  관리
+                </button>
+              ) : variant === 'applied' ? (
+                <span className="recruit-card-static-chip">지원 완료</span>
+              ) : (
+                <>
                   <button
                     type="button"
-                    className="recruit-save-chip"
-                    onClick={() => onSelectRecruit(item.id)}
+                    className={savedIds.has(item.id) ? 'recruit-save-chip recruit-save-chip--active' : 'recruit-save-chip'}
+                    aria-pressed={savedIds.has(item.id)}
+                    onClick={() => onToggleSaved(item.id)}
                   >
-                    관리
+                    {savedIds.has(item.id) ? '관심 중' : '관심'}
                   </button>
-                ) : variant === 'applied' ? (
-                  <span className="recruit-card-static-chip">지원 완료</span>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      className={savedIds.has(item.id) ? 'recruit-save-chip recruit-save-chip--active' : 'recruit-save-chip'}
-                      aria-pressed={savedIds.has(item.id)}
-                      onClick={() => onToggleSaved(item.id)}
-                    >
-                      {savedIds.has(item.id) ? '관심 중' : '관심'}
-                    </button>
-                    <button
-                      type="button"
-                      className={
-                        canApply
-                          ? 'recruit-apply-chip'
-                          : 'recruit-apply-chip recruit-apply-chip--closed'
-                      }
-                      disabled={!canApply}
-                      onClick={() => {
-                        if (canApply) onOpenApplication(item.id)
-                      }}
-                    >
-                      {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
-                    </button>
-                  </>
-                )}
-              </div>
+                  <button
+                    type="button"
+                    className={
+                      canApply
+                        ? 'recruit-apply-chip'
+                        : 'recruit-apply-chip recruit-apply-chip--closed'
+                    }
+                    disabled={!canApply}
+                    onClick={() => {
+                      if (canApply) onOpenApplication(item.id)
+                    }}
+                  >
+                    {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
+                  </button>
+                </>
+              )}
             </div>
           </li>
         )

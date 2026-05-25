@@ -143,6 +143,7 @@ function uniqueIds(ids: Array<number | null | undefined>) {
 
 export function PostWriterPage({ onClose, writerType = 'community', editPostId }: PostWriterPageProps) {
   const { user } = useAuth()
+  const infoAuthorName = user?.nickname?.trim() || user?.name || '코알라'
   const editorRootRef = useRef<HTMLDivElement | null>(null)
   const canWriteNotice = noticeWriterRoles.has(user?.role ?? '')
   const getWritableBoards = useCallback((list: BoardData[]) => (
@@ -158,7 +159,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [boards, setBoards] = useState<BoardData[]>(getWritableBoards(fallbackBoardsByType[writerType]))
   const [selectedBoardId, setSelectedBoardId] = useState<number | null>(getWritableBoards(fallbackBoardsByType[writerType])[0]?.boardId ?? null)
   const [infoEditFilter, setInfoEditFilter] = useState<InfoFilterId | null>(null)
-  const [infoSourceName, setInfoSourceName] = useState('코알라')
+  const [infoSourceName, setInfoSourceName] = useState(infoAuthorName)
   const [infoSourceDate, setInfoSourceDate] = useState(() => new Date().toISOString().slice(0, 10))
   const [infoImageUrl, setInfoImageUrl] = useState('')
   const [infoImageAttachmentId, setInfoImageAttachmentId] = useState<number | null>(null)
@@ -217,7 +218,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       setAttachmentIds([])
       setThumbnailAttachmentId(null)
       setInfoEditFilter(null)
-      setInfoSourceName('코알라')
+      setInfoSourceName(infoAuthorName)
       setInfoSourceDate(new Date().toISOString().slice(0, 10))
       setInfoImageUrl('')
       setInfoImageAttachmentId(null)
@@ -248,7 +249,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         setContent(article.content)
         setTagsInput(article.meta || article.tag)
         setInfoEditFilter(article.filter)
-        setInfoSourceName(article.sourceName || '코알라')
+        setInfoSourceName(article.authorName || article.sourceName || infoAuthorName)
         setInfoSourceDate(article.sourceDate || new Date().toISOString().slice(0, 10))
         const imageAttachmentId = getAttachmentIdFromUrl(article.imageUrl)
         const nextAttachmentIds = uniqueIds([
@@ -262,7 +263,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         setInfoImageAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? null)
       }).catch(() => {})
     }
-  }, [editPostId, writerType])
+  }, [editPostId, infoAuthorName, writerType])
 
   useEffect(() => {
     if (writerType !== 'info' || !infoEditFilter) return

@@ -28,11 +28,11 @@ function formatDate(dateStr: string) {
   })
 }
 
-function splitSource(source: string) {
+function splitSource(source: string, explicitName?: string | null, explicitDate?: string | null) {
   const [name, date] = source.split('|').map((part) => part.trim())
   return {
-    name: name || '코알라',
-    date: date || '',
+    name: explicitName || name || '코알라',
+    date: explicitDate || date || '',
   }
 }
 
@@ -89,7 +89,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
   const markdown = item.content
   const renderedMarkdown = rewriteMarkdownImageUrls(markdown, resolveApiAssetUrl)
   const tags = [copy.label, item.tag]
-  const source = splitSource(item.source)
+  const source = splitSource(item.source, item.authorName || item.sourceName, item.sourceDate)
   const fallbackAttachmentUrl = item.thumbnailAttachmentId
     ? `/api/attachments/${item.thumbnailAttachmentId}/download`
     : ''

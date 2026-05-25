@@ -211,7 +211,9 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
         <article className={`surface-card board-shell info-board-shell board-shell--${viewMode}`} aria-label="정보공유 목록">
           <ul className={`board-post-list info-list info-list--editorial board-post-list--${viewMode}`}>
             {visibleResources.map((card) => {
-              const [sourceName, sourceDate] = card.source.split('|').map((part) => part.trim())
+              const [fallbackSourceName, fallbackSourceDate] = card.source.split('|').map((part) => part.trim())
+              const sourceName = card.authorName || card.sourceName || fallbackSourceName
+              const sourceDate = card.sourceDate || fallbackSourceDate
               const summary = toPlainContentPreview(card.content)
               const imageUrl = getInfoImageUrl(card)
               const categoryLabel = infoLabelByFilter[card.filter]

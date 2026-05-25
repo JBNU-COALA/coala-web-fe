@@ -10,6 +10,8 @@ export type InfoArticle = {
   meta: string
   source: string
   sourceName: string
+  authorId?: number | null
+  authorName?: string | null
   sourceDate: string
   content: string
   imageUrl: string
