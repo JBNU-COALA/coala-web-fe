@@ -177,9 +177,28 @@
   font-weight: 800;
 }
 
+.admin-panel-subhead {
+  border-top: 1px solid #e1e9e5;
+  padding-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.admin-panel-subhead strong {
+  color: #1d2d27;
+  font-size: 15px;
+}
+
 .admin-form {
   display: grid;
   gap: 14px;
+}
+
+.admin-content-edit-form {
+  display: grid;
+  gap: 12px;
 }
 
 .admin-field {

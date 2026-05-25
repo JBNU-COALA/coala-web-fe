@@ -30,6 +30,8 @@ export type RecruitItem = {
   currentMembers: number
   maxMembers: number
   host: string
+  authorId?: number | null
+  authorName?: string | null
   hostInitials: string
   hostTone: RecruitAvatarTone
   hostRole: string
@@ -55,6 +57,7 @@ export type RecruitPostPayload = {
   techStack: string[]
   meetingType: string
   expectedDuration: string
+  status?: RecruitStatus
   tags: string[]
   detailContent: string[]
   processList: string[]
@@ -79,6 +82,12 @@ export const recruitsApi = {
 
   createRecruit: (data: RecruitPostPayload) =>
     client.post<RecruitItem>('/api/recruits', data).then((response) => response.data),
+
+  updateRecruit: (recruitId: string, data: RecruitPostPayload) =>
+    client.patch<RecruitItem>(`/api/recruits/${recruitId}`, data).then((response) => response.data),
+
+  deleteRecruit: (recruitId: string) =>
+    client.delete<void>(`/api/recruits/${recruitId}`).then((response) => response.data),
 
   getComments: (recruitId: string) =>
     client.get<RecruitComment[]>(`/api/recruits/${recruitId}/comments`).then((response) => response.data),

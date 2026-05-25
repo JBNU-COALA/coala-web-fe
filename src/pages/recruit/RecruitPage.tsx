@@ -35,6 +35,9 @@ const writeCategories = categories.filter(
 )
 
 const recruitCategoryTabs = writeCategories
+const recruitCategoryLabel = Object.fromEntries(
+  writeCategories.map((category) => [category.id, category.label]),
+) as Record<RecruitCategory, string>
 
 const filters: { id: RecruitFilterId; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -226,7 +229,7 @@ function RecruitList({
   onToggleSaved,
 }: RecruitListProps) {
   return (
-    <ul className="recruit-list">
+    <ul className={`recruit-card-grid recruit-card-grid--${variant}`}>
       {items.map((item) => {
         const isOpen = item.status === 'open'
         const isClosingSoon = item.status === 'closing-soon'
@@ -235,70 +238,101 @@ function RecruitList({
         const previewSource = [item.shortDesc, ...item.detailContent].join('\n')
         const previewImageUrl = extractFirstContentImage(previewSource)
         const summary = toPlainContentPreview(item.shortDesc) || toPlainContentPreview(item.detailContent.join(' '))
+        const techPreview = item.techStack.slice(0, 4)
+        const rolePreview = item.roles.slice(0, 3)
 
         return (
-          <li key={item.id} className="recruit-list-row surface-card">
+          <li key={item.id} className={`recruit-card recruit-card--page recruit-card--${item.category} surface-card`}>
             <button
               type="button"
-              className={previewImageUrl ? 'recruit-row-main recruit-row-main--with-image' : 'recruit-row-main'}
+              className={previewImageUrl ? 'recruit-card-open recruit-card-open--with-image' : 'recruit-card-open'}
               onClick={() => onSelectRecruit(item.id)}
             >
               {previewImageUrl ? (
                 <span
-                  className="recruit-row-thumbnail"
+                  className="recruit-card-cover"
                   style={{ backgroundImage: `url(${previewImageUrl})` }}
                   aria-hidden="true"
                 />
               ) : null}
-              <span className={`recruit-status-pill ${getStatusClass(item.status)}`}>
-                <span className="recruit-status-dot" />
-                {getStatusLabel(item.status)}
+              <span className="recruit-card-topline">
+                <span className={`recruit-status-pill ${getStatusClass(item.status)}`}>
+                  <span className="recruit-status-dot" />
+                  {getStatusLabel(item.status)}
+                </span>
+                <span className={`recruit-category-chip recruit-category-chip--${item.category}`}>
+                  {recruitCategoryLabel[item.category]}
+                </span>
               </span>
-              <span className="recruit-row-copy">
-                <strong>{item.title}</strong>
-                <span>{summary}</span>
+              <strong className="recruit-card-title">{item.title}</strong>
+              <span className="recruit-card-desc">{summary}</span>
+              <span className="recruit-card-author">
+                작성자 {item.authorName || item.host}
               </span>
             </button>
 
-            <div className="recruit-row-meta">
+            <div className="recruit-card-meta-row" aria-label="모집 요약">
               <span>{item.currentMembers}/{item.maxMembers}명</span>
               <span>{item.createdAt}</span>
-              <span>{item.techStack.slice(0, 2).join(', ')}</span>
+              <span>{item.meetingType}</span>
             </div>
 
-            <div className="recruit-row-actions">
-              {variant === 'managed' ? (
-                <button
-                  type="button"
-                  className="recruit-row-button"
-                  onClick={() => onSelectRecruit(item.id)}
-                >
-                  관리
-                </button>
-              ) : variant === 'applied' ? (
-                <span className="recruit-row-static-chip">지원 완료</span>
-              ) : (
-                <>
+            <div className="recruit-card-techs" aria-label="기술 스택">
+              {techPreview.map((tech) => (
+                <span key={tech}>{tech}</span>
+              ))}
+            </div>
+
+            <div className="recruit-card-role-preview" aria-label="모집 역할">
+              {rolePreview.map((role) => (
+                <span key={role.label}>
+                  {role.label} {role.current}/{role.max}
+                </span>
+              ))}
+            </div>
+
+            <div className="recruit-card-footer">
+              <span className="recruit-card-members">
+                {item.expectedDuration}
+              </span>
+              <div className="recruit-card-actions">
+                {variant === 'managed' ? (
                   <button
                     type="button"
-                    className={savedIds.has(item.id) ? 'recruit-row-button is-active' : 'recruit-row-button'}
-                    aria-pressed={savedIds.has(item.id)}
-                    onClick={() => onToggleSaved(item.id)}
+                    className="recruit-save-chip"
+                    onClick={() => onSelectRecruit(item.id)}
                   >
-                    {savedIds.has(item.id) ? '관심 중' : '관심'}
+                    관리
                   </button>
-                  <button
-                    type="button"
-                    className={isApplied ? 'recruit-row-button recruit-row-button--primary is-active' : 'recruit-row-button recruit-row-button--primary'}
-                    disabled={!canApply}
-                    onClick={() => {
-                      if (canApply) onOpenApplication(item.id)
-                    }}
-                  >
-                    {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
-                  </button>
-                </>
-              )}
+                ) : variant === 'applied' ? (
+                  <span className="recruit-card-static-chip">지원 완료</span>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      className={savedIds.has(item.id) ? 'recruit-save-chip recruit-save-chip--active' : 'recruit-save-chip'}
+                      aria-pressed={savedIds.has(item.id)}
+                      onClick={() => onToggleSaved(item.id)}
+                    >
+                      {savedIds.has(item.id) ? '관심 중' : '관심'}
+                    </button>
+                    <button
+                      type="button"
+                      className={
+                        canApply
+                          ? 'recruit-apply-chip'
+                          : 'recruit-apply-chip recruit-apply-chip--closed'
+                      }
+                      disabled={!canApply}
+                      onClick={() => {
+                        if (canApply) onOpenApplication(item.id)
+                      }}
+                    >
+                      {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
+                    </button>
+                  </>
+                )}
+              </div>
             </div>
           </li>
         )

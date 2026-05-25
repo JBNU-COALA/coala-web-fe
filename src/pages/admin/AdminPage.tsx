@@ -3,6 +3,7 @@ import { Link, Navigate } from 'react-router-dom'
 import {
   adminApi,
   type AdminActionLog,
+  type AdminContentItem,
   type AdminPostStatus,
   type AdminReport,
   type AdminReportStatus,
@@ -11,7 +12,8 @@ import {
 } from '../../shared/api/admin'
 import type { UserData } from '../../shared/api/auth'
 import type { BoardData, BoardType } from '../../shared/api/boards'
-import type { PostListItem } from '../../shared/api/posts'
+import type { InfoArticle, InfoArticlePayload, InfoFilterId } from '../../shared/api/info'
+import type { RecruitCategory, RecruitItem, RecruitPostPayload, RecruitStatus } from '../../shared/api/recruits'
 import { siteApi, type SiteAboutContent } from '../../shared/api/site'
 import type { ApplyStatus, InstanceApplication, MemberService, MemberServicePayload, ServiceInquiry } from '../../shared/api/services'
 import { isAdminUser } from '../../shared/auth/adminAccess'
@@ -28,6 +30,31 @@ type ServiceDraft = {
   summary: string
   url: string
   tagsText: string
+}
+
+type InfoEditDraft = {
+  title: string
+  filter: InfoFilterId
+  tag: string
+  meta: string
+  sourceName: string
+  sourceDate: string
+  content: string
+  imageUrl: string
+}
+
+type RecruitEditDraft = {
+  title: string
+  category: RecruitCategory
+  status: RecruitStatus
+  shortDesc: string
+  rolesText: string
+  techStackText: string
+  meetingType: string
+  expectedDuration: string
+  tagsText: string
+  detailContentText: string
+  processListText: string
 }
 
 type InstanceDraft = {
@@ -69,6 +96,31 @@ const postStatusOptions: { value: AdminPostStatus | 'ALL'; label: string }[] = [
   { value: 'PENDING', label: '대기' },
 ]
 
+const contentTypeLabel: Record<AdminContentItem['contentType'], string> = {
+  POST: '게시판',
+  INFO: '정보공유',
+  RECRUIT: '모집',
+}
+
+const infoFilterOptions: { value: InfoFilterId; label: string }[] = [
+  { value: 'news', label: '소식' },
+  { value: 'contest', label: '대회' },
+  { value: 'lab', label: '연구실' },
+  { value: 'resource', label: '자료' },
+]
+
+const recruitCategoryOptions: { value: RecruitCategory; label: string }[] = [
+  { value: 'study', label: '스터디' },
+  { value: 'project', label: '프로젝트' },
+  { value: 'tutoring', label: '멘토링' },
+]
+
+const recruitStatusOptions: { value: RecruitStatus; label: string }[] = [
+  { value: 'open', label: '모집중' },
+  { value: 'closing-soon', label: '마감 임박' },
+  { value: 'closed', label: '마감' },
+]
+
 const reportStatusOptions: { value: AdminReportStatus; label: string }[] = [
   { value: 'PENDING', label: '미처리' },
   { value: 'AUTO_HIDDEN', label: '자동 숨김' },
@@ -108,6 +160,31 @@ const defaultAboutContent: SiteAboutContent = {
   chips: ['프로젝트', '스터디', '서비스 운영', '커뮤니티'],
 }
 
+const emptyInfoDraft: InfoEditDraft = {
+  title: '',
+  filter: 'news',
+  tag: '소식',
+  meta: '',
+  sourceName: '',
+  sourceDate: new Date().toISOString().slice(0, 10),
+  content: '',
+  imageUrl: '',
+}
+
+const emptyRecruitDraft: RecruitEditDraft = {
+  title: '',
+  category: 'project',
+  status: 'open',
+  shortDesc: '',
+  rolesText: '',
+  techStackText: '',
+  meetingType: '',
+  expectedDuration: '',
+  tagsText: '',
+  detailContentText: '',
+  processListText: '',
+}
+
 function formatDate(value?: string | null) {
   if (!value) return '-'
   const date = new Date(value)
@@ -140,6 +217,34 @@ function cssToken(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, '-')
 }
 
+function listFromText(value: string) {
+  return value
+    .split(/[\n,]/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function paragraphListFromText(value: string) {
+  return value
+    .split(/\n{2,}|\n/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function parseRecruitRoles(value: string) {
+  const roles = value
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .map((line) => {
+      const matched = line.match(/^(.+?)[\s:：/]+(\d+)$/)
+      if (!matched) return { label: line, max: 1 }
+      return { label: matched[1].trim(), max: Number(matched[2]) || 1 }
+    })
+
+  return roles.length > 0 ? roles : [{ label: '팀원', max: 1 }]
+}
+
 function toServicePayload(draft: ServiceDraft): MemberServicePayload {
   return {
     title: draft.title.trim(),
@@ -150,6 +255,68 @@ function toServicePayload(draft: ServiceDraft): MemberServicePayload {
       .split(',')
       .map((tag) => tag.trim())
       .filter(Boolean),
+  }
+}
+
+function infoToDraft(article: InfoArticle): InfoEditDraft {
+  return {
+    title: article.title,
+    filter: article.filter,
+    tag: article.tag,
+    meta: article.meta,
+    sourceName: article.sourceName,
+    sourceDate: article.sourceDate,
+    content: article.content,
+    imageUrl: article.imageUrl,
+  }
+}
+
+function toInfoPayload(draft: InfoEditDraft): InfoArticlePayload {
+  const fallbackLabel = infoFilterOptions.find((option) => option.value === draft.filter)?.label ?? '소식'
+  return {
+    filter: draft.filter,
+    tag: draft.tag.trim() || fallbackLabel,
+    title: draft.title.trim(),
+    meta: draft.meta.trim() || fallbackLabel,
+    sourceName: draft.sourceName.trim() || '코알라',
+    sourceDate: draft.sourceDate || new Date().toISOString().slice(0, 10),
+    content: draft.content.trim(),
+    imageUrl: draft.imageUrl.trim(),
+  }
+}
+
+function recruitToDraft(recruit: RecruitItem): RecruitEditDraft {
+  return {
+    title: recruit.title,
+    category: recruit.category,
+    status: recruit.status,
+    shortDesc: recruit.shortDesc,
+    rolesText: recruit.roles.map((role) => `${role.label}:${role.max}`).join('\n'),
+    techStackText: recruit.techStack.join(', '),
+    meetingType: recruit.meetingType,
+    expectedDuration: recruit.expectedDuration,
+    tagsText: recruit.tags.join(', '),
+    detailContentText: recruit.detailContent.join('\n\n'),
+    processListText: recruit.processList.join('\n'),
+  }
+}
+
+function toRecruitPayload(draft: RecruitEditDraft): RecruitPostPayload {
+  const techStack = listFromText(draft.techStackText)
+  const detailContent = paragraphListFromText(draft.detailContentText)
+  const processList = paragraphListFromText(draft.processListText)
+  return {
+    title: draft.title.trim(),
+    shortDesc: draft.shortDesc.trim(),
+    category: draft.category,
+    status: draft.status,
+    roles: parseRecruitRoles(draft.rolesText),
+    techStack: techStack.length > 0 ? techStack : ['협업'],
+    meetingType: draft.meetingType.trim() || '협의 후 결정',
+    expectedDuration: draft.expectedDuration.trim() || '협의 후 결정',
+    tags: listFromText(draft.tagsText),
+    detailContent: detailContent.length > 0 ? detailContent : [draft.shortDesc.trim()],
+    processList: processList.length > 0 ? processList : ['지원자 확인'],
   }
 }
 
@@ -198,7 +365,7 @@ export function AdminPage() {
   const [statusMessage, setStatusMessage] = useState('관리자 데이터를 불러오는 중입니다.')
   const [users, setUsers] = useState<UserData[]>([])
   const [boards, setBoards] = useState<BoardData[]>([])
-  const [posts, setPosts] = useState<PostListItem[]>([])
+  const [posts, setPosts] = useState<AdminContentItem[]>([])
   const [reports, setReports] = useState<AdminReport[]>([])
   const [auditLogs, setAuditLogs] = useState<AdminActionLog[]>([])
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
@@ -206,7 +373,7 @@ export function AdminPage() {
   const [inquiries, setInquiries] = useState<ServiceInquiry[]>([])
   const [aboutContent, setAboutContent] = useState<SiteAboutContent>(defaultAboutContent)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
-  const [selectedPostId, setSelectedPostId] = useState<number | null>(null)
+  const [selectedContentKey, setSelectedContentKey] = useState<string | null>(null)
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null)
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
   const [postStatus, setPostStatus] = useState<AdminPostStatus | 'ALL'>('ALL')
@@ -230,9 +397,12 @@ export function AdminPage() {
     adminNote: '',
   })
   const [aboutDraft, setAboutDraft] = useState<AboutDraft>(() => aboutToDraft(defaultAboutContent))
+  const [infoDraft, setInfoDraft] = useState<InfoEditDraft>(emptyInfoDraft)
+  const [recruitDraft, setRecruitDraft] = useState<RecruitEditDraft>(emptyRecruitDraft)
+  const [isContentDraftLoading, setIsContentDraftLoading] = useState(false)
 
   const selectedUser = users.find((item) => item.id === selectedUserId) ?? null
-  const selectedPost = posts.find((item) => item.postId === selectedPostId) ?? null
+  const selectedPost = posts.find((item) => item.contentKey === selectedContentKey) ?? null
   const selectedService = memberServices.find((item) => item.id === selectedServiceId) ?? null
   const selectedInstance = instanceApplications.find((item) => item.id === selectedInstanceId) ?? null
 
@@ -335,7 +505,11 @@ export function AdminPage() {
     if (boardsResult.status === 'fulfilled') setBoards(boardsResult.value)
     if (postsResult.status === 'fulfilled') {
       setPosts(postsResult.value)
-      setSelectedPostId((current) => current ?? postsResult.value[0]?.postId ?? null)
+      setSelectedContentKey((current) =>
+        postsResult.value.some((item) => item.contentKey === current)
+          ? current
+          : postsResult.value[0]?.contentKey ?? null,
+      )
     }
     if (reportsResult.status === 'fulfilled') setReports(reportsResult.value)
     if (logsResult.status === 'fulfilled') setAuditLogs(logsResult.value)
@@ -373,6 +547,62 @@ export function AdminPage() {
   useEffect(() => {
     if (selectedInstance) setInstanceDraft(instanceToDraft(selectedInstance))
   }, [selectedInstance])
+
+  useEffect(() => {
+    if (!selectedPost) {
+      setInfoDraft(emptyInfoDraft)
+      setRecruitDraft(emptyRecruitDraft)
+      return
+    }
+
+    let isCurrent = true
+    if (selectedPost.contentType === 'INFO' && selectedPost.postId) {
+      setIsContentDraftLoading(true)
+      adminApi.getInfoArticle(selectedPost.postId)
+        .then((article) => {
+          if (isCurrent) setInfoDraft(infoToDraft(article))
+        })
+        .catch(() => {
+          if (isCurrent) {
+            setInfoDraft({
+              ...emptyInfoDraft,
+              title: selectedPost.title,
+              sourceName: selectedPost.authorName ?? '',
+              content: selectedPost.content,
+            })
+            setStatusMessage('정보공유 상세를 불러오지 못해 목록 데이터로 편집 폼을 채웠습니다.')
+          }
+        })
+        .finally(() => {
+          if (isCurrent) setIsContentDraftLoading(false)
+        })
+    } else if (selectedPost.contentType === 'RECRUIT' && selectedPost.externalId) {
+      setIsContentDraftLoading(true)
+      adminApi.getRecruit(selectedPost.externalId)
+        .then((recruit) => {
+          if (isCurrent) setRecruitDraft(recruitToDraft(recruit))
+        })
+        .catch(() => {
+          if (isCurrent) {
+            setRecruitDraft({
+              ...emptyRecruitDraft,
+              title: selectedPost.title,
+              detailContentText: selectedPost.content,
+            })
+            setStatusMessage('모집 상세를 불러오지 못해 목록 데이터로 편집 폼을 채웠습니다.')
+          }
+        })
+        .finally(() => {
+          if (isCurrent) setIsContentDraftLoading(false)
+        })
+    } else {
+      setIsContentDraftLoading(false)
+    }
+
+    return () => {
+      isCurrent = false
+    }
+  }, [selectedPost])
 
   if (!user) return <Navigate to="/login" replace />
 
@@ -475,6 +705,10 @@ export function AdminPage() {
 
   const runPostAction = async (action: 'hide' | 'restore' | 'delete' | 'lock' | 'unlock') => {
     if (!selectedPost) return
+    if (selectedPost.contentType !== 'POST' || !selectedPost.postId) {
+      setStatusMessage('일반 게시판 글만 숨김/잠금 조치를 사용할 수 있습니다.')
+      return
+    }
     const actionLabel = {
       hide: '게시글 숨김',
       restore: '게시글 복구',
@@ -496,6 +730,58 @@ export function AdminPage() {
       await refreshAuditLogs()
     } catch {
       setStatusMessage(`${actionLabel} 처리에 실패했습니다.`)
+    }
+  }
+
+  const saveInfoContent = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!selectedPost?.postId || selectedPost.contentType !== 'INFO') return
+    const payload = toInfoPayload(infoDraft)
+    if (!payload.title || !payload.content) return
+    try {
+      const saved = await adminApi.updateInfoArticle(selectedPost.postId, payload)
+      setInfoDraft(infoToDraft(saved))
+      setPosts(await adminApi.getPosts(postStatus))
+      setSelectedContentKey(`info-${saved.id}`)
+      setStatusMessage('정보공유 글을 수정했습니다.')
+    } catch {
+      setStatusMessage('정보공유 글 수정에 실패했습니다.')
+    }
+  }
+
+  const saveRecruitContent = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!selectedPost?.externalId || selectedPost.contentType !== 'RECRUIT') return
+    const payload = toRecruitPayload(recruitDraft)
+    if (!payload.title || !payload.shortDesc || payload.techStack.length === 0 || payload.detailContent.length === 0) return
+    try {
+      const saved = await adminApi.updateRecruit(selectedPost.externalId, payload)
+      setRecruitDraft(recruitToDraft(saved))
+      setPosts(await adminApi.getPosts(postStatus))
+      setSelectedContentKey(`recruit-${saved.id}`)
+      setStatusMessage('모집 공고를 수정했습니다.')
+    } catch {
+      setStatusMessage('모집 공고 수정에 실패했습니다.')
+    }
+  }
+
+  const deleteSelectedExternalContent = async () => {
+    if (!selectedPost || selectedPost.contentType === 'POST') return
+    if (!window.confirm(`${contentTypeLabel[selectedPost.contentType]} 글을 삭제할까요?`)) return
+
+    try {
+      if (selectedPost.contentType === 'INFO' && selectedPost.postId) {
+        await adminApi.deleteInfoArticle(selectedPost.postId)
+      }
+      if (selectedPost.contentType === 'RECRUIT' && selectedPost.externalId) {
+        await adminApi.deleteRecruit(selectedPost.externalId)
+      }
+      const nextPosts = await adminApi.getPosts(postStatus)
+      setPosts(nextPosts)
+      setSelectedContentKey(nextPosts[0]?.contentKey ?? null)
+      setStatusMessage(`${contentTypeLabel[selectedPost.contentType]} 글을 삭제했습니다.`)
+    } catch {
+      setStatusMessage(`${contentTypeLabel[selectedPost.contentType]} 글 삭제에 실패했습니다.`)
     }
   }
 
@@ -873,46 +1159,241 @@ export function AdminPage() {
                 <div className="admin-list">
                   {posts.map((post) => (
                     <button
-                      key={post.postId}
+                      key={post.contentKey}
                       type="button"
-                      className={selectedPostId === post.postId ? 'admin-list-row is-active' : 'admin-list-row'}
-                      onClick={() => setSelectedPostId(post.postId)}
+                      className={selectedContentKey === post.contentKey ? 'admin-list-row is-active' : 'admin-list-row'}
+                      onClick={() => setSelectedContentKey(post.contentKey)}
                     >
                       <span>{post.title}</span>
-                      <small>{post.boardName ?? `게시판 ${post.boardId}`} · {post.authorName ?? `유저 ${post.userId}`}</small>
-                      <b>{post.status ?? 'ACTIVE'}</b>
+                      <small>
+                        {post.boardName ?? `게시판 ${post.boardId ?? '-'}`} · {post.authorName ?? `유저 ${post.userId ?? '-'}`}
+                      </small>
+                      <b>{contentTypeLabel[post.contentType]}</b>
                     </button>
                   ))}
                 </div>
               </div>
               <div className="admin-panel admin-form">
                 <div className="admin-panel-header">
-                  <h3>게시글 조치</h3>
-                  {selectedPost ? <span>#{selectedPost.postId}</span> : null}
+                  <h3>게시글 조치/수정</h3>
+                  {selectedPost ? <span>{selectedPost.contentKey}</span> : null}
                 </div>
                 {selectedPost ? (
                   <>
                     <div className="admin-detail-grid">
+                      <Detail label="유형" value={contentTypeLabel[selectedPost.contentType]} />
                       <Detail label="제목" value={selectedPost.title} />
-                      <Detail label="게시판" value={selectedPost.boardName ?? String(selectedPost.boardId)} />
-                      <Detail label="작성자" value={selectedPost.authorName ?? `유저 ${selectedPost.userId}`} />
+                      <Detail label="분류" value={selectedPost.boardName ?? String(selectedPost.boardId ?? '-')} />
+                      <Detail label="작성자" value={selectedPost.authorName ?? `유저 ${selectedPost.userId ?? '-'}`} />
                       <Detail label="상태" value={selectedPost.status ?? 'ACTIVE'} />
                       <Detail label="잠금" value={selectedPost.locked ? '잠김' : '열림'} />
                       <Detail label="조회" value={formatNumber(selectedPost.viewCount)} />
                     </div>
-                    <div className="admin-row-actions admin-row-actions--wrap">
-                      <button type="button" onClick={() => void runPostAction('hide')}>숨김</button>
-                      <button type="button" onClick={() => void runPostAction('restore')}>복구</button>
-                      <button type="button" onClick={() => void runPostAction(selectedPost.locked ? 'unlock' : 'lock')}>
-                        {selectedPost.locked ? '잠금 해제' : '잠금'}
-                      </button>
-                      <button type="button" className="admin-danger-button" onClick={() => void runPostAction('delete')}>
-                        관리자 삭제
-                      </button>
-                    </div>
-                    <div className="admin-post-preview">
-                      {selectedPost.content}
-                    </div>
+                    {selectedPost.contentType === 'POST' ? (
+                      <>
+                        <div className="admin-row-actions admin-row-actions--wrap">
+                          <button type="button" onClick={() => void runPostAction('hide')}>숨김</button>
+                          <button type="button" onClick={() => void runPostAction('restore')}>복구</button>
+                          <button type="button" onClick={() => void runPostAction(selectedPost.locked ? 'unlock' : 'lock')}>
+                            {selectedPost.locked ? '잠금 해제' : '잠금'}
+                          </button>
+                          <button type="button" className="admin-danger-button" onClick={() => void runPostAction('delete')}>
+                            관리자 삭제
+                          </button>
+                        </div>
+                        <div className="admin-post-preview">
+                          {selectedPost.content}
+                        </div>
+                      </>
+                    ) : null}
+                    {selectedPost.contentType === 'INFO' ? (
+                      <form className="admin-content-edit-form" onSubmit={saveInfoContent}>
+                        <div className="admin-panel-subhead">
+                          <strong>정보공유 수정</strong>
+                          <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()}>
+                            삭제
+                          </button>
+                        </div>
+                        <div className="admin-field-row">
+                          <Field label="분류">
+                            <select
+                              value={infoDraft.filter}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setInfoDraft((current) => ({ ...current, filter: event.target.value as InfoFilterId }))}
+                            >
+                              {infoFilterOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                          </Field>
+                          <Field label="출처 날짜">
+                            <input
+                              type="date"
+                              value={infoDraft.sourceDate}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setInfoDraft((current) => ({ ...current, sourceDate: event.target.value }))}
+                            />
+                          </Field>
+                        </div>
+                        <Field label="제목">
+                          <input
+                            value={infoDraft.title}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setInfoDraft((current) => ({ ...current, title: event.target.value }))}
+                          />
+                        </Field>
+                        <div className="admin-field-row">
+                          <Field label="태그">
+                            <input
+                              value={infoDraft.tag}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setInfoDraft((current) => ({ ...current, tag: event.target.value }))}
+                            />
+                          </Field>
+                          <Field label="작성자 표시">
+                            <input
+                              value={infoDraft.sourceName}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setInfoDraft((current) => ({ ...current, sourceName: event.target.value }))}
+                            />
+                          </Field>
+                        </div>
+                        <Field label="요약">
+                          <input
+                            value={infoDraft.meta}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setInfoDraft((current) => ({ ...current, meta: event.target.value }))}
+                          />
+                        </Field>
+                        <Field label="대표 이미지 URL">
+                          <input
+                            value={infoDraft.imageUrl}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setInfoDraft((current) => ({ ...current, imageUrl: event.target.value }))}
+                          />
+                        </Field>
+                        <Field label="본문">
+                          <textarea
+                            rows={8}
+                            value={infoDraft.content}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setInfoDraft((current) => ({ ...current, content: event.target.value }))}
+                          />
+                        </Field>
+                        <button type="submit" className="admin-primary-button" disabled={isContentDraftLoading || !infoDraft.title.trim() || !infoDraft.content.trim()}>
+                          정보공유 저장
+                        </button>
+                      </form>
+                    ) : null}
+                    {selectedPost.contentType === 'RECRUIT' ? (
+                      <form className="admin-content-edit-form" onSubmit={saveRecruitContent}>
+                        <div className="admin-panel-subhead">
+                          <strong>모집 수정</strong>
+                          <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()}>
+                            삭제
+                          </button>
+                        </div>
+                        <div className="admin-field-row">
+                          <Field label="분류">
+                            <select
+                              value={recruitDraft.category}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setRecruitDraft((current) => ({ ...current, category: event.target.value as RecruitCategory }))}
+                            >
+                              {recruitCategoryOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                          </Field>
+                          <Field label="상태">
+                            <select
+                              value={recruitDraft.status}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setRecruitDraft((current) => ({ ...current, status: event.target.value as RecruitStatus }))}
+                            >
+                              {recruitStatusOptions.map((option) => (
+                                <option key={option.value} value={option.value}>{option.label}</option>
+                              ))}
+                            </select>
+                          </Field>
+                        </div>
+                        <Field label="제목">
+                          <input
+                            value={recruitDraft.title}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setRecruitDraft((current) => ({ ...current, title: event.target.value }))}
+                          />
+                        </Field>
+                        <Field label="한 줄 소개">
+                          <textarea
+                            rows={3}
+                            value={recruitDraft.shortDesc}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setRecruitDraft((current) => ({ ...current, shortDesc: event.target.value }))}
+                          />
+                        </Field>
+                        <div className="admin-field-row">
+                          <Field label="역할/인원">
+                            <textarea
+                              rows={4}
+                              value={recruitDraft.rolesText}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setRecruitDraft((current) => ({ ...current, rolesText: event.target.value }))}
+                            />
+                          </Field>
+                          <Field label="기술 스택">
+                            <textarea
+                              rows={4}
+                              value={recruitDraft.techStackText}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setRecruitDraft((current) => ({ ...current, techStackText: event.target.value }))}
+                            />
+                          </Field>
+                        </div>
+                        <div className="admin-field-row">
+                          <Field label="진행 방식">
+                            <input
+                              value={recruitDraft.meetingType}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setRecruitDraft((current) => ({ ...current, meetingType: event.target.value }))}
+                            />
+                          </Field>
+                          <Field label="예상 기간">
+                            <input
+                              value={recruitDraft.expectedDuration}
+                              disabled={isContentDraftLoading}
+                              onChange={(event) => setRecruitDraft((current) => ({ ...current, expectedDuration: event.target.value }))}
+                            />
+                          </Field>
+                        </div>
+                        <Field label="태그">
+                          <input
+                            value={recruitDraft.tagsText}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setRecruitDraft((current) => ({ ...current, tagsText: event.target.value }))}
+                          />
+                        </Field>
+                        <Field label="본문">
+                          <textarea
+                            rows={8}
+                            value={recruitDraft.detailContentText}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setRecruitDraft((current) => ({ ...current, detailContentText: event.target.value }))}
+                          />
+                        </Field>
+                        <Field label="진행 프로세스">
+                          <textarea
+                            rows={4}
+                            value={recruitDraft.processListText}
+                            disabled={isContentDraftLoading}
+                            onChange={(event) => setRecruitDraft((current) => ({ ...current, processListText: event.target.value }))}
+                          />
+                        </Field>
+                        <button type="submit" className="admin-primary-button" disabled={isContentDraftLoading || !recruitDraft.title.trim() || !recruitDraft.shortDesc.trim()}>
+                          모집 저장
+                        </button>
+                      </form>
+                    ) : null}
                   </>
                 ) : (
                   <p className="admin-empty">선택된 게시글이 없습니다.</p>

@@ -1,7 +1,9 @@
 import client from './client'
 import type { UserData } from './auth'
 import type { BoardData, CreateBoardRequest, UpdateBoardRequest } from './boards'
+import type { InfoArticle, InfoArticlePayload } from './info'
 import type { PostListItem } from './posts'
+import type { RecruitItem, RecruitPostPayload } from './recruits'
 import type {
   ApplyStatus,
   InstanceApplication,
@@ -33,6 +35,17 @@ export type AdminReport = {
   status: AdminReportStatus
   createdAt: string
   handledAt?: string | null
+}
+
+export type AdminContentType = 'POST' | 'INFO' | 'RECRUIT'
+
+export type AdminContentItem = Omit<PostListItem, 'postId' | 'boardId' | 'userId'> & {
+  contentType: AdminContentType
+  contentKey: string
+  postId: number | null
+  boardId: number | null
+  userId: number | null
+  externalId?: string | null
 }
 
 export type AdminActionLog = {
@@ -85,7 +98,7 @@ export const adminApi = {
 
   getPosts: (status?: AdminPostStatus | 'ALL') =>
     client
-      .get<PostListItem[]>('/api/admin/posts', {
+      .get<AdminContentItem[]>('/api/admin/posts', {
         params: status && status !== 'ALL' ? { status } : undefined,
       })
       .then((r) => r.data),
@@ -104,6 +117,24 @@ export const adminApi = {
 
   unlockPost: (postId: number, reason: string) =>
     client.post<void>(`/api/admin/moderation/posts/${postId}/unlock`, { reason }).then((r) => r.data),
+
+  getInfoArticle: (articleId: number) =>
+    client.get<InfoArticle>(`/api/info/${articleId}`).then((r) => r.data),
+
+  updateInfoArticle: (articleId: number, data: InfoArticlePayload) =>
+    client.patch<InfoArticle>(`/api/info/${articleId}`, data).then((r) => r.data),
+
+  deleteInfoArticle: (articleId: number) =>
+    client.delete<void>(`/api/info/${articleId}`).then((r) => r.data),
+
+  getRecruit: (recruitId: string) =>
+    client.get<RecruitItem>(`/api/recruits/${recruitId}`).then((r) => r.data),
+
+  updateRecruit: (recruitId: string, data: RecruitPostPayload) =>
+    client.patch<RecruitItem>(`/api/recruits/${recruitId}`, data).then((r) => r.data),
+
+  deleteRecruit: (recruitId: string) =>
+    client.delete<void>(`/api/recruits/${recruitId}`).then((r) => r.data),
 
   getReports: (status: AdminReportStatus = 'PENDING') =>
     client.get<AdminReport[]>('/api/admin/moderation/reports', { params: { status } }).then((r) => r.data),

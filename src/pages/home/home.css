@@ -5901,23 +5901,105 @@
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(292px, 1fr));
+  gap: 14px;
 }
 
 .recruit-card {
   padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .recruit-card:hover {
+  border-color: #aecfc0;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.85) inset,
     0 8px 24px rgba(27, 53, 43, 0.1);
+  transform: translateY(-1px);
+}
+
+.recruit-card--page {
+  min-height: 310px;
+  border-color: #d2e2da;
+  background: #ffffff;
+  cursor: default;
+}
+
+.recruit-card--project {
+  border-top: 4px solid #2f6f9f;
+}
+
+.recruit-card--study {
+  border-top: 4px solid #1f7a52;
+}
+
+.recruit-card--tutoring {
+  border-top: 4px solid #b87918;
+}
+
+.recruit-card-open {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: grid;
+  gap: 9px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recruit-card-open--with-image {
+  grid-template-rows: auto auto auto auto auto;
+}
+
+.recruit-card-cover {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: 8px;
+  background-color: #edf4f0;
+  background-position: center;
+  background-size: cover;
+}
+
+.recruit-card-topline {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.recruit-category-chip {
+  min-height: 28px;
+  border-radius: 999px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #344a41;
+  background: #eef3f7;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.recruit-category-chip--project {
+  color: #224d72;
+  background: #eaf2fb;
+}
+
+.recruit-category-chip--study {
+  color: #1b5e41;
+  background: #e7f5ee;
+}
+
+.recruit-category-chip--tutoring {
+  color: #805309;
+  background: #fff5df;
 }
 
 .recruit-card-tags {
@@ -5948,6 +6030,32 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   flex: 1;
+}
+
+.recruit-card-author {
+  color: #41594e;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.recruit-card-meta-row,
+.recruit-card-role-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.recruit-card-meta-row span,
+.recruit-card-role-preview span {
+  min-height: 25px;
+  border-radius: 999px;
+  background: #f1f6f3;
+  color: #5b7067;
+  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 850;
 }
 
 .recruit-card-techs {
@@ -5986,6 +6094,20 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+.recruit-card-static-chip {
+  min-height: 28px;
+  border-radius: 999px;
+  border: 1px solid #b9d9ca;
+  background: #eef8f3;
+  color: #155339;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
 }
 
 .recruit-save-chip {
@@ -12960,10 +13082,13 @@
 
 .recruit-control-panel {
   margin-top: 14px;
-  padding: 14px;
+  margin-bottom: 14px;
+  padding: 16px;
   display: grid;
   gap: 14px;
-  background: #ffffff;
+  border-color: #c9ddd3;
+  background: #fbfdfc;
+  box-shadow: 0 12px 28px rgba(27, 67, 48, 0.08);
 }
 
 .recruit-control-head {
@@ -13135,6 +13260,11 @@
 }
 
 .recruit-dashboard-panel .recruit-list {
+  margin-top: 0;
+}
+
+.coala-content--recruit > .recruit-card-grid,
+.recruit-dashboard-panel .recruit-card-grid {
   margin-top: 0;
 }
 
