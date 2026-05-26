@@ -7,6 +7,9 @@ export type ArchiveItem = {
   category: ArchiveCategory
   title: string
   summary: string
+  labName?: string
+  eventDate?: string | null
+  materialType?: string
   content: string
   sourceUrl: string
   repositoryUrl: string
@@ -21,6 +24,9 @@ export type ArchiveItemPayload = {
   category: ArchiveCategory
   title: string
   summary: string
+  labName?: string
+  eventDate?: string
+  materialType?: string
   content: string
   sourceUrl?: string
   repositoryUrl?: string
