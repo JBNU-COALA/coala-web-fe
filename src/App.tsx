@@ -730,8 +730,8 @@ function App() {
         <Route path="/service/*" element={<Navigate to={routes.services.officialInstance} replace />} />
         <Route path="/services/official" element={<Navigate to={routes.services.officialInstance} replace />} />
         <Route path="/services/official/instance" element={<ServicesPage />} />
-        <Route path="/services/official/domain" element={<Navigate to={routes.services.officialDomain} replace />} />
-        <Route path="/domain" element={<ServicesPage />} />
+        <Route path="/services/official/domain" element={<ServicesPage />} />
+        <Route path="/domain" element={<Navigate to={routes.services.officialDomain} replace />} />
         <Route path="/services/unofficial" element={<Navigate to={routes.services.user} replace />} />
         <Route path="/services/user/:serviceId" element={<ServicesPage />} />
         <Route path="/services/user" element={<ServicesPage />} />

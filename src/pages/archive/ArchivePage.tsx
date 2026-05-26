@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { archiveApi, type ArchiveCategory, type ArchiveItem, type ArchiveItemPayload } from '../../shared/api/archive'
+import { attachmentsApi, type AttachmentUploadResponse } from '../../shared/api/attachments'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
-import { CommunityBanner } from '../community/CommunityBanner'
 
 type ArchiveDraft = {
   category: ArchiveCategory
@@ -22,14 +23,14 @@ const archiveTabs: { id: ArchiveCategory; label: string; eyebrow: string; icon: 
   {
     id: 'labs',
     label: '연구실',
-    eyebrow: 'Lab Archive',
+    eyebrow: 'Seminar & Paper',
     icon: 'network',
     path: routes.archive.labs,
   },
   {
     id: 'agents',
     label: '에이전트/스킬',
-    eyebrow: 'Agents & Skills',
+    eyebrow: 'Agent Skills',
     icon: 'file',
     path: routes.archive.agents,
   },
@@ -87,6 +88,32 @@ function formatArchiveDate(value?: string | null) {
   })
 }
 
+function toArchivePreview(value: string) {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+function stripFileExtension(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, '').trim() || fileName
+}
+
+function formatFileSize(size: number) {
+  if (size < 1024) return `${size}B`
+  if (size < 1024 * 1024) return `${Math.round(size / 1024)}KB`
+  return `${(size / 1024 / 1024).toFixed(1)}MB`
+}
+
+function buildUploadedFileContent(uploaded: AttachmentUploadResponse) {
+  return [
+    `업로드 파일: ${uploaded.originalName}`,
+    `파일 형식: ${uploaded.contentType}`,
+    `파일 크기: ${formatFileSize(uploaded.fileSize)}`,
+  ].join('\n')
+}
+
+function getArchiveSourceHref(url: string) {
+  return url ? resolveApiAssetUrl(url) : ''
+}
+
 export function ArchivePage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -100,8 +127,12 @@ export function ArchivePage() {
   const [showForm, setShowForm] = useState(false)
   const [editingItemId, setEditingItemId] = useState<number | null>(null)
   const [draft, setDraft] = useState<ArchiveDraft>(() => emptyDraft(activeCategory))
+  const [isUploadingArchiveFile, setIsUploadingArchiveFile] = useState(false)
+  const [uploadedFileName, setUploadedFileName] = useState('')
 
   const activeTab = archiveTabs.find((tab) => tab.id === activeCategory) ?? archiveTabs[0]
+  const actionLabel = activeCategory === 'labs' ? '연구실 자료 등록' : '에이전트/스킬 등록'
+  const formIsLabs = draft.category === 'labs'
 
   useEffect(() => {
     if (location.pathname === '/archive/skills') {
@@ -151,6 +182,7 @@ export function ArchivePage() {
     setShowForm(false)
     setEditingItemId(null)
     setDraft(emptyDraft(activeCategory))
+    setUploadedFileName('')
     setArchiveError(null)
   }
 
@@ -160,6 +192,7 @@ export function ArchivePage() {
       return
     }
     setDraft(emptyDraft(activeCategory))
+    setUploadedFileName('')
     setEditingItemId(null)
     setShowForm(true)
     setArchiveError(null)
@@ -167,6 +200,7 @@ export function ArchivePage() {
 
   const startEdit = (item: ArchiveItem) => {
     setDraft(itemToDraft(item))
+    setUploadedFileName('')
     setEditingItemId(item.id)
     setShowForm(true)
     setArchiveError(null)
@@ -176,6 +210,31 @@ export function ArchivePage() {
     return isAdmin || (user?.id != null && item.ownerId === user.id)
   }
 
+  const handleArchiveFileChange = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setIsUploadingArchiveFile(true)
+    setArchiveError(null)
+    try {
+      const uploaded = await attachmentsApi.uploadFile(file)
+      setUploadedFileName(uploaded.originalName)
+      setDraft((current) => ({
+        ...current,
+        sourceUrl: uploaded.url,
+        title: current.title.trim() || stripFileExtension(uploaded.originalName),
+        summary: current.summary.trim() || '연구실 세미나 자료 / 논문',
+        content: current.content.trim() || buildUploadedFileContent(uploaded),
+        tags: current.tags.trim() || '세미나, 논문',
+      }))
+    } catch (error) {
+      setArchiveError(error instanceof Error ? error.message : '파일을 업로드하지 못했습니다.')
+    } finally {
+      setIsUploadingArchiveFile(false)
+    }
+  }
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!isLoggedIn) {
@@ -183,8 +242,13 @@ export function ArchivePage() {
       return
     }
 
+    const payload = toPayload(draft)
+    if (payload.category === 'labs' && !payload.sourceUrl) {
+      setArchiveError('연구실 자료는 파일 업로드 또는 자료 링크가 필요합니다.')
+      return
+    }
+
     try {
-      const payload = toPayload(draft)
       const saved = editingItemId
         ? await archiveApi.updateItem(editingItemId, payload)
         : await archiveApi.createItem(payload)
@@ -219,193 +283,248 @@ export function ArchivePage() {
   return (
     <section className="coala-content coala-content--archive">
       <div className="archive-page">
-        <CommunityBanner title="자료실" tone="info" />
-
-        <section className="surface-card archive-controls" aria-label="자료실 분류 및 검색">
-          <div className="archive-control-head">
-            <div>
-              <p>{activeTab.eyebrow}</p>
-              <strong>{activeTab.label} 자료 {visibleItems.length}개</strong>
-            </div>
-            <button type="button" className="write-post-button archive-add-button" onClick={startCreate}>
-              <Icon name="plus" size={15} />
-              자료 등록
-            </button>
+        <header className="archive-header">
+          <div>
+            <p>Archive</p>
+            <h1>자료실</h1>
           </div>
+          <button type="button" className="write-post-button archive-add-button" onClick={startCreate}>
+            <Icon name="plus" size={15} />
+            {actionLabel}
+          </button>
+        </header>
 
-          <div className="archive-tab-row" role="tablist" aria-label="자료실 하위 분류">
-            {archiveTabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={activeCategory === tab.id}
-                className={activeCategory === tab.id ? 'archive-tab is-active' : 'archive-tab'}
-                onClick={() => {
-                  if (showForm && editingItemId === null) {
-                    setDraft((current) => ({ ...current, category: tab.id }))
-                  }
-                  navigate(tab.path)
-                }}
-              >
-                <Icon name={tab.icon} size={15} />
-                {tab.label}
-              </button>
-            ))}
-          </div>
-
-          <SearchField
-            className="archive-search"
-            value={query}
-            onChange={setQuery}
-            placeholder="자료 제목, 태그, 작성자 검색"
-          />
-          {archiveError ? <p className="auth-error archive-message">{archiveError}</p> : null}
-        </section>
-
-        {showForm ? (
-          <form className="surface-card archive-form" onSubmit={handleSubmit}>
-            <div className="archive-form-head">
-              <div>
-                <p>{editingItemId ? '자료 수정' : '자료 등록'}</p>
-                <strong>{draft.category === 'labs' ? '연구실 자료' : '에이전트/스킬 자료'}</strong>
-              </div>
-              <button type="button" className="ghost-button" onClick={closeForm}>닫기</button>
+        <div className="archive-workspace">
+          <aside className="surface-card archive-sidebar" aria-label="자료실 분류">
+            <div className="archive-sidebar-head">
+              <span>분류</span>
+              <strong>{activeTab.label}</strong>
             </div>
-            <div className="archive-form-grid">
-              <label className="jcloud-field">
-                <span className="jcloud-label">분류</span>
-                <select
-                  className="jcloud-input"
-                  value={draft.category}
-                  onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value as ArchiveCategory }))}
+            <div className="archive-tab-row" role="tablist" aria-label="자료실 하위 분류">
+              {archiveTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeCategory === tab.id}
+                  className={activeCategory === tab.id ? 'archive-tab is-active' : 'archive-tab'}
+                  onClick={() => {
+                    if (showForm && editingItemId === null) {
+                      setDraft((current) => ({ ...current, category: tab.id }))
+                    }
+                    navigate(tab.path)
+                  }}
                 >
-                  <option value="labs">연구실</option>
-                  <option value="agents">에이전트/스킬</option>
-                </select>
-              </label>
-              <label className="jcloud-field">
-                <span className="jcloud-label">태그</span>
-                <input
-                  className="jcloud-input"
-                  value={draft.tags}
-                  onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
-                  placeholder="세미나, 논문, AGENTS.MD"
-                />
-              </label>
-              <label className="jcloud-field archive-form-wide">
-                <span className="jcloud-label">제목</span>
-                <input
-                  className="jcloud-input"
-                  value={draft.title}
-                  onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-                  required
-                  maxLength={150}
-                />
-              </label>
-              <label className="jcloud-field archive-form-wide">
-                <span className="jcloud-label">요약</span>
-                <input
-                  className="jcloud-input"
-                  value={draft.summary}
-                  onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
-                  required
-                  maxLength={500}
-                />
-              </label>
-              <label className="jcloud-field">
-                <span className="jcloud-label">자료 링크</span>
-                <input
-                  className="jcloud-input"
-                  type="url"
-                  value={draft.sourceUrl}
-                  onChange={(event) => setDraft((current) => ({ ...current, sourceUrl: event.target.value }))}
-                  placeholder="https://..."
-                />
-              </label>
-              <label className="jcloud-field">
-                <span className="jcloud-label">저장소 링크</span>
-                <input
-                  className="jcloud-input"
-                  type="url"
-                  value={draft.repositoryUrl}
-                  onChange={(event) => setDraft((current) => ({ ...current, repositoryUrl: event.target.value }))}
-                  placeholder="https://github.com/..."
-                />
-              </label>
-              <label className="jcloud-field archive-form-wide">
-                <span className="jcloud-label">내용</span>
-                <textarea
-                  className="jcloud-textarea"
-                  value={draft.content}
-                  onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
-                  required
-                  rows={8}
-                />
-              </label>
-            </div>
-            <div className="archive-form-actions">
-              <button type="submit" className="primary-button">
-                {editingItemId ? '수정 저장' : '등록'}
-              </button>
-            </div>
-          </form>
-        ) : null}
-
-        <section className="archive-grid" aria-label={`${activeTab.label} 자료 목록`}>
-          {isLoading ? (
-            <div className="surface-card archive-empty">자료를 불러오는 중입니다.</div>
-          ) : visibleItems.length === 0 ? (
-            <div className="surface-card archive-empty">등록된 자료가 없습니다.</div>
-          ) : (
-            visibleItems.map((item) => (
-              <article key={item.id} className="surface-card archive-card">
-                <div className="archive-card-head">
-                  <span className={`archive-category archive-category--${item.category}`}>
-                    {item.category === 'labs' ? '연구실' : '에이전트/스킬'}
+                  <span className="archive-tab-icon">
+                    <Icon name={tab.icon} size={17} />
                   </span>
-                  <small>{formatArchiveDate(item.createdAt)}</small>
-                </div>
-                <h3>{item.title}</h3>
-                <p>{item.summary}</p>
-                <div className="archive-card-tags">
-                  {item.tags.length > 0
-                    ? item.tags.map((tag) => <span key={tag}>{tag}</span>)
-                    : <span>태그 없음</span>}
-                </div>
-                <div className="archive-card-content">{item.content}</div>
-                <footer className="archive-card-footer">
-                  <span>{item.ownerName}</span>
-                  <div className="archive-card-actions">
-                    {item.sourceUrl ? (
-                      <a href={item.sourceUrl} target="_blank" rel="noreferrer">
-                        <Icon name="link" size={13} />
-                        자료
-                      </a>
-                    ) : null}
-                    {item.repositoryUrl ? (
-                      <a href={item.repositoryUrl} target="_blank" rel="noreferrer">
-                        <Icon name="book" size={13} />
-                        저장소
-                      </a>
-                    ) : null}
-                    {canManage(item) ? (
-                      <>
-                        <button type="button" onClick={() => startEdit(item)}>
-                          <Icon name="edit" size={13} />
-                          수정
-                        </button>
-                        <button type="button" onClick={() => handleDelete(item)}>
-                          삭제
-                        </button>
-                      </>
-                    ) : null}
+                  <span>
+                    <strong>{tab.label}</strong>
+                    <small>{tab.eyebrow}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <dl className="archive-summary">
+              <div>
+                <dt>표시</dt>
+                <dd>{visibleItems.length}</dd>
+              </div>
+              <div>
+                <dt>전체</dt>
+                <dd>{items.length}</dd>
+              </div>
+            </dl>
+          </aside>
+
+          <main className="archive-main">
+            <section className="surface-card archive-toolbar" aria-label="자료실 검색">
+              <div className="archive-toolbar-title">
+                <p>{activeTab.eyebrow}</p>
+                <strong>{activeTab.label} 자료</strong>
+              </div>
+              <SearchField
+                className="archive-search"
+                value={query}
+                onChange={setQuery}
+                placeholder={activeCategory === 'labs' ? '논문명, 세미나명, 태그 검색' : '스킬명, 저장소, 태그 검색'}
+              />
+              {archiveError ? <p className="auth-error archive-message">{archiveError}</p> : null}
+            </section>
+
+            {showForm ? (
+              <form className="surface-card archive-form" onSubmit={handleSubmit}>
+                <div className="archive-form-head">
+                  <div>
+                    <p>{editingItemId ? '자료 수정' : '자료 등록'}</p>
+                    <strong>{formIsLabs ? '세미나 자료 / 논문' : '에이전트 / 스킬'}</strong>
                   </div>
-                </footer>
-              </article>
-            ))
-          )}
-        </section>
+                  <button type="button" className="ghost-button" onClick={closeForm}>닫기</button>
+                </div>
+
+                {formIsLabs ? (
+                  <label className={draft.sourceUrl ? 'archive-upload-zone archive-upload-zone--ready' : 'archive-upload-zone'}>
+                    <input type="file" onChange={handleArchiveFileChange} disabled={isUploadingArchiveFile} />
+                    <Icon name="file" size={22} />
+                    <span>
+                      <strong>{isUploadingArchiveFile ? '업로드 중' : draft.sourceUrl ? '파일 연결됨' : '파일 업로드'}</strong>
+                      <small>{uploadedFileName || (draft.sourceUrl ? '등록된 파일 또는 링크가 있습니다.' : 'PDF, PPTX, DOCX, ZIP 자료')}</small>
+                    </span>
+                  </label>
+                ) : null}
+
+                <div className="archive-form-grid">
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">분류</span>
+                    <select
+                      className="jcloud-input"
+                      value={draft.category}
+                      onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value as ArchiveCategory }))}
+                    >
+                      <option value="labs">연구실</option>
+                      <option value="agents">에이전트/스킬</option>
+                    </select>
+                  </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">태그</span>
+                    <input
+                      className="jcloud-input"
+                      value={draft.tags}
+                      onChange={(event) => setDraft((current) => ({ ...current, tags: event.target.value }))}
+                      placeholder={formIsLabs ? '세미나, 논문, 2026' : 'SKILL.md, AGENTS.md, MCP'}
+                    />
+                  </label>
+                  <label className="jcloud-field archive-form-wide">
+                    <span className="jcloud-label">{formIsLabs ? '자료명' : '이름'}</span>
+                    <input
+                      className="jcloud-input"
+                      value={draft.title}
+                      onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+                      required
+                      maxLength={150}
+                    />
+                  </label>
+                  <label className="jcloud-field archive-form-wide">
+                    <span className="jcloud-label">{formIsLabs ? '요약' : '한 줄 설명'}</span>
+                    <input
+                      className="jcloud-input"
+                      value={draft.summary}
+                      onChange={(event) => setDraft((current) => ({ ...current, summary: event.target.value }))}
+                      required
+                      maxLength={500}
+                    />
+                  </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">{formIsLabs ? '파일/자료 링크' : '문서 링크'}</span>
+                    <input
+                      className="jcloud-input"
+                      type={draft.sourceUrl.startsWith('/') ? 'text' : 'url'}
+                      value={draft.sourceUrl}
+                      onChange={(event) => setDraft((current) => ({ ...current, sourceUrl: event.target.value }))}
+                      placeholder={formIsLabs ? '파일 업로드 시 자동 입력' : 'https://...'}
+                    />
+                  </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">{formIsLabs ? '관련 저장소' : 'GitHub 저장소'}</span>
+                    <input
+                      className="jcloud-input"
+                      type="url"
+                      value={draft.repositoryUrl}
+                      onChange={(event) => setDraft((current) => ({ ...current, repositoryUrl: event.target.value }))}
+                      placeholder="https://github.com/..."
+                    />
+                  </label>
+                  <label className="jcloud-field archive-form-wide">
+                    <span className="jcloud-label">{formIsLabs ? '메모' : '사용 예시 / 구조'}</span>
+                    <textarea
+                      className="jcloud-textarea"
+                      value={draft.content}
+                      onChange={(event) => setDraft((current) => ({ ...current, content: event.target.value }))}
+                      required
+                      rows={formIsLabs ? 5 : 8}
+                      placeholder={formIsLabs ? '발표 주제, 논문 정보, 참고 사항' : 'SKILL.md 위치, 설치 방법, 사용 예시'}
+                    />
+                  </label>
+                </div>
+                <div className="archive-form-actions">
+                  <button type="submit" className="primary-button" disabled={isUploadingArchiveFile}>
+                    {editingItemId ? '수정 저장' : '등록'}
+                  </button>
+                </div>
+              </form>
+            ) : null}
+
+            <section className="archive-results" aria-label={`${activeTab.label} 자료 목록`}>
+              <div className="archive-results-head">
+                <strong>{visibleItems.length}개 자료</strong>
+                <span>{query.trim() ? `"${query.trim()}" 검색 결과` : activeTab.label}</span>
+              </div>
+
+              <div className="archive-list">
+                {isLoading ? (
+                  <div className="surface-card archive-empty">자료를 불러오는 중입니다.</div>
+                ) : visibleItems.length === 0 ? (
+                  <div className="surface-card archive-empty">등록된 자료가 없습니다.</div>
+                ) : (
+                  visibleItems.map((item) => {
+                    const preview = toArchivePreview(item.content)
+                    const sourceHref = getArchiveSourceHref(item.sourceUrl)
+
+                    return (
+                      <article key={item.id} className="surface-card archive-card">
+                        <div className="archive-card-main">
+                          <div className="archive-card-head">
+                            <span className={`archive-category archive-category--${item.category}`}>
+                              {item.category === 'labs' ? '세미나/논문' : '에이전트/스킬'}
+                            </span>
+                            <small>{formatArchiveDate(item.createdAt)}</small>
+                          </div>
+                          <h3>{item.title}</h3>
+                          <p>{item.summary}</p>
+                          {preview ? <div className="archive-card-content">{preview}</div> : null}
+                          <div className="archive-card-tags">
+                            {item.tags.length > 0
+                              ? item.tags.map((tag) => <span key={tag}>{tag}</span>)
+                              : <span>태그 없음</span>}
+                          </div>
+                        </div>
+                        <footer className="archive-card-footer">
+                          <span>{item.ownerName}</span>
+                          <div className="archive-card-actions">
+                            {sourceHref ? (
+                              <a href={sourceHref} target="_blank" rel="noreferrer">
+                                <Icon name="link" size={13} />
+                                {item.category === 'labs' ? '다운로드' : '문서'}
+                              </a>
+                            ) : null}
+                            {item.repositoryUrl ? (
+                              <a href={item.repositoryUrl} target="_blank" rel="noreferrer">
+                                <Icon name="book" size={13} />
+                                저장소
+                              </a>
+                            ) : null}
+                            {canManage(item) ? (
+                              <>
+                                <button type="button" onClick={() => startEdit(item)}>
+                                  <Icon name="edit" size={13} />
+                                  수정
+                                </button>
+                                <button type="button" onClick={() => handleDelete(item)}>
+                                  삭제
+                                </button>
+                              </>
+                            ) : null}
+                          </div>
+                        </footer>
+                      </article>
+                    )
+                  })
+                )}
+              </div>
+            </section>
+          </main>
+        </div>
       </div>
     </section>
   )
