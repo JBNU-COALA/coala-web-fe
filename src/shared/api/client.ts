@@ -35,14 +35,14 @@ const attachmentAssetPathPattern = /^\/(?:api|media)\/attachments\/(\d+)\/downlo
 function normalizeAttachmentAssetUrl(url: string) {
   const relativeAttachment = url.match(attachmentAssetPathPattern)
   if (relativeAttachment) {
-    return `/media/attachments/${relativeAttachment[1]}/download${relativeAttachment[2] ?? ''}`
+    return `/api/attachments/${relativeAttachment[1]}/download${relativeAttachment[2] ?? ''}`
   }
 
   try {
     const parsed = new URL(url)
     const attachment = parsed.pathname.match(attachmentAssetPathPattern)
     if (attachment) {
-      return `${parsed.origin}/media/attachments/${attachment[1]}/download${parsed.search}${parsed.hash}`
+      return `${parsed.origin}/api/attachments/${attachment[1]}/download${parsed.search}${parsed.hash}`
     }
   } catch {
     return url
