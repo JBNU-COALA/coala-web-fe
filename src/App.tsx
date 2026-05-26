@@ -41,6 +41,7 @@ const RecruitApplyPage = lazy(() => import('./pages/recruit/RecruitApplyPage').t
 const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const ServicesPage = lazy(() => import('./pages/services/ServicesPage').then((m) => ({ default: m.ServicesPage })))
+const ArchivePage = lazy(() => import('./pages/archive/ArchivePage').then((m) => ({ default: m.ArchivePage })))
 const AdminPage = lazy(() => import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
 
 function PostDetailRoute() {
@@ -340,6 +341,18 @@ function App() {
       .catch(() => setUnreadNotificationCount(0))
   }, [isLoggedIn, user?.id])
 
+  useEffect(() => {
+    if (!isLoggedIn) return undefined
+
+    const intervalId = window.setInterval(() => {
+      notificationsApi.getUnreadCount()
+        .then((response) => setUnreadNotificationCount(response.count))
+        .catch(() => {})
+    }, 60000)
+
+    return () => window.clearInterval(intervalId)
+  }, [isLoggedIn, user?.id])
+
   const handleHeaderSubNavSelect = (path: string, parentId: string) => {
     navigate(path)
     setMobileNavOpen(false)
@@ -390,6 +403,11 @@ function App() {
       if (targetPath === routes.services.root) return activeServicesTab === 'coas' && !targetQuery
     }
 
+    if (targetPath.startsWith('/archive')) {
+      if (targetPath === routes.archive.labs) return location.pathname === routes.archive.root || location.pathname.startsWith(routes.archive.labs)
+      if (targetPath === routes.archive.agents) return location.pathname.startsWith(routes.archive.agents) || location.pathname.startsWith('/archive/skills')
+    }
+
     return location.pathname === targetPath
   }
 
@@ -426,6 +444,16 @@ function App() {
 
     if (item.value === 'services-user') {
       navigate(routes.services.user)
+      return
+    }
+
+    if (item.value === 'archive-labs') {
+      navigate(routes.archive.labs)
+      return
+    }
+
+    if (item.value === 'archive-agents') {
+      navigate(routes.archive.agents)
       return
     }
   }
@@ -675,10 +703,16 @@ function App() {
         <Route path="/service/*" element={<Navigate to={routes.services.officialInstance} replace />} />
         <Route path="/services/official" element={<Navigate to={routes.services.officialInstance} replace />} />
         <Route path="/services/official/instance" element={<ServicesPage />} />
+        <Route path="/services/official/domain" element={<ServicesPage />} />
+        <Route path="/domain" element={<ServicesPage />} />
         <Route path="/services/unofficial" element={<Navigate to={routes.services.user} replace />} />
         <Route path="/services/user/:serviceId" element={<ServicesPage />} />
         <Route path="/services/user" element={<ServicesPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/archive" element={<ArchivePage />} />
+        <Route path="/archive/labs" element={<ArchivePage />} />
+        <Route path="/archive/agents" element={<ArchivePage />} />
+        <Route path="/archive/skills" element={<ArchivePage />} />
         <Route
           path="/login"
           element={
@@ -845,7 +879,17 @@ function App() {
                                 onClick={() => handleOpenNotification(notification)}
                               >
                                 <span className="header-notification-icon">
-                                  <Icon name={notification.type === 'COMMENT' ? 'message' : 'book'} size={14} />
+                                  <Icon
+                                    name={
+                                      notification.type === 'COMMENT'
+                                      || notification.type === 'REPLY'
+                                        ? 'message'
+                                        : notification.type === 'RECRUIT'
+                                          ? 'users'
+                                          : 'book'
+                                    }
+                                    size={14}
+                                  />
                                 </span>
                                 <span className="header-notification-copy">
                                   <strong>{notification.title}</strong>

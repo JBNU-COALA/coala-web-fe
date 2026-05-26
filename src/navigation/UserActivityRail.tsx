@@ -82,6 +82,11 @@ export function UserActivityRail({
   const meta = routeMeta[route]
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      Promise.resolve().then(() => setMembers([]))
+      return
+    }
+
     let active = true
 
     usersApi.getUsers()
@@ -95,7 +100,7 @@ export function UserActivityRail({
     return () => {
       active = false
     }
-  }, [])
+  }, [isLoggedIn])
 
   useEffect(() => {
     if (!user) {

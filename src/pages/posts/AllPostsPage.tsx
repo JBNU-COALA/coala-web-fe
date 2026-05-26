@@ -39,6 +39,18 @@ function getPostImageUrl(post: PostListItem) {
   return imageUrl ? resolveApiAssetUrl(imageUrl) : null
 }
 
+function formatPostDateTime(value: string) {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return parsed.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 function PostListThumbnail({
   imageUrl,
   viewMode,
@@ -53,18 +65,23 @@ function PostListThumbnail({
   )
 }
 
+function getPostLikeCount(post: PostListItem) {
+  return post.likeCount ?? 0
+}
+
 export function AllPostsPage({
   onOpenPost,
   onWritePost,
   title = '게시판',
 }: AllPostsPageProps) {
-  const { user } = useAuth()
+  const { isLoggedIn, user } = useAuth()
   const [activeBoard, setActiveBoard] = useState<PostBoardTabId>('all')
   const [enrichedPosts, setEnrichedPosts] = useState<EnrichedPost[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [viewMode, setViewMode] = useState<PostListViewMode>('card')
+  const [likeError, setLikeError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -107,10 +124,31 @@ export function AllPostsPage({
       : byCategory
 
     return [...searched].sort((a, b) => {
-      if (sortMode === 'popular') return b.viewCount - a.viewCount
+      if (sortMode === 'popular') return getPostLikeCount(b) - getPostLikeCount(a)
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
   }, [activeBoard, enrichedPosts, normalizedQuery, sortMode])
+
+  const togglePostLike = async (post: EnrichedPost) => {
+    if (!isLoggedIn) {
+      setLikeError('좋아요는 로그인 후 누를 수 있습니다.')
+      return
+    }
+
+    setLikeError(null)
+    try {
+      const response = await postsApi.likePost(post.postId)
+      setEnrichedPosts((current) =>
+        current.map((item) => (
+          item.postId === post.postId
+            ? { ...item, likeCount: response.likeCount, likedByMe: response.liked }
+            : item
+        )),
+      )
+    } catch {
+      setLikeError('좋아요 처리에 실패했습니다.')
+    }
+  }
 
   return (
     <section className="coala-content coala-content--posts">
@@ -150,8 +188,8 @@ export function AllPostsPage({
                   aria-selected={activeBoard === filter.id}
                   className={
                     activeBoard === filter.id
-                      ? 'community-filter-tab is-active'
-                      : 'community-filter-tab'
+                      ? `community-filter-tab community-filter-tab--${filter.id} is-active`
+                      : `community-filter-tab community-filter-tab--${filter.id}`
                   }
                   onClick={() => setActiveBoard(filter.id)}
                 >
@@ -214,6 +252,7 @@ export function AllPostsPage({
               글쓰기
             </button>
           </div>
+          {likeError ? <p className="auth-error board-like-error">{likeError}</p> : null}
         </section>
 
         <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
@@ -230,14 +269,20 @@ export function AllPostsPage({
 
 	                return (
 	                  <li key={compositeId} className={`board-post-row board-post-row--${viewMode}`}>
-	                    <button
-	                      type="button"
+	                    <article
 	                      className={[
 	                        'board-post-card',
 	                        `board-post-card--${viewMode}`,
 	                        imageUrl ? 'board-post-card--has-image' : '',
 	                      ].filter(Boolean).join(' ')}
+                        role="button"
+                        tabIndex={0}
 	                      onClick={() => onOpenPost(post.boardId, post.postId)}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter' && event.key !== ' ') return
+                          event.preventDefault()
+                          onOpenPost(post.boardId, post.postId)
+                        }}
 	                    >
 	                      {viewMode === 'card' && imageUrl ? (
 	                        <PostListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
@@ -263,7 +308,7 @@ export function AllPostsPage({
                           </span>
                           <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
                           <span className="dot-divider" />
-                          <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
+                          <span>{formatPostDateTime(post.createdAt)}</span>
                         </p>
                       </div>
 
@@ -280,12 +325,21 @@ export function AllPostsPage({
                           <Icon name="message" size={14} />
                           <span>{post.commentCount ?? 0}</span>
                         </span>
-                        <span className="board-stat">
+                        <button
+                          type="button"
+                          className={post.likedByMe ? 'board-like-button is-liked' : 'board-like-button'}
+                          aria-pressed={Boolean(post.likedByMe)}
+                          aria-label={`${post.title} 좋아요`}
+                          onClick={(event) => {
+                            event.stopPropagation()
+                            void togglePostLike(post)
+                          }}
+                        >
                           <Icon name="bell" size={14} />
-                          <span>{post.likeCount ?? 0}</span>
-                        </span>
+                          <span>{getPostLikeCount(post)}</span>
+                        </button>
                       </div>
-                    </button>
+                    </article>
                   </li>
                 )
               })

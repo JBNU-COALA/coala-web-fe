@@ -30,10 +30,12 @@ function parseCompositeId(compositeId: string): { boardId: number; postId: numbe
 
 function formatDate(dateStr: string) {
   try {
-    return new Date(dateStr).toLocaleDateString('ko-KR', {
+    return new Date(dateStr).toLocaleString('ko-KR', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     })
   } catch {
     return dateStr
@@ -100,6 +102,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const [commentEditDrafts, setCommentEditDrafts] = useState<Record<number, string>>({})
   const [commentActionError, setCommentActionError] = useState<string | null>(null)
   const [reportMessage, setReportMessage] = useState<string | null>(null)
+  const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [submittingReplyId, setSubmittingReplyId] = useState<number | null>(null)
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
@@ -120,6 +123,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     setPostActionError(null)
     setCommentActionError(null)
     setReportMessage(null)
+    setLikeMessage(null)
 
     Promise.all([
       postsApi.getPostDetail(boardId, realPostId),
@@ -271,6 +275,24 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
     }
   }
 
+  const handleTogglePostLike = async () => {
+    if (!post) return
+    if (!isLoggedIn) {
+      setLikeMessage('좋아요는 로그인 후 누를 수 있습니다.')
+      return
+    }
+
+    setLikeMessage(null)
+    try {
+      const response = await postsApi.likePost(post.postId)
+      setPost((current) => current
+        ? { ...current, likeCount: response.likeCount, likedByMe: response.liked }
+        : current)
+    } catch {
+      setLikeMessage('좋아요 처리에 실패했습니다.')
+    }
+  }
+
   if (isLoading) {
     return (
       <section className="coala-content coala-content--post-detail">
@@ -324,6 +346,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
 
     return (
       <div
+        id={`comment-${comment.commentId}`}
         key={comment.commentId}
         className={isReply ? 'post-comment-item post-comment-item--reply' : 'post-comment-thread'}
         style={isReply ? { marginLeft: 24 } : undefined}
@@ -478,6 +501,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
         </header>
         {postActionError ? <p className="auth-error">{postActionError}</p> : null}
         {reportMessage ? <p className="auth-error">{reportMessage}</p> : null}
+        {likeMessage ? <p className="auth-error">{likeMessage}</p> : null}
 
         <div className="post-cover">
           <div className="post-cover-text">
@@ -502,7 +526,15 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
             <div className="post-meta-stats">
               <span><Icon name="eye" size={15} />{visiblePost.viewCount}</span>
               <span><Icon name="message" size={15} />{totalCommentCount}</span>
-              <span><Icon name="bell" size={15} />{visiblePost.likeCount ?? 0}</span>
+              <button
+                type="button"
+                className={visiblePost.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}
+                aria-pressed={Boolean(visiblePost.likedByMe)}
+                onClick={handleTogglePostLike}
+              >
+                <Icon name="bell" size={15} />
+                <span>{visiblePost.likeCount ?? 0}</span>
+              </button>
             </div>
           </div>
         </div>

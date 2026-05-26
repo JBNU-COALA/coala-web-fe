@@ -128,6 +128,12 @@ export const servicesApi = {
   updateDomainApplication: (applicationId: string, data: { status?: ApplyStatus; adminNote?: string }) =>
     client.patch<DomainApplication>(`/api/services/domains/applications/${applicationId}`, data).then((response) => response.data),
 
+  getDomainInquiries: () =>
+    client.get<ServiceInquiry[]>('/api/services/domains/inquiries').then((response) => response.data),
+
+  createDomainInquiry: (data: { title: string; content: string; author?: string }) =>
+    client.post<ServiceInquiry>('/api/services/domains/inquiries', data).then((response) => response.data),
+
   getInquiries: () =>
     client.get<ServiceInquiry[]>('/api/services/instances/inquiries').then((response) => response.data),
 

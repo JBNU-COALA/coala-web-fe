@@ -28,8 +28,15 @@ export const routes = {
   services: {
     root: '/services',
     officialInstance: '/services/official/instance',
+    officialDomain: '/services/official/domain',
+    domain: '/domain',
     user: '/services/user',
     userDetail: (serviceId: string) => `/services/user/${serviceId}`,
+  },
+  archive: {
+    root: '/archive',
+    labs: '/archive/labs',
+    agents: '/archive/agents',
   },
   users: {
     root: '/users',

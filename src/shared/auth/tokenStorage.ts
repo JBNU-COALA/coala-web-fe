@@ -38,6 +38,13 @@ export function setAuthSession(data: AuthResponse) {
   storage.setItem(USER_KEY, JSON.stringify(data.user))
 }
 
+export function setStoredUser(user: UserData) {
+  const storage = getStorage()
+  if (!storage) return
+
+  storage.setItem(USER_KEY, JSON.stringify(user))
+}
+
 export function clearAuthSession() {
   const storage = getStorage()
   if (!storage) return

@@ -14,6 +14,7 @@ export type PostListItem = {
   viewCount: number
   commentCount?: number
   likeCount?: number
+  likedByMe?: boolean
   thumbnailAttachmentId?: number | null
   createdAt: string
   updatedAt: string

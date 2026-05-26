@@ -4,6 +4,7 @@ import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
+import { useAuth } from '../../shared/auth/AuthContext'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import {
   recruitsApi,
@@ -347,6 +348,7 @@ function RecruitList({
 }
 
 export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPageProps) {
+  const { isLoggedIn, user } = useAuth()
   const navigate = useNavigate()
   const [mode, setMode] = useState<RecruitMode>(initialMode)
   const [activeCategory, setActiveCategory] = useState<RecruitCategory | 'all'>('all')
@@ -358,6 +360,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const [applicationView, setApplicationView] = useState<'applied' | 'saved'>('applied')
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [draftError, setDraftError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
   const [localRecruitItems, setLocalRecruitItems] = useState<RecruitItem[]>(() => loadLocalRecruitItems())
   const [remoteRecruitItems, setRemoteRecruitItems] = useState<RecruitItem[]>([])
 
@@ -380,12 +383,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   }, [])
 
   useEffect(() => {
+    if (!isLoggedIn) return
+
     recruitsApi.getMyApplications()
       .then((applications) => {
         setAppliedIds((current) => new Set([...current, ...applications.map((application) => application.recruitId)]))
       })
       .catch(() => {})
-  }, [])
+  }, [isLoggedIn])
 
   useEffect(() => {
     const syncAppliedIds = () => setAppliedIds(loadAppliedRecruitIds())
@@ -427,6 +432,15 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     () => allRecruitItems.filter((item) => savedIds.has(item.id)),
     [allRecruitItems, savedIds],
   )
+  const isOperator = user?.role === 'STAFF' || user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'
+  const managedItems = useMemo(
+    () => allRecruitItems.filter((item) => (
+      item.id.startsWith('local-recruit-') ||
+      isOperator ||
+      (user && item.authorId === user.id)
+    )),
+    [allRecruitItems, isOperator, user],
+  )
 
   const openApplication = (id: string) => {
     const item = allRecruitItems.find((recruit) => recruit.id === id)
@@ -436,10 +450,19 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   }
 
   const toggleSaved = (id: string) => {
+    if (!isLoggedIn) {
+      setActionError('관심공고 저장은 로그인 후 가능합니다.')
+      return
+    }
+
+    setActionError(null)
     setSavedIds((current) => {
       const next = new Set(current)
       if (next.has(id)) next.delete(id)
-      else next.add(id)
+      else {
+        next.add(id)
+        recruitsApi.bookmark(id).catch(() => setActionError('관심공고 저장에 실패했습니다.'))
+      }
       return next
     })
   }
@@ -507,6 +530,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           </button>
         ))}
       </div>
+      {actionError ? <p className="auth-error">{actionError}</p> : null}
 
       {mode === 'write' ? (
         <form className="surface-card recruit-write-panel" onSubmit={handleCreateRecruit}>
@@ -671,7 +695,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           <header className="recruit-dashboard-header">
             <div>
               <h3>모집 관리</h3>
-              <p>{localRecruitItems.length}개</p>
+              <p>{managedItems.length}개</p>
             </div>
             <button type="button" className="jcloud-submit-button" onClick={() => changeMode('write')}>
               <Icon name="plus" size={15} />
@@ -679,7 +703,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             </button>
           </header>
           <RecruitList
-            items={localRecruitItems}
+            items={managedItems}
             variant="managed"
             emptyText="작성한 모집 공고가 없습니다."
             appliedIds={appliedIds}

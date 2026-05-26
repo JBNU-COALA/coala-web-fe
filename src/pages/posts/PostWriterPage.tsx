@@ -127,12 +127,12 @@ function parseCompositeId(compositeId: string): { boardId: number; postId: numbe
 }
 
 function getAttachmentIdFromUrl(value?: string | null) {
-  const match = value?.match(/\/api\/attachments\/(\d+)\/download\b/)
+  const match = value?.match(/\/(?:api|media)\/attachments\/(\d+)\/download\b/)
   return match ? Number(match[1]) : null
 }
 
 function getAttachmentIdsFromText(value: string) {
-  return Array.from(value.matchAll(/\/api\/attachments\/(\d+)\/download\b/g))
+  return Array.from(value.matchAll(/\/(?:api|media)\/attachments\/(\d+)\/download\b/g))
     .map((match) => Number(match[1]))
     .filter((id) => Number.isFinite(id) && id > 0)
 }
@@ -168,7 +168,16 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [isUploadingInfoImage, setIsUploadingInfoImage] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
+  const [isMobileEditor, setIsMobileEditor] = useState(false)
   const isEditMode = Boolean(editPostId)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 760px)')
+    const sync = () => setIsMobileEditor(media.matches)
+    sync()
+    media.addEventListener('change', sync)
+    return () => media.removeEventListener('change', sync)
+  }, [])
 
   useEffect(() => {
     const dirty = Boolean(title.trim()) || Boolean(content.trim())
@@ -675,7 +684,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 onChange={(value) => setContent(value ?? '')}
                 height="calc(100vh - 330px)"
                 minHeight={420}
-                preview="live"
+                preview={isMobileEditor ? 'edit' : 'live'}
                 visibleDragbar
                 commands={editorCommands}
                 textareaProps={{

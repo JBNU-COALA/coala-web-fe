@@ -30,16 +30,6 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
       .catch(() => setRecruits([]))
   }, [])
 
-  useEffect(() => {
-    if (services.length <= 1) return
-
-    const timer = window.setInterval(() => {
-      setActiveServiceIndex((index) => (index + 1) % services.length)
-    }, 4200)
-
-    return () => window.clearInterval(timer)
-  }, [services.length])
-
   const activeService = services.length > 0 ? services[activeServiceIndex % services.length] : null
   const openService = (serviceId: string) => {
     navigate(routes.services.userDetail(serviceId))

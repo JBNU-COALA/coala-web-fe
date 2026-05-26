@@ -69,6 +69,14 @@ export const usersApi = {
       .then((response) => ({ ...response.data, id: String(response.data.id) })),
 
   updateMyProfile: (data: {
+    name?: string
+    email?: string
+    studentId?: string
+    githubId?: string
+    lab?: string
+    gender?: 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
+    academicStatus?: 'PROFESSOR' | 'ASSISTANT' | 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED' | 'GENERAL'
+    linkedinUrl?: string
     bio: string
     activityNote: string
     awardNote: string

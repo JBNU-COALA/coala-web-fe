@@ -1,5 +1,44 @@
 export type MarkdownCopyState = 'idle' | 'copied' | 'error'
 
+const attachmentPathPattern = /^\/(?:api|media)\/attachments\/(\d+)\/download(?:([?#].*)?)$/i
+
+function getBrowserOrigin() {
+  return typeof window !== 'undefined' ? window.location.origin : ''
+}
+
+function toAbsoluteUrl(path: string, origin = getBrowserOrigin()) {
+  try {
+    return origin ? new URL(path, origin).toString() : path
+  } catch {
+    return path
+  }
+}
+
+function normalizeCopiedImageUrl(url: string) {
+  const trimmed = url.trim()
+  const relativeAttachment = trimmed.match(attachmentPathPattern)
+  if (relativeAttachment) {
+    return toAbsoluteUrl(`/media/attachments/${relativeAttachment[1]}/download${relativeAttachment[2] ?? ''}`)
+  }
+
+  try {
+    const origin = getBrowserOrigin()
+    const parsed = origin ? new URL(trimmed, origin) : new URL(trimmed)
+    const attachment = parsed.pathname.match(attachmentPathPattern)
+    if (attachment) {
+      return `${parsed.origin}/media/attachments/${attachment[1]}/download${parsed.search}${parsed.hash}`
+    }
+  } catch {
+    return trimmed
+  }
+
+  return trimmed
+}
+
+export function prepareMarkdownForCopy(markdown: string) {
+  return rewriteMarkdownImageUrls(markdown, normalizeCopiedImageUrl)
+}
+
 const fallbackCopy = (markdown: string) => {
   const textarea = document.createElement('textarea')
   textarea.value = markdown
@@ -19,13 +58,14 @@ const fallbackCopy = (markdown: string) => {
 }
 
 export async function copyMarkdown(markdown: string) {
+  const safeMarkdown = prepareMarkdownForCopy(markdown)
   try {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      await navigator.clipboard.writeText(markdown)
+      await navigator.clipboard.writeText(safeMarkdown)
       return true
     }
 
-    return fallbackCopy(markdown)
+    return fallbackCopy(safeMarkdown)
   } catch {
     return false
   }

@@ -9,6 +9,7 @@ export type AppRoute =
   | 'game'
   | 'service'
   | 'services'
+  | 'archive'
   | 'settings'
   | 'admin'
   | 'login'
@@ -16,7 +17,7 @@ export type AppRoute =
   | 'verifyEmail'
   | 'passwordReset'
 
-export type HeaderRoute = 'about' | 'community' | 'game' | 'services'
+export type HeaderRoute = 'about' | 'community' | 'services' | 'archive' | 'game'
 
 export type HeaderNavItem = {
   id: HeaderRoute
@@ -67,6 +68,7 @@ export const routePathById: Record<AppRoute, string> = {
   game: routes.users.root,
   service: routes.services.root,
   services: routes.services.root,
+  archive: routes.archive.root,
   settings: '/settings',
   admin: '/admin',
   login: '/login',
@@ -84,6 +86,8 @@ export function getRouteFromPath(pathname: string): AppRoute {
   if (pathname.startsWith('/activity')) return 'game'
   if (pathname.startsWith('/services')) return 'services'
   if (pathname.startsWith('/service')) return 'services'
+  if (pathname.startsWith('/domain')) return 'services'
+  if (pathname.startsWith('/archive')) return 'archive'
   if (pathname.startsWith('/settings')) return 'settings'
   if (pathname.startsWith('/admin')) return 'admin'
   if (pathname.startsWith('/login')) return 'login'
@@ -97,6 +101,7 @@ export const headerNavItems: HeaderNavItem[] = [
   { id: 'about', label: '소개', icon: 'layout' },
   { id: 'community', label: '커뮤니티', icon: 'message' },
   { id: 'services', label: '서비스', icon: 'settings' },
+  { id: 'archive', label: '자료실', icon: 'book' },
   { id: 'game', label: '유저', icon: 'users' },
 ]
 
@@ -111,6 +116,10 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
     { id: 'services-official', label: '공식 서비스', icon: 'network', path: routes.services.officialInstance },
     { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],
+  archive: [
+    { id: 'archive-labs', label: '연구실', icon: 'network', path: routes.archive.labs },
+    { id: 'archive-agents', label: '에이전트/스킬', icon: 'file', path: routes.archive.agents },
+  ],
 }
 
 export const routeLabelById: Record<AppRoute, string> = {
@@ -121,6 +130,7 @@ export const routeLabelById: Record<AppRoute, string> = {
   game: '유저',
   service: '인스턴스',
   services: '서비스',
+  archive: '자료실',
   settings: '프로필 설정',
   admin: '관리자',
   login: '로그인',
@@ -134,6 +144,7 @@ export function resolveServicesTab(pathname: string, search = ''): ServicesTab {
   const query = new URLSearchParams(normalizedSearch)
   const legacyTab = query.get('tab')
   const isLegacyOfficialRoute = pathname === '/service' || pathname.startsWith('/service/')
+  const isDomainRoute = pathname === routes.services.domain || pathname.startsWith('/services/official/domain')
 
   if (
     pathname.startsWith('/services/user') ||
@@ -144,7 +155,7 @@ export function resolveServicesTab(pathname: string, search = ''): ServicesTab {
     return 'user'
   }
 
-  if (pathname.startsWith('/services/official') || isLegacyOfficialRoute || legacyTab === 'official') {
+  if (pathname.startsWith('/services/official') || isLegacyOfficialRoute || isDomainRoute || legacyTab === 'official') {
     return 'official'
   }
 
@@ -198,6 +209,21 @@ const servicesActions: ContextActionDefinition[] = [
     id: 'services-user',
     label: '유저 서비스',
     icon: 'link',
+    description: '',
+  },
+]
+
+const archiveActions: ContextActionDefinition[] = [
+  {
+    id: 'archive-labs',
+    label: '연구실',
+    icon: 'network',
+    description: '',
+  },
+  {
+    id: 'archive-agents',
+    label: '에이전트/스킬',
+    icon: 'file',
     description: '',
   },
 ]
@@ -288,6 +314,20 @@ const toActivityItems = (): ContextPanelItem[] => {
   }))
 }
 
+const toArchiveItems = (pathname: string): ContextPanelItem[] => {
+  const isAgents = pathname.startsWith('/archive/agents') || pathname.startsWith('/archive/skills')
+
+  return archiveActions.map((item) => ({
+    id: item.id,
+    label: item.label,
+    icon: item.icon,
+    description: item.description,
+    kind: 'action',
+    value: item.id,
+    isActive: item.id === 'archive-agents' ? isAgents : !isAgents,
+  }))
+}
+
 export function buildContextPanel(route: AppRoute, pathname = '', search = ''): ContextPanelData | null {
   switch (route) {
     case 'home':
@@ -312,6 +352,12 @@ export function buildContextPanel(route: AppRoute, pathname = '', search = ''): 
         title: '서비스',
         description: '',
         items: toServicesItems(pathname, search),
+      }
+    case 'archive':
+      return {
+        title: '자료실',
+        description: '',
+        items: toArchiveItems(pathname),
       }
     case 'settings':
       return {

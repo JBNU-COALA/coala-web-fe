@@ -32,7 +32,7 @@ export const apiBaseUrl = resolveApiBaseUrl()
 
 export function resolveApiAssetUrl(url: string) {
   if (!url || /^(?:data:|blob:|https?:\/\/|\/\/)/i.test(url)) return url
-  if (!url.startsWith('/api/')) return url
+  if (!url.startsWith('/api/') && !url.startsWith('/media/')) return url
 
   try {
     const baseUrl = apiBaseUrl || (typeof window !== 'undefined' ? window.location.origin : '')

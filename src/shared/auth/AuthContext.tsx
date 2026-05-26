@@ -1,13 +1,14 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
-import { clearAuthSession, getRefreshToken, getStoredUser, setAuthSession } from './tokenStorage'
+import { clearAuthSession, getRefreshToken, getStoredUser, setAuthSession, setStoredUser } from './tokenStorage'
 
 type AuthState = {
   user: UserData | null
   isLoggedIn: boolean
   login: (email: string, password: string) => Promise<void>
   signup: (data: SignupRequest) => Promise<EmailVerificationResponse>
+  updateUser: (patch: Partial<UserData>) => void
   logout: () => Promise<void>
 }
 
@@ -50,6 +51,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data
   }
 
+  const updateUser = (patch: Partial<UserData>) => {
+    setUser((current) => {
+      if (!current) return current
+      const next = { ...current, ...patch }
+      setStoredUser(next)
+      return next
+    })
+  }
+
   const logout = async () => {
     await authApi.logout().catch(() => {})
     clearAuthSession()
@@ -57,7 +67,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: user !== null, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: user !== null, login, signup, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   )

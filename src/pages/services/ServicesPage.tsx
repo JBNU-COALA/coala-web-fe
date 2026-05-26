@@ -4,7 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
-import { DomainApplyForm } from '../service/DomainApplyForm'
+import { DomainServicePanel } from '../service/DomainServicePanel'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { servicesApi } from '../../shared/api/services'
 import { attachmentsApi } from '../../shared/api/attachments'
@@ -76,6 +76,12 @@ function serviceToDraft(service: MemberService) {
   }
 }
 
+function resolveOfficialMode(pathname: string): OfficialServiceMode {
+  return pathname === routes.services.domain || pathname.startsWith('/services/official/domain')
+    ? 'domain'
+    : 'instance'
+}
+
 export function ServicesPage() {
   const location = useLocation()
   const navigate = useNavigate()
@@ -92,7 +98,7 @@ export function ServicesPage() {
   const [serviceImageError, setServiceImageError] = useState<string | null>(null)
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false)
   const [addDraft, setAddDraft] = useState(emptyServiceDraft)
-  const [officialMode, setOfficialMode] = useState<OfficialServiceMode>('instance')
+  const [officialMode, setOfficialMode] = useState<OfficialServiceMode>(() => resolveOfficialMode(location.pathname))
 
   const normalizedQuery = query.trim().toLowerCase()
   const activeTab: ServicesTab = resolveServicesTab(location.pathname, location.search)
@@ -135,6 +141,10 @@ export function ServicesPage() {
   useEffect(() => {
     setCurrentPage(1)
   }, [normalizedQuery, selectedStatus, selectedTags])
+
+  useEffect(() => {
+    setOfficialMode(resolveOfficialMode(location.pathname))
+  }, [location.pathname])
 
   useEffect(() => {
     servicesApi.getMemberServices()
@@ -271,7 +281,7 @@ export function ServicesPage() {
               <button
                 type="button"
                 className={officialMode === 'instance' ? 'service-menu-tab is-active' : 'service-menu-tab'}
-                onClick={() => setOfficialMode('instance')}
+                onClick={() => navigate(routes.services.officialInstance)}
               >
                 <Icon name="network" size={22} />
                 <span>인스턴스 대여</span>
@@ -279,7 +289,7 @@ export function ServicesPage() {
               <button
                 type="button"
                 className={officialMode === 'domain' ? 'service-menu-tab is-active' : 'service-menu-tab'}
-                onClick={() => setOfficialMode('domain')}
+                onClick={() => navigate(routes.services.domain)}
               >
                 <Icon name="link" size={22} />
                 <span>도메인 신청</span>
@@ -288,19 +298,7 @@ export function ServicesPage() {
             {officialMode === 'instance' ? (
               <ServicePage embedded />
             ) : (
-              <div className="services-instance-panel">
-                <div className="jcloud-tab-shell surface-card">
-                  <div className="jcloud-tab-bar">
-                    <button type="button" className="jcloud-tab-btn is-active">
-                      <Icon name="plus" size={14} />
-                      신청 내역서
-                    </button>
-                  </div>
-                  <div className="jcloud-tab-content">
-                    <DomainApplyForm />
-                  </div>
-                </div>
-              </div>
+              <DomainServicePanel />
             )}
           </div>
         ) : selectedService ? (

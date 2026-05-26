@@ -49,6 +49,42 @@ const awardCategoryLabel: Record<UserAward['category'], string> = {
 
 const PROFILE_PHOTO_MAX_SIZE = 3 * 1024 * 1024
 
+type EditableGender = keyof typeof genderLabel
+type EditableAcademicStatus = keyof typeof academicStatusLabel
+
+type AccountDraft = {
+  name: string
+  email: string
+  studentId: string
+  githubId: string
+  lab: string
+  gender: EditableGender
+  academicStatus: EditableAcademicStatus
+  linkedinUrl: string
+}
+
+const defaultAccountDraft: AccountDraft = {
+  name: '',
+  email: '',
+  studentId: '',
+  githubId: '',
+  lab: '',
+  gender: 'PREFER_NOT_TO_SAY',
+  academicStatus: 'ENROLLED',
+  linkedinUrl: '',
+}
+
+const createBlankAward = (): UserAward => ({
+  awardId: `award-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  title: '',
+  organizer: '',
+  rank: '',
+  awardedAt: new Date().toISOString().slice(0, 10),
+  category: 'competition',
+  description: '',
+  credentialUrl: '',
+})
+
 const fallbackProfileMember: ActivityMember = {
   id: '0',
   name: '사용자',
@@ -132,7 +168,7 @@ function getGithubProfileUrl(value?: string | null) {
 }
 
 export function ProfilePage({ profileUserId }: ProfilePageProps) {
-  const { user } = useAuth()
+  const { isLoggedIn, user, updateUser } = useAuth()
   const photoInputRef = useRef<HTMLInputElement | null>(null)
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
@@ -140,6 +176,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [activityNote, setActivityNote] = useState('')
   const [awardNote, setAwardNote] = useState('')
   const [sharedReposInput, setSharedReposInput] = useState('')
+  const [accountDraft, setAccountDraft] = useState<AccountDraft>(defaultAccountDraft)
+  const [sharedRepoDrafts, setSharedRepoDrafts] = useState<string[]>([])
+  const [newSharedRepo, setNewSharedRepo] = useState('')
+  const [awardDrafts, setAwardDrafts] = useState<UserAward[]>([])
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
@@ -175,11 +215,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const profileGithubHandle = normalizeGithubHandle(profileGithub)
   const profileGithubLabel = profileGithubHandle ? `@${profileGithubHandle}` : '-'
   const profileGithubUrl = getGithubProfileUrl(profileGithub)
-  const profileAwards = profileMember.awards
-  const profileSharedRepos = sharedReposInput
-    .split(/[\n,]/)
-    .map((repo) => repo.trim())
-    .filter(Boolean)
+  const profileAwards = editing ? awardDrafts : profileMember.awards
+  const profileSharedRepos = editing
+    ? sharedRepoDrafts.map((repo) => repo.trim()).filter(Boolean)
+    : sharedReposInput
+      .split(/[\n,]/)
+      .map((repo) => repo.trim())
+      .filter(Boolean)
   const profilePhotoStorageKey = `coala-profile-photo:${effectiveProfileUserId}`
 
   useEffect(() => {
@@ -189,6 +231,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   }, [profilePhotoStorageKey])
 
   useEffect(() => {
+    if (!isLoggedIn) {
+      setPublicMembers([])
+      return
+    }
+
     let active = true
 
     usersApi.getUsers()
@@ -202,7 +249,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     return () => {
       active = false
     }
-  }, [])
+  }, [isLoggedIn])
 
   useEffect(() => {
     const numericProfileUserId = Number(effectiveProfileUserId)
@@ -233,6 +280,19 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setActivityNote(profileMember.activityNote ?? '')
     setAwardNote(profileMember.awardNote ?? '')
     setSharedReposInput(profileMember.sharedRepos.join('\n'))
+    setSharedRepoDrafts(profileMember.sharedRepos)
+    setNewSharedRepo('')
+    setAwardDrafts(profileMember.awards)
+    setAccountDraft({
+      name: user?.name ?? profileMember.name ?? '',
+      email: user?.email ?? '',
+      studentId: user?.studentId ?? '',
+      githubId: firstNonBlank(user?.githubId, profileMember.githubHandle),
+      lab: firstNonBlank(user?.lab, profileMember.lab),
+      gender: user?.gender ?? 'PREFER_NOT_TO_SAY',
+      academicStatus: user?.academicStatus ?? 'ENROLLED',
+      linkedinUrl: user?.linkedinUrl ?? '',
+    })
   }, [
     canEdit,
     effectiveProfileUserId,
@@ -240,7 +300,19 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     profileMember.awardNote,
     profileMember.bio,
     profileMember.focus,
+    profileMember.githubHandle,
+    profileMember.lab,
+    profileMember.name,
     profileMember.sharedRepos,
+    profileMember.awards,
+    user?.academicStatus,
+    user?.email,
+    user?.gender,
+    user?.githubId,
+    user?.lab,
+    user?.linkedinUrl,
+    user?.name,
+    user?.studentId,
   ])
 
   useEffect(() => {
@@ -318,14 +390,48 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     if (!canEdit) return
     setProfileSaveState('saving')
     try {
+      const normalizedRepos = sharedRepoDrafts.map((repo) => repo.trim()).filter(Boolean)
+      const normalizedAwards = awardDrafts
+        .map((award) => ({
+          ...award,
+          title: award.title.trim(),
+          organizer: award.organizer.trim(),
+          rank: award.rank.trim(),
+          awardedAt: award.awardedAt.trim(),
+          description: award.description.trim(),
+          credentialUrl: award.credentialUrl?.trim(),
+        }))
+        .filter((award) => award.title)
       const updated = await usersApi.updateMyProfile({
+        name: accountDraft.name.trim(),
+        email: accountDraft.email.trim().toLowerCase(),
+        studentId: accountDraft.studentId.trim(),
+        githubId: normalizeGithubHandle(accountDraft.githubId),
+        lab: accountDraft.lab.trim(),
+        gender: accountDraft.gender,
+        academicStatus: accountDraft.academicStatus,
+        linkedinUrl: accountDraft.linkedinUrl.trim(),
         bio,
         activityNote,
-        awardNote,
-        sharedRepositories: sharedReposInput,
+        awardNote: JSON.stringify(normalizedAwards),
+        sharedRepositories: normalizedRepos.join('\n'),
       })
       setProfileDetail(updated)
       setPublicMembers((members) => members.map((member) => (member.id === updated.id ? updated : member)))
+      setAwardDrafts(updated.awards)
+      setSharedRepoDrafts(updated.sharedRepos)
+      setSharedReposInput(updated.sharedRepos.join('\n'))
+      updateUser({
+        name: accountDraft.name.trim(),
+        email: accountDraft.email.trim().toLowerCase(),
+        studentId: accountDraft.studentId.trim(),
+        githubId: normalizeGithubHandle(accountDraft.githubId),
+        lab: accountDraft.lab.trim() || null,
+        gender: accountDraft.gender,
+        academicStatus: accountDraft.academicStatus,
+        linkedinUrl: accountDraft.linkedinUrl.trim() || null,
+        updatedAt: new Date().toISOString(),
+      })
       setEditing(false)
       setProfileSaveState('saved')
     } catch {
@@ -340,6 +446,41 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
       return
     }
     void saveProfile()
+  }
+
+  const updateAccountDraftField = <K extends keyof AccountDraft>(key: K, value: AccountDraft[K]) => {
+    setAccountDraft((current) => ({ ...current, [key]: value }))
+  }
+
+  const addSharedRepo = () => {
+    const repo = newSharedRepo.trim()
+    if (!repo) return
+    setSharedRepoDrafts((current) => [...new Set([...current, repo])])
+    setNewSharedRepo('')
+  }
+
+  const updateSharedRepo = (index: number, value: string) => {
+    setSharedRepoDrafts((current) => current.map((repo, repoIndex) => (repoIndex === index ? value : repo)))
+  }
+
+  const removeSharedRepo = (index: number) => {
+    setSharedRepoDrafts((current) => current.filter((_repo, repoIndex) => repoIndex !== index))
+  }
+
+  const updateAwardDraft = <K extends keyof UserAward>(index: number, key: K, value: UserAward[K]) => {
+    setAwardDrafts((current) =>
+      current.map((award, awardIndex) => (
+        awardIndex === index ? { ...award, [key]: value } : award
+      )),
+    )
+  }
+
+  const addAwardDraft = () => {
+    setAwardDrafts((current) => [...current, createBlankAward()])
+  }
+
+  const removeAwardDraft = (index: number) => {
+    setAwardDrafts((current) => current.filter((_award, awardIndex) => awardIndex !== index))
   }
 
   return (
@@ -461,7 +602,84 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">기본 정보</h3>
-              {canEdit ? (
+              {editing ? (
+                <div className="profile-edit-grid">
+                  <label className="profile-edit-field">
+                    <span>이름</span>
+                    <input
+                      className="auth-input"
+                      value={accountDraft.name}
+                      onChange={(event) => updateAccountDraftField('name', event.target.value)}
+                    />
+                  </label>
+                  <label className="profile-edit-field">
+                    <span>이메일</span>
+                    <input
+                      className="auth-input"
+                      type="email"
+                      value={accountDraft.email}
+                      onChange={(event) => updateAccountDraftField('email', event.target.value)}
+                    />
+                  </label>
+                  <label className="profile-edit-field">
+                    <span>학번</span>
+                    <input
+                      className="auth-input"
+                      value={accountDraft.studentId}
+                      onChange={(event) => updateAccountDraftField('studentId', event.target.value)}
+                    />
+                  </label>
+                  <label className="profile-edit-field">
+                    <span>GitHub</span>
+                    <input
+                      className="auth-input"
+                      value={accountDraft.githubId}
+                      onChange={(event) => updateAccountDraftField('githubId', event.target.value)}
+                    />
+                  </label>
+                  <label className="profile-edit-field">
+                    <span>소속 연구실</span>
+                    <input
+                      className="auth-input"
+                      value={accountDraft.lab}
+                      onChange={(event) => updateAccountDraftField('lab', event.target.value)}
+                    />
+                  </label>
+                  <label className="profile-edit-field">
+                    <span>성별</span>
+                    <select
+                      className="auth-input"
+                      value={accountDraft.gender}
+                      onChange={(event) => updateAccountDraftField('gender', event.target.value as EditableGender)}
+                    >
+                      {Object.entries(genderLabel).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="profile-edit-field">
+                    <span>학적</span>
+                    <select
+                      className="auth-input"
+                      value={accountDraft.academicStatus}
+                      onChange={(event) => updateAccountDraftField('academicStatus', event.target.value as EditableAcademicStatus)}
+                    >
+                      {Object.entries(academicStatusLabel).map(([value, label]) => (
+                        <option key={value} value={value}>{label}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="profile-edit-field profile-edit-field--wide">
+                    <span>LinkedIn</span>
+                    <input
+                      className="auth-input"
+                      type="url"
+                      value={accountDraft.linkedinUrl}
+                      onChange={(event) => updateAccountDraftField('linkedinUrl', event.target.value)}
+                    />
+                  </label>
+                </div>
+              ) : canEdit ? (
                 <ul className="profile-handles-list">
                   <li className="profile-handle-item">
                     <span className="profile-handle-icon profile-handle-icon--github">
@@ -594,13 +812,32 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">저장소</span>
                   {editing ? (
-                    <textarea
-                      className="profile-bio-textarea profile-repo-textarea"
-                      value={sharedReposInput}
-                      onChange={(event) => setSharedReposInput(event.target.value)}
-                      rows={4}
-                      placeholder="owner/repository 형식으로 한 줄에 하나씩 입력"
-                    />
+                    <div className="profile-repeat-editor">
+                      {sharedRepoDrafts.map((repo, index) => (
+                        <div className="profile-repeat-row" key={`${repo}-${index}`}>
+                          <input
+                            className="auth-input"
+                            value={repo}
+                            placeholder="owner/repository"
+                            onChange={(event) => updateSharedRepo(index, event.target.value)}
+                          />
+                          <button type="button" className="ghost-button" onClick={() => removeSharedRepo(index)}>
+                            삭제
+                          </button>
+                        </div>
+                      ))}
+                      <div className="profile-repeat-row">
+                        <input
+                          className="auth-input"
+                          value={newSharedRepo}
+                          placeholder="owner/repository"
+                          onChange={(event) => setNewSharedRepo(event.target.value)}
+                        />
+                        <button type="button" className="ghost-button" onClick={addSharedRepo}>
+                          추가
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <span className="profile-repo-list">
                       {profileSharedRepos.length > 0 ? (
@@ -636,14 +873,84 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
           <div className="surface-card profile-section-card">
             <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
             {editing ? (
-              <textarea
-                className="profile-bio-textarea profile-award-textarea"
-                value={awardNote}
-                onChange={(event) => setAwardNote(event.target.value)}
-                rows={6}
-                placeholder="수상명, 주최, 등수, 날짜 등을 자유롭게 입력하세요."
-              />
-            ) : awardNote ? (
+              <div className="profile-award-editor">
+                {awardDrafts.map((award, index) => (
+                  <div className="profile-award-edit-item" key={award.awardId}>
+                    <div className="profile-award-edit-grid">
+                      <label className="profile-edit-field">
+                        <span>수상명</span>
+                        <input
+                          className="auth-input"
+                          value={award.title}
+                          onChange={(event) => updateAwardDraft(index, 'title', event.target.value)}
+                        />
+                      </label>
+                      <label className="profile-edit-field">
+                        <span>주최</span>
+                        <input
+                          className="auth-input"
+                          value={award.organizer}
+                          onChange={(event) => updateAwardDraft(index, 'organizer', event.target.value)}
+                        />
+                      </label>
+                      <label className="profile-edit-field">
+                        <span>등수</span>
+                        <input
+                          className="auth-input"
+                          value={award.rank}
+                          onChange={(event) => updateAwardDraft(index, 'rank', event.target.value)}
+                        />
+                      </label>
+                      <label className="profile-edit-field">
+                        <span>날짜</span>
+                        <input
+                          className="auth-input"
+                          type="date"
+                          value={award.awardedAt}
+                          onChange={(event) => updateAwardDraft(index, 'awardedAt', event.target.value)}
+                        />
+                      </label>
+                      <label className="profile-edit-field">
+                        <span>분류</span>
+                        <select
+                          className="auth-input"
+                          value={award.category}
+                          onChange={(event) => updateAwardDraft(index, 'category', event.target.value as UserAward['category'])}
+                        >
+                          {Object.entries(awardCategoryLabel).map(([value, label]) => (
+                            <option key={value} value={value}>{label}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label className="profile-edit-field">
+                        <span>확인 링크</span>
+                        <input
+                          className="auth-input"
+                          type="url"
+                          value={award.credentialUrl ?? ''}
+                          onChange={(event) => updateAwardDraft(index, 'credentialUrl', event.target.value)}
+                        />
+                      </label>
+                      <label className="profile-edit-field profile-edit-field--wide">
+                        <span>설명</span>
+                        <input
+                          className="auth-input"
+                          value={award.description}
+                          onChange={(event) => updateAwardDraft(index, 'description', event.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <button type="button" className="ghost-button" onClick={() => removeAwardDraft(index)}>
+                      삭제
+                    </button>
+                  </div>
+                ))}
+                <button type="button" className="ghost-button profile-add-row-button" onClick={addAwardDraft}>
+                  <Icon name="plus" size={14} />
+                  수상내역 추가
+                </button>
+              </div>
+            ) : awardNote && !awardNote.trim().startsWith('[') ? (
               <p className="profile-bio-text profile-award-note">{awardNote}</p>
             ) : null}
             {profileAwards.length === 0 ? (
