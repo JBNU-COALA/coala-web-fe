@@ -1082,7 +1082,8 @@
 .coala-content--info,
 .coala-content--auth,
 .coala-content--post-detail,
-.coala-content--post-writer {
+.coala-content--post-writer,
+.coala-content--archive {
   display: block;
 }
 
@@ -12769,6 +12770,7 @@
 }
 
 .archive-page {
+  width: 100%;
   display: grid;
   gap: 16px;
 }
@@ -12806,37 +12808,22 @@
 
 .archive-workspace {
   display: grid;
-  grid-template-columns: minmax(210px, 260px) minmax(0, 1fr);
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: start;
 }
 
-.archive-sidebar {
-  position: sticky;
-  top: 88px;
+.archive-classifier {
   padding: 16px;
   display: grid;
-  gap: 14px;
-}
-
-.archive-sidebar-head {
-  display: grid;
-  gap: 3px;
-}
-
-.archive-sidebar-head span {
-  color: #61766d;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.archive-sidebar-head strong {
-  color: #172d24;
-  font-size: 20px;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, auto);
+  align-items: stretch;
+  gap: 12px;
 }
 
 .archive-tab-row {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -13185,12 +13172,8 @@
 }
 
 @media (max-width: 980px) {
-  .archive-workspace {
+  .archive-classifier {
     grid-template-columns: 1fr;
-  }
-
-  .archive-sidebar {
-    position: static;
   }
 
   .archive-tab-row {
@@ -13235,7 +13218,7 @@
 }
 
 @media (max-width: 520px) {
-  .archive-sidebar,
+  .archive-classifier,
   .archive-toolbar,
   .archive-form,
   .archive-card {
@@ -13545,6 +13528,7 @@
 .coala-content--profile,
 .coala-content--service,
 .coala-content--services,
+.coala-content--archive,
 .coala-content--post-detail,
 .coala-content--post-writer,
 .coala-content--leaderboard {
@@ -13561,6 +13545,7 @@
 .coala-content--profile > *,
 .coala-content--service > *,
 .coala-content--services > *,
+.coala-content--archive > *,
 .coala-content--post-detail > *,
 .coala-content--posts > * {
   width: 100%;

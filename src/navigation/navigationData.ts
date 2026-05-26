@@ -86,7 +86,6 @@ export function getRouteFromPath(pathname: string): AppRoute {
   if (pathname.startsWith('/activity')) return 'game'
   if (pathname.startsWith('/services')) return 'services'
   if (pathname.startsWith('/service')) return 'services'
-  if (pathname.startsWith('/domain')) return 'services'
   if (pathname.startsWith('/archive')) return 'archive'
   if (pathname.startsWith('/settings')) return 'settings'
   if (pathname.startsWith('/admin')) return 'admin'

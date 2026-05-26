@@ -22,15 +22,15 @@ type ArchiveDraft = {
 const archiveTabs: { id: ArchiveCategory; label: string; eyebrow: string; icon: Parameters<typeof Icon>[0]['name']; path: string }[] = [
   {
     id: 'labs',
-    label: '연구실',
-    eyebrow: 'Seminar & Paper',
+    label: '연구실 자료',
+    eyebrow: '세미나 자료 / 논문 업로드',
     icon: 'network',
     path: routes.archive.labs,
   },
   {
     id: 'agents',
     label: '에이전트/스킬',
-    eyebrow: 'Agent Skills',
+    eyebrow: 'SKILL.md / 저장소 공유',
     icon: 'file',
     path: routes.archive.agents,
   },
@@ -295,11 +295,7 @@ export function ArchivePage() {
         </header>
 
         <div className="archive-workspace">
-          <aside className="surface-card archive-sidebar" aria-label="자료실 분류">
-            <div className="archive-sidebar-head">
-              <span>분류</span>
-              <strong>{activeTab.label}</strong>
-            </div>
+          <section className="surface-card archive-classifier" aria-label="자료실 분류">
             <div className="archive-tab-row" role="tablist" aria-label="자료실 하위 분류">
               {archiveTabs.map((tab) => (
                 <button
@@ -336,7 +332,7 @@ export function ArchivePage() {
                 <dd>{items.length}</dd>
               </div>
             </dl>
-          </aside>
+          </section>
 
           <main className="archive-main">
             <section className="surface-card archive-toolbar" aria-label="자료실 검색">
