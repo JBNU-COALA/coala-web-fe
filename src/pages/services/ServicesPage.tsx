@@ -8,6 +8,7 @@ import { DomainServicePanel } from '../service/DomainServicePanel'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { servicesApi } from '../../shared/api/services'
 import { attachmentsApi } from '../../shared/api/attachments'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 import { resolveServicesTab, type ServicesTab } from '../../navigation/navigationData'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
@@ -25,6 +26,7 @@ export type MemberService = {
   url: string
   githubUrl: string
   imageUrl: string
+  additionalImageUrls?: string[]
   tags: string[]
   status: MemberServiceStatus
   audience?: string
@@ -33,6 +35,7 @@ export type MemberService = {
   description?: string
   features?: string[]
   stack?: string[]
+  canEdit?: boolean
 }
 
 export type MemberServiceDetail = {
@@ -56,12 +59,15 @@ const toExternalUrl = (url: string) => (
   /^https?:\/\//i.test(url) ? url : `https://${url}`
 )
 
+const toServiceImageUrl = (url?: string | null) => (url ? resolveApiAssetUrl(url) : '')
+
 const emptyServiceDraft = {
   title: '',
   url: '',
   githubUrl: '',
   tags: '',
   imageUrl: '',
+  additionalImageUrls: [] as string[],
   summary: '',
 }
 
@@ -72,12 +78,15 @@ function serviceToDraft(service: MemberService) {
     githubUrl: service.githubUrl,
     tags: service.tags.join(', '),
     imageUrl: service.imageUrl,
+    additionalImageUrls: service.additionalImageUrls ?? [],
     summary: service.summary,
   }
 }
 
 function resolveOfficialMode(pathname: string): OfficialServiceMode {
-  return pathname === routes.services.domain || pathname.startsWith('/services/official/domain')
+  return pathname === routes.services.domain ||
+    pathname === routes.services.officialDomain ||
+    pathname.startsWith('/services/official/domain')
     ? 'domain'
     : 'instance'
 }
@@ -206,6 +215,7 @@ export function ServicesPage() {
         url: addDraft.url.trim(),
         githubUrl: addDraft.githubUrl.trim(),
         imageUrl: addDraft.imageUrl.trim(),
+        additionalImageUrls: addDraft.additionalImageUrls.slice(0, 5),
         tags: addDraft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
       }
       const saved = editingServiceId
@@ -221,6 +231,26 @@ export function ServicesPage() {
       setServiceError(null)
     } catch {
       setServiceError(editingServiceId ? '서비스 수정 권한이 없거나 저장에 실패했습니다.' : '서비스를 추가하지 못했습니다.')
+    }
+  }
+
+  const handleRetireService = async (service: MemberService) => {
+    const confirmed = window.confirm(`${service.title} 서비스를 운영 중지할까요?`)
+    if (!confirmed) return
+
+    try {
+      await servicesApi.retireMemberService(service.id)
+      setMemberServices((current) =>
+        current.map((item) => (
+          item.id === service.id
+            ? { ...item, status: '운영중지', visibility: 'Private', period: '운영 중지' }
+            : item
+        )),
+      )
+      navigate(routes.services.user)
+      setServiceError(null)
+    } catch {
+      setServiceError('서비스 운영 중지 권한이 없거나 처리에 실패했습니다.')
     }
   }
 
@@ -244,6 +274,52 @@ export function ServicesPage() {
     } finally {
       setIsUploadingServiceImage(false)
     }
+  }
+
+  const handleAdditionalServiceImageSelect = async (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files ?? [])
+    event.target.value = ''
+    if (files.length === 0) return
+
+    const availableSlots = Math.max(0, 5 - addDraft.additionalImageUrls.length)
+    const selectedFiles = files.slice(0, availableSlots)
+
+    if (availableSlots === 0) {
+      setServiceImageError('추가 이미지는 최대 5개까지 등록할 수 있습니다.')
+      return
+    }
+
+    if (selectedFiles.some((file) => !file.type.startsWith('image/'))) {
+      setServiceImageError('이미지 파일만 첨부할 수 있습니다.')
+      return
+    }
+
+    setIsUploadingServiceImage(true)
+    setServiceImageError(null)
+    try {
+      const uploadedImages = await Promise.all(selectedFiles.map((file) => attachmentsApi.uploadImage(file)))
+      setAddDraft((current) => ({
+        ...current,
+        additionalImageUrls: [
+          ...current.additionalImageUrls,
+          ...uploadedImages.map((image) => image.url),
+        ].slice(0, 5),
+      }))
+      if (files.length > selectedFiles.length) {
+        setServiceImageError('추가 이미지는 최대 5개까지만 등록됩니다.')
+      }
+    } catch (error) {
+      setServiceImageError(error instanceof Error ? error.message : '이미지를 업로드하지 못했습니다.')
+    } finally {
+      setIsUploadingServiceImage(false)
+    }
+  }
+
+  const removeAdditionalServiceImage = (imageUrl: string) => {
+    setAddDraft((current) => ({
+      ...current,
+      additionalImageUrls: current.additionalImageUrls.filter((url) => url !== imageUrl),
+    }))
   }
 
   const renderServiceTags = (tags: string[]) => (
@@ -289,7 +365,7 @@ export function ServicesPage() {
               <button
                 type="button"
                 className={officialMode === 'domain' ? 'service-menu-tab is-active' : 'service-menu-tab'}
-                onClick={() => navigate(routes.services.domain)}
+                onClick={() => navigate(routes.services.officialDomain)}
               >
                 <Icon name="link" size={22} />
                 <span>도메인 신청</span>
@@ -309,7 +385,7 @@ export function ServicesPage() {
                       ? 'member-service-detail-media'
                       : 'member-service-detail-media member-service-detail-media--empty'
                   }
-                  style={selectedService.imageUrl ? { backgroundImage: `url(${selectedService.imageUrl})` } : undefined}
+                  style={selectedService.imageUrl ? { backgroundImage: `url(${toServiceImageUrl(selectedService.imageUrl)})` } : undefined}
                 >
                   {!selectedService.imageUrl ? <Icon name="image" size={28} /> : null}
                   <span className="member-service-status">{selectedService.status}</span>
@@ -347,14 +423,26 @@ export function ServicesPage() {
                         GitHub
                       </a>
                     ) : null}
-                    <button
-                      type="button"
-                      className="member-service-detail-button"
-                      onClick={() => startEditService(selectedService)}
-                    >
-                      <Icon name="edit" size={15} />
-                      수정
-                    </button>
+                    {selectedService.canEdit ? (
+                      <>
+                        <button
+                          type="button"
+                          className="member-service-detail-button"
+                          onClick={() => startEditService(selectedService)}
+                        >
+                          <Icon name="edit" size={15} />
+                          수정
+                        </button>
+                        <button
+                          type="button"
+                          className="member-service-detail-button"
+                          onClick={() => handleRetireService(selectedService)}
+                        >
+                          <Icon name="file" size={15} />
+                          운영 중지
+                        </button>
+                      </>
+                    ) : null}
                   </div>
 
                   <dl className="member-service-detail-meta">
@@ -392,6 +480,17 @@ export function ServicesPage() {
                       </div>
                     </section>
                   </div>
+                  {(selectedService.additionalImageUrls ?? []).length > 0 ? (
+                    <section className="member-service-gallery" aria-label="서비스 추가 이미지">
+                      {(selectedService.additionalImageUrls ?? []).slice(0, 5).map((imageUrl) => (
+                        <span
+                          key={imageUrl}
+                          className="member-service-gallery-image"
+                          style={{ backgroundImage: `url(${toServiceImageUrl(imageUrl)})` }}
+                        />
+                      ))}
+                    </section>
+                  ) : null}
                 </div>
               </article>
         ) : serviceId ? (
@@ -577,13 +676,50 @@ export function ServicesPage() {
                       {addDraft.imageUrl ? (
                         <span
                           className="member-service-image-preview"
-                          style={{ backgroundImage: `url(${addDraft.imageUrl})` }}
+                          style={{ backgroundImage: `url(${toServiceImageUrl(addDraft.imageUrl)})` }}
                         />
                       ) : (
                         <span className="member-service-image-empty">첨부된 이미지가 없습니다</span>
                       )}
                     </div>
                     {serviceImageError ? <p className="auth-error">{serviceImageError}</p> : null}
+                  </label>
+                  <label className="jcloud-field member-service-form-wide">
+                    <span className="jcloud-label">추가 이미지 ({addDraft.additionalImageUrls.length}/5)</span>
+                    <div className="member-service-image-upload">
+                      <label className="ghost-button member-service-image-upload-button">
+                        <Icon name="plus" size={15} />
+                        {isUploadingServiceImage ? '업로드 중...' : '추가 이미지 첨부'}
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          onChange={handleAdditionalServiceImageSelect}
+                          disabled={isUploadingServiceImage || addDraft.additionalImageUrls.length >= 5}
+                        />
+                      </label>
+                      {addDraft.additionalImageUrls.length > 0 ? (
+                        <div className="member-service-extra-preview-list">
+                          {addDraft.additionalImageUrls.map((imageUrl) => (
+                            <span
+                              key={imageUrl}
+                              className="member-service-extra-preview"
+                              style={{ backgroundImage: `url(${toServiceImageUrl(imageUrl)})` }}
+                            >
+                              <button
+                                type="button"
+                                aria-label="추가 이미지 제거"
+                                onClick={() => removeAdditionalServiceImage(imageUrl)}
+                              >
+                                x
+                              </button>
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="member-service-image-empty">추가 이미지가 없습니다</span>
+                      )}
+                    </div>
                   </label>
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">소개</span>
@@ -624,23 +760,25 @@ export function ServicesPage() {
                     <>
                       <div
                         className={service.imageUrl ? 'member-service-media' : 'member-service-media member-service-media--empty'}
-                        style={service.imageUrl ? { backgroundImage: `url(${service.imageUrl})` } : undefined}
+                        style={service.imageUrl ? { backgroundImage: `url(${toServiceImageUrl(service.imageUrl)})` } : undefined}
                       >
                         {!service.imageUrl ? <Icon name="image" size={22} /> : null}
                       </div>
                       <div className="member-service-card-head">
                         <span className="member-service-status">{service.status}</span>
-                        <button
-                          type="button"
-                          className="member-service-edit-button"
-                          aria-label={`${service.title} 수정`}
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            startEditService(service)
-                          }}
-                        >
-                          <Icon name="edit" size={14} />
-                        </button>
+                        {service.canEdit ? (
+                          <button
+                            type="button"
+                            className="member-service-edit-button"
+                            aria-label={`${service.title} 수정`}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              startEditService(service)
+                            }}
+                          >
+                            <Icon name="edit" size={14} />
+                          </button>
+                        ) : null}
                       </div>
                       <h3>{service.title}</h3>
                       <p>{service.summary}</p>
@@ -668,18 +806,20 @@ export function ServicesPage() {
                       <div className="member-service-list-side">
                         <span>{service.owner}</span>
                         <strong>{service.url}</strong>
-                        <button
-                          type="button"
-                          className="member-service-edit-button"
-                          aria-label={`${service.title} 수정`}
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            startEditService(service)
-                          }}
-                        >
-                          <Icon name="edit" size={14} />
-                          수정
-                        </button>
+                        {service.canEdit ? (
+                          <button
+                            type="button"
+                            className="member-service-edit-button"
+                            aria-label={`${service.title} 수정`}
+                            onClick={(event) => {
+                              event.stopPropagation()
+                              startEditService(service)
+                            }}
+                          >
+                            <Icon name="edit" size={14} />
+                            수정
+                          </button>
+                        ) : null}
                         <span className="member-service-open-hint">안내 보기</span>
                       </div>
                     </>

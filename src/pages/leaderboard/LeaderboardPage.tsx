@@ -215,6 +215,19 @@ export function LeaderboardPage() {
                   />
                 ))}
               </div>
+              {filteredMembers.length > USERS_PER_SLIDE ? (
+                <label className="activity-member-range">
+                  <span>목록 위치</span>
+                  <input
+                    type="range"
+                    min={0}
+                    max={maxSlideStart}
+                    value={safeSlideStart}
+                    onChange={(event) => setSlideStart(Number(event.target.value))}
+                    aria-label="유저 목록 슬라이더"
+                  />
+                </label>
+              ) : null}
               {filteredMembers.length === 0 ? (
                 <p className="activity-empty">조건에 맞는 유저가 없습니다.</p>
               ) : null}

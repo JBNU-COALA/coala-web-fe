@@ -28,7 +28,7 @@ export const routes = {
   services: {
     root: '/services',
     officialInstance: '/services/official/instance',
-    officialDomain: '/services/official/domain',
+    officialDomain: '/domain',
     domain: '/domain',
     user: '/services/user',
     userDetail: (serviceId: string) => `/services/user/${serviceId}`,

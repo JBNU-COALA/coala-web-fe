@@ -1,9 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { attachmentsApi } from '../../shared/api/attachments'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
-import { usersApi, type ActivityMember, type UserAward } from '../../shared/api/users'
+import { usersApi, type ActivityMember, type AvatarTone, type UserAward, type UserProfileLink } from '../../shared/api/users'
 import { Icon } from '../../shared/ui/Icon'
 
 type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
@@ -49,6 +51,15 @@ const awardCategoryLabel: Record<UserAward['category'], string> = {
 
 const PROFILE_PHOTO_MAX_SIZE = 3 * 1024 * 1024
 
+const avatarToneOptions: { id: AvatarTone; label: string }[] = [
+  { id: 'mint', label: 'Mint' },
+  { id: 'sky', label: 'Sky' },
+  { id: 'amber', label: 'Amber' },
+  { id: 'slate', label: 'Slate' },
+  { id: 'sand', label: 'Sand' },
+  { id: 'rose', label: 'Rose' },
+]
+
 type EditableGender = keyof typeof genderLabel
 type EditableAcademicStatus = keyof typeof academicStatusLabel
 
@@ -63,6 +74,13 @@ type AccountDraft = {
   linkedinUrl: string
 }
 
+type ProfileCustomizationDraft = {
+  avatarTone: AvatarTone
+  headline: string
+  profileImageUrl: string
+  links: UserProfileLink[]
+}
+
 const defaultAccountDraft: AccountDraft = {
   name: '',
   email: '',
@@ -72,6 +90,13 @@ const defaultAccountDraft: AccountDraft = {
   gender: 'PREFER_NOT_TO_SAY',
   academicStatus: 'ENROLLED',
   linkedinUrl: '',
+}
+
+const defaultCustomizationDraft: ProfileCustomizationDraft = {
+  avatarTone: 'mint',
+  headline: '',
+  profileImageUrl: '',
+  links: [],
 }
 
 const createBlankAward = (): UserAward => ({
@@ -167,6 +192,15 @@ function getGithubProfileUrl(value?: string | null) {
   return `https://github.com/${encodeURIComponent(handle)}`
 }
 
+function getMemberCustomization(member: ActivityMember): ProfileCustomizationDraft {
+  return {
+    avatarTone: member.customization?.avatarTone ?? member.tone,
+    headline: member.customization?.headline ?? '',
+    profileImageUrl: member.customization?.profileImageUrl ?? '',
+    links: member.customization?.links ?? [],
+  }
+}
+
 export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const { isLoggedIn, user, updateUser } = useAuth()
   const photoInputRef = useRef<HTMLInputElement | null>(null)
@@ -180,10 +214,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [sharedRepoDrafts, setSharedRepoDrafts] = useState<string[]>([])
   const [newSharedRepo, setNewSharedRepo] = useState('')
   const [awardDrafts, setAwardDrafts] = useState<UserAward[]>([])
+  const [customizationDraft, setCustomizationDraft] = useState<ProfileCustomizationDraft>(defaultCustomizationDraft)
+  const [newProfileLink, setNewProfileLink] = useState<UserProfileLink>({ label: '', url: '' })
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
+  const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false)
   const [publicMembers, setPublicMembers] = useState<ActivityMember[]>([])
   const [profileDetail, setProfileDetail] = useState<ActivityMember | null>(null)
 
@@ -215,6 +252,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const profileGithubHandle = normalizeGithubHandle(profileGithub)
   const profileGithubLabel = profileGithubHandle ? `@${profileGithubHandle}` : '-'
   const profileGithubUrl = getGithubProfileUrl(profileGithub)
+  const profileCustomization = getMemberCustomization(profileMember)
+  const displayAvatarTone = editing ? customizationDraft.avatarTone : profileCustomization.avatarTone
+  const profileImageUrl = editing ? customizationDraft.profileImageUrl : profileCustomization.profileImageUrl
+  const displayProfileImage = resolveApiAssetUrl(profileImageUrl || profilePhoto || '')
+  const profileLinks = editing ? customizationDraft.links : profileCustomization.links
   const profileAwards = editing ? awardDrafts : profileMember.awards
   const profileSharedRepos = editing
     ? sharedRepoDrafts.map((repo) => repo.trim()).filter(Boolean)
@@ -283,6 +325,8 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setSharedRepoDrafts(profileMember.sharedRepos)
     setNewSharedRepo('')
     setAwardDrafts(profileMember.awards)
+    setCustomizationDraft(getMemberCustomization(profileMember))
+    setNewProfileLink({ label: '', url: '' })
     setAccountDraft({
       name: user?.name ?? profileMember.name ?? '',
       email: user?.email ?? '',
@@ -305,6 +349,8 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     profileMember.name,
     profileMember.sharedRepos,
     profileMember.awards,
+    profileMember.customization,
+    profileMember.tone,
     user?.academicStatus,
     user?.email,
     user?.gender,
@@ -350,7 +396,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     { id: 'posts', label: '작성 내용' },
   ]
 
-  const handlePhotoSelect = (event: ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
     if (!file) return
@@ -365,24 +411,28 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
       return
     }
 
-    const reader = new FileReader()
-    reader.addEventListener('load', () => {
-      if (typeof reader.result !== 'string') {
-        setPhotoError('이미지를 읽지 못했습니다.')
-        return
-      }
-
-      window.localStorage.setItem(profilePhotoStorageKey, reader.result)
-      setProfilePhoto(reader.result)
-      setPhotoError(null)
-    })
-    reader.addEventListener('error', () => setPhotoError('이미지를 읽지 못했습니다.'))
-    reader.readAsDataURL(file)
+    setIsUploadingProfilePhoto(true)
+    setPhotoError(null)
+    try {
+      const uploaded = await attachmentsApi.uploadImage(file)
+      setCustomizationDraft((current) => ({ ...current, profileImageUrl: uploaded.url }))
+      setProfilePhoto(null)
+      window.localStorage.removeItem(profilePhotoStorageKey)
+      setEditing(true)
+      setProfileSaveState('idle')
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : '이미지를 업로드하지 못했습니다.')
+    } finally {
+      setIsUploadingProfilePhoto(false)
+    }
   }
 
   const removeProfilePhoto = () => {
     window.localStorage.removeItem(profilePhotoStorageKey)
     setProfilePhoto(null)
+    setCustomizationDraft((current) => ({ ...current, profileImageUrl: '' }))
+    setEditing(true)
+    setProfileSaveState('idle')
     setPhotoError(null)
   }
 
@@ -402,6 +452,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
           credentialUrl: award.credentialUrl?.trim(),
         }))
         .filter((award) => award.title)
+      const normalizedCustomization: ProfileCustomizationDraft = {
+        avatarTone: customizationDraft.avatarTone,
+        headline: customizationDraft.headline.trim(),
+        profileImageUrl: customizationDraft.profileImageUrl.trim(),
+        links: customizationDraft.links
+          .map((link) => ({ label: link.label.trim(), url: link.url.trim() }))
+          .filter((link) => link.label && /^https?:\/\//i.test(link.url))
+          .slice(0, 5),
+      }
       const updated = await usersApi.updateMyProfile({
         name: accountDraft.name.trim(),
         email: accountDraft.email.trim().toLowerCase(),
@@ -415,12 +474,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         activityNote,
         awardNote: JSON.stringify(normalizedAwards),
         sharedRepositories: normalizedRepos.join('\n'),
+        customization: JSON.stringify(normalizedCustomization),
       })
       setProfileDetail(updated)
       setPublicMembers((members) => members.map((member) => (member.id === updated.id ? updated : member)))
       setAwardDrafts(updated.awards)
       setSharedRepoDrafts(updated.sharedRepos)
       setSharedReposInput(updated.sharedRepos.join('\n'))
+      setCustomizationDraft(getMemberCustomization(updated))
+      setNewProfileLink({ label: '', url: '' })
       updateUser({
         name: accountDraft.name.trim(),
         email: accountDraft.email.trim().toLowerCase(),
@@ -450,6 +512,40 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
   const updateAccountDraftField = <K extends keyof AccountDraft>(key: K, value: AccountDraft[K]) => {
     setAccountDraft((current) => ({ ...current, [key]: value }))
+  }
+
+  const updateCustomizationDraft = <K extends keyof ProfileCustomizationDraft>(
+    key: K,
+    value: ProfileCustomizationDraft[K],
+  ) => {
+    setCustomizationDraft((current) => ({ ...current, [key]: value }))
+  }
+
+  const updateProfileLink = (index: number, key: keyof UserProfileLink, value: string) => {
+    setCustomizationDraft((current) => ({
+      ...current,
+      links: current.links.map((link, linkIndex) => (
+        linkIndex === index ? { ...link, [key]: value } : link
+      )),
+    }))
+  }
+
+  const addProfileLink = () => {
+    const label = newProfileLink.label.trim()
+    const url = newProfileLink.url.trim()
+    if (!label || !/^https?:\/\//i.test(url)) return
+    setCustomizationDraft((current) => ({
+      ...current,
+      links: [...current.links, { label, url }].slice(0, 5),
+    }))
+    setNewProfileLink({ label: '', url: '' })
+  }
+
+  const removeProfileLink = (index: number) => {
+    setCustomizationDraft((current) => ({
+      ...current,
+      links: current.links.filter((_link, linkIndex) => linkIndex !== index),
+    }))
   }
 
   const addSharedRepo = () => {
@@ -483,15 +579,30 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setAwardDrafts((current) => current.filter((_award, awardIndex) => awardIndex !== index))
   }
 
+  const startAddSharedRepo = () => {
+    if (!canEdit) return
+    setTab('activity')
+    setEditing(true)
+    setProfileSaveState('idle')
+  }
+
+  const startAddAward = () => {
+    if (!canEdit) return
+    setTab('awards')
+    setEditing(true)
+    setProfileSaveState('idle')
+    setAwardDrafts((current) => [...current, createBlankAward()])
+  }
+
   return (
     <section className="coala-content coala-content--profile">
       <div className="profile-page">
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
-              <div className={profilePhoto ? 'profile-page-avatar profile-page-avatar--image' : 'profile-page-avatar'}>
-                {profilePhoto ? (
-                  <img src={profilePhoto} alt={`${displayName} 프로필 사진`} />
+              <div className={`profile-page-avatar profile-page-avatar--${displayAvatarTone}${displayProfileImage ? ' profile-page-avatar--image' : ''}`}>
+                {displayProfileImage ? (
+                  <img src={displayProfileImage} alt={`${displayName} 프로필 사진`} />
                 ) : (
                   <span>{initial}</span>
                 )}
@@ -499,9 +610,9 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
               {canEdit ? (
                 <div className="profile-photo-controls">
                   <button type="button" className="profile-photo-button" onClick={() => photoInputRef.current?.click()}>
-                    사진 변경
+                    {isUploadingProfilePhoto ? '업로드 중' : '사진 변경'}
                   </button>
-                  {profilePhoto ? (
+                  {displayProfileImage ? (
                     <button type="button" className="profile-photo-button profile-photo-button--muted" onClick={removeProfilePhoto}>
                       삭제
                     </button>
@@ -512,6 +623,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     accept="image/*"
                     className="profile-photo-input"
                     onChange={handlePhotoSelect}
+                    disabled={isUploadingProfilePhoto}
                   />
                   {photoError ? <p className="profile-photo-error">{photoError}</p> : null}
                 </div>
@@ -520,6 +632,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             <div className="profile-page-identity">
               <h2 className="profile-page-name">{displayName}</h2>
               <p className="profile-page-role">{displayRole}</p>
+              {profileMember.focus ? <p className="profile-page-focus">{profileMember.focus}</p> : null}
               <div className="profile-page-meta">
                 <span>{profileAffiliation}</span>
                 {profileGithubUrl ? (
@@ -531,6 +644,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                 )}
               </div>
               {joinedAt ? <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p> : null}
+              {profileLinks.length > 0 ? (
+                <div className="profile-public-links">
+                  {profileLinks.map((link) => (
+                    <a key={`${link.label}-${link.url}`} href={link.url} target="_blank" rel="noreferrer">
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              ) : null}
             </div>
           </div>
           {canEdit ? (
@@ -558,11 +680,25 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             <p className="profile-stat-label">GitHub 커밋</p>
           </div>
           <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value">{profileMember.sharedRepos.length}개</p>
+            <div className="profile-stat-card-head">
+              <p className="profile-stat-value">{profileMember.sharedRepos.length}개</p>
+              {canEdit ? (
+                <button type="button" className="profile-inline-add-button" onClick={startAddSharedRepo} aria-label="공유 저장소 추가">
+                  <Icon name="plus" size={13} />
+                </button>
+              ) : null}
+            </div>
             <p className="profile-stat-label">공유 저장소</p>
           </div>
           <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value profile-stat-value--award">{profileAwards.length}개</p>
+            <div className="profile-stat-card-head">
+              <p className="profile-stat-value profile-stat-value--award">{profileAwards.length}개</p>
+              {canEdit ? (
+                <button type="button" className="profile-inline-add-button" onClick={startAddAward} aria-label="수상 내역 추가">
+                  <Icon name="plus" size={13} />
+                </button>
+              ) : null}
+            </div>
             <p className="profile-stat-label">수상 내역</p>
           </div>
           <div className="profile-stat-card surface-card">
@@ -785,6 +921,94 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                 </ul>
               )}
             </div>
+            <div className="surface-card profile-section-card profile-custom-card">
+              <h3 className="profile-section-title">커스터마이징</h3>
+              {editing ? (
+                <div className="profile-custom-editor">
+                  <label className="profile-edit-field profile-edit-field--wide">
+                    <span>한 줄 소개</span>
+                    <input
+                      className="auth-input"
+                      maxLength={120}
+                      value={customizationDraft.headline}
+                      placeholder="프로필 상단에 보여줄 문장"
+                      onChange={(event) => updateCustomizationDraft('headline', event.target.value)}
+                    />
+                  </label>
+                  <div className="profile-edit-field profile-edit-field--wide">
+                    <span>아바타 톤</span>
+                    <div className="profile-tone-picker">
+                      {avatarToneOptions.map((option) => (
+                        <button
+                          key={option.id}
+                          type="button"
+                          className={customizationDraft.avatarTone === option.id ? 'profile-tone-button is-active' : 'profile-tone-button'}
+                          onClick={() => updateCustomizationDraft('avatarTone', option.id)}
+                        >
+                          <span className={`profile-tone-swatch profile-tone-swatch--${option.id}`} />
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="profile-edit-field profile-edit-field--wide">
+                    <span>공개 링크</span>
+                    <div className="profile-repeat-editor">
+                      {customizationDraft.links.map((link, index) => (
+                        <div className="profile-repeat-row profile-repeat-row--link" key={`${link.label}-${index}`}>
+                          <input
+                            className="auth-input"
+                            value={link.label}
+                            placeholder="라벨"
+                            onChange={(event) => updateProfileLink(index, 'label', event.target.value)}
+                          />
+                          <input
+                            className="auth-input"
+                            value={link.url}
+                            placeholder="https://..."
+                            onChange={(event) => updateProfileLink(index, 'url', event.target.value)}
+                          />
+                          <button type="button" className="ghost-button" onClick={() => removeProfileLink(index)}>
+                            삭제
+                          </button>
+                        </div>
+                      ))}
+                      {customizationDraft.links.length < 5 ? (
+                        <div className="profile-repeat-row profile-repeat-row--link">
+                          <input
+                            className="auth-input"
+                            value={newProfileLink.label}
+                            placeholder="라벨"
+                            onChange={(event) => setNewProfileLink((current) => ({ ...current, label: event.target.value }))}
+                          />
+                          <input
+                            className="auth-input"
+                            value={newProfileLink.url}
+                            placeholder="https://..."
+                            onChange={(event) => setNewProfileLink((current) => ({ ...current, url: event.target.value }))}
+                          />
+                          <button type="button" className="ghost-button" onClick={addProfileLink}>
+                            <Icon name="plus" size={13} />
+                            추가
+                          </button>
+                        </div>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : profileLinks.length > 0 ? (
+                <div className="profile-link-list">
+                  {profileLinks.map((link) => (
+                    <a key={`${link.label}-${link.url}`} href={link.url} target="_blank" rel="noreferrer">
+                      <Icon name="link" size={13} />
+                      {link.label}
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="profile-empty-text">등록된 공개 링크가 없습니다.</p>
+              )}
+            </div>
           </div>
         ) : null}
 
@@ -810,7 +1034,14 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                   </span>
                 </div>
                 <div className="profile-activity-row">
-                  <span className="profile-activity-label">저장소</span>
+                  <span className="profile-activity-label">
+                    저장소
+                    {canEdit && !editing ? (
+                      <button type="button" className="profile-inline-add-button" onClick={startAddSharedRepo} aria-label="공유 저장소 추가">
+                        <Icon name="plus" size={13} />
+                      </button>
+                    ) : null}
+                  </span>
                   {editing ? (
                     <div className="profile-repeat-editor">
                       {sharedRepoDrafts.map((repo, index) => (
@@ -834,6 +1065,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                           onChange={(event) => setNewSharedRepo(event.target.value)}
                         />
                         <button type="button" className="ghost-button" onClick={addSharedRepo}>
+                          <Icon name="plus" size={13} />
                           추가
                         </button>
                       </div>
@@ -871,7 +1103,14 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
         {tab === 'awards' ? (
           <div className="surface-card profile-section-card">
-            <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
+            <div className="profile-section-title-row">
+              <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
+              {canEdit ? (
+                <button type="button" className="profile-inline-add-button" onClick={startAddAward} aria-label="수상 내역 추가">
+                  <Icon name="plus" size={13} />
+                </button>
+              ) : null}
+            </div>
             {editing ? (
               <div className="profile-award-editor">
                 {awardDrafts.map((award, index) => (

@@ -33,6 +33,18 @@ export type UserAward = {
   credentialUrl?: string
 }
 
+export type UserProfileLink = {
+  label: string
+  url: string
+}
+
+export type UserCustomization = {
+  avatarTone: AvatarTone
+  headline: string
+  profileImageUrl: string
+  links: UserProfileLink[]
+}
+
 export type ActivityMember = {
   id: string
   name: string
@@ -56,6 +68,7 @@ export type ActivityMember = {
   githubCommits: number
   totalPoints: number
   awards: UserAward[]
+  customization?: UserCustomization
   isMe?: boolean
 }
 
@@ -81,6 +94,7 @@ export const usersApi = {
     activityNote: string
     awardNote: string
     sharedRepositories: string
+    customization?: string
   }) =>
     client.patch<Omit<ActivityMember, 'id'> & { id: number | string }>('/api/users/me/profile', data)
       .then((response) => ({ ...response.data, id: String(response.data.id) })),

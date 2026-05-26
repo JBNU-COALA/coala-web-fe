@@ -30,15 +30,37 @@ function resolveApiBaseUrl() {
 
 export const apiBaseUrl = resolveApiBaseUrl()
 
+const attachmentAssetPathPattern = /^\/(?:api|media)\/attachments\/(\d+)\/download(?:([?#].*)?)$/i
+
+function normalizeAttachmentAssetUrl(url: string) {
+  const relativeAttachment = url.match(attachmentAssetPathPattern)
+  if (relativeAttachment) {
+    return `/media/attachments/${relativeAttachment[1]}/download${relativeAttachment[2] ?? ''}`
+  }
+
+  try {
+    const parsed = new URL(url)
+    const attachment = parsed.pathname.match(attachmentAssetPathPattern)
+    if (attachment) {
+      return `${parsed.origin}/media/attachments/${attachment[1]}/download${parsed.search}${parsed.hash}`
+    }
+  } catch {
+    return url
+  }
+
+  return url
+}
+
 export function resolveApiAssetUrl(url: string) {
-  if (!url || /^(?:data:|blob:|https?:\/\/|\/\/)/i.test(url)) return url
-  if (!url.startsWith('/api/') && !url.startsWith('/media/')) return url
+  const normalizedUrl = normalizeAttachmentAssetUrl(url)
+  if (!normalizedUrl || /^(?:data:|blob:|https?:\/\/|\/\/)/i.test(normalizedUrl)) return normalizedUrl
+  if (!normalizedUrl.startsWith('/api/') && !normalizedUrl.startsWith('/media/')) return normalizedUrl
 
   try {
     const baseUrl = apiBaseUrl || (typeof window !== 'undefined' ? window.location.origin : '')
-    return baseUrl ? new URL(url, baseUrl).toString() : url
+    return baseUrl ? new URL(normalizedUrl, baseUrl).toString() : normalizedUrl
   } catch {
-    return url
+    return normalizedUrl
   }
 }
 

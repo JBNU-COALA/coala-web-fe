@@ -12,6 +12,7 @@ export type MemberService = {
   url: string
   githubUrl: string
   imageUrl: string
+  additionalImageUrls?: string[]
   tags: string[]
   status: MemberServiceStatus
   audience: string
@@ -20,6 +21,7 @@ export type MemberService = {
   description: string
   features: string[]
   stack: string[]
+  canEdit?: boolean
 }
 
 export type MemberServicePayload = {
@@ -29,6 +31,7 @@ export type MemberServicePayload = {
   url: string
   githubUrl?: string
   imageUrl?: string
+  additionalImageUrls?: string[]
   tags: string[]
 }
 
@@ -109,6 +112,9 @@ export const servicesApi = {
 
   updateMemberService: (serviceId: string, data: MemberServicePayload) =>
     client.patch<MemberService>(`/api/services/${serviceId}`, data).then((response) => response.data),
+
+  retireMemberService: (serviceId: string) =>
+    client.delete<void>(`/api/services/${serviceId}`).then((response) => response.data),
 
   getInstanceApplications: () =>
     client.get<InstanceApplication[]>('/api/services/instances/applications').then((response) => response.data),

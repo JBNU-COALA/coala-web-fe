@@ -395,10 +395,18 @@ function App() {
       return location.pathname === '/users'
     }
 
-    if (targetPath.startsWith('/services') || targetPath === '/service') {
+    if (targetPath.startsWith('/services') || targetPath === '/service' || targetPath === routes.services.officialDomain) {
       const activeServicesTab = resolveServicesTab(location.pathname, location.search)
 
-      if (targetPath === routes.services.officialInstance) return activeServicesTab === 'official'
+      if (targetPath === routes.services.officialInstance) {
+        return activeServicesTab === 'official'
+          && location.pathname !== routes.services.officialDomain
+          && !location.pathname.startsWith('/services/official/domain')
+      }
+      if (targetPath === routes.services.officialDomain) {
+        return location.pathname === routes.services.officialDomain ||
+          location.pathname.startsWith('/services/official/domain')
+      }
       if (targetPath === routes.services.user) return activeServicesTab === 'user'
       if (targetPath === routes.services.root) return activeServicesTab === 'coas' && !targetQuery
     }
@@ -437,8 +445,13 @@ function App() {
       return
     }
 
-    if (item.value === 'services-official') {
+    if (item.value === 'services-instance') {
       navigate(routes.services.officialInstance)
+      return
+    }
+
+    if (item.value === 'services-domain') {
+      navigate(routes.services.officialDomain)
       return
     }
 
@@ -680,8 +693,22 @@ function App() {
           }
         />
 
-        <Route path="/users" element={<LeaderboardPage />} />
-        <Route path="/users/:userId" element={<UserProfileRoute />} />
+        <Route
+          path="/users"
+          element={
+            <RequireAuth>
+              <LeaderboardPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/users/:userId"
+          element={
+            <RequireAuth>
+              <UserProfileRoute />
+            </RequireAuth>
+          }
+        />
         <Route path="/members" element={<Navigate to="/users" replace />} />
         <Route path="/activity" element={<Navigate to="/users" replace />} />
         <Route
@@ -703,7 +730,7 @@ function App() {
         <Route path="/service/*" element={<Navigate to={routes.services.officialInstance} replace />} />
         <Route path="/services/official" element={<Navigate to={routes.services.officialInstance} replace />} />
         <Route path="/services/official/instance" element={<ServicesPage />} />
-        <Route path="/services/official/domain" element={<ServicesPage />} />
+        <Route path="/services/official/domain" element={<Navigate to={routes.services.officialDomain} replace />} />
         <Route path="/domain" element={<ServicesPage />} />
         <Route path="/services/unofficial" element={<Navigate to={routes.services.user} replace />} />
         <Route path="/services/user/:serviceId" element={<ServicesPage />} />

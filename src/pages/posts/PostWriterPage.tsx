@@ -16,7 +16,7 @@ import { resolveApiAssetUrl } from '../../shared/api/client'
 import { postsApi } from '../../shared/api/posts'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
-import { copyMarkdown, extractFirstMarkdownImageUrl } from '../../shared/markdown'
+import { copyMarkdown, extractFirstMarkdownImageUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
   getMarkdownLengthWithoutInlineImageData,
@@ -168,16 +168,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [isUploadingInfoImage, setIsUploadingInfoImage] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
-  const [isMobileEditor, setIsMobileEditor] = useState(false)
   const isEditMode = Boolean(editPostId)
-
-  useEffect(() => {
-    const media = window.matchMedia('(max-width: 760px)')
-    const sync = () => setIsMobileEditor(media.matches)
-    sync()
-    media.addEventListener('change', sync)
-    return () => media.removeEventListener('change', sync)
-  }, [])
 
   useEffect(() => {
     const dirty = Boolean(title.trim()) || Boolean(content.trim())
@@ -238,7 +229,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     if (parsed) {
       postsApi.getPostDetail(parsed.boardId, parsed.postId).then((post) => {
         setTitle(post.title)
-        setContent(post.content)
+        setContent(prepareMarkdownForDisplay(post.content))
         setTagsInput(post.boardName ?? '')
         setSelectedBoardId(post.boardId)
         setAttachmentIds([])
@@ -255,7 +246,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     if (writerType === 'info' && Number.isFinite(infoArticleId)) {
       infoApi.getArticle(infoArticleId).then((article) => {
         setTitle(article.title)
-        setContent(article.content)
+        const displayContent = prepareMarkdownForDisplay(article.content)
+        setContent(displayContent)
         setTagsInput(article.meta || article.tag)
         setInfoEditFilter(article.filter)
         setInfoSourceName(article.authorName || article.sourceName || infoAuthorName)
@@ -263,12 +255,12 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         const imageAttachmentId = getAttachmentIdFromUrl(article.imageUrl)
         const nextAttachmentIds = uniqueIds([
           ...(article.attachmentIds ?? []),
-          ...getAttachmentIdsFromText(article.content),
+          ...getAttachmentIdsFromText(displayContent),
           imageAttachmentId,
         ])
         setAttachmentIds(nextAttachmentIds)
         setThumbnailAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? nextAttachmentIds[0] ?? null)
-        setInfoImageUrl(article.imageUrl || extractFirstMarkdownImageUrl(article.content) || '')
+        setInfoImageUrl(article.imageUrl || extractFirstMarkdownImageUrl(displayContent) || '')
         setInfoImageAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? null)
       }).catch(() => {})
     }
@@ -684,8 +676,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 onChange={(value) => setContent(value ?? '')}
                 height="calc(100vh - 330px)"
                 minHeight={420}
-                preview={isMobileEditor ? 'edit' : 'live'}
-                visibleDragbar
+                preview="edit"
+                visibleDragbar={false}
                 commands={editorCommands}
                 textareaProps={{
                   placeholder: copy.placeholder,

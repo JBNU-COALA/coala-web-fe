@@ -6,12 +6,13 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { statusMeta, type ApplyStatus } from './serviceData'
 import { DomainApplyForm } from './DomainApplyForm'
 
-type DomainTab = 'apply' | 'list' | 'inquiry'
+type DomainTab = 'apply' | 'list' | 'inquiry' | 'admin'
 
 const domainTabs: { id: DomainTab; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'apply', label: '신청하기', icon: 'plus' },
+  { id: 'apply', label: '신청서', icon: 'plus' },
   { id: 'list', label: '신청 내역', icon: 'file' },
-  { id: 'inquiry', label: '문의사항', icon: 'message' },
+  { id: 'inquiry', label: '문의 사항', icon: 'message' },
+  { id: 'admin', label: '관리자', icon: 'settings' },
 ]
 
 const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
@@ -45,8 +46,10 @@ export function DomainServicePanel() {
             <DomainApplyForm onSubmit={() => setTab('list')} />
           ) : tab === 'list' ? (
             <DomainApplyList />
-          ) : (
+          ) : tab === 'inquiry' ? (
             <DomainInquiryPanel />
+          ) : (
+            <DomainAdminPanel />
           )}
         </div>
       </div>
@@ -296,6 +299,241 @@ function DomainInquiryPanel() {
         ) : null}
       </ul>
     </section>
+  )
+}
+
+type DomainAdminState = DomainApplication & {
+  adminNoteInput: string
+}
+
+function DomainAdminPanel() {
+  const { isLoggedIn } = useAuth()
+  const [filter, setFilter] = useState<'all' | ApplyStatus>('all')
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [applications, setApplications] = useState<Record<string, DomainAdminState>>({})
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      Promise.resolve().then(() => setApplications({}))
+      return
+    }
+
+    servicesApi.getDomainApplications()
+      .then((items) => {
+        setApplications(Object.fromEntries(
+          items.map((application) => [
+            application.id,
+            { ...application, adminNoteInput: application.adminNote ?? '' },
+          ]),
+        ))
+        setError(null)
+      })
+      .catch(() => {
+        setApplications({})
+        setError('도메인 신청 목록을 불러오지 못했습니다.')
+      })
+  }, [isLoggedIn])
+
+  if (!isLoggedIn) {
+    return <DomainLoginRequired message="도메인 신청 관리는 로그인 후 확인할 수 있습니다." />
+  }
+
+  const filtered = Object.values(applications).filter((application) =>
+    filter === 'all' ? true : application.status === filter,
+  )
+  const selectedApplication = selectedId ? applications[selectedId] : null
+
+  const updateApplication = (id: string, patch: Partial<DomainAdminState>) => {
+    setApplications((current) => ({ ...current, [id]: { ...current[id], ...patch } }))
+  }
+
+  const handleDecision = async (id: string, status: 'approved' | 'rejected') => {
+    setError(null)
+    try {
+      const updated = await servicesApi.updateDomainApplication(id, {
+        status,
+        adminNote: applications[id].adminNoteInput,
+      })
+      updateApplication(id, {
+        ...updated,
+        adminNoteInput: updated.adminNote ?? '',
+      })
+    } catch {
+      setError('관리자 권한이 없거나 처리에 실패했습니다.')
+    }
+  }
+
+  return (
+    <div className="jcloud-admin-shell">
+      <div className="jcloud-admin-list-col">
+        <div className="jcloud-list-toolbar">
+          <ul className="jcloud-filter-tabs">
+            {statusFilters.map((item) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={`jcloud-filter-tab${filter === item.id ? ' is-active' : ''}`}
+                  onClick={() => setFilter(item.id)}
+                >
+                  {item.label}
+                </button>
+              </li>
+            ))}
+          </ul>
+          <span className="jcloud-list-count">{filtered.length}건</span>
+        </div>
+
+        <ul className="jcloud-admin-app-list">
+          {filtered.map((application) => {
+            const meta = statusMeta[application.status]
+            return (
+              <li key={application.id}>
+                <button
+                  type="button"
+                  className={`jcloud-admin-app-row${selectedId === application.id ? ' is-selected' : ''}`}
+                  onClick={() => setSelectedId(application.id)}
+                >
+                  <div className="jcloud-admin-app-top">
+                    <span className={`jcloud-status-badge ${meta.colorClass}`}>{meta.label}</span>
+                    <span className="jcloud-apply-instance">{application.serviceName}</span>
+                  </div>
+                  <p className="jcloud-admin-app-name">
+                    {application.applicantName}
+                    <span className="jcloud-admin-app-sid"> · {application.studentId}</span>
+                  </p>
+                  <p className="jcloud-admin-app-date">{application.requestedAt} 신청</p>
+                </button>
+              </li>
+            )
+          })}
+          {filtered.length === 0 ? (
+            <li className="jcloud-list-empty">
+              <Icon name="file" size={24} />
+              <p>도메인 신청이 없습니다.</p>
+            </li>
+          ) : null}
+        </ul>
+      </div>
+
+      <div className="jcloud-admin-detail-col">
+        {selectedApplication ? (
+          <DomainAdminDetail
+            application={selectedApplication}
+            onNoteChange={(value) => updateApplication(selectedApplication.id, { adminNoteInput: value })}
+            onDecision={handleDecision}
+          />
+        ) : (
+          <div className="jcloud-admin-empty">
+            <Icon name="link" size={32} />
+            <p>도메인 신청 건을 선택하세요.</p>
+          </div>
+        )}
+        {error ? <p className="auth-error">{error}</p> : null}
+      </div>
+    </div>
+  )
+}
+
+function DomainAdminDetail({
+  application,
+  onNoteChange,
+  onDecision,
+}: {
+  application: DomainAdminState
+  onNoteChange: (value: string) => void
+  onDecision: (id: string, status: 'approved' | 'rejected') => void
+}) {
+  const meta = statusMeta[application.status]
+
+  return (
+    <div className="jcloud-admin-detail">
+      <div className="jcloud-admin-detail-header">
+        <div>
+          <p className="jcloud-admin-detail-id">{application.id}</p>
+          <div className="jcloud-admin-detail-title-row">
+            <span className="jcloud-apply-instance">{application.serviceName}</span>
+            <span className="jcloud-apply-duration">{application.desiredAddress}</span>
+            <span className={`jcloud-status-badge ${meta.colorClass}`}>{meta.label}</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="jcloud-admin-info-grid">
+        <div className="jcloud-apply-detail-row">
+          <span className="jcloud-detail-label">신청자</span>
+          <span className="jcloud-detail-value">
+            {application.applicantName} ({application.studentId})
+          </span>
+        </div>
+        <div className="jcloud-apply-detail-row">
+          <span className="jcloud-detail-label">연락 메일</span>
+          <span className="jcloud-detail-value">{application.contactEmail}</span>
+        </div>
+        <div className="jcloud-apply-detail-row">
+          <span className="jcloud-detail-label">신청 주소</span>
+          <span className="jcloud-detail-value">{application.requestedDomain}</span>
+        </div>
+        <div className="jcloud-apply-detail-row">
+          <span className="jcloud-detail-label">공개 저장소</span>
+          <a className="jcloud-detail-value" href={application.repositoryUrl} target="_blank" rel="noreferrer">
+            {application.repositoryUrl}
+          </a>
+        </div>
+        {application.targetUrl ? (
+          <div className="jcloud-apply-detail-row">
+            <span className="jcloud-detail-label">연결 대상</span>
+            <a className="jcloud-detail-value" href={application.targetUrl} target="_blank" rel="noreferrer">
+              {application.targetUrl}
+            </a>
+          </div>
+        ) : null}
+        <div className="jcloud-apply-detail-row">
+          <span className="jcloud-detail-label">신청 사유</span>
+          <span className="jcloud-detail-value">{application.purpose}</span>
+        </div>
+      </div>
+
+      <div className="jcloud-admin-note-section">
+        <label className="jcloud-label" htmlFor="domain-admin-note">
+          관리자 메모
+        </label>
+        <textarea
+          id="domain-admin-note"
+          className="jcloud-textarea"
+          placeholder="승인/반려 메모를 입력하세요."
+          rows={3}
+          value={application.adminNoteInput}
+          onChange={(event) => onNoteChange(event.target.value)}
+          disabled={application.status !== 'pending'}
+        />
+      </div>
+
+      {application.status === 'pending' ? (
+        <div className="jcloud-admin-actions">
+          <button
+            type="button"
+            className="jcloud-action-btn jcloud-action-btn--reject"
+            onClick={() => onDecision(application.id, 'rejected')}
+          >
+            반려
+          </button>
+          <button
+            type="button"
+            className="jcloud-action-btn jcloud-action-btn--approve"
+            onClick={() => onDecision(application.id, 'approved')}
+          >
+            <Icon name="bell" size={14} />
+            승인
+          </button>
+        </div>
+      ) : (
+        <div className={`jcloud-decision-result jcloud-decision-result--${application.status}`}>
+          <Icon name={application.status === 'approved' ? 'bell' : 'file'} size={14} />
+          {application.processedAt ?? application.requestedAt} {application.status === 'approved' ? '승인 완료' : '반려'}
+        </div>
+      )}
+    </div>
   )
 }
 

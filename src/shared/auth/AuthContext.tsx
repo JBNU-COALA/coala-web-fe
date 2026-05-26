@@ -15,7 +15,14 @@ type AuthState = {
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<UserData | null>(getStoredUser)
+  const [user, setUser] = useState<UserData | null>(() => {
+    const storedUser = getStoredUser()
+    if (!storedUser || !getRefreshToken()) {
+      clearAuthSession()
+      return null
+    }
+    return storedUser
+  })
 
   useEffect(() => {
     const refreshToken = getRefreshToken()
@@ -67,7 +74,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: user !== null, login, signup, updateUser, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: user !== null && Boolean(getRefreshToken()), login, signup, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   )

@@ -14,11 +14,11 @@ function toAbsoluteUrl(path: string, origin = getBrowserOrigin()) {
   }
 }
 
-function normalizeCopiedImageUrl(url: string) {
+export function normalizeMarkdownAttachmentUrl(url: string) {
   const trimmed = url.trim()
   const relativeAttachment = trimmed.match(attachmentPathPattern)
   if (relativeAttachment) {
-    return toAbsoluteUrl(`/media/attachments/${relativeAttachment[1]}/download${relativeAttachment[2] ?? ''}`)
+    return `/media/attachments/${relativeAttachment[1]}/download${relativeAttachment[2] ?? ''}`
   }
 
   try {
@@ -26,7 +26,10 @@ function normalizeCopiedImageUrl(url: string) {
     const parsed = origin ? new URL(trimmed, origin) : new URL(trimmed)
     const attachment = parsed.pathname.match(attachmentPathPattern)
     if (attachment) {
-      return `${parsed.origin}/media/attachments/${attachment[1]}/download${parsed.search}${parsed.hash}`
+      const publicPath = `/media/attachments/${attachment[1]}/download${parsed.search}${parsed.hash}`
+      return /^https?:\/\//i.test(trimmed) || trimmed.startsWith('//')
+        ? `${parsed.origin}${publicPath}`
+        : publicPath
     }
   } catch {
     return trimmed
@@ -35,8 +38,16 @@ function normalizeCopiedImageUrl(url: string) {
   return trimmed
 }
 
+function normalizeCopiedImageUrl(url: string) {
+  return toAbsoluteUrl(normalizeMarkdownAttachmentUrl(url))
+}
+
 export function prepareMarkdownForCopy(markdown: string) {
   return rewriteMarkdownImageUrls(markdown, normalizeCopiedImageUrl)
+}
+
+export function prepareMarkdownForDisplay(markdown: string) {
+  return rewriteMarkdownImageUrls(markdown, normalizeMarkdownAttachmentUrl)
 }
 
 const fallbackCopy = (markdown: string) => {
@@ -97,11 +108,15 @@ export function toMarkdownFilename(title: string, fallback = 'coala-markdown') {
 export function extractFirstMarkdownImageUrl(markdown: string) {
   const markdownImageMatch = markdown.match(/!\[[^\]]*]\(\s*<?([^)\s>]+)>?(?:\s+["'][^"']*["'])?\s*\)/)
   const markdownImageUrl = markdownImageMatch?.[1]?.trim()
-  if (markdownImageUrl && !markdownImageUrl.startsWith('data:image/')) return markdownImageUrl
+  if (markdownImageUrl && !markdownImageUrl.startsWith('data:image/')) {
+    return normalizeMarkdownAttachmentUrl(markdownImageUrl)
+  }
 
   const htmlImageMatch = markdown.match(/<img\b[^>]*\bsrc=(["'])(.*?)\1/i)
   const htmlImageUrl = htmlImageMatch?.[2]?.trim()
-  if (htmlImageUrl && !htmlImageUrl.startsWith('data:image/')) return htmlImageUrl
+  if (htmlImageUrl && !htmlImageUrl.startsWith('data:image/')) {
+    return normalizeMarkdownAttachmentUrl(htmlImageUrl)
+  }
 
   return null
 }

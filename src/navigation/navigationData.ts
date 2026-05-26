@@ -113,7 +113,8 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
   ],
   services: [
     { id: 'services-coas', label: 'COAS', icon: 'layout', path: routes.services.root },
-    { id: 'services-official', label: '공식 서비스', icon: 'network', path: routes.services.officialInstance },
+    { id: 'services-instance', label: '인스턴스 대여', icon: 'network', path: routes.services.officialInstance },
+    { id: 'services-domain', label: '도메인 신청', icon: 'link', path: routes.services.officialDomain },
     { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],
   archive: [
@@ -144,7 +145,10 @@ export function resolveServicesTab(pathname: string, search = ''): ServicesTab {
   const query = new URLSearchParams(normalizedSearch)
   const legacyTab = query.get('tab')
   const isLegacyOfficialRoute = pathname === '/service' || pathname.startsWith('/service/')
-  const isDomainRoute = pathname === routes.services.domain || pathname.startsWith('/services/official/domain')
+  const isDomainRoute =
+    pathname === routes.services.domain ||
+    pathname === routes.services.officialDomain ||
+    pathname.startsWith('/services/official/domain')
 
   if (
     pathname.startsWith('/services/user') ||
@@ -200,9 +204,15 @@ const servicesActions: ContextActionDefinition[] = [
     description: '',
   },
   {
-    id: 'services-official',
-    label: '공식 서비스',
+    id: 'services-instance',
+    label: '인스턴스 대여',
     icon: 'network',
+    description: '',
+  },
+  {
+    id: 'services-domain',
+    label: '도메인 신청',
+    icon: 'link',
     description: '',
   },
   {
@@ -283,6 +293,10 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
 
 const toServicesItems = (pathname: string, search = ''): ContextPanelItem[] => {
   const activeTab = resolveServicesTab(pathname, search)
+  const isDomain =
+    pathname === routes.services.domain ||
+    pathname === routes.services.officialDomain ||
+    pathname.startsWith('/services/official/domain')
 
   return servicesActions.map((item) => ({
     id: item.id,
@@ -294,8 +308,10 @@ const toServicesItems = (pathname: string, search = ''): ContextPanelItem[] => {
     isActive:
       item.id === 'services-user'
         ? activeTab === 'user'
-        : item.id === 'services-official'
-          ? activeTab === 'official'
+        : item.id === 'services-instance'
+          ? activeTab === 'official' && !isDomain
+          : item.id === 'services-domain'
+            ? activeTab === 'official' && isDomain
           : item.id === 'services-coas'
             ? activeTab === 'coas'
             : false,

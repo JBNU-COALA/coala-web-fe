@@ -3,7 +3,7 @@ import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
-import { copyMarkdown, rewriteMarkdownImageUrls, type MarkdownCopyState } from '../../shared/markdown'
+import { copyMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
 import { extractFirstContentImage } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 
@@ -89,11 +89,14 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
   const copy = categoryCopy[item.filter]
   const title = item.title
   const markdown = item.content
-  const renderedMarkdown = rewriteMarkdownImageUrls(markdown, resolveApiAssetUrl)
+  const renderedMarkdown = rewriteMarkdownImageUrls(
+    prepareMarkdownForDisplay(markdown),
+    (url) => resolveApiAssetUrl(normalizeMarkdownAttachmentUrl(url)),
+  )
   const tags = [copy.label, item.tag]
   const source = splitSource(item.source, item.authorName || item.sourceName, item.sourceDate)
   const fallbackAttachmentUrl = item.thumbnailAttachmentId
-    ? `/api/attachments/${item.thumbnailAttachmentId}/download`
+    ? `/media/attachments/${item.thumbnailAttachmentId}/download`
     : ''
   const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown) || fallbackAttachmentUrl)
 
