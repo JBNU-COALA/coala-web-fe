@@ -112,6 +112,7 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
     { id: 'community-recruit', label: '모집', icon: 'users', path: routes.community.recruit },
   ],
   services: [
+    { id: 'services-coas', label: 'COAS', icon: 'layout', path: routes.services.root },
     {
       id: 'services-official',
       label: '공식서비스',
@@ -122,7 +123,6 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
         { id: 'services-domain', label: '도메인 신청', icon: 'link', path: routes.services.officialDomain },
       ],
     },
-    { id: 'services-coas', label: 'COAS', icon: 'layout', path: routes.services.root },
     { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],
   archive: [
@@ -206,15 +206,15 @@ const activityActions: ContextActionDefinition[] = [
 
 const servicesActions: ContextActionDefinition[] = [
   {
-    id: 'services-official',
-    label: '공식서비스',
-    icon: 'settings',
-    description: '',
-  },
-  {
     id: 'services-coas',
     label: 'COAS',
     icon: 'layout',
+    description: '',
+  },
+  {
+    id: 'services-official',
+    label: '공식서비스',
+    icon: 'settings',
     description: '',
   },
   {
