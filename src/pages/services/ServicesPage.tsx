@@ -115,7 +115,7 @@ export function ServicesPage() {
     activeTab === 'coas'
       ? 'COAS'
       : activeTab === 'official'
-        ? '공식 서비스'
+        ? '공식서비스'
         : '유저 서비스'
   const selectedService = activeTab === 'user' && serviceId
     ? memberServices.find((service) => service.id === serviceId)
@@ -353,7 +353,7 @@ export function ServicesPage() {
           </section>
         ) : activeTab === 'official' ? (
           <div className="official-service-panel">
-            <div className="service-menu-tabs surface-card" aria-label="공식 서비스 메뉴">
+            <div className="service-menu-tabs surface-card" aria-label="공식서비스 메뉴">
               <button
                 type="button"
                 className={officialMode === 'instance' ? 'service-menu-tab is-active' : 'service-menu-tab'}

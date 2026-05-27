@@ -27,6 +27,7 @@ export const routes = {
   },
   services: {
     root: '/services',
+    official: '/services/official',
     officialInstance: '/services/official/instance',
     officialDomain: '/services/official/domain',
     domain: '/services/official/domain',

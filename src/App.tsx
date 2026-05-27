@@ -398,6 +398,7 @@ function App() {
     if (targetPath.startsWith('/services') || targetPath === '/service' || targetPath === routes.services.officialDomain) {
       const activeServicesTab = resolveServicesTab(location.pathname, location.search)
 
+      if (targetPath === routes.services.official) return activeServicesTab === 'official'
       if (targetPath === routes.services.officialInstance) {
         return activeServicesTab === 'official'
           && location.pathname !== routes.services.officialDomain
@@ -437,6 +438,11 @@ function App() {
 
     if (item.value === 'service-status' || item.value === 'service-guide' || item.value === 'services-coas') {
       navigate(routes.services.root)
+      return
+    }
+
+    if (item.value === 'services-official') {
+      navigate(routes.services.official)
       return
     }
 
@@ -827,20 +833,56 @@ function App() {
                   {subItems.length > 0 ? (
                     <div className="main-nav-dropdown" role="menu" aria-label={`${item.label} 하위 메뉴`}>
                       {subItems.map((subItem) => (
-                        <button
-                          key={subItem.id}
-                          type="button"
-                          className={
-                            isHeaderSubNavActive(subItem.path)
-                              ? 'main-nav-dropdown-item is-active'
-                              : 'main-nav-dropdown-item'
-                          }
-                          onClick={() => handleHeaderSubNavSelect(subItem.path, item.id)}
-                          role="menuitem"
-                        >
-                          <Icon name={subItem.icon} size={14} />
-                          <span>{subItem.label}</span>
-                        </button>
+                        subItem.children?.length ? (
+                          <div key={subItem.id} className="main-nav-dropdown-group">
+                            <button
+                              type="button"
+                              className={
+                                isHeaderSubNavActive(subItem.path)
+                                  ? 'main-nav-dropdown-item main-nav-dropdown-group-title is-active'
+                                  : 'main-nav-dropdown-item main-nav-dropdown-group-title'
+                              }
+                              onClick={() => handleHeaderSubNavSelect(subItem.path, item.id)}
+                              role="menuitem"
+                            >
+                              <Icon name={subItem.icon} size={14} />
+                              <span>{subItem.label}</span>
+                            </button>
+                            <div className="main-nav-dropdown-children" role="group" aria-label={`${subItem.label} 메뉴`}>
+                              {subItem.children.map((childItem) => (
+                                <button
+                                  key={childItem.id}
+                                  type="button"
+                                  className={
+                                    isHeaderSubNavActive(childItem.path)
+                                      ? 'main-nav-dropdown-item main-nav-dropdown-child is-active'
+                                      : 'main-nav-dropdown-item main-nav-dropdown-child'
+                                  }
+                                  onClick={() => handleHeaderSubNavSelect(childItem.path, item.id)}
+                                  role="menuitem"
+                                >
+                                  <Icon name={childItem.icon} size={14} />
+                                  <span>{childItem.label}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            key={subItem.id}
+                            type="button"
+                            className={
+                              isHeaderSubNavActive(subItem.path)
+                                ? 'main-nav-dropdown-item is-active'
+                                : 'main-nav-dropdown-item'
+                            }
+                            onClick={() => handleHeaderSubNavSelect(subItem.path, item.id)}
+                            role="menuitem"
+                          >
+                            <Icon name={subItem.icon} size={14} />
+                            <span>{subItem.label}</span>
+                          </button>
+                        )
                       ))}
                     </div>
                   ) : null}

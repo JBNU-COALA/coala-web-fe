@@ -256,6 +256,26 @@
   color: #124f38;
 }
 
+.main-nav-dropdown-group {
+  display: grid;
+  gap: 3px;
+}
+
+.main-nav-dropdown-group-title {
+  width: 100%;
+}
+
+.main-nav-dropdown-children {
+  display: grid;
+  gap: 3px;
+  padding-left: 14px;
+}
+
+.main-nav-dropdown-child {
+  min-height: 34px;
+  font-size: 12px;
+}
+
 .coala-header-actions {
   display: inline-flex;
   align-items: center;
