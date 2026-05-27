@@ -1,6 +1,6 @@
 import client from './client'
 
-export type NotificationType = 'COMMENT' | 'REPLY' | 'INTERESTED_INFO' | 'RECRUIT'
+export type NotificationType = 'COMMENT' | 'REPLY' | 'LIKE' | 'INTERESTED_INFO' | 'RECRUIT'
 
 export type NotificationItem = {
   id: number

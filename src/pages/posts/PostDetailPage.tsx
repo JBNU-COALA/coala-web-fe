@@ -535,7 +535,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
                 aria-pressed={Boolean(visiblePost.likedByMe)}
                 onClick={handleTogglePostLike}
               >
-                <Icon name="bell" size={15} />
+                <Icon name="heart" size={15} />
                 <span>{visiblePost.likeCount ?? 0}</span>
               </button>
             </div>

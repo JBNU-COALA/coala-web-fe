@@ -19,6 +19,8 @@ export type InfoArticle = {
   thumbnailAttachmentId?: number | null
   viewCount: number
   bookmarkCount: number
+  likeCount?: number
+  likedByMe?: boolean
   createdAt?: string | null
   updatedAt?: string | null
 }
@@ -34,6 +36,11 @@ export type InfoArticlePayload = {
   imageUrl: string
   attachmentIds?: number[]
   thumbnailAttachmentId?: number | null
+}
+
+export type InfoArticleLikeResponse = {
+  liked: boolean
+  likeCount: number
 }
 
 export const infoApi = {
@@ -54,4 +61,7 @@ export const infoApi = {
 
   bookmarkArticle: (articleId: number) =>
     client.post<InfoArticle>(`/api/info/${articleId}/bookmarks`).then((response) => response.data),
+
+  likeArticle: (articleId: number) =>
+    client.post<InfoArticleLikeResponse>(`/api/info/${articleId}/likes`).then((response) => response.data),
 }

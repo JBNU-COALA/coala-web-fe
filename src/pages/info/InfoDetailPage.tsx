@@ -6,6 +6,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { copyMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
 import { extractFirstContentImage } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 type InfoDetailPageProps = {
   infoId: string
@@ -58,8 +59,10 @@ const categoryCopy = {
 } as const
 
 export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPageProps) {
+  const { isLoggedIn } = useAuth()
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
+  const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [item, setItem] = useState<InfoArticle | null>(null)
 
   useEffect(() => {
@@ -93,7 +96,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
     prepareMarkdownForDisplay(markdown),
     (url) => resolveApiAssetUrl(normalizeMarkdownAttachmentUrl(url)),
   )
-  const tags = [copy.label, item.tag]
+  const tags = Array.from(new Set([copy.label, item.tag].map((tag) => tag.trim()).filter(Boolean)))
   const source = splitSource(item.source, item.authorName || item.sourceName, item.sourceDate)
   const fallbackAttachmentUrl = item.thumbnailAttachmentId
     ? `/media/attachments/${item.thumbnailAttachmentId}/download`
@@ -113,6 +116,24 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
       setShareCopied('error')
     }
     setTimeout(() => setShareCopied('idle'), 2000)
+  }
+
+  const handleToggleInfoLike = async () => {
+    if (!item) return
+    if (!isLoggedIn) {
+      setLikeMessage('좋아요는 로그인 후 누를 수 있습니다.')
+      return
+    }
+
+    setLikeMessage(null)
+    try {
+      const response = await infoApi.likeArticle(item.id)
+      setItem((current) => current
+        ? { ...current, likeCount: response.likeCount, likedByMe: response.liked }
+        : current)
+    } catch {
+      setLikeMessage('좋아요 처리에 실패했습니다.')
+    }
   }
 
   return (
@@ -151,6 +172,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
             </button>
           </div>
         </header>
+        {likeMessage ? <p className="auth-error">{likeMessage}</p> : null}
 
         <div className={coverImageUrl ? 'post-cover post-cover--info post-cover--has-media' : 'post-cover post-cover--info'}>
           <div className="post-cover-text">
@@ -179,8 +201,18 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
             </div>
 
             <div className="post-meta-stats">
+              <span><Icon name="eye" size={15} />{item.viewCount}</span>
               <span><Icon name="file" size={15} />{item.meta}</span>
               <span><Icon name="book" size={15} />{item.tag}</span>
+              <button
+                type="button"
+                className={item.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}
+                aria-pressed={Boolean(item.likedByMe)}
+                onClick={handleToggleInfoLike}
+              >
+                <Icon name="heart" size={15} />
+                <span>{item.likeCount ?? 0}</span>
+              </button>
             </div>
           </div>
         </div>

@@ -10,6 +10,7 @@ export type IconName =
   | 'edit'
   | 'eye'
   | 'file'
+  | 'heart'
   | 'image'
   | 'layout'
   | 'link'
@@ -60,6 +61,10 @@ const iconShape = (name: IconName) => {
           <path d="M10.5 11.5h5" />
           <path d="M10.5 14.5h5" />
         </>
+      )
+    case 'heart':
+      return (
+        <path d="M12 20s-7.2-4.2-7.2-9.7A4 4 0 0 1 12 8a4 4 0 0 1 7.2 2.3C19.2 15.8 12 20 12 20Z" />
       )
     case 'network':
       return (

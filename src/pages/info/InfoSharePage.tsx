@@ -6,6 +6,7 @@ import { CommunityBanner } from '../community/CommunityBanner'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 type InfoSharePageProps = {
   onWriteInfo?: () => void
@@ -64,13 +65,19 @@ function InfoListThumbnail({
   )
 }
 
+function getInfoLikeCount(article: InfoArticle) {
+  return article.likeCount ?? 0
+}
+
 export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
+  const { isLoggedIn } = useAuth()
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
   const [query, setQuery] = useState('')
   const [resources, setResources] = useState<InfoArticle[]>([])
   const [savedResourceIds, setSavedResourceIds] = useState<Set<number>>(() => new Set())
   const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<InfoListViewMode>('card')
+  const [likeError, setLikeError] = useState<string | null>(null)
 
   const normalizedQuery = query.trim().toLowerCase()
   const activeFilterLabel =
@@ -114,6 +121,27 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
       setTimeout(() => setCopiedResourceId(null), 1600)
     } catch {
       setCopiedResourceId(null)
+    }
+  }
+
+  const toggleInfoLike = async (article: InfoArticle) => {
+    if (!isLoggedIn) {
+      setLikeError('좋아요는 로그인 후 누를 수 있습니다.')
+      return
+    }
+
+    setLikeError(null)
+    try {
+      const response = await infoApi.likeArticle(article.id)
+      setResources((current) =>
+        current.map((item) => (
+          item.id === article.id
+            ? { ...item, likeCount: response.likeCount, likedByMe: response.liked }
+            : item
+        )),
+      )
+    } catch {
+      setLikeError('좋아요 처리에 실패했습니다.')
     }
   }
 
@@ -206,6 +234,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               글쓰기
             </button>
           </div>
+          {likeError ? <p className="auth-error board-like-error">{likeError}</p> : null}
         </section>
 
         <article className={`surface-card board-shell info-board-shell board-shell--${viewMode}`} aria-label="정보공유 목록">
@@ -270,10 +299,26 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
 
                     <div className="board-post-stats info-post-stats">
                       <span className="board-stat">
+                        <Icon name="eye" size={14} />
+                        <span>{card.viewCount}</span>
+                      </span>
+                      <span className="board-stat">
                         <Icon name="file" size={14} />
                         <span>{card.meta}</span>
                       </span>
                       <div className="info-list-actions">
+                        <button
+                          type="button"
+                          className={card.likedByMe ? 'board-like-button is-liked' : 'board-like-button'}
+                          aria-pressed={Boolean(card.likedByMe)}
+                          aria-label={`${card.title} 좋아요`}
+                          onClick={() => {
+                            void toggleInfoLike(card)
+                          }}
+                        >
+                          <Icon name="heart" size={14} />
+                          <span>{getInfoLikeCount(card)}</span>
+                        </button>
                         <button
                           type="button"
                           className={

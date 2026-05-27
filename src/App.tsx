@@ -952,6 +952,8 @@ function App() {
                                       notification.type === 'COMMENT'
                                       || notification.type === 'REPLY'
                                         ? 'message'
+                                        : notification.type === 'LIKE'
+                                          ? 'heart'
                                         : notification.type === 'RECRUIT'
                                           ? 'users'
                                           : 'book'

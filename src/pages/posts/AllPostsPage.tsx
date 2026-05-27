@@ -335,7 +335,7 @@ export function AllPostsPage({
                             void togglePostLike(post)
                           }}
                         >
-                          <Icon name="bell" size={14} />
+                          <Icon name="heart" size={14} />
                           <span>{getPostLikeCount(post)}</span>
                         </button>
                       </div>
