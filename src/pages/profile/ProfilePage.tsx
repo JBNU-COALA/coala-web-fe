@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { isSameUserId } from '../../shared/auth/userIdentity'
 import { attachmentsApi } from '../../shared/api/attachments'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { boardsApi } from '../../shared/api/boards'
@@ -232,7 +233,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     (profileUserId ? null : publicMembers[0]) ??
     fallbackProfileMember
   const profileMember = publicMember
-  const isOwnProfile = Boolean(profileMember.isMe) || Boolean(user && String(user.id) === effectiveProfileUserId)
+  const isOwnProfile = Boolean(profileMember.isMe) || isSameUserId(user?.id, effectiveProfileUserId)
   const canEdit = isOwnProfile
 
   const displayName = isOwnProfile ? user?.name ?? profileMember.name ?? user?.email ?? '사용자' : profileMember.name
@@ -373,7 +374,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
         const apiContents = postsArrays
           .flat()
-          .filter((p) => p.userId === user.id)
+          .filter((p) => isSameUserId(p.userId, user.id))
           .map(apiPostToAuthoredContent)
 
         setAuthoredContents(

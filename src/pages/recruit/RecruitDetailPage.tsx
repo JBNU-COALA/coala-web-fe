@@ -9,6 +9,7 @@ import {
   type RecruitStatus,
 } from '../../shared/api/recruits'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { isSameUserId } from '../../shared/auth/userIdentity'
 import { Icon } from '../../shared/ui/Icon'
 
 type RecruitDetailPageProps = {
@@ -145,7 +146,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const canManageRecruit = Boolean(
     item.id.startsWith('local-recruit-') ||
     isOperator ||
-    (user && item.authorId === user.id),
+    isSameUserId(item.authorId, user?.id),
   )
 
   const updateEditDraft = <K extends keyof RecruitEditDraft>(key: K, value: RecruitEditDraft[K]) => {

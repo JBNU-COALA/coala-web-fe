@@ -5,6 +5,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { routes } from '../../shared/routes'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { isSameUserId } from '../../shared/auth/userIdentity'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import {
   recruitsApi,
@@ -437,7 +438,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     () => allRecruitItems.filter((item) => (
       item.id.startsWith('local-recruit-') ||
       isOperator ||
-      (user && item.authorId === user.id)
+      isSameUserId(item.authorId, user?.id)
     )),
     [allRecruitItems, isOperator, user],
   )

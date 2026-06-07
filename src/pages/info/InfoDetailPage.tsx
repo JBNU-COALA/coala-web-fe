@@ -8,6 +8,7 @@ import { extractFirstContentImage } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isAdminUser } from '../../shared/auth/adminAccess'
+import { isSameUserId } from '../../shared/auth/userIdentity'
 
 type InfoDetailPageProps = {
   infoId: string
@@ -106,7 +107,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
     ? `/media/attachments/${item.thumbnailAttachmentId}/download`
     : ''
   const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown) || fallbackAttachmentUrl)
-  const canManageInfo = Boolean(user && item.authorId === user.id) || isAdminUser(user)
+  const canManageInfo = isSameUserId(item.authorId, user?.id) || isAdminUser(user)
 
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(markdown) ? 'copied' : 'error')

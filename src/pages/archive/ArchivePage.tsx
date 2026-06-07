@@ -5,6 +5,7 @@ import { attachmentsApi, type AttachmentUploadResponse } from '../../shared/api/
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isAdminUser } from '../../shared/auth/adminAccess'
+import { isSameUserId } from '../../shared/auth/userIdentity'
 import { csaiLabOptions, formatLabOption } from '../../shared/labs'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
@@ -344,7 +345,7 @@ export function ArchivePage() {
   }
 
   const canManage = (item: ArchiveItem) => {
-    return isAdmin || (user?.id != null && item.ownerId === user.id)
+    return isAdmin || isSameUserId(item.ownerId, user?.id)
   }
 
   const handleArchiveFileChange = async (event: ChangeEvent<HTMLInputElement>) => {

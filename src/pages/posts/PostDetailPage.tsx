@@ -8,6 +8,7 @@ import { postCategoryMeta } from '../../shared/postCategories'
 import { Icon } from '../../shared/ui/Icon'
 import { useAuth } from '../../shared/auth/AuthContext'
 import type { UserData } from '../../shared/api/auth'
+import { isSameUserId } from '../../shared/auth/userIdentity'
 import { copyMarkdown, htmlToReadableMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
 import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
@@ -325,7 +326,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   }) ?? 'free'
   const category = postCategoryMeta[categoryKey]
   const visiblePost = post
-  const canManagePost = Boolean(user && user.id === post.userId && !post.locked && post.status === 'ACTIVE')
+  const canManagePost = Boolean(isSameUserId(user?.id, post.userId) && !post.locked && post.status === 'ACTIVE')
   const renderedContent = rewriteMarkdownImageUrls(
     prepareMarkdownForDisplay(visiblePost.content),
     (url) => resolveApiAssetUrl(normalizeMarkdownAttachmentUrl(url)),
@@ -343,7 +344,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   }
 
   const renderComment = (comment: CommentItem, isReply = false) => {
-    const canManageComment = Boolean(user && comment.userId === user.id && comment.status !== 'DELETED' && comment.status !== 'ADMIN_DELETED')
+    const canManageComment = Boolean(isSameUserId(comment.userId, user?.id) && comment.status !== 'DELETED' && comment.status !== 'ADMIN_DELETED')
     const isEditing = editingCommentId === comment.commentId
     const replyValue = replyInputs[comment.commentId] ?? ''
 

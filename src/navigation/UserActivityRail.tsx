@@ -3,6 +3,7 @@ import { boardsApi } from '../shared/api/boards'
 import { postsApi } from '../shared/api/posts'
 import { usersApi, type ActivityMember } from '../shared/api/users'
 import { useAuth } from '../shared/auth/AuthContext'
+import { isSameUserId } from '../shared/auth/userIdentity'
 import { Icon, type IconName } from '../shared/ui/Icon'
 import type { AppRoute } from './navigationData'
 
@@ -67,7 +68,7 @@ export function UserActivityRail({
   const [myRecentPost, setMyRecentPost] = useState<string | null>(null)
   const [members, setMembers] = useState<ActivityMember[]>([])
 
-  const me: RailMemberSummary = members.find((member) => user && member.id === String(user.id))
+  const me: RailMemberSummary = members.find((member) => isSameUserId(member.id, user?.id))
     ?? members.find((member) => member.isMe)
     ?? members[0]
     ?? {
@@ -113,7 +114,7 @@ export function UserActivityRail({
         const postsArrays = await Promise.all(boards.map((board) => postsApi.getPosts(board.boardId)))
         const mine = postsArrays
           .flat()
-          .filter((post) => post.userId === user.id)
+          .filter((post) => isSameUserId(post.userId, user.id))
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
         setMyPostCount(mine.length)
