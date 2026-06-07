@@ -7,6 +7,7 @@ import { copyMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl,
 import { extractFirstContentImage } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { isAdminUser } from '../../shared/auth/adminAccess'
 
 type InfoDetailPageProps = {
   infoId: string
@@ -59,15 +60,18 @@ const categoryCopy = {
 } as const
 
 export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPageProps) {
-  const { isLoggedIn } = useAuth()
+  const { isLoggedIn, user } = useAuth()
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
+  const [infoActionError, setInfoActionError] = useState<string | null>(null)
   const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [item, setItem] = useState<InfoArticle | null>(null)
 
   useEffect(() => {
     const numericId = Number(infoId)
     if (Number.isNaN(numericId)) return
+    setInfoActionError(null)
+    setLikeMessage(null)
     infoApi.getArticle(numericId)
       .then(setItem)
       .catch(() => setItem(null))
@@ -102,6 +106,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
     ? `/media/attachments/${item.thumbnailAttachmentId}/download`
     : ''
   const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown) || fallbackAttachmentUrl)
+  const canManageInfo = Boolean(user && item.authorId === user.id) || isAdminUser(user)
 
   const handleCopyMarkdown = async () => {
     setMarkdownCopied(await copyMarkdown(markdown) ? 'copied' : 'error')
@@ -136,6 +141,20 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
     }
   }
 
+  const handleDeleteInfo = async () => {
+    if (!item) return
+    const confirmed = window.confirm('정보공유 글을 삭제할까요? 첨부 이미지도 함께 정리됩니다.')
+    if (!confirmed) return
+
+    setInfoActionError(null)
+    try {
+      await infoApi.deleteArticle(item.id)
+      onBack()
+    } catch {
+      setInfoActionError('정보공유 글 삭제 권한이 없거나 삭제에 실패했습니다.')
+    }
+  }
+
   return (
     <section className="coala-content coala-content--post-detail">
       <article className="surface-card post-detail info-detail-page">
@@ -150,10 +169,18 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
               <Icon name="edit" size={15} />
               <span>정보 글쓰기</span>
             </button>
-            <button type="button" className="ghost-button" onClick={onEdit}>
-              <Icon name="edit" size={15} />
-              <span>수정</span>
-            </button>
+            {canManageInfo ? (
+              <>
+                <button type="button" className="ghost-button" onClick={onEdit}>
+                  <Icon name="edit" size={15} />
+                  <span>수정</span>
+                </button>
+                <button type="button" className="ghost-button" onClick={handleDeleteInfo}>
+                  <Icon name="file" size={15} />
+                  <span>삭제</span>
+                </button>
+              </>
+            ) : null}
             <button
               type="button"
               className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
@@ -172,6 +199,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
             </button>
           </div>
         </header>
+        {infoActionError ? <p className="auth-error">{infoActionError}</p> : null}
         {likeMessage ? <p className="auth-error">{likeMessage}</p> : null}
 
         <div className={coverImageUrl ? 'post-cover post-cover--info post-cover--has-media' : 'post-cover post-cover--info'}>

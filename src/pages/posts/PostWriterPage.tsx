@@ -501,7 +501,9 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
           onClose({ boardId: selectedBoardId, postId: updatedArticle.id })
           return
         } else {
-          await infoApi.createArticle(payload)
+          const createdArticle = await infoApi.createArticle(payload)
+          onClose({ boardId: selectedBoardId, postId: createdArticle.id })
+          return
         }
       } else if (editPostId) {
         const parsed = parseCompositeId(editPostId)

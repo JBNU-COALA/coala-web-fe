@@ -603,7 +603,12 @@ function App() {
           path="/community/info/posts/new"
           element={
             <RequireAuth>
-              <PostWriterPage writerType="info" onClose={() => navigate(routes.community.info)} />
+              <PostWriterPage
+                writerType="info"
+                onClose={(nextPost) => navigate(nextPost
+                  ? routes.community.infoPost(nextPost.boardId, nextPost.postId)
+                  : routes.community.info)}
+              />
             </RequireAuth>
           }
         />
