@@ -49,7 +49,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
         <article className="portal-slide is-active">
           <div className="portal-slide-overlay" />
           <div className="portal-hero-copy">
-            <h1 className="portal-hero-title">준비중입니다</h1>
+            <h1 className="portal-hero-title">COALA Developer Club</h1>
           </div>
         </article>
       </section>
