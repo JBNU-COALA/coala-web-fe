@@ -5,7 +5,7 @@ export type CommunityWriterType = 'community' | 'info' | 'inquiry' | 'recruit'
 type BoardLike = {
   boardId: number
   boardName: string
-  boardType: 'NORMAL' | 'RECRUIT'
+  boardType: 'NORMAL' | 'RECRUIT' | 'ANONYMOUS'
 }
 
 const communityBoardNameToFilter: Record<string, CommunityBoardFilterId> = {
@@ -44,6 +44,8 @@ export const fallbackInfoBoardIds: Record<InfoBoardFilterId, number> = {
 
 export const fallbackRecruitBoardId = 31
 
+export const fallbackQnaBoardId = 41
+
 function normalizeBoardName(name: string) {
   return name.trim().toLowerCase()
 }
@@ -69,6 +71,10 @@ export function isCommunityBoard(board: Pick<BoardLike, 'boardName' | 'boardType
 
 export function isInfoBoard(board: Pick<BoardLike, 'boardName' | 'boardType'>) {
   return resolveInfoBoardFilter(board) !== null
+}
+
+export function isAnonymousBoard(board: Pick<BoardLike, 'boardType'>) {
+  return board.boardType === 'ANONYMOUS'
 }
 
 export function getFallbackInfoBoardId(filter: InfoBoardFilterId) {

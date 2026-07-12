@@ -28,7 +28,9 @@ import {
 import {
   fallbackCommunityBoardIds,
   fallbackInfoBoardIds,
+  fallbackQnaBoardId,
   fallbackRecruitBoardId,
+  isAnonymousBoard,
   isCommunityBoard,
   isInfoBoard,
   resolveCommunityBoardFilter,
@@ -41,7 +43,7 @@ const CONTENT_MAX = 5000
 
 type PostWriterPageProps = {
   onClose: (nextPost?: { boardId: number; postId: number }) => void
-  writerType?: 'community' | 'info' | 'inquiry' | 'recruit'
+  writerType?: 'community' | 'info' | 'inquiry' | 'recruit' | 'qna'
   editPostId?: string
 }
 
@@ -66,6 +68,9 @@ const fallbackBoardsByType: Record<NonNullable<PostWriterPageProps['writerType']
   recruit: [
     { boardId: fallbackRecruitBoardId, boardName: '모집', boardType: 'RECRUIT', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
   ],
+  qna: [
+    { boardId: fallbackQnaBoardId, boardName: '질문게시판', boardType: 'ANONYMOUS', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
+  ],
 }
 
 const writerCopy = {
@@ -88,6 +93,11 @@ const writerCopy = {
     label: '모집',
     title: '모집 글쓰기',
     placeholder: '역할, 기간, 모집 인원, 마감일을 Markdown으로 작성하세요.',
+  },
+  qna: {
+    label: '질문게시판',
+    title: '질문 올리기',
+    placeholder: '개발, 진로, 연구실, 대학원 등 궁금한 점을 자유롭게 적어주세요. 익명으로 게시됩니다.',
   },
 }
 
@@ -194,11 +204,13 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       const preferredBoards =
         writerType === 'recruit'
           ? list.filter((board) => board.boardType === 'RECRUIT')
-          : writerType === 'info'
-            ? list.filter(isInfoBoard)
-            : writerType === 'community'
-              ? list.filter(isCommunityBoard)
-              : list.filter((board) => board.boardType === 'NORMAL')
+          : writerType === 'qna'
+            ? list.filter(isAnonymousBoard)
+            : writerType === 'info'
+              ? list.filter(isInfoBoard)
+              : writerType === 'community'
+                ? list.filter(isCommunityBoard)
+                : list.filter((board) => board.boardType === 'NORMAL')
 
       const nextBoards = getWritableBoards(preferredBoards.length > 0 ? preferredBoards : fallbackBoards)
       setBoards(nextBoards)

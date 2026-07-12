@@ -11,6 +11,7 @@ export type IconName =
   | 'eye'
   | 'file'
   | 'heart'
+  | 'help-circle'
   | 'image'
   | 'layout'
   | 'link'
@@ -208,6 +209,14 @@ const iconShape = (name: IconName) => {
       return (
         <>
           <path d="M5 5.5h14v10H9l-4 3z" />
+        </>
+      )
+    case 'help-circle':
+      return (
+        <>
+          <circle cx="12" cy="12" r="8.5" />
+          <path d="M9.5 9.3a2.5 2.5 0 0 1 4.8.9c0 1.7-2.3 2-2.3 3.6" />
+          <path d="M12 17.2h.01" />
         </>
       )
     case 'copy':

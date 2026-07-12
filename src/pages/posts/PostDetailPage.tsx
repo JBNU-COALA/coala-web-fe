@@ -323,8 +323,10 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const categoryKey = resolveCommunityBoardFilter({
     boardName: post.boardName ?? '',
     boardType: 'NORMAL',
-  }) ?? 'free'
-  const category = postCategoryMeta[categoryKey]
+  })
+  const category = categoryKey
+    ? postCategoryMeta[categoryKey]
+    : { label: post.boardName || '게시글', tone: 'free' as const, description: '' }
   const visiblePost = post
   const canManagePost = Boolean(isSameUserId(user?.id, post.userId) && !post.locked && post.status === 'ACTIVE')
   const renderedContent = rewriteMarkdownImageUrls(

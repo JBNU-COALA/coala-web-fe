@@ -1133,6 +1133,7 @@ export function AdminPage() {
                   >
                     <option value="NORMAL">일반</option>
                     <option value="RECRUIT">모집</option>
+                    <option value="ANONYMOUS">익명</option>
                   </select>
                 </Field>
                 <button type="submit" className="admin-primary-button" disabled={!boardDraft.boardName.trim()}>

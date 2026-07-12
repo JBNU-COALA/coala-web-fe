@@ -108,6 +108,7 @@ export const headerNavItems: HeaderNavItem[] = [
 export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>> = {
   community: [
     { id: 'community-board', label: '게시판', icon: 'message', path: routes.community.board },
+    { id: 'community-qna', label: '질문게시판', icon: 'help-circle', path: routes.community.qna },
     { id: 'community-info', label: '정보공유', icon: 'book', path: routes.community.info },
     { id: 'community-recruit', label: '모집', icon: 'users', path: routes.community.recruit },
   ],
@@ -179,6 +180,12 @@ const communityActions: ContextActionDefinition[] = [
     id: 'community-board',
     label: '게시판',
     icon: 'message',
+    description: '',
+  },
+  {
+    id: 'community-qna',
+    label: '질문게시판',
+    icon: 'help-circle',
     description: '',
   },
   {
@@ -271,6 +278,7 @@ const toActionPanelItems = (
 }
 
 const toCommunityItems = (pathname: string): ContextPanelItem[] => {
+  const isQna = pathname.startsWith('/community/qna')
   const isBoard = pathname.startsWith('/community/board')
   const isInfo = pathname.startsWith('/community/info')
   const isRecruit = pathname.startsWith('/community/recruit') || pathname.startsWith('/recruit')
@@ -285,11 +293,13 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
     isActive:
       item.id === 'community-board'
         ? isBoard
-        : item.id === 'community-info'
-          ? isInfo
-          : item.id === 'community-recruit'
-            ? isRecruit
-            : false,
+        : item.id === 'community-qna'
+          ? isQna
+          : item.id === 'community-info'
+            ? isInfo
+            : item.id === 'community-recruit'
+              ? isRecruit
+              : false,
   }))
 }
 

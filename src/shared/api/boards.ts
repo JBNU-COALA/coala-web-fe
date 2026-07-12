@@ -1,6 +1,6 @@
 import client from './client'
 
-export type BoardType = 'NORMAL' | 'RECRUIT'
+export type BoardType = 'NORMAL' | 'RECRUIT' | 'ANONYMOUS'
 
 export type BoardData = {
   boardId: number

@@ -4,8 +4,10 @@ export type PostListItem = {
   postId: number
   boardId: number
   boardName?: string
-  userId: number
+  userId: number | null
   authorName?: string
+  anonymous?: boolean
+  mine?: boolean
   title: string
   content: string
   status?: 'ACTIVE' | 'HIDDEN' | 'DELETED' | 'ADMIN_DELETED' | 'BLOCKED' | 'PENDING'
@@ -39,8 +41,10 @@ export type CreatePostResponse = {
 export type CommentItem = {
   commentId: number
   parentCommentId?: number | null
-  userId?: number
+  userId?: number | null
   authorName?: string
+  anonymous?: boolean
+  mine?: boolean
   content: string
   status?: 'ACTIVE' | 'HIDDEN' | 'DELETED' | 'ADMIN_DELETED' | 'BLOCKED'
   createdAt: string

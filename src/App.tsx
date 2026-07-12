@@ -28,6 +28,7 @@ import './pages/home/home.css'
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AboutPage = lazy(() => import('./pages/about/AboutPage').then((m) => ({ default: m.AboutPage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
+const QnaBoardPage = lazy(() => import('./pages/community/QnaBoardPage').then((m) => ({ default: m.QnaBoardPage })))
 const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then((m) => ({ default: m.PostDetailPage })))
 const PostWriterPage = lazy(() => import('./pages/posts/PostWriterPage').then((m) => ({ default: m.PostWriterPage })))
 const InfoSharePage = lazy(() => import('./pages/info/InfoSharePage').then((m) => ({ default: m.InfoSharePage })))
@@ -98,6 +99,42 @@ function LegacyBoardPostEditorRoute() {
     <Navigate to={routes.community.boardPostEditor(parsed.boardId, parsed.postId)} replace />
   ) : (
     <Navigate to={routes.community.board} replace />
+  )
+}
+
+function QnaPostDetailRoute() {
+  const { boardId, postId } = useParams<{ boardId: string; postId: string }>()
+  const navigate = useNavigate()
+  const parsedBoardId = parseRouteId(boardId)
+  const parsedPostId = parseRouteId(postId)
+  if (!parsedBoardId || !parsedPostId) return <Navigate to={routes.community.qna} replace />
+  const postKey = makePostRouteKey(parsedBoardId, parsedPostId)
+  return (
+    <PostDetailPage
+      postId={postKey}
+      onBack={() => navigate(routes.community.qna)}
+      onWrite={() => navigate(routes.community.qnaPostNew)}
+      onEdit={() => navigate(routes.community.qnaPostEditor(parsedBoardId, parsedPostId))}
+    />
+  )
+}
+
+function QnaPostEditorRoute() {
+  const { boardId, postId } = useParams<{ boardId: string; postId: string }>()
+  const navigate = useNavigate()
+  const parsedBoardId = parseRouteId(boardId)
+  const parsedPostId = parseRouteId(postId)
+  if (!parsedBoardId || !parsedPostId) return <Navigate to={routes.community.qna} replace />
+  const postKey = makePostRouteKey(parsedBoardId, parsedPostId)
+  return (
+    <PostWriterPage
+      writerType="qna"
+      editPostId={postKey}
+      onClose={(nextPost) => navigate(routes.community.qnaPost(
+        nextPost?.boardId ?? parsedBoardId,
+        nextPost?.postId ?? parsedPostId,
+      ))}
+    />
   )
 }
 
@@ -376,6 +413,10 @@ function App() {
       return location.pathname.startsWith('/community/board') || location.pathname.startsWith('/community/posts')
     }
 
+    if (targetPath === '/community/qna') {
+      return location.pathname.startsWith('/community/qna')
+    }
+
     if (targetPath === '/community/info') {
       return location.pathname.startsWith('/community/info')
     }
@@ -423,6 +464,11 @@ function App() {
   const handleContextSelect = (item: ContextPanelItem) => {
     if (item.value === 'community-board') {
       navigate(routes.community.board)
+      return
+    }
+
+    if (item.value === 'community-qna') {
+      navigate(routes.community.qna)
       return
     }
 
@@ -664,6 +710,33 @@ function App() {
         <Route path="/community/board/write" element={<Navigate to={routes.community.boardPostNew} replace />} />
         <Route path="/community/write" element={<Navigate to={routes.community.boardPostNew} replace />} />
         <Route path="/community/posts/:postId" element={<LegacyCommunityPostRoute />} />
+
+        <Route
+          path="/community/qna"
+          element={
+            <QnaBoardPage
+              onOpenPost={(boardId, postId) => navigate(routes.community.qnaPost(boardId, postId))}
+              onWritePost={() => navigate(routes.community.qnaPostNew)}
+            />
+          }
+        />
+        <Route
+          path="/community/qna/posts/new"
+          element={
+            <RequireAuth>
+              <PostWriterPage writerType="qna" onClose={() => navigate(routes.community.qna)} />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/community/qna/:boardId/posts/:postId/editor"
+          element={
+            <RequireAuth>
+              <QnaPostEditorRoute />
+            </RequireAuth>
+          }
+        />
+        <Route path="/community/qna/:boardId/posts/:postId" element={<QnaPostDetailRoute />} />
 
         <Route
           path="/community/recruit"

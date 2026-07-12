@@ -29,8 +29,8 @@ const boardFilterIconById: Record<PostBoardTabId, Parameters<typeof Icon>[0]['na
   humor: 'palette',
 }
 
-function toAuthorTone(userId: number) {
-  return avatarTones[userId % avatarTones.length]
+function toAuthorTone(userId: number | null) {
+  return avatarTones[(userId ?? 0) % avatarTones.length]
 }
 
 function getPostImageUrl(post: PostListItem) {

@@ -20,6 +20,12 @@ export const routes = {
     recruitNoticeNew: '/community/recruit/notices/new',
     recruitApplicationNew: (recruitId: string) =>
       `/community/recruit/applications/new?id=${encodeURIComponent(recruitId)}`,
+    qna: '/community/qna',
+    qnaPost: (boardId: string | number, postId: string | number) =>
+      `/community/qna/${boardId}/posts/${postId}`,
+    qnaPostNew: '/community/qna/posts/new',
+    qnaPostEditor: (boardId: string | number, postId: string | number) =>
+      `/community/qna/${boardId}/posts/${postId}/editor`,
   },
   auth: {
     verifyEmail: '/email-verification',
