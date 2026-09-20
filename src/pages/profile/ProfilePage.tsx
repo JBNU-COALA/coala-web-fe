@@ -11,6 +11,9 @@ import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { Icon } from '../../shared/ui/Icon'
 import { StudyConnections } from '../../shared/ui/StudyConnections'
 import './profile-layout.css'
+import { PageFrame } from '../../shared/ui/PageFrame'
+import { SectionNav } from '../../shared/ui/SectionNav'
+import { ProfileStats } from './ProfileStats'
 
 type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
 type AuthoredContentKind = 'board' | 'info' | 'recruit'
@@ -599,14 +602,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   }
 
   if (profileMember === emptyProfileMember) return (
-    <section className="coala-content" style={{ padding: '32px' }}>
+    <PageFrame title="프로필" tone="users">
       <p role={profileError ? 'alert' : 'status'}>{profileError || '프로필을 불러오는 중입니다.'}</p>
-    </section>
+    </PageFrame>
   )
 
   return (
-    <section className="coala-content coala-content--profile">
-      <div className="profile-page">
+    <PageFrame title={isOwnProfile ? '마이페이지' : '프로필'} tone="users" className="coala-content--profile" bodyClassName="profile-page">
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
@@ -681,55 +683,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         {profileSaveState === 'saved' ? <p className="profile-save-message">프로필을 저장했습니다.</p> : null}
 
         <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
-        <div className="profile-stats-grid">
-          <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value">{profileMember.totalPoints.toLocaleString()}</p>
-            <p className="profile-stat-label">활동 점수</p>
-          </div>
-          <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value profile-stat-value--github">{profileMember.githubCommits}</p>
-            <p className="profile-stat-label">GitHub 커밋</p>
-          </div>
-          <div className="profile-stat-card surface-card">
-            <div className="profile-stat-card-head">
-              <p className="profile-stat-value">{profileMember.sharedRepos.length}개</p>
-              {canEdit ? (
-                <button type="button" className="profile-inline-add-button" onClick={startAddSharedRepo} aria-label="공유 저장소 추가">
-                  <Icon name="plus" size={13} />
-                </button>
-              ) : null}
-            </div>
-            <p className="profile-stat-label">공유 저장소</p>
-          </div>
-          <div className="profile-stat-card surface-card">
-            <div className="profile-stat-card-head">
-              <p className="profile-stat-value profile-stat-value--award">{profileAwards.length}개</p>
-              {canEdit ? (
-                <button type="button" className="profile-inline-add-button" onClick={startAddAward} aria-label="수상 내역 추가">
-                  <Icon name="plus" size={13} />
-                </button>
-              ) : null}
-            </div>
-            <p className="profile-stat-label">수상 내역</p>
-          </div>
-          <div className="profile-stat-card surface-card">
-            <p className="profile-stat-value">{authoredContents.length}개</p>
-            <p className="profile-stat-label">작성 내용</p>
-          </div>
-        </div>
+        <ProfileStats points={profileMember.totalPoints} commits={profileMember.githubCommits}
+          repositories={profileMember.sharedRepos.length} awards={profileAwards.length} posts={authoredContents.length}
+          onAddRepository={canEdit ? startAddSharedRepo : undefined} onAddAward={canEdit ? startAddAward : undefined} />
 
-        <div className="profile-tab-bar">
-          {tabs.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              className={tab === t.id ? 'profile-tab is-active' : 'profile-tab'}
-              onClick={() => setTab(t.id)}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
+        <SectionNav label="프로필 메뉴" items={tabs} value={tab} onChange={setTab} />
 
         {tab === 'overview' ? (
           <div className="profile-section-grid profile-section-grid--overview">
@@ -1264,7 +1222,6 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             )}
           </div>
         ) : null}
-      </div>
-    </section>
+    </PageFrame>
   )
 }

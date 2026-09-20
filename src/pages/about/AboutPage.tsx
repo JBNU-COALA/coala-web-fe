@@ -67,7 +67,7 @@ export function AboutPage() {
           size="large"
           headingLevel="h1"
           action={(
-            <button type="button" className="page-hero-button" onClick={() => navigate(routes.community.board)}>
+            <button type="button" className="page-hero-button" onClick={() => navigate(routes.community.activity)}>
               활동 보기
               <Icon name="chevron-right" size={15} />
             </button>

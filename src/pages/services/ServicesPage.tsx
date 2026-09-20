@@ -633,7 +633,7 @@ export function ServicesPage() {
 
               <div className="member-services-toolbar-bottom">
                 <SearchField
-                  className="resource-search-bar"
+                  className="member-services-search"
                   value={query}
                   onChange={(value) => { setQuery(value); setCurrentPage(1) }}
                   placeholder="서비스명, 만든 유저, 태그 검색"

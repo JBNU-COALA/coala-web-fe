@@ -25,6 +25,8 @@ import { toPlainContentPreview } from '../../shared/contentPreview'
 import { prepareMarkdownForDisplay, rewriteMarkdownImageUrls } from '../../shared/markdown'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import './activity.css'
+import { PageFrame } from '../../shared/ui/PageFrame'
+import { ActivityControls } from './ActivityControls'
 
 const root = routes.community.activity
 const formattedDate = (value: string) =>
@@ -153,10 +155,9 @@ function ActivityContent({
   }
 
   return (
-    <section className={`study-page study-page--${mode}`}>
+    <PageFrame title="활동" className={`study-frame study-frame--${mode}`} bodyClassName={`study-page study-page--${mode}`}>
       {error ? (
         <div className="study-empty">
-          <h1>활동</h1>
           <p role="alert">{error}</p>
           {
             <button
@@ -258,7 +259,7 @@ function ActivityContent({
       ) : (
         <>
           <header className="study-page-heading">
-            <h1>활동</h1>
+            <h2>활동 기록</h2>
             {manageableGroups.length > 0 && (
               <Link
                 className="study-primary"
@@ -286,103 +287,13 @@ function ActivityContent({
               </button>
             </div>
           )}
-          <div className="study-controls">
-            {layout === 'card' || view === 'attendance' ? (
-              <div className="study-week">
-                <button
-                  className="study-icon-button"
-                  aria-label="이전 주"
-                  title="이전 주"
-                  onClick={() => updateFilter('week', shiftDate(start, -7))}
-                >
-                  <Icon name="chevron-left" size={20} />
-                </button>
-                <div aria-live="polite">
-                  <strong>
-                    {parseDate(start)?.getFullYear()}년{' '}
-                    {parseDate(start)!.getMonth() + 1}월{' '}
-                    {parseDate(start)!.getDate()}일 주간
-                  </strong>
-                  <span>
-                    {formattedDate(start)} ~ {formattedDate(end)}
-                  </span>
-                </div>
-                <button
-                  className="study-icon-button"
-                  aria-label="다음 주"
-                  title="다음 주"
-                  onClick={() => updateFilter('week', shiftDate(start, 7))}
-                >
-                  <Icon name="chevron-right" size={20} />
-                </button>
-              </div>
-            ) : null}
-            <div className="study-group-filter">
-              <button
-                className="study-text-button"
-                onClick={() => {
-                  const next = new URLSearchParams(params)
-                  next.set('week', mondayOf(dateKey(new Date())))
-                  next.set('day', dateKey(new Date()))
-                  setParams(next)
-                }}
-              >
-                오늘
-              </button>
-              <select
-                aria-label="활동 조"
-                value={selectedGroup}
-                onChange={(event) => updateFilter('group', event.target.value)}
-              >
-                <option value="all">전체 조</option>
-                {data.groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div className="study-view-toolbar">
-            <nav className="study-view-tabs" aria-label="활동 보기">
-              <button
-                aria-current={view === 'records' ? 'page' : undefined}
-                onClick={() => updateFilter('view', 'records')}
-              >
-                활동 기록
-              </button>
-              <button
-                aria-current={view === 'attendance' ? 'page' : undefined}
-                onClick={() => updateFilter('view', 'attendance')}
-              >
-                출석 현황
-              </button>
-            </nav>
-            {view === 'records' && (
-              <div
-                className="study-layout-toggle"
-                role="group"
-                aria-label="활동 보기 방식"
-              >
-                <button
-                  title="카드형"
-                  aria-label="카드형"
-                  aria-pressed={layout === 'card'}
-                  onClick={() => updateFilter('layout', 'card')}
-                >
-                  <Icon name="layout" size={18} />
-                </button>
-                <button
-                  title="캘린더형"
-                  aria-label="캘린더형"
-                  aria-pressed={layout === 'calendar'}
-                  onClick={() => updateFilter('layout', 'calendar')}
-                >
-                  <Icon name="calendar" size={18} />
-                </button>
-              </div>
-            )}
-          </div>
+          <ActivityControls groups={data.groups} start={start} end={end} selectedGroup={selectedGroup}
+            layout={layout} view={view} onFilter={updateFilter} onToday={() => {
+              const next = new URLSearchParams(params)
+              next.set('week', mondayOf(dateKey(new Date())))
+              next.set('day', dateKey(new Date()))
+              setParams(next)
+            }} />
           {layout === 'calendar' && view === 'records' && (
             <>
               <ActivityCalendar
@@ -529,6 +440,6 @@ function ActivityContent({
           )}
         </>
       )}
-    </section>
+    </PageFrame>
   )
 }

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
+import { SectionNav } from '../../shared/ui/SectionNav'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
@@ -451,25 +452,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     <section className="coala-content coala-content--recruit">
       <CommunityBanner title="모집" tone="recruit" meta={`모집 공고 ${visibleItems.length}개`} />
 
-      <nav className="recruit-workspace-nav" aria-label="모집 메뉴">
-        <div className="recruit-workspace-tabs">
-          {workspaceTabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              aria-current={isTabActive(tab.id) ? 'page' : undefined}
-              className={isTabActive(tab.id) ? 'recruit-workspace-tab is-active' : 'recruit-workspace-tab'}
-              onClick={() => changeMode(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
+      <SectionNav label="모집 메뉴" className="page-container" items={workspaceTabs}
+        value={workspaceTabs.find((tab) => isTabActive(tab.id))?.id ?? 'list'}
+        onChange={changeMode} action={(
         <button type="button" className="recruit-create-button" onClick={() => changeMode('write')}>
           <Icon name="plus" size={16} />
           공고 등록
         </button>
-      </nav>
+      )} />
       {actionError ? <p className="auth-error">{actionError}</p> : null}
 
       {mode === 'write' ? (

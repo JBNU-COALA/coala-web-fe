@@ -1,5 +1,6 @@
 ﻿import { Icon } from '../shared/ui/Icon'
 import type { ContextPanelData, ContextPanelItem } from './navigationData'
+import { SectionNav } from '../shared/ui/SectionNav'
 
 type ContextPanelProps = {
   panel: ContextPanelData
@@ -10,19 +11,10 @@ type ContextPanelProps = {
 export function ContextPanel({ panel, onSelect, variant = 'card' }: ContextPanelProps) {
   if (variant === 'bar') {
     return (
-      <nav className="context-tabs" aria-label={panel.title}>
-        {panel.items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            className={item.isActive ? 'context-tab is-active' : 'context-tab'}
-            onClick={() => onSelect(item)}
-          >
-            <span>{item.label}</span>
-            {item.badge ? <small>{item.badge}</small> : null}
-          </button>
-        ))}
-      </nav>
+      <SectionNav label={panel.title} items={panel.items}
+        className="page-container section-nav--context"
+        value={panel.items.find((item) => item.isActive)?.id ?? ''}
+        onChange={(id) => { const item = panel.items.find((entry) => entry.id === id); if (item) onSelect(item) }} />
     )
   }
 

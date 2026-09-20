@@ -4,6 +4,7 @@ import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { SafeImage } from '../../shared/ui/SafeImage'
+import './resources.css'
 
 type ResourcesCardProps = {
   onOpenInfo?: () => void

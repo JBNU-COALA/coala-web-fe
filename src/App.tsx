@@ -25,6 +25,7 @@ import {
 } from './shared/communityBoards'
 import './pages/home/home.css'
 import './styles/coala-system.css'
+import './styles/page-frame.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AboutPage = lazy(() => import('./pages/about/AboutPage').then((m) => ({ default: m.AboutPage })))
