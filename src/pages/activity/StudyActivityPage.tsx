@@ -1,3 +1,5 @@
+import { AttendanceSession } from './AttendanceSession'
+import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
@@ -94,7 +96,7 @@ function ActivityContent({
   )
     ? params.get('group')!
     : 'all'
-  const view = params.get('view') === 'attendance' ? 'attendance' : 'records'
+  const view = params.get('view') === 'records' ? 'records' : 'attendance'
   const layout = params.get('layout') === 'calendar' ? 'calendar' : 'card'
   const selectedDate = parseDate(params.get('day') ?? '')
     ? params.get('day')!
@@ -104,7 +106,7 @@ function ActivityContent({
   const back = `${root}${search}`
   const updateFilter = (name: string, value: string) => {
     const next = new URLSearchParams(params)
-    if (value === 'all' || value === 'records') next.delete(name)
+    if (value === 'all' || (name === 'view' && value === 'attendance')) next.delete(name)
     else next.set(name, value)
     if (name === 'week') next.set('day', value)
     setParams(next)
@@ -172,7 +174,7 @@ function ActivityContent({
       ) : error ? (
         <div className="study-empty">
           <p role="alert">{error}</p>
-          {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>기록 작성</Link>}
+          {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>활동 등록</Link>}
           {
             <button
               className="study-text-button"
@@ -263,6 +265,7 @@ function ActivityContent({
             </header>
             <div className={`study-detail-layout${record.attendance.length ? '' : ' study-detail-layout--standalone'}`}>
               <article className="study-body" data-color-mode="light">
+                <ActivityPhotos photos={record.photos ?? []} />
                 <MDEditor.Markdown source={rewriteMarkdownImageUrls(prepareMarkdownForDisplay(record.content), resolveApiAssetUrl)} skipHtml />
               </article>
               {record.attendance.length > 0 && <section
@@ -283,14 +286,14 @@ function ActivityContent({
       ) : (
         <>
           <header className="study-page-heading">
-            <h2>활동 기록</h2>
+            <h2>{view === 'attendance' ? '출석 체크' : '활동 기록'}</h2>
             {(
               <Link
                 className="study-primary"
                 to={`${routes.community.activityRecordNew}${search}`}
               >
                 <Icon name="plus" size={18} />
-                기록 작성
+                활동 등록
               </Link>
             )}
           </header>
@@ -346,7 +349,7 @@ function ActivityContent({
                   className="study-text-button"
                   to={`${routes.community.activityRecordNew}${search}`}
                 >
-                  기록 작성
+                  활동 등록
                   <Icon name="chevron-right" size={16} />
                 </Link>
               )}
@@ -407,60 +410,14 @@ function ActivityContent({
               ))}
             </ol>
           ) : (
-            <div className="study-overview">
-              <p className="study-overview-caption">
-                선택한 주의 활동 {records.length}회 기준 · 각 숫자는 해당 상태로
-                기록된 횟수입니다.
-              </p>
-              {data.groups
-                .filter((group) =>
-                  records.some((entry) => entry.groupId === group.id)
-                )
-                .map((group) => {
-                  const groupRecords = records.filter(
-                    (entry) => entry.groupId === group.id
-                  )
-                  const roster = [
-                    ...new Map(
-                      groupRecords
-                        .flatMap((entry) => entry.attendance)
-                        .map((member) => [member.userId, member])
-                    ).values()
-                  ]
-                  return (
-                    <section className="study-group-overview" key={group.id}>
-                      <header>
-                        <h2>{group.name}</h2>
-                        <span>{groupRecords.length}회 활동</span>
-                      </header>
-                      <ul>
-                        {roster
-                          .filter(
-                            (member) =>
-                              !selectedUser || member.userId === selectedUser
-                          )
-                          .map((member) => {
-                            const entries = groupRecords.flatMap((entry) =>
-                              entry.attendance.filter(
-                                (person) => person.userId === member.userId
-                              )
-                            )
-                            return (
-                              <li key={member.userId}>
-                                <CharacterAvatar
-                                  name={member.name}
-                                  seed={member.userId}
-                                  size="sm"
-                                />
-                                <strong>{member.name}</strong>
-                                <AttendanceSummary entries={entries} />
-                              </li>
-                            )
-                          })}
-                      </ul>
-                    </section>
-                  )
-                })}
+            <div className="attendance-board">
+              {records.map((entry) => <AttendanceSession key={entry.id} record={entry}
+                groupName={groupName(entry.groupId)} onSave={async (value) => {
+                  const updated = await saveActivityRecord(value, true)
+                  setData((current) => current && ({ ...current,
+                    records: current.records.map((item) => item.id === updated.id ? updated : item)
+                  }))
+                }} />)}
             </div>
           )}
         </>

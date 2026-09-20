@@ -9,16 +9,16 @@ const ts = require('typescript');
     compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2022 }
   }).outputText;
   const { buildRecruitPayload, itemToDraft } = await import('data:text/javascript;base64,' + Buffer.from(source).toString('base64'));
-  const draft = { title: '제목', shortDesc: '소개', category: 'study', roles: '스터디원:4', techStack: '',
+  const draft = { title: '제목', shortDesc: '소개', category: 'study', roles: [{ key: 'a', label: '스터디원', max: 4 }], techStack: '',
     meetingType: '', expectedDuration: '', tags: '', detailContent: '첫 문장, 쉼표 유지\n둘째 줄\n\n다음 문단', processList: '' };
   const payload = buildRecruitPayload(draft);
   assert.deepEqual(payload.techStack, []);
   assert.deepEqual(payload.processList, []);
   assert.deepEqual(payload.detailContent, ['첫 문장, 쉼표 유지\n둘째 줄', '다음 문단']);
   assert.deepEqual(buildRecruitPayload(itemToDraft(payload)), payload);
-  assert.throws(() => buildRecruitPayload({ ...draft, roles: '' }));
-  assert.throws(() => buildRecruitPayload({ ...draft, roles: '팀원:201' }));
-  assert.throws(() => buildRecruitPayload({ ...draft, roles: '팀원:2\n팀원:3' }));
+  assert.throws(() => buildRecruitPayload({ ...draft, roles: [] }));
+  assert.throws(() => buildRecruitPayload({ ...draft, roles: [{ key: 'a', label: '팀원', max: 201 }] }));
+  assert.throws(() => buildRecruitPayload({ ...draft, roles: [{ key: 'a', label: '팀원', max: 2 }, { key: 'b', label: '팀원', max: 3 }] }));
   assert.throws(() => buildRecruitPayload({ ...draft, title: 'x'.repeat(151) }));
   console.log('PASS recruitment shared create/edit validation and content roundtrip');
 
@@ -108,7 +108,8 @@ const ts = require('typescript');
     await page.goto(root + '/community/recruit/notices/new');
     await page.getByLabel('제목', { exact: true }).fill('공고 입력 검증');
     await page.getByLabel('한 줄 소개', { exact: true }).fill('검증');
-    await page.getByLabel('모집 역할/인원', { exact: true }).fill('팀원:2');
+    await page.getByLabel('모집 역할 1', { exact: true }).fill('팀원');
+    await page.getByLabel('모집 인원 1', { exact: true }).fill('2');
     await page.getByLabel('모집 소개', { exact: true }).fill('소개, 쉼표 유지');
     const before = refreshCount;
     await page.getByRole('button', { name: '작성 완료', exact: true }).click();

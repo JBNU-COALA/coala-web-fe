@@ -51,6 +51,7 @@ export async function saveActivityRecord(
     date: record.date,
     content: record.content,
     version: record.version,
+    attachmentIds: record.photos?.map((photo) => photo.attachmentId),
     attendance: record.attendance.map(({ userId, status }) => ({
       userId: Number(userId),
       status

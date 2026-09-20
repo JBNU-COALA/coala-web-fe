@@ -1,3 +1,4 @@
+import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
@@ -36,9 +37,12 @@ export function RecordEditor({
       firstGroup?.members.map((member) => ({ ...member, status: 'unknown' })) ??
       []
   )
+  const [photos, setPhotos] = useState(record?.photos ?? [])
+  const [uploading, setUploading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const dirty =
+    JSON.stringify(photos) !== JSON.stringify(record?.photos ?? []) ||
     title !== (record?.title ?? '') ||
     content !== (record?.content ?? '') ||
     date !== (record?.date ?? dateKey(new Date())) ||
@@ -64,7 +68,7 @@ export function RecordEditor({
 
   const submit = async (event: FormEvent) => {
     event.preventDefault()
-    if (saving) return
+    if (saving || uploading) return
     if (!title.trim() || !content.trim()) {
       setError('제목과 활동 내용을 입력해 주세요.')
       return
@@ -83,6 +87,7 @@ export function RecordEditor({
         date,
         content: content.trim(),
         attendance,
+        photos,
         updatedAt: new Date().toISOString(),
         version: record?.version
       })
@@ -108,7 +113,7 @@ export function RecordEditor({
         활동 기록
       </Link>
       <header className="study-page-heading">
-        <h1>{record ? '기록 수정' : '기록 작성'}</h1>
+        <h1>{record ? '활동 수정' : '활동 등록'}</h1>
       </header>
       <form className="study-editor" onSubmit={submit}>
         <fieldset disabled={saving}>
@@ -171,18 +176,6 @@ export function RecordEditor({
               </select>
             </label>
           </div>
-          <label>
-            오늘 어떤 활동을 했나요?
-            <textarea
-              required
-              rows={9}
-              maxLength={20000}
-              aria-label="오늘 어떤 활동을 했나요?"
-              value={content}
-              onChange={(event) => setContent(event.target.value)}
-              placeholder="함께 배운 내용, 진행한 작업, 다음 모임의 계획"
-            />
-          </label>
           {attendance.length > 0 && <>
           <div className="study-form-section">
             <h2>
@@ -207,12 +200,25 @@ export function RecordEditor({
               : '모든 출석 상태를 확인했습니다.'}
           </p>
           </>}
+          <label>
+            오늘 어떤 활동을 했나요?
+            <textarea
+              required
+              rows={4}
+              maxLength={20000}
+              aria-label="오늘 어떤 활동을 했나요?"
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="함께 배운 내용, 진행한 작업, 다음 모임의 계획"
+            />
+          </label>
+          <ActivityPhotos photos={photos} onChange={setPhotos} onBusy={setUploading} />
           {error && (
             <p className="study-error" role="alert">
               {error}
             </p>
           )}
-          <button className="study-primary study-submit" type="submit">
+          <button className="study-primary study-submit" type="submit" disabled={uploading}>
             {saving ? '저장 중...' : '기록 저장'}
           </button>
         </fieldset>

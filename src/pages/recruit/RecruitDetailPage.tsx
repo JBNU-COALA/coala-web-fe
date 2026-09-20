@@ -1,3 +1,4 @@
+import { RecruitRoleFields } from './RecruitRoleFields'
 /* eslint-disable react-hooks/set-state-in-effect */
 import { buildRecruitPayload, itemToDraft, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
@@ -193,10 +194,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
                     </select>
                   </label>
                 </div>
-                <label className="jcloud-field">
-                  <span className="jcloud-label">역할/인원</span>
-                  <textarea className="jcloud-textarea" rows={3} value={editDraft.roles} onChange={(event) => updateEditDraft('roles', event.target.value)} />
-                </label>
+                <RecruitRoleFields roles={editDraft.roles} onChange={(roles) => updateEditDraft('roles', roles)} />
                 <label className="jcloud-field">
                   <span className="jcloud-label">기술 스택</span>
                   <input className="jcloud-input" value={editDraft.techStack} onChange={(event) => updateEditDraft('techStack', event.target.value)} />

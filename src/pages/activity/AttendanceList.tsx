@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import {
   attendanceLabels,
   attendanceCounts,
@@ -30,6 +31,7 @@ export function AttendanceList({
   entries: AttendanceEntry[]
   onChange?: (entries: AttendanceEntry[]) => void
 }) {
+  const id = useId()
   return (
     <ul className="study-attendance-list">
       {entries.map((member) => (
@@ -46,29 +48,17 @@ export function AttendanceList({
             </Link>
           )}
           {onChange ? (
-            <select
-              aria-label={`${member.name} 출석 상태`}
-              className={`study-status-select study-status--${member.status}`}
-              value={member.status}
-              onChange={(event) =>
-                onChange(
-                  entries.map((entry) =>
-                    entry.userId === member.userId
-                      ? {
-                          ...entry,
-                          status: event.target.value as AttendanceStatus
-                        }
-                      : entry
-                  )
-                )
-              }
-            >
+            <div className="attendance-choices" role="radiogroup" aria-label={`${member.name} 출석 상태`}>
               {Object.entries(attendanceLabels).map(([value, label]) => (
-                <option value={value} key={value}>
-                  {label}
-                </option>
+                <label key={value} className={`attendance-choice attendance-choice--${value}`}>
+                  <input type="radio" name={`${id}-${member.userId}`} value={value}
+                    checked={member.status === value}
+                    onChange={() => onChange(entries.map((entry) => entry.userId === member.userId
+                      ? { ...entry, status: value as AttendanceStatus } : entry))} />
+                  <span>{label}</span>
+                </label>
               ))}
-            </select>
+            </div>
           ) : (
             <span className={`study-status study-status--${member.status}`}>
               {attendanceLabels[member.status]}

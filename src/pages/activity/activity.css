@@ -685,3 +685,55 @@ a.study-person-name:hover {
   }
 }
 .study-detail-layout--standalone { grid-template-columns: minmax(0, 1fr); }
+/* Session attendance and compact shared form controls. */
+.study-page .study-editor { max-width: 760px; margin-inline: auto; }
+.study-page .study-editor label { gap: 7px; margin-bottom: 18px; font-size: 13px; }
+.study-page .study-editor :is(input, select, textarea) { min-height: 44px; padding: 10px 12px; font-size: 15px; background: #f8f9fa; }
+.study-page .study-editor .study-submit { width: auto; min-width: 120px; min-height: 44px; float: right; margin-top: 12px; }
+.study-editor::after { content: ''; display: block; clear: both; }
+.study-page .study-form-section h2 { font-size: 17px; }
+.study-page .study-controls { padding: 14px 0; }
+.attendance-board { max-width: 880px; margin-inline: auto; }
+.attendance-session { padding: 26px 0; border-bottom: 1px solid #e1e6ea; }
+.attendance-session fieldset { margin: 0; padding: 0; min-width: 0; border: 0; }
+.attendance-session-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.attendance-session-heading > div { min-width: 0; }
+.attendance-session-heading span { color: #667580; font-size: 12px; }
+.attendance-session-heading h3 { margin: 7px 0 18px; font-size: 18px; line-height: 1.5; overflow-wrap: anywhere; }
+.attendance-session-heading a { color: #202a32; }
+.attendance-session-heading .attendance-progress { color: #167452; white-space: nowrap; padding-top: 2px; font-variant-numeric: tabular-nums; }
+.attendance-session-summary { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 8px; }
+.attendance-session footer { display: flex; justify-content: flex-end; align-items: center; gap: 16px; margin-top: 14px; }
+.attendance-session footer > span { font-size: 12px; color: #65737f; }
+.attendance-no-roster { font-size: 14px; color: #65737f; }
+.attendance-no-roster a { margin-left: 12px; color: #08734e; }
+.attendance-choices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; padding: 3px; border-radius: 6px; background: #f2f4f6; flex: 0 0 248px; }
+.study-page .attendance-choice { position: relative; display: block; margin: 0; cursor: pointer; }
+.study-page .attendance-choice input { position: absolute; inset: 0; opacity: 0; width: 100%; height: 100%; min-height: 0; padding: 0; margin: 0; cursor: pointer; z-index: 1; }
+.attendance-choice span { display: grid; place-items: center; min-height: 38px; border-radius: 4px; font-size: 13px; color: #63717d; white-space: nowrap; }
+.attendance-choice input:checked + span { background: white; box-shadow: 0 1px 3px #152e401f; font-weight: 700; }
+.attendance-choice--present input:checked + span { color: #08734e; }
+.attendance-choice--late input:checked + span { color: #256fc4; }
+.attendance-choice--absent input:checked + span { color: #bc343f; }
+.attendance-choice input:focus-visible + span { outline: 2px solid #3688bd; outline-offset: 1px; }
+.activity-photos { margin: 18px 0; }
+.activity-photos header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.activity-photos h3 { margin: 0; font-size: 15px; }
+.activity-photos h3 small { color: #687782; font-size: 12px; font-weight: 400; margin-left: 6px; }
+.activity-photo-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 112px)); gap: 10px; padding: 0; margin: 10px 0 0; list-style: none; }
+.activity-photo-grid li { position: relative; min-width: 0; aspect-ratio: 1; border-radius: 6px; overflow: hidden; background: #f0f3f5; }
+.activity-photo-grid a { display: block; width: 100%; height: 100%; }
+.activity-photo-grid img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.activity-photo-placeholder { display: grid; place-items: center; height: 100%; padding: 6px; text-align: center; font-size: 11px; color: #677680; }
+.activity-photo-remove { position: absolute; right: 2px; top: 2px; width: 36px; height: 36px; border: 0; border-radius: 50%; background: #ffffffed; color: #202a32; font-size: 23px; }
+@media (max-width: 600px) {
+  .study-page .study-editor :is(input, select, textarea) { font-size: 16px; }
+  .study-page .study-attendance-list li:has(.attendance-choices) { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 8px 10px; padding-block: 12px; }
+  .attendance-choices { grid-column: 1 / -1; width: 100%; }
+  .attendance-choice span { min-height: 40px; }
+  .attendance-session-heading { flex-wrap: wrap; gap: 0 12px; }
+  .attendance-session-heading h3 { font-size: 17px; margin-bottom: 8px; }
+  .attendance-session-heading .attendance-progress { margin-bottom: 12px; }
+  .activity-photo-grid { grid-template-columns: repeat(3, minmax(0, 112px)); }
+  .study-page .study-controls { gap: 12px; }
+}

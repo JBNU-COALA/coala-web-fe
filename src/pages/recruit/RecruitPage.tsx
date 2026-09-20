@@ -1,3 +1,4 @@
+import { RecruitRoleFields } from './RecruitRoleFields'
 import { buildRecruitPayload, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
@@ -60,7 +61,7 @@ const filters: { id: RecruitFilterId; label: string }[] = [
 const LOCAL_RECRUIT_INTEREST_STORAGE_KEY = 'coala-recruit-interests'
 
 const defaultRecruitDraft: RecruitDraft = {
-  title: '', category: 'project', shortDesc: '', roles: '', techStack: '',
+  title: '', category: 'project', shortDesc: '', roles: [{ key: 'role-0', label: '', max: 1 }], techStack: '',
   meetingType: '', expectedDuration: '', tags: '', detailContent: '', processList: '',
 }
 
@@ -446,7 +447,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           </div>
 
           <div className="recruit-write-grid">
-            <label className="jcloud-field">
+            <label className="jcloud-field recruit-write-wide">
               <span className="jcloud-label">제목</span>
               <input
                 className="jcloud-input"
@@ -466,22 +467,11 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
                 placeholder="목록에 보일 모집 요약"
               />
             </label>
-            <label className="jcloud-field">
-              <span className="jcloud-label">모집 역할/인원</span>
-              <textarea
-                className="jcloud-textarea"
-                rows={4}
-                aria-label="모집 역할/인원"
-                value={draft.roles}
-                onChange={(event) => updateDraft('roles', event.target.value)}
-                placeholder="프론트엔드:2&#10;백엔드:1"
-              />
-            </label>
-            <label className="jcloud-field">
+            <RecruitRoleFields roles={draft.roles} onChange={(roles) => updateDraft('roles', roles)} />
+            <label className="jcloud-field recruit-write-wide">
               <span className="jcloud-label">기술 스택 (선택)</span>
-              <textarea
-                className="jcloud-textarea"
-                rows={4}
+              <input
+                className="jcloud-input"
                 aria-label="기술 스택 (선택)"
                 value={draft.techStack}
                 onChange={(event) => updateDraft('techStack', event.target.value)}
@@ -519,7 +509,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               <span className="jcloud-label">모집 소개</span>
               <textarea
                 className="jcloud-textarea"
-                rows={5}
+                rows={4}
                 aria-label="모집 소개"
                 value={draft.detailContent}
                 onChange={(event) => updateDraft('detailContent', event.target.value)}
@@ -530,7 +520,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               <span className="jcloud-label">진행 프로세스 (선택)</span>
               <textarea
                 className="jcloud-textarea"
-                rows={4}
+                rows={2}
                 aria-label="진행 프로세스 (선택)"
                 value={draft.processList}
                 onChange={(event) => updateDraft('processList', event.target.value)}

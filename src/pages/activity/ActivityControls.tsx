@@ -85,8 +85,8 @@ export function ActivityControls({
         <SectionNav
           label="활동 보기"
           items={[
+            { id: 'attendance', label: '출석 체크' },
             { id: 'records', label: '활동 기록' },
-            { id: 'attendance', label: '출석 현황' },
           ]}
           value={view}
           onChange={(value) => onFilter('view', value)}

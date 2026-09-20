@@ -14,6 +14,7 @@ export type StudyGroup = {
   canManage?: boolean
 }
 export type AttendanceEntry = StudyMember & { status: AttendanceStatus }
+export type ActivityPhoto = { attachmentId: number; originalName: string }
 export type StudyRecord = {
   id: string
   groupId: string | null
@@ -21,6 +22,7 @@ export type StudyRecord = {
   title: string
   date: string
   content: string
+  photos?: ActivityPhoto[]
   attendance: AttendanceEntry[]
   updatedAt: string
   version?: number

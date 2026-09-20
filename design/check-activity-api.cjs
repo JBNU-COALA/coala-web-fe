@@ -86,7 +86,7 @@ const assert = require('node:assert/strict');
   await page.getByRole('region', { name: '지원자 관리' }).getByText('승인', { exact: true }).first().waitFor();
   await page.getByRole('link', { name: '연결 테스트 조', exact: true }).click();
   await page.waitForURL('**/community/activity?group=42');
-  await page.getByRole('link', { name: '기록 작성', exact: true }).first().click();
+  await page.getByRole('link', { name: '활동 등록', exact: true }).first().click();
   await page.getByLabel('연결할 조 (선택)').selectOption('42');
   await page.getByLabel('참여자 출석 상태').waitFor();
   await page.goto('http://127.0.0.1:3000/users/1');

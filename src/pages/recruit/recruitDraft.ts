@@ -1,11 +1,13 @@
 import type { RecruitCategory, RecruitItem, RecruitPostPayload, RecruitStatus } from '../../shared/api/recruits'
 
+export type RecruitRoleDraft = { key: string; label: string; max: number | '' }
+
 export type RecruitDraft = {
   title: string
   shortDesc: string
   category: RecruitCategory
   status?: RecruitStatus
-  roles: string
+  roles: RecruitRoleDraft[]
   techStack: string
   meetingType: string
   expectedDuration: string
@@ -19,7 +21,7 @@ const paragraphs = (value: string) => value.split(/\n\s*\n/).map((item) => item.
 
 export const itemToDraft = (item: RecruitItem): RecruitDraft => ({
   ...item,
-  roles: item.roles.map((role) => `${role.label}:${role.max}`).join('\n'),
+  roles: item.roles.map((role, index) => ({ key: `role-${index}`, label: role.label, max: role.max })),
   techStack: item.techStack.join(', '),
   tags: item.tags.join(', '),
   detailContent: item.detailContent.join('\n\n'),
@@ -27,11 +29,7 @@ export const itemToDraft = (item: RecruitItem): RecruitDraft => ({
 })
 
 export function buildRecruitPayload(draft: RecruitDraft): RecruitPostPayload {
-  const roles = splitList(draft.roles).map((line) => {
-    const match = line.match(/^(.+?)[\s:：/]+(\d+)$/)
-    if (!match) throw new Error('모집 역할과 인원을 확인해 주세요. 예: 스터디원:4')
-    return { label: match[1].trim(), max: Number(match[2]) }
-  })
+  const roles = draft.roles.map((role) => ({ label: role.label.trim(), max: Number(role.max) }))
   const payload: RecruitPostPayload = {
     title: draft.title.trim(), shortDesc: draft.shortDesc.trim(), category: draft.category,
     status: draft.status, roles, techStack: splitList(draft.techStack),
@@ -43,7 +41,7 @@ export function buildRecruitPayload(draft: RecruitDraft): RecruitPostPayload {
   }
   if (!payload.title || payload.title.length > 150) throw new Error('제목은 1~150자로 입력해 주세요.')
   if (!payload.shortDesc || payload.shortDesc.length > 300) throw new Error('한 줄 소개는 1~300자로 입력해 주세요.')
-  if (!roles.length || roles.length > 20 || roles.some((role) => !role.label || role.label.length > 80 || role.max < 1 || role.max > 200))
+  if (!roles.length || roles.length > 20 || roles.some((role) => !role.label || role.label.length > 80 || !Number.isInteger(role.max) || role.max < 1 || role.max > 200))
     throw new Error('모집 역할은 1~20개, 역할별 인원은 1~200명으로 입력해 주세요.')
   if (new Set(roles.map((role) => role.label)).size !== roles.length) throw new Error('같은 모집 역할을 중복해서 입력할 수 없습니다.')
   if (!payload.detailContent.length || payload.detailContent.length > 100 || payload.detailContent.some((text) => text.length > 2000))
