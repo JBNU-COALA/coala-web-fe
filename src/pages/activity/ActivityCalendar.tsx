@@ -1,5 +1,6 @@
 import {
   dateKey,
+  activityToday,
   mondayOf,
   parseDate,
   shiftDate,
@@ -68,7 +69,7 @@ export function ActivityCalendar({
               className={`${day < monthStart || day > monthEnd ? 'is-outside' : ''} ${day === date ? 'is-selected' : ''}`}
               aria-label={`${day}, 활동 ${events.length}건`}
               aria-pressed={day === date}
-              aria-current={day === dateKey(new Date()) ? 'date' : undefined}
+              aria-current={day === activityToday() ? 'date' : undefined}
               onClick={() => onSelect(day)}
             >
               <span>{parseDate(day)!.getDate()}</span>

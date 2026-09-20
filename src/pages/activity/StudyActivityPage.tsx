@@ -8,7 +8,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { routes } from '../../shared/routes'
 import {
-  dateKey,
+  activityToday,
   mondayOf,
   shiftDate,
   parseDate,
@@ -63,7 +63,7 @@ function ActivityContent({
   const [data, setData] = useState<ActivityData | null>(null)
   const [error, setError] = useState('')
   const [reload, setReload] = useState(0)
-  const start = mondayOf(params.get('week') ?? dateKey(new Date()))
+  const start = mondayOf(params.get('week') ?? activityToday())
   const anchor = parseDate(params.get('day') ?? '') ? params.get('day')! : start
   useEffect(() => {
     let active = true
@@ -318,8 +318,8 @@ function ActivityContent({
           <ActivityControls groups={data.groups} start={start} end={end} selectedGroup={selectedGroup}
             layout={layout} view={view} onFilter={updateFilter} onToday={() => {
               const next = new URLSearchParams(params)
-              next.set('week', mondayOf(dateKey(new Date())))
-              next.set('day', dateKey(new Date()))
+              next.set('week', mondayOf(activityToday()))
+              next.set('day', activityToday())
               setParams(next)
             }} />
           {layout === 'calendar' && view === 'records' && (

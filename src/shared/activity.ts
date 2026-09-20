@@ -31,6 +31,16 @@ export type StudyRecord = {
 }
 export type ActivityData = { groups: StudyGroup[]; records: StudyRecord[]; groupsError?: string }
 
+const activityDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
+})
+
+export function activityToday(now = new Date()) {
+  const parts = activityDateFormatter.formatToParts(now)
+  const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((entry) => entry.type === type)!.value
+  return `${part('year')}-${part('month')}-${part('day')}`
+}
+
 export function dateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
 }

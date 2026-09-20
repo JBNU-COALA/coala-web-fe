@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import {
-  dateKey,
+  activityToday,
   attendanceCounts,
   type ActivityData,
   type StudyRecord,
@@ -31,7 +31,7 @@ export function RecordEditor({
     record?.groupId ?? firstGroup?.id ?? ''
   )
   const [title, setTitle] = useState(record?.title ?? '')
-  const [date, setDate] = useState(record?.date ?? dateKey(new Date()))
+  const [date, setDate] = useState(record?.date ?? activityToday())
   const [content, setContent] = useState(record?.content ?? '')
   const [attendance, setAttendance] = useState<AttendanceEntry[]>(
     record?.attendance ??
@@ -46,7 +46,7 @@ export function RecordEditor({
     JSON.stringify(photos) !== JSON.stringify(record?.photos ?? []) ||
     title !== (record?.title ?? '') ||
     content !== (record?.content ?? '') ||
-    date !== (record?.date ?? dateKey(new Date())) ||
+    date !== (record?.date ?? activityToday()) ||
     groupId !== (record?.groupId ?? firstGroup?.id ?? '') ||
     JSON.stringify(attendance) !==
       JSON.stringify(
@@ -74,7 +74,7 @@ export function RecordEditor({
       setError('제목과 활동 내용을 입력해 주세요.')
       return
     }
-    if (date > dateKey(new Date())) {
+    if (date > activityToday()) {
       setError('활동을 진행한 날짜를 선택해 주세요.')
       return
     }
@@ -135,7 +135,7 @@ export function RecordEditor({
               <input
                 type="date"
                 required
-                max={dateKey(new Date())}
+                max={activityToday()}
                 value={date}
                 onChange={(event) => setDate(event.target.value)}
               />

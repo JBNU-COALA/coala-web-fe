@@ -1,5 +1,5 @@
 import {
-  dateKey,
+  activityToday,
   shiftDate,
   type ActivityData,
   type StudyRecord,
@@ -23,7 +23,7 @@ export async function createActivityGroup(recruitId: string, name: string) {
 }
 
 export async function loadActivityData(
-  anchor = dateKey(new Date()),
+  anchor = activityToday(),
   recordId?: string
 ): Promise<ActivityData> {
   const records = (
@@ -75,11 +75,15 @@ export async function saveActivityRecord(
     const status = (error as { response?: { status?: number } }).response
       ?.status
     throw new Error(
-      status === 409
-        ? '다른 사람이 먼저 수정했습니다. 작성 내용을 보관한 뒤 새로 불러와 주세요.'
-        : status === 403
-          ? '활동을 수정할 권한이 없습니다.'
-          : '기록을 저장하지 못했습니다. 작성 내용은 화면에 남아 있습니다.'
+      status === 400
+        ? '입력값을 확인해 주세요. 날짜는 한국 시간 기준 오늘까지, 제목은 120자, 본문은 20,000자까지 입력할 수 있습니다.'
+        : status === 401
+          ? '로그인이 만료되었습니다. 작성 내용을 보관한 뒤 다시 로그인해 주세요.'
+          : status === 409
+            ? '다른 사람이 먼저 수정했습니다. 작성 내용을 보관한 뒤 새로 불러와 주세요.'
+            : status === 403
+              ? '활동을 수정할 권한이 없습니다.'
+              : '기록을 저장하지 못했습니다. 작성 내용은 화면에 남아 있습니다.'
     )
   }
 }
