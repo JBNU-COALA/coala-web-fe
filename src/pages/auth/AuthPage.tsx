@@ -1,7 +1,7 @@
+import './auth.css'
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { csaiLabOptions, formatLabOption } from '../../shared/labs'
 import { routes } from '../../shared/routes'
 
 type AuthMode = 'login' | 'signup'
@@ -13,7 +13,6 @@ type AuthPageProps = {
 
 type SignupGender = 'MALE' | 'FEMALE' | 'OTHER' | 'PREFER_NOT_TO_SAY'
 type AcademicStatus = 'PROFESSOR' | 'ASSISTANT' | 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED' | 'GENERAL'
-type LabInputMode = 'preset' | 'custom'
 
 const githubUsernamePattern = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,37}[A-Za-z0-9])?$/
 const linkedinProfilePattern = /^https:\/\/(www\.)?linkedin\.com\/in\/[A-Za-z0-9_-]+\/?$/
@@ -36,8 +35,6 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const [studentId, setStudentId] = useState('')
   const [academicStatus, setAcademicStatus] = useState<AcademicStatus>('ENROLLED')
   const [grade, setGrade] = useState(1)
-  const [labInputMode, setLabInputMode] = useState<LabInputMode>('preset')
-  const [selectedLab, setSelectedLab] = useState('')
   const [customLab, setCustomLab] = useState('')
   const [githubId, setGithubId] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
@@ -62,15 +59,10 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
 
     const trimmedGithubId = githubId.trim()
     const trimmedLinkedinUrl = linkedinUrl.trim()
-    const resolvedLab = labInputMode === 'custom' ? customLab.trim() : selectedLab
+    const resolvedLab = customLab.trim()
 
     if (!isLogin && !githubUsernamePattern.test(trimmedGithubId)) {
       setError('GitHub 아이디를 확인해주세요.')
-      return
-    }
-
-    if (!isLogin && labInputMode === 'custom' && !resolvedLab) {
-      setError('직접 입력할 연구실명을 입력해주세요.')
       return
     }
 
@@ -244,50 +236,12 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
                 </select>
               </label>
 
-              <div className="auth-label">
-                연구실
-                <div className="auth-segmented" role="group" aria-label="연구실 입력 방식">
-                  <button
-                    type="button"
-                    className={labInputMode === 'preset' ? 'auth-segment-button is-active' : 'auth-segment-button'}
-                    onClick={() => setLabInputMode('preset')}
-                  >
-                    목록에서 선택
-                  </button>
-                  <button
-                    type="button"
-                    className={labInputMode === 'custom' ? 'auth-segment-button is-active' : 'auth-segment-button'}
-                    onClick={() => setLabInputMode('custom')}
-                  >
-                    직접입력
-                  </button>
-                </div>
-                {labInputMode === 'preset' ? (
-                  <select
-                    className="auth-input"
-                    value={selectedLab}
-                    onChange={(e) => setSelectedLab(e.target.value)}
-                  >
-                    <option value="">선택 안 함</option>
-                    {csaiLabOptions.map((lab) => {
-                      const label = formatLabOption(lab)
-                      return (
-                        <option key={label} value={label}>
-                          {label}
-                        </option>
-                      )
-                    })}
-                  </select>
-                ) : (
-                  <input
-                    className="auth-input"
-                    type="text"
-                    placeholder="예: 데이터마이닝연구실 : 송현제교수님"
-                    value={customLab}
-                    onChange={(e) => setCustomLab(e.target.value)}
-                  />
-                )}
-              </div>
+              <label className="auth-label">
+                연구실 (선택)
+                <input className="auth-input" type="text" maxLength={120}
+                  placeholder="소속 연구실명" value={customLab}
+                  onChange={(event) => setCustomLab(event.target.value)} />
+              </label>
 
               <label className="auth-label">
                 GitHub 아이디

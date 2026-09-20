@@ -1,3 +1,4 @@
+import './auth.css'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { authApi } from '../../shared/api/auth'

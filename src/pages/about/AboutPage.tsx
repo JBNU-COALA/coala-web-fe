@@ -9,11 +9,7 @@ import { SectionHeading } from '../../shared/ui/SectionHeading'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { routes } from '../../shared/routes'
 
-const defaultAboutContent: SiteAboutContent = {
-  title: '함께 만들고 운영하는 개발 동아리',
-  description: '코알라는 프로젝트, 스터디, 서비스 운영을 통해 개발 경험을 쌓는 전북대학교 개발 동아리입니다.',
-  chips: ['프로젝트', '스터디', '서비스 운영', '커뮤니티'],
-}
+const defaultAboutContent: SiteAboutContent = { title: '', description: '', chips: [] }
 
 function toDraft(content: SiteAboutContent) {
   return {
@@ -38,7 +34,7 @@ export function AboutPage() {
         setContent(nextContent)
         setDraft(toDraft(nextContent))
       })
-      .catch(() => setContent(defaultAboutContent))
+      .catch(() => setMessage('소개 내용을 불러오지 못했습니다.'))
   }, [])
 
   const saveAbout = async (event: FormEvent) => {
@@ -138,7 +134,7 @@ export function AboutPage() {
             </form>
           ) : (
             <>
-              <SectionHeading title={content.title} description={content.description} />
+              {content.title ? <SectionHeading title={content.title} description={content.description} /> : <p>등록된 소개가 없습니다.</p>}
               <div className="about-intro-grid">
                 {content.chips.map((chip, index) => (
                   <article key={chip}>
@@ -146,36 +142,12 @@ export function AboutPage() {
                       <Icon name={(['file', 'book', 'settings', 'users'] as const)[index % 4]} size={22} />
                     </span>
                     <strong>{chip}</strong>
-                    <p>{[
-                      '기획부터 배포까지 실제 서비스를 만듭니다.',
-                      '함께 배우고 성장하는 기술 스터디를 운영합니다.',
-                      '지속 가능한 서비스를 직접 운영합니다.',
-                      '지식과 경험을 나누는 커뮤니티를 만듭니다.',
-                    ][index % 4]}</p>
                   </article>
                 ))}
               </div>
             </>
           )}
           {message ? <p className="about-edit-message">{message}</p> : null}
-        </section>
-
-        <section className="about-timeline-section">
-          <SectionHeading title="우리가 해온 일" description="코알라의 주요 발자취입니다." />
-          <ol className="about-timeline">
-            {[
-              ['2018', '창립', '전북대학교 개발 동아리 코알라 시작'],
-              ['PROJECT', '프로젝트 시작', '다양한 팀 프로젝트로 개발 경험 축적'],
-              ['SERVICE', '서비스 운영', '직접 기획하고 만든 서비스를 운영'],
-              ['COAS', '오픈소스 프로젝트', '함께 만들고 공개하는 개발 문화'],
-            ].map(([year, title, description]) => (
-              <li key={year}>
-                <span>{year}</span>
-                <strong>{title}</strong>
-                <p>{description}</p>
-              </li>
-            ))}
-          </ol>
         </section>
 
         <section className="about-now-section">

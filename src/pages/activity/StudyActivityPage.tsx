@@ -14,8 +14,6 @@ import {
   type StudyRecord
 } from '../../shared/activity'
 import {
-  isActivityPreview,
-  activityLink,
   loadActivityData,
   saveActivityRecord
 } from '../../shared/activityRepository'
@@ -41,9 +39,7 @@ export function StudyActivityPage({
 }: {
   mode?: 'list' | 'detail' | 'new' | 'edit'
 }) {
-  return isActivityPreview() ? (
-    <ActivityContent mode={mode} />
-  ) : (
+  return (
     <RequireAuth>
       <ActivityContent mode={mode} />
     </RequireAuth>
@@ -55,7 +51,6 @@ function ActivityContent({
 }: {
   mode: 'list' | 'detail' | 'new' | 'edit'
 }) {
-  const activityPreview = isActivityPreview()
   const { recordId } = useParams()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
@@ -109,8 +104,8 @@ function ActivityContent({
   }
   const record = data?.records.find((entry) => entry.id === recordId)
   const manageableGroups =
-    data?.groups.filter((group) => activityPreview || group.canManage) ?? []
-  const canEdit = activityPreview || record?.canManage
+    data?.groups.filter((group) => group.canManage) ?? []
+  const canEdit = record?.canManage
   const filteredRecords = (data?.records ?? []).filter(
     (entry) =>
       (selectedGroup === 'all' || entry.groupId === selectedGroup) &&
@@ -159,11 +154,6 @@ function ActivityContent({
 
   return (
     <section className={`study-page study-page--${mode}`}>
-      {activityPreview && (
-        <p className="study-preview-note">
-          미리보기 · 예시 명단이며, 변경 내용은 이 브라우저에만 저장됩니다.
-        </p>
-      )}
       {error ? (
         <div className="study-empty">
           <h1>활동</h1>
@@ -218,18 +208,14 @@ function ActivityContent({
               <div className="study-detail-context">
                 <Link
                   className={`study-group study-group--${record.groupId}`}
-                  to={activityLink(
-                    routes.community.activityGroup(record.groupId)
-                  )}
+                  to={routes.community.activityGroup(record.groupId)}
                 >
                   {groupName(record.groupId)}
                 </Link>
                 {sourceRecruit && (
                   <Link
                     className="study-text-button"
-                    to={activityLink(
-                      routes.community.recruitNotice(sourceRecruit)
-                    )}
+                    to={routes.community.recruitNotice(sourceRecruit)}
                   >
                     모집 공고
                     <Icon name="chevron-right" size={16} />

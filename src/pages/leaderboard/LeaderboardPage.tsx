@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { usersApi, type ActivityMember } from '../../shared/api/users'
-import { activityMembers } from '../../dummy/leaderboardData'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { Icon } from '../../shared/ui/Icon'
@@ -11,9 +10,9 @@ import { ViewModeToggle, type ViewMode } from '../../shared/ui/ViewModeToggle'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
 
-function getPublicUserId(member: ActivityMember, index: number, currentUserId?: number) {
+function getPublicUserId(member: ActivityMember, currentUserId?: number) {
   if (member.isMe && currentUserId) return String(currentUserId)
-  return member.id || String(index + 1)
+  return member.id
 }
 
 function MemberCard({
@@ -75,6 +74,7 @@ export function LeaderboardPage() {
   const [gradeFilter, setGradeFilter] = useState('all')
   const [labFilter, setLabFilter] = useState('all')
   const [viewMode, setViewMode] = useState<ViewMode>('card')
+  const [loadError, setLoadError] = useState('')
   const [members, setMembers] = useState<ActivityMember[]>([])
 
   const normalizedQuery = query.trim().toLowerCase()
@@ -83,8 +83,8 @@ export function LeaderboardPage() {
 
   useEffect(() => {
     usersApi.getUsers()
-      .then((items) => setMembers(items.length > 0 ? items : activityMembers))
-      .catch(() => setMembers(activityMembers))
+      .then(setMembers)
+      .catch(() => setLoadError('유저 목록을 불러오지 못했습니다.'))
   }, [])
 
   const filteredMembers = useMemo(() => {
@@ -106,6 +106,7 @@ export function LeaderboardPage() {
         <CommunityBanner title="유저" description="함께 만드는 코알라 멤버" tone="users" />
 
         <div className="activity-table-shell">
+          {loadError && <p role="alert" className="auth-error">{loadError}</p>}
           <section className="activity-directory-controls" aria-label="유저 검색 및 필터">
             <strong className="activity-member-count">멤버 {filteredMembers.length}명</strong>
             <SearchField
@@ -138,12 +139,12 @@ export function LeaderboardPage() {
                 <a href="#all-members">전체 보기 <Icon name="chevron-right" size={14} /></a>
               </header>
               <div className="activity-recent-grid">
-                {filteredMembers.slice(0, 3).map((member, index) => (
+                {filteredMembers.slice(0, 3).map((member) => (
                   <MemberCard
                     key={`recent-${member.id}`}
                     member={member}
                     compact
-                    profileId={getPublicUserId(member, members.indexOf(member) >= 0 ? members.indexOf(member) : index, user?.id)}
+                    profileId={getPublicUserId(member, user?.id)}
                   />
                 ))}
               </div>
@@ -154,11 +155,11 @@ export function LeaderboardPage() {
             <div><h2>전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
           </header>
           <section className={`activity-directory-grid activity-directory-grid--${viewMode}`} aria-label="전체 유저 목록">
-            {filteredMembers.map((member, index) => (
+            {filteredMembers.map((member) => (
               <MemberCard
                 key={member.id}
                 member={member}
-                profileId={getPublicUserId(member, members.indexOf(member) >= 0 ? members.indexOf(member) : index, user?.id)}
+                profileId={getPublicUserId(member, user?.id)}
               />
             ))}
           </section>

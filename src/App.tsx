@@ -19,7 +19,6 @@ import { isAdminUser } from './shared/auth/adminAccess'
 import { notificationsApi, type NotificationItem } from './shared/api/notifications'
 import { routes } from './shared/routes'
 import {
-  getFallbackInfoBoardIdByPostId,
   makePostRouteKey,
   parsePostRouteKey,
   parseRouteId,
@@ -160,74 +159,36 @@ function LegacyRecruitDetailRoute() {
   return <Navigate to={routes.community.recruitNotice(recruitId)} replace />
 }
 
-function normalizeInfoIdParam(infoId: string) {
-  const legacyMatch = infoId.match(/^resource-0*(\d+)$/i)
-  if (!legacyMatch) return infoId
-  return String(Number(legacyMatch[1]))
-}
-
 function InfoDetailRoute() {
-  const { boardId, infoId } = useParams<{ boardId: string; infoId: string }>()
+  const { infoId } = useParams<{ infoId: string }>()
   const navigate = useNavigate()
-  const parsedBoardId = parseRouteId(boardId)
-  if (!parsedBoardId || !infoId) return <Navigate to={routes.community.info} replace />
-  const normalizedInfoId = normalizeInfoIdParam(infoId)
-  if (normalizedInfoId !== infoId) {
-    return <Navigate to={routes.community.infoPost(parsedBoardId, normalizedInfoId)} replace />
-  }
-  return (
-    <InfoDetailPage
-      infoId={normalizedInfoId}
-      onBack={() => navigate(routes.community.info)}
-      onWrite={() => navigate(routes.community.infoPostNew)}
-      onEdit={() => navigate(routes.community.infoPostEditor(parsedBoardId, normalizedInfoId))}
-    />
-  )
+  const id = parseRouteId(infoId)
+  if (!id) return <Navigate to={routes.community.info} replace />
+  return <InfoDetailPage infoId={String(id)}
+    onBack={() => navigate(routes.community.info)}
+    onWrite={() => navigate(routes.community.infoPostNew)}
+    onEdit={() => navigate(routes.community.infoPostEditor(id))} />
 }
 
 function LegacyInfoDetailRoute() {
   const { infoId } = useParams<{ infoId: string }>()
-  if (!infoId) return <Navigate to={routes.community.info} replace />
-  const normalizedInfoId = normalizeInfoIdParam(infoId)
-  return (
-    <Navigate
-      to={routes.community.infoPost(getFallbackInfoBoardIdByPostId(normalizedInfoId), normalizedInfoId)}
-      replace
-    />
-  )
+  const id = parseRouteId(infoId)
+  return <Navigate to={id ? routes.community.infoPost(id) : routes.community.info} replace />
 }
 
 function InfoPostEditorRoute() {
-  const { boardId, infoId } = useParams<{ boardId: string; infoId: string }>()
+  const { infoId } = useParams<{ infoId: string }>()
   const navigate = useNavigate()
-  const parsedBoardId = parseRouteId(boardId)
-  if (!parsedBoardId || !infoId) return <Navigate to={routes.community.info} replace />
-  const normalizedInfoId = normalizeInfoIdParam(infoId)
-  if (normalizedInfoId !== infoId) {
-    return <Navigate to={routes.community.infoPostEditor(parsedBoardId, normalizedInfoId)} replace />
-  }
-  return (
-    <PostWriterPage
-      writerType="info"
-      editPostId={normalizedInfoId}
-      onClose={(nextPost) => navigate(routes.community.infoPost(
-        nextPost?.boardId ?? parsedBoardId,
-        nextPost?.postId ?? normalizedInfoId,
-      ))}
-    />
-  )
+  const id = parseRouteId(infoId)
+  if (!id) return <Navigate to={routes.community.info} replace />
+  return <PostWriterPage writerType="info" editPostId={String(id)}
+    onClose={(nextPost) => navigate(routes.community.infoPost(nextPost?.postId ?? id))} />
 }
 
 function LegacyInfoPostEditorRoute() {
   const { infoId } = useParams<{ infoId: string }>()
-  if (!infoId) return <Navigate to={routes.community.info} replace />
-  const normalizedInfoId = normalizeInfoIdParam(infoId)
-  return (
-    <Navigate
-      to={routes.community.infoPostEditor(getFallbackInfoBoardIdByPostId(normalizedInfoId), normalizedInfoId)}
-      replace
-    />
-  )
+  const id = parseRouteId(infoId)
+  return <Navigate to={id ? routes.community.infoPostEditor(id) : routes.community.info} replace />
 }
 
 function UserProfileRoute() {
@@ -626,7 +587,7 @@ function App() {
               onOpenAllPosts={() => navigate(routes.community.board)}
               onOpenInfo={() => navigate(routes.community.info)}
               onOpenPost={(boardId, postId) => navigate(routes.community.boardPost(boardId, postId))}
-              onOpenInfoArticle={(boardId, infoId) => navigate(routes.community.infoPost(boardId, infoId))}
+              onOpenInfoArticle={(infoId) => navigate(routes.community.infoPost(infoId))}
             />
           }
         />
@@ -652,7 +613,7 @@ function App() {
           element={
             <InfoSharePage
               onWriteInfo={() => navigate(routes.community.infoPostNew)}
-              onOpenInfo={(boardId, infoId) => navigate(routes.community.infoPost(boardId, infoId))}
+              onOpenInfo={(infoId) => navigate(routes.community.infoPost(infoId))}
             />
           }
         />
@@ -663,7 +624,7 @@ function App() {
               <PostWriterPage
                 writerType="info"
                 onClose={(nextPost) => navigate(nextPost
-                  ? routes.community.infoPost(nextPost.boardId, nextPost.postId)
+                  ? routes.community.infoPost(nextPost.postId)
                   : routes.community.info)}
               />
             </RequireAuth>
@@ -673,20 +634,20 @@ function App() {
           path="/community/info/:boardId/posts/:infoId/editor"
           element={
             <RequireAuth>
-              <InfoPostEditorRoute />
-            </RequireAuth>
-          }
-        />
-        <Route path="/community/info/:boardId/posts/:infoId" element={<InfoDetailRoute />} />
-        <Route
-          path="/community/info/posts/:infoId/editor"
-          element={
-            <RequireAuth>
               <LegacyInfoPostEditorRoute />
             </RequireAuth>
           }
         />
-        <Route path="/community/info/posts/:infoId" element={<LegacyInfoDetailRoute />} />
+        <Route path="/community/info/:boardId/posts/:infoId" element={<LegacyInfoDetailRoute />} />
+        <Route
+          path="/community/info/posts/:infoId/editor"
+          element={
+            <RequireAuth>
+              <InfoPostEditorRoute />
+            </RequireAuth>
+          }
+        />
+        <Route path="/community/info/posts/:infoId" element={<InfoDetailRoute />} />
         <Route
           path="/community/info/write"
           element={<Navigate to={routes.community.infoPostNew} replace />}

@@ -2,13 +2,12 @@
 import { Icon } from '../../shared/ui/Icon'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { resolveApiAssetUrl } from '../../shared/api/client'
-import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { SafeImage } from '../../shared/ui/SafeImage'
 
 type ResourcesCardProps = {
   onOpenInfo?: () => void
-  onOpenInfoArticle?: (boardId: number, infoId: number) => void
+  onOpenInfoArticle?: (infoId: number) => void
   dashboard?: boolean
 }
 
@@ -70,7 +69,7 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
               <button
                 type="button"
                 className={thumbnailUrl ? 'resource-item-button resource-item-button--with-thumbnail' : 'resource-item-button'}
-                onClick={() => onOpenInfoArticle?.(getFallbackInfoBoardId(resource.filter), resource.id)}
+                onClick={() => onOpenInfoArticle?.(resource.id)}
               >
                 {thumbnailUrl ? (
                   <span className="resource-thumbnail" aria-hidden="true">

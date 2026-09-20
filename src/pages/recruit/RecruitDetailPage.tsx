@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/set-state-in-effect */
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import {
   recruitsApi,
   type RecruitCategory,
@@ -13,7 +13,6 @@ import { isSameUserId } from '../../shared/auth/userIdentity'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { Icon } from '../../shared/ui/Icon'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
-import { recruitItems } from '../../dummy/recruitData'
 import { StudyConnections } from '../../shared/ui/StudyConnections'
 import { RecruitParticipants } from './RecruitParticipants'
 
@@ -29,8 +28,6 @@ const categoryLabelById = {
   tutoring: '멘토링',
 } as const
 
-const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
-
 type RecruitEditDraft = {
   title: string
   shortDesc: string
@@ -43,19 +40,6 @@ type RecruitEditDraft = {
   tags: string
   detailContent: string
   processList: string
-}
-
-const loadLocalRecruitItems = (): RecruitItem[] => {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_RECRUIT_STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
 }
 
 const splitList = (value: string) =>
@@ -108,23 +92,20 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const [actionError, setActionError] = useState<string | null>(null)
   const [membershipRevision, setMembershipRevision] = useState(0)
 
-  const item = useMemo(() => {
-    const localRecruitItems = loadLocalRecruitItems()
-    return (
-      localRecruitItems.find((recruit) => recruit.id === recruitId)
-      ?? remoteItem
-      ?? recruitItems.find((recruit) => recruit.id === recruitId)
-    )
-  }, [recruitId, remoteItem])
-
+  const item = remoteItem?.id === recruitId ? remoteItem : null
+  const [loading, setLoading] = useState(true)
   useEffect(() => {
     setLocalComments([])
     setSaved(false)
     setIsEditing(false)
     setActionError(null)
+    let active = true
+    setLoading(true)
     recruitsApi.getRecruit(recruitId)
-      .then(setRemoteItem)
-      .catch(() => setRemoteItem(null))
+      .then((value) => { if (active) setRemoteItem(value) })
+      .catch(() => { if (active) { setRemoteItem(null); setActionError('모집 공고를 불러오지 못했습니다.') } })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [recruitId])
 
   useEffect(() => {
@@ -135,7 +116,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
     return (
       <section className="coala-content coala-content--recruit">
         <div className="surface-card recruit-application-empty">
-          <strong>모집 공고를 불러오는 중입니다.</strong>
+          <strong>{loading ? '모집 공고를 불러오는 중입니다.' : actionError || '모집 공고가 없습니다.'}</strong>
           <button type="button" className="recruit-row-button recruit-row-button--primary" onClick={onBack}>
             목록으로 돌아가기
           </button>
@@ -151,7 +132,6 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const isOpen = item.status !== 'closed'
   const isOperator = isAdminUser(user)
   const canManageRecruit = Boolean(
-    item.id.startsWith('local-recruit-') ||
     isOperator ||
     isSameUserId(item.authorId, user?.id),
   )
@@ -167,29 +147,6 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
     const payload = draftToPayload(editDraft)
     setActionError(null)
     try {
-      if (item.id.startsWith('local-recruit-')) {
-        const nextItem: RecruitItem = {
-          ...item,
-          title: payload.title,
-          shortDesc: payload.shortDesc,
-          category: payload.category,
-          status: payload.status ?? item.status,
-          maxMembers: payload.roles.reduce((sum, role) => sum + Math.max(role.max, 1), 0),
-          tags: payload.tags,
-          techStack: payload.techStack,
-          roles: payload.roles.map((role) => ({ label: role.label, current: 0, max: Math.max(role.max, 1) })),
-          meetingType: payload.meetingType,
-          expectedDuration: payload.expectedDuration,
-          detailContent: payload.detailContent,
-          processList: payload.processList,
-        }
-        const nextItems = loadLocalRecruitItems().map((recruit) => (recruit.id === item.id ? nextItem : recruit))
-        window.localStorage.setItem(LOCAL_RECRUIT_STORAGE_KEY, JSON.stringify(nextItems))
-        setRemoteItem(nextItem)
-        setIsEditing(false)
-        return
-      }
-
       const updated = await recruitsApi.updateRecruit(item.id, payload)
       setRemoteItem(updated)
       setIsEditing(false)
@@ -204,13 +161,6 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
 
     setActionError(null)
     try {
-      if (item.id.startsWith('local-recruit-')) {
-        const nextItems = loadLocalRecruitItems().filter((recruit) => recruit.id !== item.id)
-        window.localStorage.setItem(LOCAL_RECRUIT_STORAGE_KEY, JSON.stringify(nextItems))
-        onBack()
-        return
-      }
-
       await recruitsApi.deleteRecruit(item.id)
       onBack()
     } catch {

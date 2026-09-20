@@ -114,17 +114,17 @@ const createBlankAward = (): UserAward => ({
   credentialUrl: '',
 })
 
-const fallbackProfileMember: ActivityMember = {
+const emptyProfileMember: ActivityMember = {
   id: '0',
   name: '사용자',
   initials: '사',
   tone: 'slate',
   role: '회원',
-  grade: '1학년',
-  lab: '코알라',
-  githubHandle: 'coala',
-  githubUrl: 'https://github.com',
-  focus: '코알라에서 함께 개발하고 있습니다.',
+  grade: '',
+  lab: '',
+  githubHandle: '',
+  githubUrl: '',
+  focus: '',
   bio: '',
   activityNote: '',
   awardNote: '',
@@ -210,7 +210,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const photoInputRef = useRef<HTMLInputElement | null>(null)
   const [tab, setTab] = useState<ProfileTab>('overview')
   const [editing, setEditing] = useState(false)
-  const [bio, setBio] = useState('코알라에서 함께 개발하고 있습니다.')
+  const [bio, setBio] = useState('')
   const [activityNote, setActivityNote] = useState('')
   const [awardNote, setAwardNote] = useState('')
   const [sharedReposInput, setSharedReposInput] = useState('')
@@ -226,15 +226,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false)
   const [publicMembers, setPublicMembers] = useState<ActivityMember[]>([])
+  const [profileError, setProfileError] = useState('')
   const [profileDetail, setProfileDetail] = useState<ActivityMember | null>(null)
 
-  const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '1')
+  const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '')
   const matchedPublicMember = publicMembers.find((member) => member.id === effectiveProfileUserId)
   const publicMember =
-    profileDetail ??
+    (profileDetail?.id === effectiveProfileUserId ? profileDetail : null) ??
     matchedPublicMember ??
-    (profileUserId ? null : publicMembers[0]) ??
-    fallbackProfileMember
+    emptyProfileMember
   const profileMember = publicMember
   const isOwnProfile = Boolean(profileMember.isMe) || isSameUserId(user?.id, effectiveProfileUserId)
   const canEdit = isOwnProfile
@@ -307,10 +307,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
     usersApi.getUser(numericProfileUserId)
       .then((member) => {
-        if (active) setProfileDetail(member)
+        if (active) { setProfileDetail(member); setProfileError('') }
       })
       .catch(() => {
-        if (active) setProfileDetail(null)
+        if (active) { setProfileDetail(null); setProfileError('프로필을 불러오지 못했습니다.') }
       })
 
     return () => {
@@ -321,7 +321,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   useEffect(() => {
     setEditing(false)
     setProfileSaveState('idle')
-    setBio(firstNonBlank(profileMember.bio, canEdit ? '코알라에서 함께 개발하고 있습니다.' : profileMember.focus))
+    setBio(firstNonBlank(profileMember.bio, profileMember.focus))
     setActivityNote(profileMember.activityNote ?? '')
     setAwardNote(profileMember.awardNote ?? '')
     setSharedReposInput(profileMember.sharedRepos.join('\n'))
@@ -343,6 +343,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   }, [
     canEdit,
     effectiveProfileUserId,
+    profileMember,
     profileMember.activityNote,
     profileMember.awardNote,
     profileMember.bio,
@@ -596,6 +597,12 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setProfileSaveState('idle')
     setAwardDrafts((current) => [...current, createBlankAward()])
   }
+
+  if (profileMember === emptyProfileMember) return (
+    <section className="coala-content" style={{ padding: '32px' }}>
+      <p role={profileError ? 'alert' : 'status'}>{profileError || '프로필을 불러오는 중입니다.'}</p>
+    </section>
+  )
 
   return (
     <section className="coala-content coala-content--profile">

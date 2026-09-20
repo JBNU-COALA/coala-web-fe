@@ -8,14 +8,13 @@ import { SafeImage } from '../../shared/ui/SafeImage'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
-import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
 
 type InfoSharePageProps = {
   onWriteInfo?: () => void
-  onOpenInfo?: (boardId: number, postId: number) => void
+  onOpenInfo?: (postId: number) => void
 }
 
 type InfoTabId = 'all' | InfoFilterId
@@ -244,7 +243,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                     <button
                       type="button"
                       className="info-post-open"
-                      onClick={() => onOpenInfo?.(getFallbackInfoBoardId(card.filter), card.id)}
+                      onClick={() => onOpenInfo?.(card.id)}
                     >
                       <div className="board-post-main">
                         <div className="board-post-heading">

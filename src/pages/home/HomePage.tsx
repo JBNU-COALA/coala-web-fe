@@ -8,28 +8,29 @@ import { PageHero } from '../../shared/ui/PageHero'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { PostCard } from './PostCard'
 import { ResourcesCard } from './ResourcesCard'
-import { recruitItems } from '../../dummy/recruitData'
 
 type HomePageProps = {
   onOpenAllPosts?: () => void
   onOpenInfo?: () => void
   onOpenPost?: (boardId: number, postId: number) => void
-  onOpenInfoArticle?: (boardId: number, infoId: number) => void
+  onOpenInfoArticle?: (infoId: number) => void
 }
 
 export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArticle }: HomePageProps) {
   const navigate = useNavigate()
   const [services, setServices] = useState<MemberService[]>([])
+  const [serviceError, setServiceError] = useState('')
+  const [recruitError, setRecruitError] = useState('')
   const [recruits, setRecruits] = useState<RecruitItem[]>([])
 
   useEffect(() => {
     servicesApi.getMemberServices()
       .then((items) => setServices(items.slice(0, 3)))
-      .catch(() => setServices([]))
+      .catch(() => setServiceError('서비스 목록을 불러오지 못했습니다.'))
 
     recruitsApi.getRecruits({ status: 'all', sort: 'latest' })
-      .then((items) => setRecruits((items.length > 0 ? items : recruitItems).slice(0, 2)))
-      .catch(() => setRecruits(recruitItems.slice(0, 2)))
+      .then((items) => setRecruits(items.slice(0, 2)))
+      .catch(() => setRecruitError('모집 목록을 불러오지 못했습니다.'))
   }, [])
 
   const openService = (serviceId: string) => {
@@ -108,7 +109,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
             </div>
           ) : (
             <div className="portal-service-empty">
-              등록된 유저 서비스가 없습니다.
+              {serviceError || '등록된 유저 서비스가 없습니다.'}
             </div>
           )}
         </section>
@@ -150,7 +151,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
             </ul>
           ) : (
             <div className="portal-service-empty">
-              등록된 모집 공고가 없습니다.
+              {recruitError || '등록된 모집 공고가 없습니다.'}
             </div>
           )}
         </section>

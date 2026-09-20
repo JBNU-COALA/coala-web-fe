@@ -16,11 +16,11 @@ export const routes = {
     activityRecord: (id: string) => `/community/activity/records/${encodeURIComponent(id)}`,
     activityRecordNew: '/community/activity/records/new',
     activityRecordEditor: (id: string) => `/community/activity/records/${encodeURIComponent(id)}/editor`,
-    infoPost: (boardId: string | number, infoId: string | number) =>
-      `/community/info/${boardId}/posts/${infoId}`,
+    infoPost: (infoId: string | number) =>
+      `/community/info/posts/${infoId}`,
     infoPostNew: '/community/info/posts/new',
-    infoPostEditor: (boardId: string | number, infoId: string | number) =>
-      `/community/info/${boardId}/posts/${infoId}/editor`,
+    infoPostEditor: (infoId: string | number) =>
+      `/community/info/posts/${infoId}/editor`,
     recruit: '/community/recruit',
     recruitNotice: (recruitId: string) => `/community/recruit/notices/${recruitId}`,
     recruitNoticeNew: '/community/recruit/notices/new',

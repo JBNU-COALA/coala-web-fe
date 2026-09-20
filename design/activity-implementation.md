@@ -23,15 +23,15 @@
 ## 코드 구조
 
 - `shared/activity.ts`: 데이터 타입, 날짜 처리, 출석 집계.
-- `shared/activityRepository.ts`: 실제 API 및 명시적 개발 미리보기 분리.
+- `shared/activityRepository.ts`: 실제 API만 사용한다. 미리보기 쿼리로 인증이나 권한을 우회하지 않는다.
 - `RecordEditor`, `AttendanceList`, `ActivityCalendar`: 편집·출석·캘린더 재사용 컴포넌트.
 - `StudyConnections`: 프로필·공고의 공통 연결 UI.
 - `RecruitParticipants`: 공고 소유자의 지원자 상태 관리.
-- `dummy/studyActivityData.ts`: 개발 예시 전용. 개발 서버에서 `?preview=1`로만 활성화된다. 운영 API 오류를 예시 데이터로 덮지 않는다.
+- 런타임 더미 데이터와 브라우저 예시 저장소를 제거했다. 테스트 데이터는 `design`의 API 모킹 검사에서만 사용한다.
 
 ## 검증과 배포
 
-- `check-activity.cjs`: 320/390/768/1280px에서 익명 Q&A를 포함한 15개 경로 가로 넘침·실행 오류, 예시 기록 작성·수정·새로고침·로그인 보호 검사.
+- `check-production.cjs`: 320/390/768/1280/1800px의 16개 경로에서 빈 데이터, API 오류, 가로 넘침과 로그인 폼 정렬을 검사한다.
 - `check-activity-api.cjs`: API 응답을 모킹해 숫자 ID, 서버 발급 ID, 버전 충돌, 지원 승인→조원 반영, 프로필→활동 연결을 검사한다. 운영 서버 연결 검증과는 별개다.
 - 백엔드 `StudyIntegrationTest`: H2 영속성, 관리자 두 역할, 소유권, 명단 변조, 정원, 과거 명단, 동시 수정, HTTP 인증·입력 검증. 전체 테스트 63개 통과.
 - 배포 전에 백엔드 Flyway `V20260920_1200__create_study_activity.sql`을 적용해야 한다. 기존 데이터를 삭제하는 마이그레이션은 없다.
@@ -46,3 +46,9 @@ GPT 이미지 시안은 `mockups/community-activity-mobile.png`, `mockups/commun
 - [Google Classroom 학생 작업 확인](https://support.google.com/edu/classroom/answer/9157286?hl=en): 개인별 상태 확인.
 
 위 자료는 정보 구조 참고이며, 제품 화면을 그대로 복제한 것은 아니다.
+## 더미 제거 후 운영
+
+- 예시 사용자·게시글·모집·서비스·신청내역 및 개발 계정 자동 생성을 제거했다. 기존 DB 행을 자동 삭제하지 않는다.
+- 새 DB의 게시판 분류는 관리자 기능으로 등록해야 한다. 프론트가 게시판 ID를 추측하지 않는다.
+- 정보공유는 별도 API의 글 ID로 라우팅한다. 기존 boardId 포함 URL은 새 경로로 이동한다.
+- 로그인·회원가입·이메일 인증·비밀번호 재설정은 공통 단일 열 폼을 사용한다.

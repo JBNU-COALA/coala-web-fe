@@ -26,15 +26,9 @@ import {
   readMarkdownImagesFromDrop,
 } from '../../shared/markdownImages'
 import {
-  fallbackCommunityBoardIds,
-  fallbackInfoBoardIds,
-  fallbackQnaBoardId,
-  fallbackRecruitBoardId,
   isAnonymousBoard,
   isCommunityBoard,
-  isInfoBoard,
   resolveCommunityBoardFilter,
-  resolveInfoBoardFilter,
 } from '../../shared/communityBoards'
 import { infoApi, type InfoFilterId } from '../../shared/api/info'
 
@@ -42,36 +36,12 @@ const TITLE_MAX = 100
 const CONTENT_MAX = 5000
 
 type PostWriterPageProps = {
-  onClose: (nextPost?: { boardId: number; postId: number }) => void
+  onClose: (nextPost?: { boardId?: number; postId: number }) => void
   writerType?: 'community' | 'info' | 'inquiry' | 'recruit' | 'qna'
   editPostId?: string
 }
 
-const nowIso = new Date().toISOString()
 const noticeWriterRoles = new Set(['STAFF', 'SUPER_ADMIN'])
-
-const fallbackBoardsByType: Record<NonNullable<PostWriterPageProps['writerType']>, BoardData[]> = {
-  community: [
-    { boardId: fallbackCommunityBoardIds.notice, boardName: '공지', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-    { boardId: fallbackCommunityBoardIds.free, boardName: '자유', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-    { boardId: fallbackCommunityBoardIds.humor, boardName: '유머', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-  ],
-  info: [
-    { boardId: fallbackInfoBoardIds.news, boardName: '소식', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-    { boardId: fallbackInfoBoardIds.contest, boardName: '대회', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-    { boardId: fallbackInfoBoardIds.lab, boardName: '연구실', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-    { boardId: fallbackInfoBoardIds.resource, boardName: '자료', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-  ],
-  inquiry: [
-    { boardId: 21, boardName: '문의사항', boardType: 'NORMAL', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-  ],
-  recruit: [
-    { boardId: fallbackRecruitBoardId, boardName: '모집', boardType: 'RECRUIT', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-  ],
-  qna: [
-    { boardId: fallbackQnaBoardId, boardName: '질문게시판', boardType: 'ANONYMOUS', description: '', isActive: true, createdAt: nowIso, updatedAt: nowIso },
-  ],
-}
 
 const writerCopy = {
   community: {
@@ -166,8 +136,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [tagsInput, setTagsInput] = useState('')
   const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
-  const [boards, setBoards] = useState<BoardData[]>(getWritableBoards(fallbackBoardsByType[writerType]))
-  const [selectedBoardId, setSelectedBoardId] = useState<number | null>(getWritableBoards(fallbackBoardsByType[writerType])[0]?.boardId ?? null)
+  const [boards, setBoards] = useState<BoardData[]>([])
+  const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null)
   const [infoEditFilter, setInfoEditFilter] = useState<InfoFilterId | null>(null)
   const [infoSourceName, setInfoSourceName] = useState(infoAuthorName)
   const [infoSourceDate, setInfoSourceDate] = useState(() => new Date().toISOString().slice(0, 10))
@@ -192,34 +162,33 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   }, [content, title])
 
   useEffect(() => {
-    const fallbackBoards = getWritableBoards(fallbackBoardsByType[writerType])
-    setBoards(fallbackBoards)
-    setSelectedBoardId((current) => (
-      editPostId && current && fallbackBoards.some((board) => board.boardId === current)
-        ? current
-        : fallbackBoards[0]?.boardId ?? null
-    ))
-
+    if (writerType === 'info') return
+    let active = true
     boardsApi.getBoards(true).then((list) => {
+      if (!active) return
       const preferredBoards =
         writerType === 'recruit'
           ? list.filter((board) => board.boardType === 'RECRUIT')
           : writerType === 'qna'
             ? list.filter(isAnonymousBoard)
-            : writerType === 'info'
-              ? list.filter(isInfoBoard)
-              : writerType === 'community'
+            : writerType === 'community'
                 ? list.filter(isCommunityBoard)
-                : list.filter((board) => board.boardType === 'NORMAL')
+                : list.filter((board) => board.boardType === 'NORMAL' && board.boardName === '문의사항')
 
-      const nextBoards = getWritableBoards(preferredBoards.length > 0 ? preferredBoards : fallbackBoards)
+      const nextBoards = getWritableBoards(preferredBoards)
       setBoards(nextBoards)
       setSelectedBoardId((current) => (
         editPostId && current && nextBoards.some((board) => board.boardId === current)
           ? current
           : nextBoards[0]?.boardId ?? null
       ))
-    }).catch(() => {})
+    }).catch(() => {
+      if (!active) return
+      setBoards([])
+      setSelectedBoardId(null)
+      setPublishError('게시판 분류를 불러오지 못했습니다.')
+    })
+    return () => { active = false }
   }, [editPostId, getWritableBoards, writerType])
 
   useEffect(() => {
@@ -277,12 +246,6 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       }).catch(() => {})
     }
   }, [editPostId, infoAuthorName, writerType])
-
-  useEffect(() => {
-    if (writerType !== 'info' || !infoEditFilter) return
-    const matchingBoard = boards.find((board) => resolveInfoBoardFilter(board) === infoEditFilter)
-    if (matchingBoard) setSelectedBoardId(matchingBoard.boardId)
-  }, [boards, infoEditFilter, writerType])
 
   const tags = useMemo(
     () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
@@ -469,7 +432,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       return
     }
 
-    if (!selectedBoardId) {
+    if (writerType !== 'info' && !selectedBoardId) {
       setPublishError('게시판을 선택해주세요.')
       return
     }
@@ -478,9 +441,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     setPublishError(null)
     try {
       if (writerType === 'info') {
-        const selectedBoard = boards.find((board) => board.boardId === selectedBoardId)
-        const filter = (selectedBoard ? resolveInfoBoardFilter(selectedBoard) : null) ?? 'news'
-        const categoryLabel = selectedBoard?.boardName ?? infoFilterLabelById[filter]
+        const filter = infoEditFilter ?? 'news'
+        const categoryLabel = infoFilterLabelById[filter]
         const imageUrl = infoImageUrl.trim() || extractFirstMarkdownImageUrl(trimmedContent) || ''
         const trimmedMeta = tagsInput.trim()
         const meta = !trimmedMeta || infoCategoryLabels.has(trimmedMeta) ? categoryLabel : trimmedMeta
@@ -510,30 +472,30 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         }
         if (editPostId && Number.isFinite(Number(editPostId))) {
           const updatedArticle = await infoApi.updateArticle(Number(editPostId), payload)
-          onClose({ boardId: selectedBoardId, postId: updatedArticle.id })
+          onClose({ postId: updatedArticle.id })
           return
         } else {
           const createdArticle = await infoApi.createArticle(payload)
-          onClose({ boardId: selectedBoardId, postId: createdArticle.id })
+          onClose({ postId: createdArticle.id })
           return
         }
       } else if (editPostId) {
         const parsed = parseCompositeId(editPostId)
         if (parsed) {
           await postsApi.updatePost(parsed.postId, {
-            boardId: selectedBoardId,
+            boardId: selectedBoardId!,
             title: trimmedTitle,
             content: trimmedContent,
             attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
             thumbnailAttachmentId: thumbnailAttachmentId ?? undefined,
           })
-          onClose({ boardId: selectedBoardId, postId: parsed.postId })
+          onClose({ boardId: selectedBoardId!, postId: parsed.postId })
           return
         } else {
           throw new Error('invalid post id')
         }
       } else {
-        await postsApi.createPost(selectedBoardId, {
+        await postsApi.createPost(selectedBoardId!, {
           title: trimmedTitle,
           content: trimmedContent,
           attachmentIds,
@@ -586,7 +548,15 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
           </header>
 
           <div className="post-writer-fields velog-writer-fields">
-            {boards.length > 0 && (
+            {writerType === 'info' && (
+              <label className="auth-label">
+                정보공유 분류
+                <select aria-label="정보공유 분류" className="auth-input" value={infoEditFilter ?? 'news'} onChange={(event) => setInfoEditFilter(event.target.value as InfoFilterId)}>
+                  {Object.entries(infoFilterLabelById).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                </select>
+              </label>
+            )}
+            {writerType !== 'info' && boards.length > 0 && (
               <section className="velog-board-picker" aria-label={`${copy.label} 선택`}>
                 <div className="velog-board-picker-head">
                   <span>{copy.label} 선택</span>

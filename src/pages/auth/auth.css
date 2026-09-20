@@ -1,0 +1,77 @@
+.coala-content.coala-content--auth {
+  display: block;
+  width: min(100%, 528px);
+  margin: 0 auto;
+  padding: 48px 24px 72px;
+}
+
+.coala-shell.coala-shell--auth {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+}
+
+.coala-content--auth .auth-shell {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  overflow: visible;
+}
+
+.coala-content--auth .auth-intro {
+  min-height: 0;
+  padding: 0 0 28px;
+  background: none;
+  color: #202a32;
+}
+
+.coala-content--auth .auth-intro::before {
+  display: none;
+}
+
+.coala-content--auth .auth-title {
+  margin: 0;
+  font-size: 28px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.coala-content--auth .auth-form {
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  gap: 20px;
+}
+
+.coala-content--auth :is(.auth-label, .auth-form-grid) {
+  min-width: 0;
+}
+
+.coala-content--auth .auth-input {
+  width: 100%;
+  min-width: 0;
+  height: 48px;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.coala-content--auth :is(.auth-submit, .auth-secondary-button, .auth-switch) {
+  min-height: 44px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+  border-radius: 6px;
+}
+
+@media (max-width: 480px) {
+  .coala-content.coala-content--auth {
+    padding: 32px 20px 48px;
+  }
+  .coala-content--auth .auth-form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

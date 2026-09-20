@@ -11,7 +11,6 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { isSameUserId } from '../../shared/auth/userIdentity'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
-import { recruitItems } from '../../dummy/recruitData'
 import {
   recruitsApi,
   type RecruitCategory,
@@ -57,8 +56,6 @@ const filters: { id: RecruitFilterId; label: string }[] = [
   { id: 'closing-soon', label: '마감 임박' },
 ]
 
-const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
-const LOCAL_APPLICATION_STORAGE_KEY = 'coala-recruit-applications'
 const LOCAL_RECRUIT_INTEREST_STORAGE_KEY = 'coala-recruit-interests'
 
 type RecruitDraft = {
@@ -75,17 +72,8 @@ type RecruitDraft = {
 }
 
 const defaultRecruitDraft: RecruitDraft = {
-  title: '개발자 커뮤니티 활동 피드 개선 프로젝트',
-  category: 'project',
-  shortDesc: '활동 탭에서 작성 글, GitHub 로그, 프로젝트 기록을 한 번에 볼 수 있게 개선합니다.',
-  roles: '프론트엔드:2\n백엔드:1\n기획:1',
-  techStack: 'React, TypeScript, Spring Boot, GitHub API',
-  meetingType: '온라인 주 1회 + Discord 상시 협업',
-  expectedDuration: '6주',
-  tags: '프로젝트, 커뮤니티, GitHub',
-  detailContent:
-    '커뮤니티에 흩어진 게시글과 GitHub 활동을 한 화면에서 확인하는 활동 피드를 만듭니다.\n지원자는 관심 역할을 선택하고, 주차별로 작은 기능을 나눠 구현합니다.',
-  processList: '요구사항 정리 및 화면 설계\n프론트/백엔드 API 연결\n데모 배포 및 피드백 반영',
+  title: '', category: 'project', shortDesc: '', roles: '', techStack: '',
+  meetingType: '', expectedDuration: '', tags: '', detailContent: '', processList: '',
 }
 
 const getStatusLabel = (status: RecruitStatus) => {
@@ -98,33 +86,6 @@ const getStatusClass = (status: RecruitStatus) => {
   if (status === 'open') return 'recruit-status--open'
   if (status === 'closing-soon') return 'recruit-status--closing'
   return 'recruit-status--closed'
-}
-
-const loadLocalRecruitItems = (): RecruitItem[] => {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_RECRUIT_STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-const loadAppliedRecruitIds = () => {
-  if (typeof window === 'undefined') return new Set<string>()
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_APPLICATION_STORAGE_KEY)
-    if (!raw) return new Set<string>()
-    const parsed = JSON.parse(raw)
-    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return new Set<string>()
-    return new Set(Object.keys(parsed))
-  } catch {
-    return new Set<string>()
-  }
 }
 
 const loadSavedRecruitIds = () => {
@@ -155,41 +116,6 @@ const parseRoles = (value: string): RecruitRole[] => {
   return roles.length > 0 ? roles : [{ label: '팀원', current: 0, max: 1 }]
 }
 
-const buildRecruitItem = (draft: RecruitDraft): RecruitItem => {
-  const roles = parseRoles(draft.roles)
-  const maxMembers = roles.reduce((sum, role) => sum + role.max, 0)
-  const tags = splitList(draft.tags).map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-  const techStack = splitList(draft.techStack)
-  const detailContent = splitList(draft.detailContent)
-  const processList = splitList(draft.processList)
-
-  return {
-    id: `local-recruit-${Date.now()}`,
-    title: draft.title.trim(),
-    shortDesc: draft.shortDesc.trim(),
-    category: draft.category,
-    status: 'open',
-    currentMembers: 0,
-    maxMembers,
-    host: '나',
-    hostInitials: '나',
-    hostTone: 'mint',
-    hostRole: '모집 작성자',
-    trustScore: 88.0,
-    tags: tags.length > 0 ? tags : ['#모집'],
-    techStack: techStack.length > 0 ? techStack : ['협업'],
-    roles,
-    meetingType: draft.meetingType.trim() || '협의 후 결정',
-    expectedDuration: draft.expectedDuration.trim() || '협의 후 결정',
-    detailContent: detailContent.length > 0 ? detailContent : [draft.shortDesc.trim()],
-    processList: processList.length > 0 ? processList : ['지원자 확인', '팀 빌딩', '킥오프'],
-    comments: [],
-    createdAt: new Date().toISOString().slice(0, 10).replace(/-/g, '.'),
-    views: 0,
-    bookmarks: 0,
-  }
-}
-
 const buildRecruitPayload = (draft: RecruitDraft): RecruitPostPayload => {
   const roles = parseRoles(draft.roles)
   const tags = splitList(draft.tags).map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
@@ -205,12 +131,6 @@ const buildRecruitPayload = (draft: RecruitDraft): RecruitPostPayload => {
     detailContent: splitList(draft.detailContent),
     processList: splitList(draft.processList),
   }
-}
-
-function dedupeRecruitItems(items: RecruitItem[]) {
-  const byId = new Map<string, RecruitItem>()
-  items.forEach((item) => byId.set(item.id, item))
-  return [...byId.values()]
 }
 
 type RecruitListProps = {
@@ -385,26 +305,22 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const [activeFilter, setActiveFilter] = useState<RecruitFilterId>('all')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [query, setQuery] = useState('')
-  const [appliedIds, setAppliedIds] = useState<Set<string>>(() => loadAppliedRecruitIds())
+  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
   const [savedIds, setSavedIds] = useState<Set<string>>(() => loadSavedRecruitIds())
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
-  const [localRecruitItems, setLocalRecruitItems] = useState<RecruitItem[]>(() => loadLocalRecruitItems())
   const [remoteRecruitItems, setRemoteRecruitItems] = useState<RecruitItem[]>([])
 
   const normalizedQuery = query.trim().toLowerCase()
-  const allRecruitItems = useMemo(
-    () => dedupeRecruitItems([...localRecruitItems, ...remoteRecruitItems]),
-    [localRecruitItems, remoteRecruitItems],
-  )
+  const allRecruitItems = remoteRecruitItems
   const activeCategoryLabel =
     categories.find((category) => category.id === activeCategory)?.label ?? '전체'
 
   useEffect(() => {
     recruitsApi.getRecruits()
-      .then((items) => setRemoteRecruitItems(items.length > 0 ? items : recruitItems))
-      .catch(() => setRemoteRecruitItems(recruitItems))
+      .then(setRemoteRecruitItems)
+      .catch(() => setActionError('모집 목록을 불러오지 못했습니다.'))
   }, [])
 
   useEffect(() => {
@@ -412,18 +328,10 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
     recruitsApi.getMyApplications()
       .then((applications) => {
-        setAppliedIds((current) => new Set([...current, ...applications.map((application) => application.recruitId)]))
+        setAppliedIds(new Set(applications.map((application) => application.recruitId)))
       })
-      .catch(() => {})
+      .catch(() => setActionError('지원 내역을 불러오지 못했습니다.'))
   }, [isLoggedIn])
-
-  useEffect(() => {
-    const syncAppliedIds = () => setAppliedIds(loadAppliedRecruitIds())
-
-    syncAppliedIds()
-    window.addEventListener('focus', syncAppliedIds)
-    return () => window.removeEventListener('focus', syncAppliedIds)
-  }, [])
 
   useEffect(() => {
     window.localStorage.setItem(LOCAL_RECRUIT_INTEREST_STORAGE_KEY, JSON.stringify([...savedIds]))
@@ -460,7 +368,6 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const isOperator = isAdminUser(user)
   const managedItems = useMemo(
     () => allRecruitItems.filter((item) => (
-      item.id.startsWith('local-recruit-') ||
       isOperator ||
       isSameUserId(item.authorId, user?.id)
     )),
@@ -515,11 +422,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
     try {
       const createdRecruit = await recruitsApi.createRecruit(buildRecruitPayload(draft))
-      setLocalRecruitItems((current) => {
-        const next = [createdRecruit, ...current]
-        window.localStorage.setItem(LOCAL_RECRUIT_STORAGE_KEY, JSON.stringify(next))
-        return next
-      })
+      setRemoteRecruitItems((current) => [createdRecruit, ...current])
       setDraft(defaultRecruitDraft)
       setDraftError(null)
       setActiveCategory('all')
@@ -527,14 +430,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       setSortMode('latest')
       navigate(`${routes.community.recruit}?view=manage`)
     } catch {
-      const createdRecruit = buildRecruitItem(draft)
-      setLocalRecruitItems((current) => {
-        const next = [createdRecruit, ...current]
-        window.localStorage.setItem(LOCAL_RECRUIT_STORAGE_KEY, JSON.stringify(next))
-        return next
-      })
-      setDraftError('서버 저장에 실패해 이 브라우저에 임시 저장했습니다.')
-      navigate(`${routes.community.recruit}?view=manage`)
+      setDraftError('모집 공고를 저장하지 못했습니다. 작성 내용은 유지됩니다.')
     }
   }
 

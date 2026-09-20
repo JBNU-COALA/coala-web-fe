@@ -14,20 +14,11 @@ import {
   readMarkdownImagesFromDrop,
 } from '../../shared/markdownImages'
 import { routes } from '../../shared/routes'
-import { recruitItems } from '../../dummy/recruitData'
 
 type RecruitApplicationDraft = {
   role: string
   body: string
 }
-
-type StoredRecruitApplication = RecruitApplicationDraft & {
-  recruitId: string
-  submittedAt: string
-}
-
-const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
-const LOCAL_APPLICATION_STORAGE_KEY = 'coala-recruit-applications'
 
 const baseApplicationCommands: ICommand[] = [
   commands.bold,
@@ -48,32 +39,6 @@ const baseApplicationCommands: ICommand[] = [
   commands.orderedListCommand,
   commands.checkedListCommand,
 ]
-const loadLocalRecruitItems = (): RecruitItem[] => {
-  if (typeof window === 'undefined') return []
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_RECRUIT_STORAGE_KEY)
-    if (!raw) return []
-    const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-const loadStoredApplications = (): Record<string, StoredRecruitApplication> => {
-  if (typeof window === 'undefined') return {}
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_APPLICATION_STORAGE_KEY)
-    if (!raw) return {}
-    const parsed = JSON.parse(raw)
-    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {}
-  } catch {
-    return {}
-  }
-}
-
 const createDefaultApplicationDraft = (item: RecruitItem): RecruitApplicationDraft => ({
   role: item.roles[0]?.label ?? '',
   body: `## 자기소개\n\n\n## 지원 동기\n\n${item.title}에 관심을 가지게 된 이유를 적어주세요.\n\n## 가능한 역할과 시간\n\n\n## 남기고 싶은 말\n\n`,
@@ -89,11 +54,7 @@ export function RecruitApplyPage() {
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
   const [remoteItem, setRemoteItem] = useState<RecruitItem | null>(null)
-  const allRecruitItems = useMemo(
-    () => [...loadLocalRecruitItems(), ...(remoteItem ? [remoteItem] : []), ...recruitItems],
-    [remoteItem],
-  )
-  const item = allRecruitItems.find((recruit) => recruit.id === recruitId) ?? null
+  const item = remoteItem?.id === recruitId ? remoteItem : null
   const [draft, setDraft] = useState<RecruitApplicationDraft>(() => (
     item ? createDefaultApplicationDraft(item) : { role: '', body: '' }
   ))
@@ -120,8 +81,7 @@ export function RecruitApplyPage() {
 
   useEffect(() => {
     if (!item) return
-    const stored = loadStoredApplications()[item.id]
-    setDraft(stored ? { role: stored.role, body: stored.body } : createDefaultApplicationDraft(item))
+    setDraft(createDefaultApplicationDraft(item))
     setSubmitted(false)
     setError(null)
   }, [item])
@@ -195,14 +155,6 @@ export function RecruitApplyPage() {
 
     try {
       await recruitsApi.apply(item.id, { role: draft.role.trim(), body: draft.body })
-      const applications = loadStoredApplications()
-      applications[item.id] = {
-        recruitId: item.id,
-        role: draft.role.trim(),
-        body: draft.body,
-        submittedAt: new Date().toISOString(),
-      }
-      window.localStorage.setItem(LOCAL_APPLICATION_STORAGE_KEY, JSON.stringify(applications))
       setSubmitted(true)
       setError(null)
     } catch {

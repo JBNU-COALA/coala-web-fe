@@ -29,23 +29,6 @@ const infoBoardNameToFilter: Record<string, InfoBoardFilterId> = {
   '자료': 'resource',
 }
 
-export const fallbackCommunityBoardIds: Record<CommunityBoardFilterId, number> = {
-  notice: 1,
-  free: 2,
-  humor: 3,
-}
-
-export const fallbackInfoBoardIds: Record<InfoBoardFilterId, number> = {
-  news: 11,
-  contest: 12,
-  lab: 13,
-  resource: 14,
-}
-
-export const fallbackRecruitBoardId = 31
-
-export const fallbackQnaBoardId = 41
-
 function normalizeBoardName(name: string) {
   return name.trim().toLowerCase()
 }
@@ -75,19 +58,6 @@ export function isInfoBoard(board: Pick<BoardLike, 'boardName' | 'boardType'>) {
 
 export function isAnonymousBoard(board: Pick<BoardLike, 'boardType'>) {
   return board.boardType === 'ANONYMOUS'
-}
-
-export function getFallbackInfoBoardId(filter: InfoBoardFilterId) {
-  return fallbackInfoBoardIds[filter]
-}
-
-export function getFallbackInfoBoardIdByPostId(postId: string | number) {
-  const numericPostId = Number(postId)
-  if (!Number.isFinite(numericPostId)) return fallbackInfoBoardIds.news
-
-  const index = Math.max(0, Math.floor(numericPostId) - 1)
-  const filters = Object.keys(fallbackInfoBoardIds) as InfoBoardFilterId[]
-  return fallbackInfoBoardIds[filters[index % filters.length]]
 }
 
 export function makePostRouteKey(boardId: string | number, postId: string | number) {

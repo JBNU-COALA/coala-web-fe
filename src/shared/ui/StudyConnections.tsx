@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  isActivityPreview,
-  activityLink,
   loadActivityGroups,
   createActivityGroup
 } from '../activityRepository'
@@ -25,14 +23,13 @@ export function StudyConnections({
   canManage?: boolean
 }) {
   const { isLoggedIn, user } = useAuth()
-  const activityPreview = isActivityPreview()
   const [data, setData] = useState<StudyGroup[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [name, setName] = useState('')
   useEffect(() => {
-    if (!activityPreview && !isLoggedIn) return
+    if (!isLoggedIn) return
     let active = true
     loadActivityGroups()
       .then((value) => {
@@ -47,8 +44,8 @@ export function StudyConnections({
     return () => {
       active = false
     }
-  }, [isLoggedIn, activityPreview])
-  if (!isLoggedIn && !activityPreview) return null
+  }, [isLoggedIn])
+  if (!isLoggedIn) return null
   const groups = data.filter((group) =>
     recruitId
       ? group.recruitId === recruitId
@@ -64,7 +61,6 @@ export function StudyConnections({
               ? '나의 모집과 활동'
               : '참여 활동'}
         </h3>
-        {activityPreview && <small>미리보기</small>}
       </header>
       {ownProfile && (
         <nav aria-label="나의 모집">
@@ -79,7 +75,7 @@ export function StudyConnections({
       {loading && <p role="status">활동을 불러오는 중입니다.</p>}
       {groups.map((group) => (
         <div className="study-connection-row" key={group.id}>
-          <Link to={activityLink(routes.community.activityGroup(group.id))}>
+          <Link to={routes.community.activityGroup(group.id)}>
             <Icon name="calendar" size={16} />
             <span>{group.name}</span>
             <Icon name="chevron-right" size={16} />
@@ -87,7 +83,7 @@ export function StudyConnections({
           {!recruitId && group.recruitId && (
             <Link
               className="study-connection-source"
-              to={activityLink(routes.community.recruitNotice(group.recruitId))}
+              to={routes.community.recruitNotice(group.recruitId)}
             >
               모집 공고
             </Link>
@@ -97,7 +93,7 @@ export function StudyConnections({
       {userId ? (
         <Link
           className="study-connection-all"
-          to={activityLink(routes.community.activityUser(userId))}
+          to={routes.community.activityUser(userId)}
         >
           {ownProfile ? '내 활동과 출석' : '활동과 출석 보기'}
           <Icon name="chevron-right" size={16} />
@@ -107,7 +103,6 @@ export function StudyConnections({
       )}
       {recruitId &&
         canManage &&
-        !activityPreview &&
         !loading &&
         !groups.length && (
           <form
