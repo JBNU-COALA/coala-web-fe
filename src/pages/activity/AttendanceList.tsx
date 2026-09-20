@@ -26,16 +26,18 @@ export function AttendanceSummary({ entries }: { entries: AttendanceEntry[] }) {
 
 export function AttendanceList({
   entries,
-  onChange
+  onChange,
+  onRemove
 }: {
   entries: AttendanceEntry[]
   onChange?: (entries: AttendanceEntry[]) => void
+  onRemove?: (userId: string) => void
 }) {
   const id = useId()
   return (
     <ul className="study-attendance-list">
       {entries.map((member) => (
-        <li key={member.userId}>
+        <li key={member.userId} className={onRemove ? 'is-removable' : undefined}>
           <CharacterAvatar name={member.name} seed={member.userId} size="sm" />
           {onChange ? (
             <span className="study-person-name">{member.name}</span>
@@ -64,6 +66,8 @@ export function AttendanceList({
               {attendanceLabels[member.status]}
             </span>
           )}
+          {onRemove && <button type="button" className="participant-remove" title="참여자 제외"
+            aria-label={`${member.name} 참여자 제외`} onClick={() => onRemove(member.userId)}>×</button>}
         </li>
       ))}
     </ul>

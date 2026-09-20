@@ -6,6 +6,7 @@ export const attendanceLabels = {
 } as const
 export type AttendanceStatus = keyof typeof attendanceLabels
 export type StudyMember = { userId: string; name: string }
+export type ActivityMemberOption = StudyMember & { githubId: string; department: string }
 export type StudyGroup = {
   id: string
   name: string

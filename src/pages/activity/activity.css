@@ -737,3 +737,29 @@ a.study-person-name:hover {
   .activity-photo-grid { grid-template-columns: repeat(3, minmax(0, 112px)); }
   .study-page .study-controls { gap: 12px; }
 }
+.participant-picker { position: relative; min-width: 0; margin: 16px 0; }
+.study-page .participant-picker > label { display: block; margin: 0 0 7px; font-size: 13px; font-weight: 600; color: #525e68; }
+.participant-search { display: flex; align-items: center; gap: 10px; border: 1px solid #dce2e6; border-radius: 6px; padding-inline: 12px; background: #f8f9fa; color: #73808b; }
+.study-page .participant-search input { min-width: 0; width: 100%; min-height: 44px; padding: 10px 0; border: 0; background: transparent; font-size: 15px; color: #26343e; }
+.participant-search:focus-within { outline: 2px solid #3688bd; outline-offset: 2px; }
+.study-page .participant-search input:focus { outline: none; box-shadow: none; }
+.study-page .study-editor .attendance-choice { margin: 0; gap: 0; }
+.participant-results { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; right: 0; box-shadow: 0 6px 18px #18344512; border: 1px solid #dce2e6; border-radius: 6px; max-height: min(260px, 40dvh); overflow-y: auto; background: white; }
+.participant-results > p { display: flex; align-items: center; justify-content: space-between; margin: 0; padding: 12px; font-size: 13px; color: #65737f; }
+.participant-results ul { list-style: none; padding: 0; margin: 0; }
+.participant-results li + li { border-top: 1px solid #edf0f2; }
+.participant-results li > button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 60px; padding: 10px 12px; text-align: left; background: transparent; border: 0; color: #26343e; }
+.participant-results li > button:hover:not(:disabled) { background: #f2f7fb; }
+.participant-results li > button > span:not(.character-avatar) { min-width: 0; flex: 1; }
+.participant-results strong { display: block; font-size: 14px; font-weight: 600; }
+.participant-results small { display: block; font-size: 12px; line-height: 1.5; color: #697782; overflow-wrap: anywhere; }
+.participant-results button > :last-child { flex-shrink: 0; }
+.study-page .study-attendance-list li.is-removable { display: grid; grid-template-columns: 32px minmax(0, 1fr) 248px 36px; gap: 10px; }
+.participant-remove { display: grid; place-items: center; width: 36px; height: 44px; padding: 0; border: 0; border-radius: 4px; background: transparent; color: #7b8791; font-size: 23px; }
+.participant-remove:hover { background: #fff0f1; color: #ba3645; }
+@media (max-width: 600px) {
+  .study-page .participant-search input { font-size: 16px; }
+  .study-page .study-attendance-list li.is-removable { grid-template-columns: 32px minmax(0, 1fr) 36px; gap: 6px 10px; }
+  .study-page .study-attendance-list li.is-removable .attendance-choices { grid-column: 1 / -1; grid-row: 2; }
+  .study-page .study-attendance-list li.is-removable .participant-remove { grid-column: 3; grid-row: 1; }
+}

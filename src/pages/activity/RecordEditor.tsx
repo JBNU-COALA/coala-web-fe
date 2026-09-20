@@ -1,3 +1,4 @@
+import { ParticipantPicker } from './ParticipantPicker'
 import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
@@ -148,20 +149,17 @@ export function RecordEditor({
                   const next = data.groups.find(
                     (group) => group.id === event.target.value
                   )
-                  if (
-                    attendance.some((entry) => entry.status !== 'unknown') &&
-                    !window.confirm(
-                      '조를 바꾸면 출석 명단이 초기화됩니다. 변경할까요?'
-                    )
-                  )
+                  const merged = [...attendance]
+                  for (const member of next?.members ?? []) {
+                    if (!merged.some((entry) => entry.userId === member.userId))
+                      merged.push({ ...member, status: 'unknown' })
+                  }
+                  if (merged.length > 200) {
+                    setError('참여자는 최대 200명까지 추가할 수 있습니다.')
                     return
+                  }
                   setGroupId(next?.id ?? '')
-                  setAttendance(
-                    next?.members.map((member) => ({
-                      ...member,
-                      status: 'unknown'
-                    })) ?? []
-                  )
+                  setAttendance(merged)
                 }}
               >
                 <option value="">연결 안 함</option>
@@ -176,6 +174,9 @@ export function RecordEditor({
               </select>
             </label>
           </div>
+          <ParticipantPicker selected={attendance} onAdd={(member) => setAttendance((current) =>
+            current.length >= 200 || current.some((entry) => entry.userId === member.userId)
+              ? current : [...current, { ...member, status: 'unknown' }])} />
           {attendance.length > 0 && <>
           <div className="study-form-section">
             <h2>
@@ -193,7 +194,8 @@ export function RecordEditor({
               전체 출석
             </button>
           </div>
-          <AttendanceList entries={attendance} onChange={setAttendance} />
+          <AttendanceList entries={attendance} onChange={setAttendance}
+            onRemove={(userId) => setAttendance((current) => current.filter((entry) => entry.userId !== userId))} />
           <p className="study-unchecked" role="status">
             {attendanceCounts(attendance).unknown
               ? `미확인 ${attendanceCounts(attendance).unknown}명`

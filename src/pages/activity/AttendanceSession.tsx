@@ -1,3 +1,4 @@
+import { ParticipantPicker } from './ParticipantPicker'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { attendanceCounts, type StudyRecord } from '../../shared/activity'
@@ -37,13 +38,16 @@ export function AttendanceSession({ record, groupName, onSave }: {
       {entries.length > 0 && <span className="attendance-progress">{checked}/{entries.length}명 확인</span>}
     </header>
     <fieldset disabled={saving}>
+      {record.canManage && <ParticipantPicker selected={entries} onAdd={(member) => setEntries((current) =>
+        current.length >= 200 || current.some((entry) => entry.userId === member.userId)
+          ? current : [...current, { ...member, status: 'unknown' }])} />}
       {entries.length > 0 ? <>
         <div className="attendance-session-summary"><AttendanceSummary entries={entries} />
           {record.canManage && <button type="button" className="study-text-button"
             onClick={() => setEntries(entries.map((entry) => ({ ...entry, status: 'present' })))}>전체 출석</button>}</div>
-        <AttendanceList entries={entries} onChange={record.canManage ? setEntries : undefined} />
-      </> : <p className="attendance-no-roster">연결된 출석 명단이 없습니다.
-        {record.canManage && <Link to={routes.community.activityRecordEditor(record.id)}>조 연결</Link>}</p>}
+        <AttendanceList entries={entries} onChange={record.canManage ? setEntries : undefined}
+          onRemove={record.canManage ? (userId) => setEntries((current) => current.filter((entry) => entry.userId !== userId)) : undefined} />
+      </> : <p className="attendance-no-roster">등록된 참여자가 없습니다.</p>}
       <ActivityPhotos photos={photos} onChange={record.canManage ? setPhotos : undefined} onBusy={setUploading} />
       {error && <p className="study-error" role="alert">{error}</p>}
       {record.canManage && <footer>

@@ -3,9 +3,14 @@ import {
   shiftDate,
   type ActivityData,
   type StudyRecord,
+  type ActivityMemberOption,
   type StudyGroup
 } from './activity'
 import client from './api/client'
+
+export async function searchActivityMembers(query: string, signal?: AbortSignal): Promise<ActivityMemberOption[]> {
+  return (await client.get<ActivityMemberOption[]>('/api/study/members', { params: { query }, signal })).data
+}
 
 export async function loadActivityGroups(): Promise<StudyGroup[]> {
   return (await client.get<StudyGroup[]>('/api/study/groups')).data
