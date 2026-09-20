@@ -1,0 +1,216 @@
+import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { Icon } from '../../shared/ui/Icon'
+import {
+  dateKey,
+  attendanceCounts,
+  type ActivityData,
+  type StudyRecord,
+  type AttendanceEntry
+} from '../../shared/activity'
+import { AttendanceList } from './AttendanceList'
+
+export function RecordEditor({
+  data,
+  record,
+  onSave,
+  back,
+  initialGroup
+}: {
+  data: ActivityData
+  record?: StudyRecord
+  onSave: (record: StudyRecord) => Promise<void>
+  back: string
+  initialGroup: string
+}) {
+  const firstGroup =
+    data.groups.find((group) => group.id === initialGroup) ?? data.groups[0]
+  const [groupId, setGroupId] = useState(
+    record?.groupId ?? firstGroup?.id ?? ''
+  )
+  const [title, setTitle] = useState(record?.title ?? '')
+  const [date, setDate] = useState(record?.date ?? dateKey(new Date()))
+  const [content, setContent] = useState(record?.content ?? '')
+  const [attendance, setAttendance] = useState<AttendanceEntry[]>(
+    record?.attendance ??
+      firstGroup?.members.map((member) => ({ ...member, status: 'unknown' })) ??
+      []
+  )
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const dirty =
+    title !== (record?.title ?? '') ||
+    content !== (record?.content ?? '') ||
+    date !== (record?.date ?? dateKey(new Date())) ||
+    groupId !== (record?.groupId ?? firstGroup?.id) ||
+    JSON.stringify(attendance) !==
+      JSON.stringify(
+        record?.attendance ??
+          firstGroup?.members.map((member) => ({
+            ...member,
+            status: 'unknown'
+          }))
+      )
+
+  useEffect(() => {
+    if (!dirty) return
+    const guard = (event: BeforeUnloadEvent) => {
+      event.preventDefault()
+      event.returnValue = ''
+    }
+    window.addEventListener('beforeunload', guard)
+    return () => window.removeEventListener('beforeunload', guard)
+  }, [dirty])
+
+  const submit = async (event: FormEvent) => {
+    event.preventDefault()
+    if (saving) return
+    if (!title.trim() || !content.trim()) {
+      setError('제목과 활동 내용을 입력해 주세요.')
+      return
+    }
+    if (date > dateKey(new Date())) {
+      setError('활동을 진행한 날짜를 선택해 주세요.')
+      return
+    }
+    setSaving(true)
+    setError('')
+    try {
+      await onSave({
+        id: record?.id ?? crypto.randomUUID(),
+        groupId,
+        title: title.trim(),
+        date,
+        content: content.trim(),
+        attendance,
+        updatedAt: new Date().toISOString(),
+        version: record?.version
+      })
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : '기록을 저장하지 못했습니다.'
+      )
+      setSaving(false)
+    }
+  }
+
+  return (
+    <>
+      <Link
+        className="study-back"
+        to={back}
+        onClick={(event) => {
+          if (dirty && !window.confirm('작성 중인 내용을 취소할까요?'))
+            event.preventDefault()
+        }}
+      >
+        <Icon name="chevron-left" size={18} />
+        활동 기록
+      </Link>
+      <header className="study-page-heading">
+        <h1>{record ? '기록 수정' : '기록 작성'}</h1>
+      </header>
+      <form className="study-editor" onSubmit={submit}>
+        <fieldset disabled={saving}>
+          <label>
+            제목
+            <input
+              autoFocus
+              required
+              maxLength={120}
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              placeholder="활동 제목을 입력해 주세요"
+            />
+          </label>
+          <div className="study-editor-fields">
+            <label>
+              날짜
+              <input
+                type="date"
+                required
+                max={dateKey(new Date())}
+                value={date}
+                onChange={(event) => setDate(event.target.value)}
+              />
+            </label>
+            <label>
+              조
+              <select
+                value={groupId}
+                disabled={!!record}
+                onChange={(event) => {
+                  const next = data.groups.find(
+                    (group) => group.id === event.target.value
+                  )
+                  if (!next) return
+                  if (
+                    attendance.some((entry) => entry.status !== 'unknown') &&
+                    !window.confirm(
+                      '조를 바꾸면 출석 명단이 초기화됩니다. 변경할까요?'
+                    )
+                  )
+                    return
+                  setGroupId(next.id)
+                  setAttendance(
+                    next.members.map((member) => ({
+                      ...member,
+                      status: 'unknown'
+                    }))
+                  )
+                }}
+              >
+                {data.groups.map((group) => (
+                  <option key={group.id} value={group.id}>
+                    {group.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <label>
+            오늘 어떤 활동을 했나요?
+            <textarea
+              required
+              rows={9}
+              maxLength={20000}
+              value={content}
+              onChange={(event) => setContent(event.target.value)}
+              placeholder="함께 배운 내용, 진행한 작업, 다음 모임의 계획"
+            />
+          </label>
+          <div className="study-form-section">
+            <h2>
+              출석 <small>{attendance.length}명</small>
+            </h2>
+            <button
+              type="button"
+              className="study-text-button"
+              onClick={() =>
+                setAttendance(
+                  attendance.map((entry) => ({ ...entry, status: 'present' }))
+                )
+              }
+            >
+              전체 출석
+            </button>
+          </div>
+          <AttendanceList entries={attendance} onChange={setAttendance} />
+          <p className="study-unchecked" role="status">
+            {attendanceCounts(attendance).unknown
+              ? `미확인 ${attendanceCounts(attendance).unknown}명`
+              : '모든 출석 상태를 확인했습니다.'}
+          </p>
+          {error && (
+            <p className="study-error" role="alert">
+              {error}
+            </p>
+          )}
+          <button className="study-primary study-submit" type="submit">
+            {saving ? '저장 중...' : '기록 저장'}
+          </button>
+        </fieldset>
+      </form>
+    </>
+  )
+}

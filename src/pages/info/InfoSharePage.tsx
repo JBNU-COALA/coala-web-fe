@@ -2,6 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { infoApi, type InfoArticle, type InfoFilterId } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
+import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
+import { SafeImage } from '../../shared/ui/SafeImage'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
@@ -24,10 +29,6 @@ const infoTabFilters: { id: InfoTabId; label: string }[] = [
   { id: 'resource', label: '자료' },
 ]
 
-const infoCategoryTabs = infoTabFilters.filter(
-  (filter): filter is { id: InfoFilterId; label: string } => filter.id !== 'all',
-)
-
 const filterIconById: Record<InfoTabId, Parameters<typeof Icon>[0]['name']> = {
   all: 'layout',
   news: 'bell',
@@ -35,6 +36,12 @@ const filterIconById: Record<InfoTabId, Parameters<typeof Icon>[0]['name']> = {
   lab: 'network',
   resource: 'file',
 }
+
+const infoTabs: FilterTabOption<InfoTabId>[] = infoTabFilters.map((filter) => ({
+  ...filter,
+  icon: filterIconById[filter.id],
+  tone: filter.id,
+}))
 
 const infoLabelByFilter: Record<InfoFilterId, string> = {
   news: '소식',
@@ -48,7 +55,7 @@ function getInfoImageUrl(card: InfoArticle) {
   if (contentImageUrl) return resolveApiAssetUrl(contentImageUrl)
   if (card.imageUrl) return resolveApiAssetUrl(card.imageUrl)
   if (card.thumbnailAttachmentId) return resolveApiAssetUrl(`/api/attachments/${card.thumbnailAttachmentId}/download`)
-  return null
+  return '/coala-card-placeholder.png'
 }
 
 function InfoListThumbnail({
@@ -60,7 +67,12 @@ function InfoListThumbnail({
 }) {
   return (
     <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}`}>
-      <img src={imageUrl} alt="" loading="lazy" />
+      <SafeImage
+        src={imageUrl}
+        alt=""
+        loading="lazy"
+        fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+      />
     </div>
   )
 }
@@ -77,6 +89,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [savedResourceIds, setSavedResourceIds] = useState<Set<number>>(() => new Set())
   const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<InfoListViewMode>('card')
+  const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [likeError, setLikeError] = useState<string | null>(null)
 
   const normalizedQuery = query.trim().toLowerCase()
@@ -95,15 +108,18 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
         ? resources
         : resources.filter((card) => card.filter === activeFilter)
 
-    if (!normalizedQuery) {
-      return filteredByType
-    }
-
-    return filteredByType.filter((card) => {
+    const searched = !normalizedQuery ? filteredByType : filteredByType.filter((card) => {
       const searchable = `${card.title} ${card.meta} ${card.source} ${card.tag}`.toLowerCase()
       return searchable.includes(normalizedQuery)
     })
-  }, [activeFilter, normalizedQuery, resources])
+
+    return [...searched].sort((a, b) => {
+      if (sortMode === 'popular') return getInfoLikeCount(b) - getInfoLikeCount(a)
+      const aTime = new Date(a.sourceDate ?? a.createdAt ?? 0).getTime()
+      const bTime = new Date(b.sourceDate ?? b.createdAt ?? 0).getTime()
+      return bTime - aTime
+    })
+  }, [activeFilter, normalizedQuery, resources, sortMode])
 
   const toggleSavedResource = (resourceId: number) => {
     setSavedResourceIds((current) => {
@@ -151,6 +167,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
         <CommunityBanner
           title="정보공유"
           tone="info"
+          meta={`게시글 ${visibleResources.length}개`}
         />
 
         <section className="surface-card community-list-controls info-list-controls" aria-label="정보공유 필터">
@@ -161,42 +178,14 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
             </div>
           </div>
 
-          <div className="community-filter-tabs community-filter-tabs--with-all" role="tablist" aria-label="정보공유 분류">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeFilter === 'all'}
-              className={
-                activeFilter === 'all'
-                  ? 'community-filter-tab community-filter-tab--all is-active'
-                  : 'community-filter-tab community-filter-tab--all'
-              }
-              onClick={() => setActiveFilter('all')}
-            >
-              <Icon name={filterIconById.all} size={15} />
-              전체
-            </button>
-            <span className="community-filter-divider" aria-hidden="true" />
-            <div className="community-filter-grouped">
-              {infoCategoryTabs.map((filter) => (
-                <button
-                  key={filter.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeFilter === filter.id}
-                  className={
-                    activeFilter === filter.id
-                      ? `community-filter-tab info-filter-tab info-filter-tab--${filter.id} is-active`
-                      : `community-filter-tab info-filter-tab info-filter-tab--${filter.id}`
-                  }
-                  onClick={() => setActiveFilter(filter.id)}
-                >
-                  <Icon name={filterIconById[filter.id]} size={15} />
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <FilterTabs
+            value={activeFilter}
+            options={infoTabs}
+            onChange={setActiveFilter}
+            ariaLabel="정보공유 분류"
+            separateFirst
+            className="community-filter-tabs"
+          />
 
           <div className="community-list-actions">
             <SearchField
@@ -205,26 +194,17 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               onChange={setQuery}
               placeholder="소식, 대회, 연구실, 자료 검색"
             />
-            <div className="view-mode-toggle" role="group" aria-label="정보공유 보기 방식">
-              <button
-                type="button"
-                className={viewMode === 'card' ? 'view-mode-button is-active' : 'view-mode-button'}
-                aria-pressed={viewMode === 'card'}
-                title="카드형"
-                onClick={() => setViewMode('card')}
-              >
-                <Icon name="layout" size={15} />
-              </button>
-              <button
-                type="button"
-                className={viewMode === 'list' ? 'view-mode-button is-active' : 'view-mode-button'}
-                aria-pressed={viewMode === 'list'}
-                title="리스트형"
-                onClick={() => setViewMode('list')}
-              >
-                <Icon name="list" size={15} />
-              </button>
-            </div>
+            <SelectControl
+              className="board-sort-field"
+              label="정렬"
+              value={sortMode}
+              options={[
+                { value: 'latest', label: '최신순' },
+                { value: 'popular', label: '인기순' },
+              ]}
+              onChange={setSortMode}
+            />
+            <ViewModeToggle value={viewMode} onChange={setViewMode} />
             <button
               type="button"
               className="write-post-button write-post-button--info"
@@ -279,9 +259,12 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         </p>
 
                         <p className="board-post-meta">
-                          <span className="board-avatar board-avatar--mint">
-                            {(sourceName || '코')[0]}
-                          </span>
+                          <CharacterAvatar
+                            name={sourceName || '코알라'}
+                            seed={card.authorId ?? card.id}
+                            size="xs"
+                            className="board-avatar"
+                          />
                           <span>{sourceName || '코알라'}</span>
                           {sourceDate ? (
                             <>

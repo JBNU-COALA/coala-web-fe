@@ -12,6 +12,7 @@ import {
 } from './navigation/navigationData'
 import { ContextPanel } from './navigation/ContextPanel'
 import { Icon } from './shared/ui/Icon'
+import { CharacterAvatar } from './shared/ui/CharacterAvatar'
 import { useAuth } from './shared/auth/AuthContext'
 import { RequireAuth } from './shared/auth/RequireAuth'
 import { isAdminUser } from './shared/auth/adminAccess'
@@ -24,6 +25,7 @@ import {
   parseRouteId,
 } from './shared/communityBoards'
 import './pages/home/home.css'
+import './styles/coala-system.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AboutPage = lazy(() => import('./pages/about/AboutPage').then((m) => ({ default: m.AboutPage })))
@@ -37,6 +39,7 @@ const AuthPage = lazy(() => import('./pages/auth/AuthPage').then((m) => ({ defau
 const EmailVerificationPage = lazy(() => import('./pages/auth/EmailVerificationPage').then((m) => ({ default: m.EmailVerificationPage })))
 const PasswordResetPage = lazy(() => import('./pages/auth/PasswordResetPage').then((m) => ({ default: m.PasswordResetPage })))
 const RecruitPage = lazy(() => import('./pages/recruit/RecruitPage').then((m) => ({ default: m.RecruitPage })))
+const StudyActivityPage = lazy(() => import('./pages/activity/StudyActivityPage').then((m) => ({ default: m.StudyActivityPage })))
 const RecruitDetailPage = lazy(() => import('./pages/recruit/RecruitDetailPage').then((m) => ({ default: m.RecruitDetailPage })))
 const RecruitApplyPage = lazy(() => import('./pages/recruit/RecruitApplyPage').then((m) => ({ default: m.RecruitApplyPage })))
 const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })))
@@ -295,7 +298,7 @@ function App() {
       setExpandedMainNav(null)
       setSuppressedMainNav(null)
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-    }, 160)
+    }, 120)
   }, [clearSubNavTimers])
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
@@ -399,11 +402,11 @@ function App() {
       setExpandedMainNav(null)
       setSuppressedMainNav(parentId)
       if (document.activeElement instanceof HTMLElement) document.activeElement.blur()
-    }, 120)
+    }, 80)
 
     releaseSubNavTimerRef.current = window.setTimeout(() => {
       setSuppressedMainNav((current) => (current === parentId ? null : current))
-    }, 380)
+    }, 300)
   }
 
   const isHeaderSubNavActive = (path: string) => {
@@ -462,6 +465,10 @@ function App() {
   }
 
   const handleContextSelect = (item: ContextPanelItem) => {
+    if (item.value === 'community-activity') {
+      navigate(routes.community.activity)
+      return
+    }
     if (item.value === 'community-board') {
       navigate(routes.community.board)
       return
@@ -625,6 +632,10 @@ function App() {
         />
 
         <Route path="/about" element={<AboutPage />} />
+        <Route path="/community/activity" element={<StudyActivityPage />} />
+        <Route path="/community/activity/records/new" element={<StudyActivityPage mode="new" />} />
+        <Route path="/community/activity/records/:recordId" element={<StudyActivityPage mode="detail" />} />
+        <Route path="/community/activity/records/:recordId/editor" element={<StudyActivityPage mode="edit" />} />
         <Route path="/community" element={<Navigate to="/" replace />} />
         <Route
           path="/community/board"
@@ -779,11 +790,7 @@ function App() {
 
         <Route
           path="/users"
-          element={
-            <RequireAuth>
-              <LeaderboardPage />
-            </RequireAuth>
-          }
+          element={<LeaderboardPage />}
         />
         <Route
           path="/users/:userId"
@@ -1064,18 +1071,24 @@ function App() {
                       setProfileMenuOpen((value) => !value)
                     }}
                   >
-                    <span className="header-user-avatar">
-                      {(user?.name ?? user?.email ?? 'U').charAt(0)}
-                    </span>
+                    <CharacterAvatar
+                      name={user?.name ?? user?.email ?? '사용자'}
+                      seed={user?.id ?? user?.email ?? 'user'}
+                      size="xs"
+                      className="header-user-avatar"
+                    />
                     <span className="header-user-name">{user?.name ?? user?.email}</span>
                     <Icon name={profileMenuOpen ? 'chevron-down' : 'chevron-right'} size={13} />
                   </button>
                   {profileMenuOpen ? (
                     <div className="header-profile-popover">
                       <div className="header-profile-summary">
-                        <span className="header-profile-summary-avatar">
-                          {(user?.name ?? user?.email ?? 'U').charAt(0)}
-                        </span>
+                        <CharacterAvatar
+                          name={user?.name ?? user?.email ?? '사용자'}
+                          seed={user?.id ?? user?.email ?? 'user'}
+                          size="sm"
+                          className="header-profile-summary-avatar"
+                        />
                         <div>
                           <strong>{user?.name ?? user?.email}</strong>
                           <span>{user?.lab ?? user?.department ?? user?.email}</span>

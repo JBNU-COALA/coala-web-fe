@@ -4,8 +4,11 @@ import { recruitsApi, type RecruitItem, type RecruitStatus } from '../../shared/
 import { servicesApi, type MemberService } from '../../shared/api/services'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
+import { PageHero } from '../../shared/ui/PageHero'
+import { SafeImage } from '../../shared/ui/SafeImage'
 import { PostCard } from './PostCard'
 import { ResourcesCard } from './ResourcesCard'
+import { recruitItems } from '../../dummy/recruitData'
 
 type HomePageProps = {
   onOpenAllPosts?: () => void
@@ -18,7 +21,6 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
   const navigate = useNavigate()
   const [services, setServices] = useState<MemberService[]>([])
   const [recruits, setRecruits] = useState<RecruitItem[]>([])
-  const [activeServiceIndex, setActiveServiceIndex] = useState(0)
 
   useEffect(() => {
     servicesApi.getMemberServices()
@@ -26,11 +28,10 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
       .catch(() => setServices([]))
 
     recruitsApi.getRecruits({ status: 'all', sort: 'latest' })
-      .then((items) => setRecruits(items.slice(0, 4)))
-      .catch(() => setRecruits([]))
+      .then((items) => setRecruits((items.length > 0 ? items : recruitItems).slice(0, 2)))
+      .catch(() => setRecruits(recruitItems.slice(0, 2)))
   }, [])
 
-  const activeService = services.length > 0 ? services[activeServiceIndex % services.length] : null
   const openService = (serviceId: string) => {
     navigate(routes.services.userDetail(serviceId))
   }
@@ -45,14 +46,20 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
 
   return (
     <section className="coala-content coala-content--portal">
-      <section className="portal-hero portal-hero--slider" aria-label="홈 배너">
-        <article className="portal-slide is-active">
-          <div className="portal-slide-overlay" />
-          <div className="portal-hero-copy">
-            <h1 className="portal-hero-title">COALA Developer Club</h1>
-          </div>
-        </article>
-      </section>
+      <PageHero
+        title="COALA Developer Club"
+        eyebrow="TOGETHER WE BUILD"
+        description="함께 만들고 운영하는 개발 동아리"
+        tone="home"
+        size="large"
+        headingLevel="h1"
+        action={(
+          <button type="button" className="page-hero-button" onClick={() => navigate(routes.about)}>
+            동아리 소개
+            <Icon name="chevron-right" size={15} />
+          </button>
+        )}
+      />
 
       <div className="portal-grid portal-grid--dashboard">
         <ResourcesCard onOpenInfo={onOpenInfo} onOpenInfoArticle={onOpenInfoArticle} dashboard />
@@ -71,90 +78,34 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
             </button>
           </header>
 
-          {activeService ? (
-            <>
-              <div className="portal-service-slider">
+          {services.length > 0 ? (
+            <div className="portal-service-showcase-grid" aria-label="유저 서비스 목록">
+              {services.map((service) => (
                 <button
+                  key={service.id}
                   type="button"
-                  className="portal-service-feature"
-                  onClick={() => openService(activeService.id)}
-                  aria-label={`${activeService.title} 서비스 안내 열기`}
+                  className="portal-service-showcase-card"
+                  onClick={() => openService(service.id)}
+                  aria-label={`${service.title} 서비스 안내 열기`}
                 >
-                  {activeService.imageUrl ? (
-                    <span
-                      className="portal-service-feature-image"
-                      style={{ backgroundImage: `url(${activeService.imageUrl})` }}
+                  <span className="portal-service-showcase-image">
+                    <SafeImage
+                      src={service.imageUrl || '/coala-card-placeholder.png'}
+                      alt=""
+                      loading="lazy"
+                      fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
                     />
-                  ) : (
-                    <span className="portal-service-feature-image portal-service-feature-image--empty">
-                      <Icon name="image" size={28} />
-                    </span>
-                  )}
-                  <span className="portal-service-feature-shade" />
-                  <span className="portal-service-feature-copy">
-                    <span className="portal-service-status">{activeService.status}</span>
-                    <strong>{activeService.title}</strong>
-                    <span>{activeService.summary}</span>
                   </span>
+                  <span className="portal-service-showcase-copy">
+                    <span className="portal-service-status">{service.status}</span>
+                    <strong>{service.title}</strong>
+                    <span>{service.summary}</span>
+                    <small>{service.owner}</small>
+                  </span>
+                  <Icon name="chevron-right" size={16} />
                 </button>
-
-                <div className="portal-service-rail" aria-label="유저 서비스 목록">
-                  {services.map((service, index) => (
-                    <button
-                      key={service.id}
-                      type="button"
-                      className={index === activeServiceIndex ? 'portal-service-thumb is-active' : 'portal-service-thumb'}
-                      onClick={() => setActiveServiceIndex(index)}
-                    >
-                      {service.imageUrl ? (
-                        <span
-                          className="portal-service-thumb-image"
-                          style={{ backgroundImage: `url(${service.imageUrl})` }}
-                        />
-                      ) : (
-                        <span className="portal-service-thumb-image portal-service-thumb-image--empty">
-                          <Icon name="image" size={16} />
-                        </span>
-                      )}
-                      <span className="portal-service-thumb-copy">
-                        <strong>{service.title}</strong>
-                        <small>{service.owner}</small>
-                      </span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <ul className="portal-service-mobile-list" aria-label="유저 서비스 목록">
-                {services.map((service) => (
-                  <li key={service.id}>
-                    <button
-                      type="button"
-                      className="portal-service-mobile-item"
-                      onClick={() => openService(service.id)}
-                      aria-label={`${service.title} 서비스 안내 열기`}
-                    >
-                      {service.imageUrl ? (
-                        <span
-                          className="portal-service-mobile-media"
-                          style={{ backgroundImage: `url(${service.imageUrl})` }}
-                        />
-                      ) : (
-                        <span className="portal-service-mobile-media portal-service-mobile-media--empty">
-                          <Icon name="image" size={18} />
-                        </span>
-                      )}
-                      <span className="portal-service-mobile-copy">
-                        <span className="portal-service-status">{service.status}</span>
-                        <strong>{service.title}</strong>
-                        <span>{service.summary}</span>
-                        <small>{service.owner}</small>
-                      </span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </>
+              ))}
+            </div>
           ) : (
             <div className="portal-service-empty">
               등록된 유저 서비스가 없습니다.

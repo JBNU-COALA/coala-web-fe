@@ -1,0 +1,136 @@
+.study-connections {
+  min-width: 0;
+  margin: 24px 0;
+  padding: 22px 0;
+  border-block: 1px solid #dfe6e3;
+}
+.study-connections header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.study-connections h3 {
+  margin: 0;
+  font-size: 17px;
+  color: #21392c;
+}
+.study-connections small,
+.study-connections p {
+  color: #687b70;
+  font-size: 12px;
+}
+.study-connections a {
+  color: #176345;
+  text-decoration: none;
+  font-size: 13px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.study-connections a:hover {
+  text-decoration: underline;
+}
+.study-connections nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 22px;
+}
+.study-connection-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 16px;
+  border-bottom: 1px solid #edf1ee;
+}
+.study-connection-row > a:first-child {
+  min-width: 0;
+}
+.study-connection-row span {
+  overflow-wrap: anywhere;
+}
+.study-connection-source {
+  color: #697b71 !important;
+}
+.study-connection-all {
+  margin-top: 10px;
+}
+.study-group-create {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+.study-group-create label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+.study-group-create input,
+.study-participants select {
+  min-width: 0;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid #dce4e0;
+  border-radius: 6px;
+  font: inherit;
+  background: white;
+}
+.study-group-create button {
+  min-height: 44px;
+  border: 0;
+  border-radius: 6px;
+  background: #08734e;
+  color: white;
+  font: inherit;
+}
+.study-participants {
+  border-top: 1px solid #e1e7e4;
+  padding-top: 24px;
+  min-width: 0;
+}
+.study-participants h3 {
+  font-size: 17px;
+}
+.study-participants h3 small {
+  font-size: 13px;
+  color: #67756e;
+  font-weight: 400;
+  margin-left: 8px;
+}
+.study-participants details {
+  border-bottom: 1px solid #e1e7e4;
+  padding: 12px 0;
+}
+.study-participants summary {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  cursor: pointer;
+  min-height: 44px;
+}
+.study-participants summary span {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.study-participants summary small {
+  display: block;
+  color: #67756e;
+}
+.study-participants summary strong {
+  font-size: 12px;
+  white-space: nowrap;
+}
+.study-participants label {
+  display: grid;
+  gap: 8px;
+  font-size: 14px;
+}
+.study-application-body {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}

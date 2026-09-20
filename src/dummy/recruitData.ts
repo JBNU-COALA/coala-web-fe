@@ -1,57 +1,20 @@
-export type RecruitStatus = 'open' | 'closed' | 'closing-soon'
+import type { RecruitCategory, RecruitFilterId, RecruitItem } from '../shared/api/recruits'
 
-export type RecruitCategory = 'study' | 'project' | 'tutoring'
-
-export type RecruitAvatarTone = 'mint' | 'sky' | 'amber' | 'slate' | 'sand' | 'rose'
-
-export type RecruitRole = {
-  label: string
-  current: number
-  max: number
-}
-
-export type RecruitComment = {
-  id: string
-  author: string
-  authorInitials: string
-  authorTone: RecruitAvatarTone
-  timeLabel: string
-  content: string
-}
-
-export type RecruitItem = {
-  id: string
-  title: string
-  shortDesc: string
-  category: RecruitCategory
-  status: RecruitStatus
-  currentMembers: number
-  maxMembers: number
-  host: string
-  hostInitials: string
-  hostTone: RecruitAvatarTone
-  hostRole: string
-  trustScore: number
-  tags: string[]
-  techStack: string[]
-  roles: RecruitRole[]
-  meetingType: string
-  expectedDuration: string
-  detailContent: string[]
-  processList: string[]
-  comments: RecruitComment[]
-  createdAt: string
-  views: number
-  bookmarks: number
-}
+export type {
+  RecruitAvatarTone,
+  RecruitCategory,
+  RecruitComment,
+  RecruitFilterId,
+  RecruitItem,
+  RecruitRole,
+  RecruitStatus,
+} from '../shared/api/recruits'
 
 export const recruitCategoryMeta: Record<RecruitCategory, { label: string }> = {
   study: { label: '스터디' },
   project: { label: '프로젝트' },
   tutoring: { label: '멘토링' },
 }
-
-export type RecruitFilterId = 'all' | 'open' | 'closing-soon'
 
 export const recruitFilters: { id: RecruitFilterId; label: string }[] = [
   { id: 'all', label: '전체 보기' },

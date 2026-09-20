@@ -38,7 +38,7 @@ function sortByPopularity(posts: PostListItem[]) {
 function getPostThumbnailUrl(post: PostListItem) {
   const contentImageUrl = extractFirstContentImage(post.content)
   const thumbnailUrl = contentImageUrl || (post.thumbnailAttachmentId ? `/api/attachments/${post.thumbnailAttachmentId}/download` : '')
-  return resolveApiAssetUrl(thumbnailUrl)
+  return thumbnailUrl ? resolveApiAssetUrl(thumbnailUrl) : '/coala-card-placeholder.png'
 }
 
 export function PostCard({ onOpenAllPosts, onOpenPost, limit = 3, dashboard = false }: PostCardProps) {

@@ -10,7 +10,12 @@ import {
 } from '../../shared/api/recruits'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isSameUserId } from '../../shared/auth/userIdentity'
+import { isAdminUser } from '../../shared/auth/adminAccess'
 import { Icon } from '../../shared/ui/Icon'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { recruitItems } from '../../dummy/recruitData'
+import { StudyConnections } from '../../shared/ui/StudyConnections'
+import { RecruitParticipants } from './RecruitParticipants'
 
 type RecruitDetailPageProps = {
   recruitId: string
@@ -101,12 +106,14 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const [isEditing, setIsEditing] = useState(false)
   const [editDraft, setEditDraft] = useState<RecruitEditDraft | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const [membershipRevision, setMembershipRevision] = useState(0)
 
   const item = useMemo(() => {
     const localRecruitItems = loadLocalRecruitItems()
     return (
       localRecruitItems.find((recruit) => recruit.id === recruitId)
       ?? remoteItem
+      ?? recruitItems.find((recruit) => recruit.id === recruitId)
     )
   }, [recruitId, remoteItem])
 
@@ -142,7 +149,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const totalMax = item.roles.reduce((sum, role) => sum + role.max, 0)
   const participationRate = totalMax > 0 ? (totalCurrent / totalMax) * 100 : 0
   const isOpen = item.status !== 'closed'
-  const isOperator = user?.role === 'STAFF' || user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'
+  const isOperator = isAdminUser(user)
   const canManageRecruit = Boolean(
     item.id.startsWith('local-recruit-') ||
     isOperator ||
@@ -225,7 +232,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   }
 
   return (
-    <section className="coala-content coala-content--recruit">
+    <section className="coala-content coala-content--recruit recruit-detail-page">
       <div className="recruit-detail-shell">
         <div className="recruit-detail-main">
           <button type="button" className="recruit-detail-back" onClick={onBack}>
@@ -233,16 +240,19 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
             목록으로 돌아가기
           </button>
 
-          <article className="surface-card recruit-detail-card">
+          <article className="recruit-detail-card recruit-detail-hero-card">
             {actionError ? <p className="auth-error">{actionError}</p> : null}
             <div className="recruit-detail-badges">
-              <span className="recruit-detail-badge recruit-detail-badge--primary">RECRUITING</span>
+              <span className="recruit-detail-badge recruit-detail-badge--primary">
+                {item.status === 'open' ? '모집 중' : item.status === 'closing-soon' ? '마감 임박' : '모집 마감'}
+              </span>
               <span className="recruit-detail-badge recruit-detail-badge--secondary">
                 {categoryLabelById[item.category]}
               </span>
             </div>
 
-            <h2 className="recruit-detail-title">{item.title}</h2>
+            <h1 className="recruit-detail-title">{item.title}</h1>
+            <p className="recruit-detail-summary">{item.shortDesc}</p>
 
             {canManageRecruit ? (
               <div className="recruit-manage-actions">
@@ -336,33 +346,33 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
               </span>
             </p>
 
-            <div className="recruit-info-grid">
-              <div className="recruit-info-cell">
-                <span className="recruit-info-label">모집 분야</span>
-                <span className="recruit-info-value">{item.roles.map((role) => role.label).join(', ')}</span>
+            <dl className="recruit-detail-facts" aria-label="모집 정보">
+              <div className="recruit-detail-fact">
+                <dt>모집 분야</dt>
+                <dd>{item.roles.map((role) => role.label).join(', ')}</dd>
               </div>
-              <div className="recruit-info-cell">
-                <span className="recruit-info-label">진행 방식</span>
-                <span className="recruit-info-value">{item.meetingType}</span>
+              <div className="recruit-detail-fact">
+                <dt>진행 방식</dt>
+                <dd>{item.meetingType}</dd>
               </div>
-              <div className="recruit-info-cell">
-                <span className="recruit-info-label">예상 기간</span>
-                <span className="recruit-info-value">{item.expectedDuration}</span>
+              <div className="recruit-detail-fact">
+                <dt>예상 기간</dt>
+                <dd>{item.expectedDuration}</dd>
               </div>
-              <div className="recruit-info-cell">
-                <span className="recruit-info-label">기술 스택</span>
-                <div className="recruit-tech-stack">
+              <div className="recruit-detail-fact recruit-detail-fact--stack">
+                <dt>기술 스택</dt>
+                <dd className="recruit-tech-stack">
                   {item.techStack.map((tech) => (
                     <span key={tech} className="recruit-tech-chip">
                       {tech}
                     </span>
                   ))}
-                </div>
+                </dd>
               </div>
-            </div>
+            </dl>
           </article>
 
-          <article className="surface-card recruit-detail-card recruit-content-card">
+          <article className="recruit-detail-card recruit-content-card recruit-detail-section-card">
             <h3 className="recruit-content-title">
               <span className="recruit-content-title-bar" />
               모집 소개
@@ -376,18 +386,18 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
 
             <div className="recruit-process-section">
               <p className="recruit-process-label">진행 프로세스</p>
-              <ul className="recruit-process-list">
-                {item.processList.map((process) => (
+              <ol className="recruit-process-list">
+                {item.processList.map((process, index) => (
                   <li key={process} className="recruit-process-item">
-                    <span className="recruit-process-check">✓</span>
+                    <span className="recruit-process-check">{index + 1}</span>
                     <span>{process}</span>
                   </li>
                 ))}
-              </ul>
+              </ol>
             </div>
           </article>
 
-          <article className="surface-card recruit-detail-card">
+          <article className="recruit-detail-card recruit-detail-section-card recruit-qa-card">
             <h3 className="recruit-content-title">
               질문과 답변 <span className="recruit-qa-count">{comments.length}</span>
             </h3>
@@ -414,9 +424,12 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
             <ul className="recruit-comment-list">
               {comments.map((itemComment) => (
                 <li key={itemComment.id} className="recruit-comment">
-                  <span className={`board-avatar board-avatar--${itemComment.authorTone}`}>
-                    {itemComment.authorInitials}
-                  </span>
+                  <CharacterAvatar
+                    name={itemComment.author}
+                    seed={`${item.id}-${itemComment.author}`}
+                    size="xs"
+                    className="board-avatar"
+                  />
                   <div className="recruit-comment-body">
                     <div className="recruit-comment-header">
                       <span className="recruit-comment-author">{itemComment.author}</span>
@@ -431,7 +444,12 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
         </div>
 
         <aside className="recruit-detail-sidebar">
-          <div className="surface-card recruit-participation-card">
+          <StudyConnections key={membershipRevision} recruitId={item.id} canManage={canManageRecruit} />
+          {canManageRecruit && <RecruitParticipants recruitId={item.id} onChange={() => {
+            setMembershipRevision((value) => value + 1)
+            recruitsApi.getRecruit(item.id).then(setRemoteItem).catch(() => setActionError('참여 인원을 새로 불러오지 못했습니다.'))
+          }} />}
+          <section className="recruit-participation-card">
             <p className="recruit-participation-label">참여 현황</p>
             <div className="recruit-member-count-row">
               <span className="recruit-member-count">
@@ -481,14 +499,15 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
                 recruitsApi.bookmark(item.id).catch(() => {})
               }}
             >
-              {saved ? '관심 프로젝트 저장됨' : '관심 프로젝트로 저장'}
+              <Icon name="heart" size={16} />
+              {saved ? '관심 공고 저장됨' : '관심 공고 저장'}
             </button>
-          </div>
+          </section>
 
-          <div className="surface-card recruit-host-card">
+          <section className="recruit-host-card">
             <p className="recruit-host-section-label">모집 주최자</p>
             <div className="recruit-host-info">
-              <span className={`leader-avatar leader-avatar--${item.hostTone}`}>{item.hostInitials}</span>
+              <CharacterAvatar name={item.host} seed={item.authorId ?? item.host} size="md" className="leader-avatar" />
               <div>
                 <p className="recruit-host-name">{item.host}</p>
                 <p className="recruit-host-role">{item.hostRole}</p>
@@ -507,7 +526,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
                 최근 6개월 내 프로젝트 운영/리뷰 이력과 피드백 응답 속도를 기준으로 산정한 지표입니다.
               </p>
             </div>
-          </div>
+          </section>
         </aside>
       </div>
     </section>

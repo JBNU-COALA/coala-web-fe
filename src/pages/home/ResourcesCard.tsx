@@ -4,6 +4,7 @@ import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { getFallbackInfoBoardId } from '../../shared/communityBoards'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
+import { SafeImage } from '../../shared/ui/SafeImage'
 
 type ResourcesCardProps = {
   onOpenInfo?: () => void
@@ -17,7 +18,7 @@ function getResourceThumbnailUrl(resource: InfoArticle) {
     contentImageUrl ||
     resource.imageUrl ||
     (resource.thumbnailAttachmentId ? `/api/attachments/${resource.thumbnailAttachmentId}/download` : '')
-  return resolveApiAssetUrl(thumbnailUrl)
+  return thumbnailUrl ? resolveApiAssetUrl(thumbnailUrl) : '/coala-card-placeholder.png'
 }
 
 const infoResourceLabelByFilter: Record<InfoArticle['filter'], string> = {
@@ -72,11 +73,14 @@ export function ResourcesCard({ onOpenInfo, onOpenInfoArticle, dashboard = false
                 onClick={() => onOpenInfoArticle?.(getFallbackInfoBoardId(resource.filter), resource.id)}
               >
                 {thumbnailUrl ? (
-                  <span
-                    className="resource-thumbnail"
-                    style={{ backgroundImage: `url(${thumbnailUrl})` }}
-                    aria-hidden="true"
-                  />
+                  <span className="resource-thumbnail" aria-hidden="true">
+                    <SafeImage
+                      src={thumbnailUrl}
+                      alt=""
+                      loading="lazy"
+                      fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+                    />
+                  </span>
                 ) : (
                   <span className={`resource-icon resource-icon--${resource.filter}`}>
                     <Icon name={resource.filter === 'resource' ? 'book' : resource.filter === 'contest' ? 'calendar' : 'file'} size={16} />

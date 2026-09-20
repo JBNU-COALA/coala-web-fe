@@ -6,6 +6,7 @@ import { postsApi, type CommentItem, type PostDetail } from '../../shared/api/po
 import { moderationApi, type ReportReasonType } from '../../shared/api/moderation'
 import { postCategoryMeta } from '../../shared/postCategories'
 import { Icon } from '../../shared/ui/Icon'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { useAuth } from '../../shared/auth/AuthContext'
 import type { UserData } from '../../shared/api/auth'
 import { isSameUserId } from '../../shared/auth/userIdentity'
@@ -360,10 +361,18 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
         <div className={isReply ? undefined : 'post-comment-item'}>
           <div className="post-comment-topline">
             <div className="post-comment-author-block">
-              <strong className="post-comment-author">
-                {comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
-              </strong>
-              <span className="post-comment-time">{formatDate(comment.updatedAt ?? comment.createdAt)}</span>
+              <CharacterAvatar
+                name={comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
+                seed={comment.userId ?? comment.commentId}
+                size="xs"
+                className="board-avatar"
+              />
+              <div className="post-comment-author-copy">
+                <strong className="post-comment-author">
+                  {comment.authorName ?? (comment.userId ? `사용자 ${comment.userId}` : '익명')}
+                </strong>
+                <span className="post-comment-time">{formatDate(comment.updatedAt ?? comment.createdAt)}</span>
+              </div>
             </div>
             {canManageComment && !isEditing ? (
               <div className="post-comment-actions">
@@ -520,11 +529,14 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
 
           <div className="post-cover-meta">
             <div className="post-meta-author">
-              <span className="board-avatar board-avatar--mint">
-                {(post.authorName ?? String(post.userId))[0]}
-              </span>
+              <CharacterAvatar
+                name={visiblePost.authorName ?? (visiblePost.userId ? `사용자 ${visiblePost.userId}` : '익명')}
+                seed={visiblePost.userId}
+                size="sm"
+                className="board-avatar"
+              />
               <div>
-                <strong>{visiblePost.authorName ?? `사용자 ${visiblePost.userId}`}</strong>
+                <strong>{visiblePost.authorName ?? (visiblePost.userId ? `사용자 ${visiblePost.userId}` : '익명')}</strong>
                 <span>{formatDate(visiblePost.createdAt)}</span>
               </div>
             </div>

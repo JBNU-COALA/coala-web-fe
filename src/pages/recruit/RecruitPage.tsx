@@ -1,12 +1,17 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { routes } from '../../shared/routes'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isSameUserId } from '../../shared/auth/userIdentity'
+import { isAdminUser } from '../../shared/auth/adminAccess'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
+import { recruitItems } from '../../dummy/recruitData'
 import {
   recruitsApi,
   type RecruitCategory,
@@ -22,7 +27,7 @@ type RecruitPageProps = {
   initialMode?: RecruitMode
 }
 
-type RecruitMode = 'list' | 'applications' | 'manage' | 'write'
+type RecruitMode = 'list' | 'applied' | 'saved' | 'manage' | 'write'
 type RecruitListVariant = 'public' | 'applied' | 'managed'
 
 const categories: { id: RecruitCategory | 'all'; label: string }[] = [
@@ -36,7 +41,12 @@ const writeCategories = categories.filter(
   (category): category is { id: RecruitCategory; label: string } => category.id !== 'all',
 )
 
-const recruitCategoryTabs = writeCategories
+const recruitFilterTabs: FilterTabOption<RecruitCategory | 'all'>[] = [
+  { id: 'all', label: '전체', icon: 'layout', tone: 'all' },
+  { id: 'study', label: '스터디', icon: 'book', tone: 'study' },
+  { id: 'project', label: '프로젝트', icon: 'users', tone: 'project' },
+  { id: 'tutoring', label: '멘토링', icon: 'user', tone: 'tutoring' },
+]
 const recruitCategoryLabel = Object.fromEntries(
   writeCategories.map((category) => [category.id, category.label]),
 ) as Record<RecruitCategory, string>
@@ -45,12 +55,6 @@ const filters: { id: RecruitFilterId; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: 'open', label: '모집중' },
   { id: 'closing-soon', label: '마감 임박' },
-]
-
-const modeTabs: { id: Exclude<RecruitMode, 'write'>; label: string; icon: Parameters<typeof Icon>[0]['name'] }[] = [
-  { id: 'list', label: '모집 공고', icon: 'file' },
-  { id: 'applications', label: '지원내역/관심공고', icon: 'users' },
-  { id: 'manage', label: '모집 관리', icon: 'settings' },
 ]
 
 const LOCAL_RECRUIT_STORAGE_KEY = 'coala-local-recruits'
@@ -213,6 +217,10 @@ type RecruitListProps = {
   items: RecruitItem[]
   variant: RecruitListVariant
   emptyText: string
+  emptyDescription?: string
+  emptyIcon?: Parameters<typeof Icon>[0]['name']
+  emptyActionLabel?: string
+  onEmptyAction?: () => void
   appliedIds: Set<string>
   savedIds: Set<string>
   onSelectRecruit: (id: string) => void
@@ -224,6 +232,10 @@ function RecruitList({
   items,
   variant,
   emptyText,
+  emptyDescription,
+  emptyIcon = 'search',
+  emptyActionLabel,
+  onEmptyAction,
   appliedIds,
   savedIds,
   onSelectRecruit,
@@ -238,7 +250,7 @@ function RecruitList({
         const canApply = isOpen || isClosingSoon
         const isApplied = appliedIds.has(item.id)
         const previewSource = [item.shortDesc, ...item.detailContent].join('\n')
-        const previewImageUrl = extractFirstContentImage(previewSource)
+        const previewImageUrl = extractFirstContentImage(previewSource) || '/coala-card-placeholder.png'
         const summary = toPlainContentPreview(item.shortDesc) || toPlainContentPreview(item.detailContent.join(' '))
         const techPreview = item.techStack.slice(0, 4)
         const rolePreview = item.roles.slice(0, 3)
@@ -251,14 +263,12 @@ function RecruitList({
               aria-label={`${item.title} 상세 모집 공고 보기`}
               onClick={() => onSelectRecruit(item.id)}
             />
-            <div className={previewImageUrl ? 'recruit-card-open recruit-card-open--with-image' : 'recruit-card-open'}>
-              {previewImageUrl ? (
-                <span
-                  className="recruit-card-cover"
-                  style={{ backgroundImage: `url(${previewImageUrl})` }}
-                  aria-hidden="true"
-                />
-              ) : null}
+            <div className="recruit-card-open recruit-card-open--with-image">
+              <span
+                className="recruit-card-cover"
+                style={{ backgroundImage: `url(${previewImageUrl})` }}
+                aria-hidden="true"
+              />
               <span className="recruit-card-topline">
                 <span className={`recruit-status-pill ${getStatusClass(item.status)}`}>
                   <span className="recruit-status-dot" />
@@ -271,7 +281,12 @@ function RecruitList({
               <strong className="recruit-card-title">{item.title}</strong>
               <span className="recruit-card-desc">{summary}</span>
               <span className="recruit-card-author">
-                작성자 {item.authorName || item.host}
+                <CharacterAvatar
+                  name={item.authorName || item.host}
+                  seed={item.authorId ?? item.id}
+                  size="xs"
+                />
+                <span>작성자 {item.authorName || item.host}</span>
               </span>
 
               <span className="recruit-card-meta-row" aria-label="모집 요약">
@@ -342,7 +357,14 @@ function RecruitList({
       })}
 
       {items.length === 0 ? (
-        <li className="recruit-card-empty">{emptyText}</li>
+        <li className="recruit-card-empty">
+          <span className="recruit-empty-icon"><Icon name={emptyIcon} size={22} /></span>
+          <strong>{emptyText}</strong>
+          {emptyDescription ? <p>{emptyDescription}</p> : null}
+          {emptyActionLabel && onEmptyAction ? (
+            <button type="button" onClick={onEmptyAction}>{emptyActionLabel}</button>
+          ) : null}
+        </li>
       ) : null}
     </ul>
   )
@@ -351,14 +373,20 @@ function RecruitList({
 export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPageProps) {
   const { isLoggedIn, user } = useAuth()
   const navigate = useNavigate()
-  const [mode, setMode] = useState<RecruitMode>(initialMode)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedView = searchParams.get('view')
+  const initialListMode: RecruitMode = requestedView === 'applications'
+    ? 'applied'
+    : requestedView === 'saved' || requestedView === 'manage'
+      ? requestedView
+      : 'list'
+  const mode: RecruitMode = initialMode === 'write' ? 'write' : initialListMode
   const [activeCategory, setActiveCategory] = useState<RecruitCategory | 'all'>('all')
   const [activeFilter, setActiveFilter] = useState<RecruitFilterId>('all')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [query, setQuery] = useState('')
   const [appliedIds, setAppliedIds] = useState<Set<string>>(() => loadAppliedRecruitIds())
   const [savedIds, setSavedIds] = useState<Set<string>>(() => loadSavedRecruitIds())
-  const [applicationView, setApplicationView] = useState<'applied' | 'saved'>('applied')
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
@@ -374,13 +402,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     categories.find((category) => category.id === activeCategory)?.label ?? '전체'
 
   useEffect(() => {
-    setMode(initialMode)
-  }, [initialMode])
-
-  useEffect(() => {
     recruitsApi.getRecruits()
-      .then(setRemoteRecruitItems)
-      .catch(() => setRemoteRecruitItems([]))
+      .then((items) => setRemoteRecruitItems(items.length > 0 ? items : recruitItems))
+      .catch(() => setRemoteRecruitItems(recruitItems))
   }, [])
 
   useEffect(() => {
@@ -433,7 +457,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     () => allRecruitItems.filter((item) => savedIds.has(item.id)),
     [allRecruitItems, savedIds],
   )
-  const isOperator = user?.role === 'STAFF' || user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN'
+  const isOperator = isAdminUser(user)
   const managedItems = useMemo(
     () => allRecruitItems.filter((item) => (
       item.id.startsWith('local-recruit-') ||
@@ -473,8 +497,13 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   }
 
   const changeMode = (nextMode: RecruitMode) => {
-    setMode(nextMode)
-    navigate(nextMode === 'write' ? routes.community.recruitNoticeNew : routes.community.recruit)
+    if (nextMode === 'write') {
+      navigate(routes.community.recruitNoticeNew)
+      return
+    }
+
+    const view = nextMode === 'applied' ? 'applications' : nextMode
+    setSearchParams(view === 'list' ? {} : { view })
   }
 
   const handleCreateRecruit = async (event: FormEvent) => {
@@ -496,8 +525,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       setActiveCategory('all')
       setActiveFilter('all')
       setSortMode('latest')
-      setMode('manage')
-      navigate(routes.community.recruit)
+      navigate(`${routes.community.recruit}?view=manage`)
     } catch {
       const createdRecruit = buildRecruitItem(draft)
       setLocalRecruitItems((current) => {
@@ -506,31 +534,46 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         return next
       })
       setDraftError('서버 저장에 실패해 이 브라우저에 임시 저장했습니다.')
-      setMode('manage')
-      navigate(routes.community.recruit)
+      navigate(`${routes.community.recruit}?view=manage`)
     }
   }
 
   const isTabActive = (tabId: Exclude<RecruitMode, 'write'>) =>
     mode === tabId || (mode === 'write' && tabId === 'manage')
 
+  const workspaceTabs: {
+    id: Exclude<RecruitMode, 'write'>
+    label: string
+  }[] = [
+    { id: 'list', label: '모집 공고' },
+    { id: 'applied', label: '지원 내역' },
+    { id: 'saved', label: '관심 공고' },
+    { id: 'manage', label: isOperator ? '모집 관리' : '내 공고' },
+  ]
+
   return (
     <section className="coala-content coala-content--recruit">
-      <CommunityBanner title="모집" tone="recruit" />
+      <CommunityBanner title="모집" tone="recruit" meta={`모집 공고 ${visibleItems.length}개`} />
 
-      <div className="community-section-tabs">
-        {modeTabs.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={isTabActive(tab.id) ? 'community-section-tab is-active' : 'community-section-tab'}
-            onClick={() => changeMode(tab.id)}
-          >
-            <Icon name={tab.icon} size={14} />
-            {tab.label}
-          </button>
-        ))}
-      </div>
+      <nav className="recruit-workspace-nav" aria-label="모집 메뉴">
+        <div className="recruit-workspace-tabs">
+          {workspaceTabs.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              aria-current={isTabActive(tab.id) ? 'page' : undefined}
+              className={isTabActive(tab.id) ? 'recruit-workspace-tab is-active' : 'recruit-workspace-tab'}
+              onClick={() => changeMode(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <button type="button" className="recruit-create-button" onClick={() => changeMode('write')}>
+          <Icon name="plus" size={16} />
+          공고 등록
+        </button>
+      </nav>
       {actionError ? <p className="auth-error">{actionError}</p> : null}
 
       {mode === 'write' ? (
@@ -650,40 +693,16 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <button type="submit" className="jcloud-submit-button">작성 완료</button>
           </div>
         </form>
-      ) : mode === 'applications' ? (
+      ) : mode === 'applied' || mode === 'saved' ? (
         <section className="recruit-dashboard-panel">
-          <header className="recruit-dashboard-header">
-            <div>
-              <h3>지원내역/관심공고</h3>
-              <p>{applicationView === 'applied' ? appliedItems.length : savedItems.length}개</p>
-            </div>
-          </header>
-          <div className="surface-card recruit-history-filter" role="tablist" aria-label="지원내역 및 관심공고">
-            <div className="recruit-history-filter-options">
-              <button
-                type="button"
-                role="tab"
-                aria-selected={applicationView === 'applied'}
-                className={applicationView === 'applied' ? 'recruit-history-filter-chip is-active' : 'recruit-history-filter-chip'}
-                onClick={() => setApplicationView('applied')}
-              >
-                지원내역
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={applicationView === 'saved'}
-                className={applicationView === 'saved' ? 'recruit-history-filter-chip is-active' : 'recruit-history-filter-chip'}
-                onClick={() => setApplicationView('saved')}
-              >
-                관심공고
-              </button>
-            </div>
-          </div>
           <RecruitList
-            items={applicationView === 'applied' ? appliedItems : savedItems}
-            variant={applicationView === 'applied' ? 'applied' : 'public'}
-            emptyText={applicationView === 'applied' ? '지원내역이 없습니다.' : '관심공고가 없습니다.'}
+            items={mode === 'applied' ? appliedItems : savedItems}
+            variant={mode === 'applied' ? 'applied' : 'public'}
+            emptyText={mode === 'applied' ? '지원한 공고가 없습니다.' : '저장한 관심 공고가 없습니다.'}
+            emptyDescription={mode === 'applied' ? '관심 있는 모집에 지원하면 이곳에서 진행 상황을 확인할 수 있습니다.' : '나중에 다시 보고 싶은 공고를 관심 목록에 저장해보세요.'}
+            emptyIcon={mode === 'applied' ? 'file' : 'heart'}
+            emptyActionLabel="모집 공고 보기"
+            onEmptyAction={() => changeMode('list')}
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}
@@ -693,20 +712,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         </section>
       ) : mode === 'manage' ? (
         <section className="recruit-dashboard-panel">
-          <header className="recruit-dashboard-header">
-            <div>
-              <h3>모집 관리</h3>
-              <p>{managedItems.length}개</p>
-            </div>
-            <button type="button" className="jcloud-submit-button" onClick={() => changeMode('write')}>
-              <Icon name="plus" size={15} />
-              공고 작성
-            </button>
-          </header>
           <RecruitList
             items={managedItems}
             variant="managed"
             emptyText="작성한 모집 공고가 없습니다."
+            emptyDescription="함께할 멤버를 찾을 새 모집 공고를 등록해보세요."
+            emptyIcon="users"
+            emptyActionLabel="공고 등록"
+            onEmptyAction={() => changeMode('write')}
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}
@@ -733,63 +746,34 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <div className="recruit-filter-grid">
               <div className="recruit-filter-group">
                 <span>분류</span>
-                <div className="recruit-segmented recruit-segmented--with-all" role="tablist" aria-label="모집 분류">
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={activeCategory === 'all'}
-                    className={activeCategory === 'all' ? 'is-active' : ''}
-                    onClick={() => setActiveCategory('all')}
-                  >
-                    전체
-                  </button>
-                  <span className="recruit-segmented-divider" aria-hidden="true" />
-                  <div className="recruit-segmented-group">
-                    {recruitCategoryTabs.map((category) => (
-                      <button
-                        key={category.id}
-                        type="button"
-                        role="tab"
-                        aria-selected={activeCategory === category.id}
-                        className={activeCategory === category.id ? 'is-active' : ''}
-                        onClick={() => setActiveCategory(category.id)}
-                      >
-                        {category.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                <FilterTabs
+                  value={activeCategory}
+                  options={recruitFilterTabs}
+                  onChange={setActiveCategory}
+                  ariaLabel="모집 분류"
+                  separateFirst
+                  className="recruit-category-filters"
+                />
               </div>
 
-              <div className="recruit-filter-group">
-                <span>상태</span>
-                <div className="recruit-segmented recruit-segmented--status" role="tablist" aria-label="모집 상태">
-                  {filters.map((filter) => (
-                    <button
-                      key={filter.id}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeFilter === filter.id}
-                      className={activeFilter === filter.id ? 'is-active' : ''}
-                      onClick={() => setActiveFilter(filter.id)}
-                    >
-                      {filter.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <SelectControl
+                className="recruit-filter-group recruit-status-field"
+                label="상태"
+                value={activeFilter}
+                options={filters.map((filter) => ({ value: filter.id, label: filter.id === 'all' ? '전체 상태' : filter.label }))}
+                onChange={setActiveFilter}
+              />
 
-              <label className="recruit-filter-group recruit-sort-field">
-                <span>정렬</span>
-                <select
-                  className="recruit-sort-select"
-                  value={sortMode}
-                  onChange={(event) => setSortMode(event.target.value as 'latest' | 'popular')}
-                >
-                  <option value="latest">최신 등록순</option>
-                  <option value="popular">인기순</option>
-                </select>
-              </label>
+              <SelectControl
+                className="recruit-filter-group recruit-sort-field"
+                label="정렬"
+                value={sortMode}
+                options={[
+                  { value: 'latest', label: '최신 등록순' },
+                  { value: 'popular', label: '인기순' },
+                ]}
+                onChange={setSortMode}
+              />
             </div>
           </section>
 
@@ -797,6 +781,15 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             items={visibleItems}
             variant="public"
             emptyText="조건에 맞는 모집이 없습니다."
+            emptyDescription="검색어나 필터를 바꾸면 다른 모집 공고를 확인할 수 있습니다."
+            emptyIcon="search"
+            emptyActionLabel="필터 초기화"
+            onEmptyAction={() => {
+              setActiveCategory('all')
+              setActiveFilter('all')
+              setSortMode('latest')
+              setQuery('')
+            }}
             appliedIds={appliedIds}
             savedIds={savedIds}
             onSelectRecruit={onSelectRecruit}

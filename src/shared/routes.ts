@@ -10,6 +10,12 @@ export const routes = {
     boardPostEditor: (boardId: string | number, postId: string | number) =>
       `/community/board/${boardId}/posts/${postId}/editor`,
     info: '/community/info',
+    activity: '/community/activity',
+    activityGroup: (id: string) => `/community/activity?group=${encodeURIComponent(id)}`,
+    activityUser: (id: string) => `/community/activity?user=${encodeURIComponent(id)}`,
+    activityRecord: (id: string) => `/community/activity/records/${encodeURIComponent(id)}`,
+    activityRecordNew: '/community/activity/records/new',
+    activityRecordEditor: (id: string) => `/community/activity/records/${encodeURIComponent(id)}/editor`,
     infoPost: (boardId: string | number, infoId: string | number) =>
       `/community/info/${boardId}/posts/${infoId}`,
     infoPostNew: '/community/info/posts/new',

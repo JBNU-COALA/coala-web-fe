@@ -1,58 +1,13 @@
-export type AvatarTone = 'mint' | 'sky' | 'amber' | 'slate' | 'sand' | 'rose'
+import type { ActivityMember, SolvedTier } from '../shared/api/users'
 
-export type SolvedTier =
-  | 'ruby'
-  | 'diamond'
-  | 'platinum'
-  | 'gold'
-  | 'silver'
-  | 'bronze'
-  | 'unrated'
-
-export type ActivityLogType = 'commit' | 'pull-request' | 'release' | 'note'
-
-export type ActivityLog = {
-  id: string
-  type: ActivityLogType
-  title: string
-  repository: string
-  description: string
-  timeLabel: string
-}
-
-export type UserAward = {
-  awardId: string
-  title: string
-  organizer: string
-  rank: string
-  awardedAt: string
-  category: 'competition' | 'hackathon' | 'research' | 'club'
-  description: string
-  credentialUrl?: string
-}
-
-export type ActivityMember = {
-  id: string
-  name: string
-  initials: string
-  tone: AvatarTone
-  role: string
-  grade: '1학년' | '2학년' | '3학년' | '4학년' | '졸업생'
-  lab: string
-  githubHandle: string
-  githubUrl: string
-  focus: string
-  recentCommit: string
-  sharedRepos: string[]
-  logs: ActivityLog[]
-  solvedHandle: string
-  solvedTier: SolvedTier
-  solvedCount: number
-  githubCommits: number
-  totalPoints: number
-  awards: UserAward[]
-  isMe?: boolean
-}
+export type {
+  ActivityLog,
+  ActivityLogType,
+  ActivityMember,
+  AvatarTone,
+  SolvedTier,
+  UserAward,
+} from '../shared/api/users'
 
 export const GITHUB_COMMIT_POINT = 5
 
@@ -78,6 +33,9 @@ export const activityMembers: ActivityMember[] = [
     githubHandle: 'minji-dev',
     githubUrl: 'https://github.com/minji-dev',
     focus: 'React, 디자인 시스템',
+    bio: '사용자 경험과 재사용 가능한 UI 구조를 고민합니다.',
+    activityNote: '',
+    awardNote: '',
     recentCommit: '오늘 09:12',
     sharedRepos: ['coala-dashboard', 'design-token-lab'],
     solvedHandle: 'minji_dev',
@@ -136,6 +94,9 @@ export const activityMembers: ActivityMember[] = [
     githubHandle: 'seyeon-api',
     githubUrl: 'https://github.com/seyeon-api',
     focus: 'Spring Boot, 배포 자동화',
+    bio: '안정적인 API와 반복 가능한 배포 환경을 만듭니다.',
+    activityNote: '',
+    awardNote: '',
     recentCommit: '어제 22:40',
     sharedRepos: ['instance-api', 'deploy-playground'],
     solvedHandle: 'seyeon_api',
@@ -177,6 +138,9 @@ export const activityMembers: ActivityMember[] = [
     githubHandle: 'mino-lab',
     githubUrl: 'https://github.com/mino-lab',
     focus: 'LLM, 데이터 파이프라인',
+    bio: '연구 데이터를 서비스로 연결하는 작업을 합니다.',
+    activityNote: '',
+    awardNote: '',
     recentCommit: '2일 전',
     sharedRepos: ['paper-scout', 'dataset-cleaner'],
     solvedHandle: 'mino_lab',
@@ -217,6 +181,9 @@ export const activityMembers: ActivityMember[] = [
     githubHandle: 'doyun-stack',
     githubUrl: 'https://github.com/doyun-stack',
     focus: 'Next.js, PostgreSQL',
+    bio: '작은 아이디어를 실제로 운영되는 서비스로 구현합니다.',
+    activityNote: '',
+    awardNote: '',
     recentCommit: '3일 전',
     sharedRepos: ['team-finder', 'study-mate'],
     solvedHandle: 'doyun_stack',

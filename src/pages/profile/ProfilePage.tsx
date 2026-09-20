@@ -7,7 +7,10 @@ import { resolveApiAssetUrl } from '../../shared/api/client'
 import { boardsApi } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { usersApi, type ActivityMember, type AvatarTone, type UserAward, type UserProfileLink } from '../../shared/api/users'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { Icon } from '../../shared/ui/Icon'
+import { StudyConnections } from '../../shared/ui/StudyConnections'
+import './profile-layout.css'
 
 type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
 type AuthoredContentKind = 'board' | 'info' | 'recruit'
@@ -243,7 +246,6 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const profileAffiliation = isOwnProfile
     ? firstNonBlank(user?.lab, user?.department, profileMember.lab, '소속 미입력')
     : profileMember.lab
-  const initial = displayName.charAt(0)
   const joinedAt = isOwnProfile && user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : profileMember.recentCommit.replace(' 가입', '')
@@ -601,13 +603,13 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
-              <div className={`profile-page-avatar profile-page-avatar--${displayAvatarTone}${displayProfileImage ? ' profile-page-avatar--image' : ''}`}>
-                {displayProfileImage ? (
-                  <img src={displayProfileImage} alt={`${displayName} 프로필 사진`} />
-                ) : (
-                  <span>{initial}</span>
-                )}
-              </div>
+              <CharacterAvatar
+                name={displayName}
+                seed={effectiveProfileUserId || displayName}
+                src={displayProfileImage}
+                size="xl"
+                className={`profile-page-avatar profile-page-avatar--${displayAvatarTone}${displayProfileImage ? ' profile-page-avatar--image' : ''}`}
+              />
               {canEdit ? (
                 <div className="profile-photo-controls">
                   <button type="button" className="profile-photo-button" onClick={() => photoInputRef.current?.click()}>
@@ -671,6 +673,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error">프로필을 저장하지 못했습니다.</p> : null}
         {profileSaveState === 'saved' ? <p className="profile-save-message">프로필을 저장했습니다.</p> : null}
 
+        <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
         <div className="profile-stats-grid">
           <div className="profile-stat-card surface-card">
             <p className="profile-stat-value">{profileMember.totalPoints.toLocaleString()}</p>

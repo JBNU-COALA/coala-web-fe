@@ -1,0 +1,51 @@
+.coala-content--profile .profile-page-hero {
+  padding: 0 0 24px;
+  border: 0;
+  border-bottom: 1px solid #e0e6e3;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.coala-content--profile .study-connections { margin: 0; border-top: 0; padding: 20px 0; }
+.coala-content--profile .profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 12px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e0e6e3;
+}
+.coala-content--profile .profile-stat-card {
+  padding: 4px 0;
+  min-width: 0;
+  min-height: 68px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.coala-content--profile .profile-stat-value { font-family: inherit; font-size: 21px; color: #273c33; font-variant-numeric: tabular-nums; }
+.coala-content--profile .profile-stat-label { font-size: 12px; font-weight: 500; }
+.coala-content--profile .profile-stat-card-head { min-height: 32px; gap: 4px; }
+.coala-content--profile .profile-section-card {
+  border: 0;
+  border-bottom: 1px solid #e0e6e3;
+  border-radius: 0;
+  padding: 20px 0;
+  box-shadow: none;
+  background: transparent;
+}
+@media (max-width: 700px) {
+  .coala-content--profile .profile-page-hero { position: relative; gap: 14px; }
+  .coala-content--profile .profile-page-hero-main { flex-direction: row; gap: 18px; align-items: flex-start; }
+  .coala-content--profile .profile-photo-panel { width: 88px; flex: 0 0 88px; display: flex; flex-direction: column; gap: 8px; }
+  .coala-content--profile .profile-page-avatar { width: 88px; height: 88px; min-width: 88px; }
+  .coala-content--profile .profile-page-identity { min-width: 0; flex: 1; }
+  .coala-content--profile .profile-page-name { font-size: 25px; overflow-wrap: anywhere; }
+  .coala-content--profile .profile-page-role { font-size: 13px; }
+  .coala-content--profile .profile-page-meta { gap: 6px; }
+  .coala-content--profile .profile-page-meta > * { padding: 4px 0; background: none; border: 0; font-size: 12px; }
+  .coala-content--profile .profile-photo-controls { width: 88px; }
+  .coala-content--profile .profile-photo-button { width: 100%; min-height: 36px; font-size: 11px; padding: 0 5px; }
+  .coala-content--profile .profile-stats-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .coala-content--profile .profile-tab-bar { gap: 18px; }
+}

@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type Ke
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
+import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
+import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { SafeImage } from '../../shared/ui/SafeImage'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
 import { DomainServicePanel } from '../service/DomainServicePanel'
@@ -54,6 +57,11 @@ const serviceStatusFilters: { id: ServiceStatusFilter; label: string }[] = [
   { id: '운영중지', label: '운영중지' },
   { id: '운영종료', label: '운영종료' },
 ]
+const serviceStatusTabs: FilterTabOption<ServiceStatusFilter>[] = serviceStatusFilters.map((status) => ({
+  id: status.id,
+  label: status.label,
+  tone: status.id === 'all' ? 'all' : 'status',
+}))
 
 const toExternalUrl = (url: string) => (
   /^https?:\/\//i.test(url) ? url : `https://${url}`
@@ -107,7 +115,7 @@ export function ServicesPage() {
   const [serviceImageError, setServiceImageError] = useState<string | null>(null)
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false)
   const [addDraft, setAddDraft] = useState(emptyServiceDraft)
-  const [officialMode, setOfficialMode] = useState<OfficialServiceMode>(() => resolveOfficialMode(location.pathname))
+  const officialMode = resolveOfficialMode(location.pathname)
 
   const normalizedQuery = query.trim().toLowerCase()
   const activeTab: ServicesTab = resolveServicesTab(location.pathname, location.search)
@@ -148,14 +156,6 @@ export function ServicesPage() {
   )
 
   useEffect(() => {
-    setCurrentPage(1)
-  }, [normalizedQuery, selectedStatus, selectedTags])
-
-  useEffect(() => {
-    setOfficialMode(resolveOfficialMode(location.pathname))
-  }, [location.pathname])
-
-  useEffect(() => {
     servicesApi.getMemberServices()
       .then((services) => {
         setMemberServices(services as MemberService[])
@@ -165,6 +165,7 @@ export function ServicesPage() {
   }, [])
 
   const toggleSelectedTag = (tag: string) => {
+    setCurrentPage(1)
     setSelectedTags((current) =>
       current.includes(tag)
         ? current.filter((item) => item !== tag)
@@ -334,23 +335,83 @@ export function ServicesPage() {
         <CommunityBanner title={activeBannerTitle} tone="service" />
 
         {activeTab === 'coas' ? (
-          <section className="surface-card cossp-panel">
-            <div className="cossp-visual" role="img" aria-label="Coala Open Source Project typography">
-              <span>Coala</span>
-              <span>Open Source</span>
-              <span>Project</span>
-            </div>
-            <div className="cossp-copy">
-              <p className="services-hub-eyebrow">COAS</p>
-              <h3>코알라 오픈소스 프로젝트</h3>
-              <div className="cossp-feature-grid">
-                <span>도메인 배포</span>
-                <span>GitHub 협업</span>
-                <span>서비스 운영 기록</span>
-                <span>오픈소스 기여</span>
+          <>
+            <section className="surface-card cossp-panel">
+              <div className="cossp-visual" role="img" aria-label="Coala Open Source Project typography">
+                <span>Coala</span>
+                <span>Open Source</span>
+                <span>Project</span>
+                <img src="/coala-developer.png" alt="" aria-hidden="true" />
               </div>
-            </div>
-          </section>
+              <div className="cossp-copy">
+                <p className="services-hub-eyebrow">COAS</p>
+                <h3>코알라 오픈소스 프로젝트</h3>
+                <p className="cossp-description">COAS는 더 나은 교육과 성장을 위해 함께 기여하고 배우며 만들어가는 코알라의 오픈소스 프로젝트입니다.</p>
+                <div className="cossp-feature-grid">
+                  {[
+                    ['network', '도메인 배포', '서비스를 누구나 배포하고 운영할 수 있습니다.'],
+                    ['github', 'GitHub 협업', '오픈된 저장소에서 함께 개발하고 리뷰합니다.'],
+                    ['file', '서비스 운영 기록', '배포와 기여 내역을 투명하게 공개합니다.'],
+                    ['users', '오픈소스 기여', '작은 기여도 큰 변화를 만들 수 있습니다.'],
+                  ].map(([icon, title, description]) => (
+                    <article key={title}>
+                      <span><Icon name={icon as Parameters<typeof Icon>[0]['name']} size={21} /></span>
+                      <div><strong>{title}</strong><small>{description}</small></div>
+                    </article>
+                  ))}
+                </div>
+                <div className="cossp-actions">
+                  <button type="button" onClick={() => navigate(routes.services.official)}>프로젝트 보기 <Icon name="chevron-right" size={15} /></button>
+                  <button type="button" onClick={() => navigate(routes.services.user)}>참여 안내</button>
+                </div>
+              </div>
+            </section>
+
+            <section className="services-showcase" aria-label="서비스 둘러보기">
+              <header className="services-showcase-head">
+                <div><span>OFFICIAL</span><h3>공식 서비스</h3></div>
+                <button type="button" onClick={() => navigate(routes.services.official)}>전체 보기</button>
+              </header>
+              <div className="official-service-preview-grid">
+                <button type="button" onClick={() => navigate(routes.services.officialInstance)}>
+                  <Icon name="network" size={22} />
+                  <span><strong>인스턴스 대여</strong><small>프로젝트를 배포할 서버를 신청합니다.</small></span>
+                  <Icon name="chevron-right" size={17} />
+                </button>
+                <button type="button" onClick={() => navigate(routes.services.officialDomain)}>
+                  <Icon name="link" size={22} />
+                  <span><strong>도메인 신청</strong><small>코알라 도메인으로 서비스를 공개합니다.</small></span>
+                  <Icon name="chevron-right" size={17} />
+                </button>
+              </div>
+            </section>
+
+            <section className="services-showcase" aria-label="유저 서비스 미리보기">
+              <header className="services-showcase-head">
+                <div><span>MEMBER BUILT</span><h3>유저 서비스</h3></div>
+                <button type="button" onClick={() => navigate(routes.services.user)}>전체 보기</button>
+              </header>
+              <div className="member-service-preview-grid">
+                {memberServices.slice(0, 3).map((service) => (
+                  <button key={service.id} type="button" onClick={() => openServiceDetail(service.id)}>
+                    <span className="member-service-preview-image">
+                      <SafeImage
+                        src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/coala-card-placeholder.png'}
+                        alt=""
+                        loading="lazy"
+                        fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+                      />
+                    </span>
+                    <span className="member-service-preview-copy">
+                      <small>{service.status}</small>
+                      <strong>{service.title}</strong>
+                      <span>{service.summary}</span>
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </section>
+          </>
         ) : activeTab === 'official' ? (
           <div className="official-service-panel">
             <div className="service-menu-tabs surface-card" aria-label="공식서비스 메뉴">
@@ -385,9 +446,12 @@ export function ServicesPage() {
                       ? 'member-service-detail-media'
                       : 'member-service-detail-media member-service-detail-media--empty'
                   }
-                  style={selectedService.imageUrl ? { backgroundImage: `url(${toServiceImageUrl(selectedService.imageUrl)})` } : undefined}
                 >
-                  {!selectedService.imageUrl ? <Icon name="image" size={28} /> : null}
+                  <SafeImage
+                    src={selectedService.imageUrl ? toServiceImageUrl(selectedService.imageUrl) : '/coala-card-placeholder.png'}
+                    alt=""
+                    fallback={<img src="/coala-card-placeholder.png" alt="" />}
+                  />
                   <span className="member-service-status">{selectedService.status}</span>
                 </div>
 
@@ -513,26 +577,7 @@ export function ServicesPage() {
                   <strong>유저 서비스</strong>
                 </div>
                 <div className="member-services-toolbar-actions">
-                  <div className="member-service-view-toggle" aria-label="보기 방식">
-                    <button
-                      type="button"
-                      className={viewMode === 'card' ? 'is-active' : ''}
-                      aria-pressed={viewMode === 'card'}
-                      onClick={() => setViewMode('card')}
-                    >
-                      <Icon name="layout" size={15} />
-                      카드
-                    </button>
-                    <button
-                      type="button"
-                      className={viewMode === 'list' ? 'is-active' : ''}
-                      aria-pressed={viewMode === 'list'}
-                      onClick={() => setViewMode('list')}
-                    >
-                      <Icon name="list" size={15} />
-                      목록
-                    </button>
-                  </div>
+                  <ViewModeToggle value={viewMode} onChange={setViewMode} showLabels />
                   <button
                     type="button"
                     className="member-service-add-button"
@@ -547,26 +592,21 @@ export function ServicesPage() {
               <div className="member-service-filter-grid">
                 <div className="member-service-filter-group">
                   <span className="member-service-filter-label">상태</span>
-                  <div className="member-service-status-filter" aria-label="유저 서비스 운영 상태">
-                    {serviceStatusFilters.map((status) => (
-                      <button
-                        key={status.id}
-                        type="button"
-                        className={selectedStatus === status.id ? 'is-active' : ''}
-                        aria-pressed={selectedStatus === status.id}
-                        onClick={() => setSelectedStatus(status.id)}
-                      >
-                        {status.label}
-                      </button>
-                    ))}
-                  </div>
+                  <FilterTabs
+                    value={selectedStatus}
+                    options={serviceStatusTabs}
+                    onChange={(status) => { setSelectedStatus(status); setCurrentPage(1) }}
+                    ariaLabel="유저 서비스 운영 상태"
+                    separateFirst
+                    className="member-service-status-filter"
+                  />
                 </div>
 
                 <div className="member-service-filter-group">
                   <div className="member-service-tag-tools">
                     <span className="member-service-filter-label">태그</span>
                     {selectedTags.length > 0 ? (
-                      <button type="button" className="member-service-tag-reset" onClick={() => setSelectedTags([])}>
+                      <button type="button" className="member-service-tag-reset" onClick={() => { setSelectedTags([]); setCurrentPage(1) }}>
                         초기화
                       </button>
                     ) : null}
@@ -595,7 +635,7 @@ export function ServicesPage() {
                 <SearchField
                   className="resource-search-bar"
                   value={query}
-                  onChange={setQuery}
+                  onChange={(value) => { setQuery(value); setCurrentPage(1) }}
                   placeholder="서비스명, 만든 유저, 태그 검색"
                 />
               </div>
@@ -758,11 +798,13 @@ export function ServicesPage() {
                 >
                   {viewMode === 'card' ? (
                     <>
-                      <div
-                        className={service.imageUrl ? 'member-service-media' : 'member-service-media member-service-media--empty'}
-                        style={service.imageUrl ? { backgroundImage: `url(${toServiceImageUrl(service.imageUrl)})` } : undefined}
-                      >
-                        {!service.imageUrl ? <Icon name="image" size={22} /> : null}
+                      <div className="member-service-media">
+                        <SafeImage
+                          src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/coala-card-placeholder.png'}
+                          alt=""
+                          loading="lazy"
+                          fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+                        />
                       </div>
                       <div className="member-service-card-head">
                         <span className="member-service-status">{service.status}</span>

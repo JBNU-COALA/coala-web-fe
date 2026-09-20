@@ -5,6 +5,7 @@ import { usersApi, type ActivityMember } from '../shared/api/users'
 import { useAuth } from '../shared/auth/AuthContext'
 import { isSameUserId } from '../shared/auth/userIdentity'
 import { Icon, type IconName } from '../shared/ui/Icon'
+import { CharacterAvatar } from '../shared/ui/CharacterAvatar'
 import type { AppRoute } from './navigationData'
 
 type RailRoute = Extract<AppRoute, 'community' | 'recruit' | 'game' | 'service'>
@@ -79,7 +80,6 @@ export function UserActivityRail({
   }
   const displayName = user?.name ?? user?.email ?? '게스트'
   const displayRole = user?.lab ?? user?.department ?? '게스트'
-  const initial = displayName.charAt(0)
   const meta = routeMeta[route]
 
   useEffect(() => {
@@ -224,7 +224,12 @@ export function UserActivityRail({
     <aside className="user-activity-rail" aria-label="내 정보 요약">
       <section className="surface-card activity-rail-card activity-rail-profile">
         <div className="activity-rail-profile-head">
-          <span className="activity-rail-avatar">{initial}</span>
+          <CharacterAvatar
+            name={displayName}
+            seed={user?.id ?? user?.email ?? displayName}
+            size="lg"
+            className="activity-rail-avatar"
+          />
           <div className="activity-rail-identity">
             <h2>{displayName}</h2>
             <p>{displayRole}</p>

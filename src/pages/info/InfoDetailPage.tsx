@@ -3,6 +3,7 @@ import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { copyMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
 import { extractFirstContentImage } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
@@ -220,9 +221,12 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
 
           <div className="post-cover-meta">
             <div className="post-meta-author">
-              <span className="board-avatar board-avatar--mint">
-                {source.name[0]}
-              </span>
+              <CharacterAvatar
+                name={source.name}
+                seed={item.authorId ?? item.id}
+                size="sm"
+                className="board-avatar"
+              />
               <div>
                 <strong>{source.name}</strong>
                 <span>{formatDate(source.date)}</span>

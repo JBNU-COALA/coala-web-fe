@@ -5,6 +5,11 @@ import { postCategoryFilters, postCategoryMeta, type PostBoardFilterId } from '.
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
+import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
+import { SafeImage } from '../../shared/ui/SafeImage'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
@@ -20,17 +25,11 @@ type EnrichedPost = PostListItem & { board?: BoardData }
 type PostBoardTabId = 'all' | PostBoardFilterId
 type PostListViewMode = 'card' | 'list'
 
-const avatarTones = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
-
 const boardFilterIconById: Record<PostBoardTabId, Parameters<typeof Icon>[0]['name']> = {
   all: 'layout',
   notice: 'bell',
   free: 'message',
   humor: 'palette',
-}
-
-function toAuthorTone(userId: number | null) {
-  return avatarTones[(userId ?? 0) % avatarTones.length]
 }
 
 function getPostImageUrl(post: PostListItem) {
@@ -60,10 +59,35 @@ function PostListThumbnail({
 }) {
   return (
     <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}`}>
-      <img src={imageUrl} alt="" loading="lazy" />
+      <SafeImage
+        src={imageUrl}
+        alt=""
+        loading="lazy"
+        fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+      />
     </div>
   )
 }
+
+function formatPostDate(value: string) {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return parsed.toLocaleDateString('ko-KR', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
+}
+
+const boardTabs: FilterTabOption<PostBoardTabId>[] = [
+  { id: 'all', label: '전체', icon: boardFilterIconById.all, tone: 'all' },
+  ...postCategoryFilters.map((filter) => ({
+    id: filter.id,
+    label: filter.label,
+    icon: boardFilterIconById[filter.id],
+    tone: filter.id,
+  })),
+]
 
 function getPostLikeCount(post: PostListItem) {
   return post.likeCount ?? 0
@@ -80,7 +104,7 @@ export function AllPostsPage({
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
-  const [viewMode, setViewMode] = useState<PostListViewMode>('card')
+  const [viewMode, setViewMode] = useState<PostListViewMode>('list')
   const [likeError, setLikeError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -153,7 +177,7 @@ export function AllPostsPage({
   return (
     <section className="coala-content coala-content--posts">
       <div className="board-page">
-        <CommunityBanner title={title} tone="board" />
+        <CommunityBanner title={title} tone="board" meta={`게시글 ${visiblePosts.length}개`} />
 
         <section className="surface-card community-list-controls board-list-controls" aria-label="게시판 필터">
           <div className="community-list-summary">
@@ -163,42 +187,14 @@ export function AllPostsPage({
             </div>
           </div>
 
-          <div className="community-filter-tabs community-filter-tabs--with-all" role="tablist" aria-label="게시판 분류">
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeBoard === 'all'}
-              className={
-                activeBoard === 'all'
-                  ? 'community-filter-tab community-filter-tab--all is-active'
-                  : 'community-filter-tab community-filter-tab--all'
-              }
-              onClick={() => setActiveBoard('all')}
-            >
-              <Icon name={boardFilterIconById.all} size={15} />
-              전체
-            </button>
-            <span className="community-filter-divider" aria-hidden="true" />
-            <div className="community-filter-grouped">
-              {postCategoryFilters.map((filter) => (
-                <button
-                  key={filter.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeBoard === filter.id}
-                  className={
-                    activeBoard === filter.id
-                      ? `community-filter-tab community-filter-tab--${filter.id} is-active`
-                      : `community-filter-tab community-filter-tab--${filter.id}`
-                  }
-                  onClick={() => setActiveBoard(filter.id)}
-                >
-                  <Icon name={boardFilterIconById[filter.id]} size={15} />
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-          </div>
+          <FilterTabs
+            value={activeBoard}
+            options={boardTabs}
+            onChange={setActiveBoard}
+            ariaLabel="게시판 분류"
+            separateFirst
+            className="community-filter-tabs"
+          />
 
           <div className="community-list-actions">
             <SearchField
@@ -208,38 +204,18 @@ export function AllPostsPage({
               placeholder="게시글 제목을 검색하세요"
             />
 
-            <label className="board-sort-field">
-              <span>정렬</span>
-              <select
-                className="board-sort-select"
-                value={sortMode}
-                onChange={(event) => setSortMode(event.target.value as 'latest' | 'popular')}
-              >
-                <option value="latest">최신순</option>
-                <option value="popular">인기순</option>
-              </select>
-            </label>
+            <SelectControl
+              className="board-sort-field"
+              label="정렬"
+              value={sortMode}
+              options={[
+                { value: 'latest', label: '최신순' },
+                { value: 'popular', label: '인기순' },
+              ]}
+              onChange={setSortMode}
+            />
 
-            <div className="view-mode-toggle" role="group" aria-label="게시글 보기 방식">
-              <button
-                type="button"
-                className={viewMode === 'card' ? 'view-mode-button is-active' : 'view-mode-button'}
-                aria-pressed={viewMode === 'card'}
-                title="카드형"
-                onClick={() => setViewMode('card')}
-              >
-                <Icon name="layout" size={15} />
-              </button>
-              <button
-                type="button"
-                className={viewMode === 'list' ? 'view-mode-button is-active' : 'view-mode-button'}
-                aria-pressed={viewMode === 'list'}
-                title="리스트형"
-                onClick={() => setViewMode('list')}
-              >
-                <Icon name="list" size={15} />
-              </button>
-            </div>
+            <ViewModeToggle value={viewMode} onChange={setViewMode} />
 
             <button
               type="button"
@@ -256,6 +232,17 @@ export function AllPostsPage({
         </section>
 
         <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
+          {viewMode === 'list' ? (
+            <div className="board-table-head" aria-hidden="true">
+              <span>분류</span>
+              <span>제목</span>
+              <span>작성자</span>
+              <span>작성일</span>
+              <span>조회</span>
+              <span>댓글</span>
+              <span>좋아요</span>
+            </div>
+          ) : null}
           <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
             {isLoading ? (
               <li className="empty-post-state">게시글을 불러오는 중...</li>
@@ -265,7 +252,9 @@ export function AllPostsPage({
                 const categoryMeta = postCategoryMeta[category]
                 const compositeId = `${post.boardId}-${post.postId}`
                 const imageUrl = getPostImageUrl(post)
+                const cardImageUrl = imageUrl ?? '/coala-card-placeholder.png'
                 const summary = toPlainContentPreview(post.content)
+                const authorName = post.authorName ?? `사용자 ${post.userId}`
 
 	                return (
 	                  <li key={compositeId} className={`board-post-row board-post-row--${viewMode}`}>
@@ -273,7 +262,7 @@ export function AllPostsPage({
 	                      className={[
 	                        'board-post-card',
 	                        `board-post-card--${viewMode}`,
-	                        imageUrl ? 'board-post-card--has-image' : '',
+	                        viewMode === 'card' ? 'board-post-card--has-image' : '',
 	                      ].filter(Boolean).join(' ')}
                         role="button"
                         tabIndex={0}
@@ -284,8 +273,8 @@ export function AllPostsPage({
                           onOpenPost(post.boardId, post.postId)
                         }}
 	                    >
-	                      {viewMode === 'card' && imageUrl ? (
-	                        <PostListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
+	                      {viewMode === 'card' ? (
+	                        <PostListThumbnail imageUrl={cardImageUrl} viewMode={viewMode} />
 	                      ) : null}
 
 	                      <div className="board-post-main">
@@ -293,6 +282,7 @@ export function AllPostsPage({
                           <span className={`board-tag board-tag--${categoryMeta.tone}`}>
                             {post.board?.boardName ?? categoryMeta.label}
                           </span>
+                          {category === 'notice' ? <Icon name="bell" size={14} /> : null}
                           <h3 className="board-post-title">{post.title}</h3>
                         </div>
 
@@ -301,20 +291,26 @@ export function AllPostsPage({
                         </p>
 
                         <p className="board-post-meta">
-                          <span
-                            className={`board-avatar board-avatar--${toAuthorTone(post.userId)}`}
-                          >
-                            {(post.authorName ?? String(post.userId))[0]}
-                          </span>
-                          <span>{post.authorName ?? `사용자 ${post.userId}`}</span>
+                          <CharacterAvatar name={authorName} seed={post.userId} size="xs" className="board-avatar" />
+                          <span>{authorName}</span>
                           <span className="dot-divider" />
                           <span>{formatPostDateTime(post.createdAt)}</span>
                         </p>
                       </div>
 
-	                      {viewMode === 'list' && imageUrl ? (
-	                        <PostListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
-	                      ) : null}
+
+                      {viewMode === 'list' ? (
+                        <div className="board-table-meta" aria-label="게시글 정보">
+                          <span className="board-table-author">
+                            <CharacterAvatar name={authorName} seed={post.userId} size="xs" className="board-avatar" />
+                            {authorName}
+                          </span>
+                          <span>{formatPostDate(post.createdAt)}</span>
+                          <span>{post.viewCount}</span>
+                          <span>{post.commentCount ?? 0}</span>
+                          <span>{getPostLikeCount(post)}</span>
+                        </div>
+                      ) : null}
 
                       <div className="board-post-stats">
                         <span className="board-stat">

@@ -10,6 +10,7 @@ import { csaiLabOptions, formatLabOption } from '../../shared/labs'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
+import { PageHero } from '../../shared/ui/PageHero'
 
 type ArchiveDraft = {
   category: ArchiveCategory
@@ -429,11 +430,18 @@ export function ArchivePage() {
   return (
     <section className="coala-content coala-content--archive">
       <div className="archive-page">
-        <header className="archive-header">
-          <div>
-            <p>Archive</p>
-            <h1>자료실</h1>
-          </div>
+        <PageHero
+          title="자료실"
+          eyebrow="COALA ARCHIVE"
+          description="연구실 자료와 개발 도구를 모아 공유합니다."
+          meta={`자료 ${visibleItems.length}개`}
+          tone="archive"
+          size="compact"
+          headingLevel="h1"
+        />
+
+        <header className="archive-header archive-header--actions">
+          <div><strong>{activeTab.label}</strong><span>{activeTab.eyebrow}</span></div>
           <button type="button" className="write-post-button archive-add-button" onClick={startCreate}>
             <Icon name="plus" size={15} />
             {actionLabel}

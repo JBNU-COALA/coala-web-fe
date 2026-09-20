@@ -1,25 +1,27 @@
+import { PageHero } from '../../shared/ui/PageHero'
+
 type CommunityBannerProps = {
   title: string
   description?: string
-  tone?: 'board' | 'info' | 'recruit' | 'service' | 'about'
+  tone?: 'board' | 'info' | 'recruit' | 'service' | 'about' | 'users'
   images?: unknown[]
+  meta?: string
 }
 
 export function CommunityBanner({
   title,
   description,
   tone = 'board',
+  meta,
 }: CommunityBannerProps) {
   return (
-    <header className={`community-banner community-banner--${tone}`}>
-      <div className="community-banner-copy">
-        <h2 className="community-banner-title">{title}</h2>
-        {description ? (
-          <p className="community-banner-description" style={{ whiteSpace: 'pre-line' }}>
-            {description}
-          </p>
-        ) : null}
-      </div>
-    </header>
+    <PageHero
+      title={title}
+      description={description}
+      meta={meta}
+      tone={tone}
+      size="compact"
+      className={`community-banner community-banner--${tone}`}
+    />
   )
 }

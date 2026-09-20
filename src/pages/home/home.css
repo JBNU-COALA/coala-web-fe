@@ -199,8 +199,7 @@
 }
 
 @media (hover: hover) and (pointer: fine) {
-  .main-nav-item:hover .main-nav-dropdown,
-  .main-nav-item:focus-within .main-nav-dropdown {
+  .main-nav-item:hover .main-nav-dropdown {
     opacity: 1;
     visibility: visible;
     pointer-events: auto;

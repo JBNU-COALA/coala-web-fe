@@ -14,6 +14,7 @@ import {
   readMarkdownImagesFromDrop,
 } from '../../shared/markdownImages'
 import { routes } from '../../shared/routes'
+import { recruitItems } from '../../dummy/recruitData'
 
 type RecruitApplicationDraft = {
   role: string
@@ -88,7 +89,10 @@ export function RecruitApplyPage() {
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
   const [remoteItem, setRemoteItem] = useState<RecruitItem | null>(null)
-  const allRecruitItems = useMemo(() => [...loadLocalRecruitItems(), ...(remoteItem ? [remoteItem] : [])], [remoteItem])
+  const allRecruitItems = useMemo(
+    () => [...loadLocalRecruitItems(), ...(remoteItem ? [remoteItem] : []), ...recruitItems],
+    [remoteItem],
+  )
   const item = allRecruitItems.find((recruit) => recruit.id === recruitId) ?? null
   const [draft, setDraft] = useState<RecruitApplicationDraft>(() => (
     item ? createDefaultApplicationDraft(item) : { role: '', body: '' }

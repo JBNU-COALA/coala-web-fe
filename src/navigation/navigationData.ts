@@ -111,6 +111,7 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
     { id: 'community-qna', label: '질문게시판', icon: 'help-circle', path: routes.community.qna },
     { id: 'community-info', label: '정보공유', icon: 'book', path: routes.community.info },
     { id: 'community-recruit', label: '모집', icon: 'users', path: routes.community.recruit },
+    { id: 'community-activity', label: '활동', icon: 'calendar', path: routes.community.activity },
   ],
   services: [
     { id: 'services-coas', label: 'COAS', icon: 'layout', path: routes.services.root },
@@ -176,6 +177,7 @@ export function resolveServicesTab(pathname: string, search = ''): ServicesTab {
 }
 
 const communityActions: ContextActionDefinition[] = [
+  // Keep both community navigation surfaces in the same order.
   {
     id: 'community-board',
     label: '게시판',
@@ -200,6 +202,7 @@ const communityActions: ContextActionDefinition[] = [
     icon: 'users',
     description: '',
   },
+  { id: 'community-activity', label: '활동', icon: 'calendar', description: '' },
 ]
 
 const activityActions: ContextActionDefinition[] = [
@@ -299,7 +302,9 @@ const toCommunityItems = (pathname: string): ContextPanelItem[] => {
             ? isInfo
             : item.id === 'community-recruit'
               ? isRecruit
-              : false,
+              : item.id === 'community-activity'
+                ? pathname.startsWith(routes.community.activity)
+                : false,
   }))
 }
 

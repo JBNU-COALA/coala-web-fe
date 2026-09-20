@@ -1,290 +1,169 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { SearchField } from '../../shared/ui/SearchField'
-import { Icon } from '../../shared/ui/Icon'
 import { usersApi, type ActivityMember } from '../../shared/api/users'
+import { activityMembers } from '../../dummy/leaderboardData'
+import { resolveApiAssetUrl } from '../../shared/api/client'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { Icon } from '../../shared/ui/Icon'
+import { SearchField } from '../../shared/ui/SearchField'
+import { ViewModeToggle, type ViewMode } from '../../shared/ui/ViewModeToggle'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
-
-const USERS_PER_SLIDE = 5
 
 function getPublicUserId(member: ActivityMember, index: number, currentUserId?: number) {
   if (member.isMe && currentUserId) return String(currentUserId)
   return member.id || String(index + 1)
 }
 
-function formatAwardDate(value: string) {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return value
-  return parsed.toLocaleDateString('ko-KR', { year: 'numeric', month: 'short' })
-}
-
-function MemberCard({ member, isSelected, onSelect }: {
+function MemberCard({
+  member,
+  profileId,
+  compact = false,
+}: {
   member: ActivityMember
-  isSelected: boolean
-  onSelect: () => void
+  profileId: string
+  compact?: boolean
 }) {
+  const profileImageUrl = resolveApiAssetUrl(member.customization?.profileImageUrl ?? '')
+
   return (
-    <button
-      type="button"
-      className={isSelected ? 'activity-member-card is-active' : 'activity-member-card'}
-      onClick={onSelect}
+    <Link
+      className={`activity-directory-card${compact ? ' activity-directory-card--compact' : ''}`}
+      to={`/users/${profileId}`}
+      aria-label={`${member.name} 프로필`}
     >
-      <span className={`activity-avatar activity-avatar--${member.tone}`}>{member.initials}</span>
-      <span className="activity-member-info">
-        <span className="activity-member-name">
-          {member.name}
-          {member.isMe ? <span className="activity-you-chip">나</span> : null}
-        </span>
-        <span className="activity-member-handles">@{member.githubHandle}</span>
-        <span className="activity-member-focus">{member.focus}</span>
-        <span className="activity-member-meta-line">
-          {member.role} · {member.grade}
-        </span>
-        <span className="activity-member-metrics">
-          <span>{member.sharedRepos.length}개 저장소</span>
-          <span>{member.awards.length}개 수상</span>
-          <span>{member.lab}</span>
-        </span>
-      </span>
-    </button>
+      <header className="activity-directory-card-head">
+        <CharacterAvatar
+          name={member.name}
+          seed={member.id || member.name}
+          src={profileImageUrl}
+          size={compact ? 'md' : 'lg'}
+        />
+        <div>
+          <strong className="activity-member-name">
+            {member.name}
+            {member.isMe ? <span className="activity-you-chip">나</span> : null}
+          </strong>
+          <span className="activity-member-handles">@{member.githubHandle}</span>
+        </div>
+      </header>
+
+      <p className="activity-member-focus">{member.focus}</p>
+      <div className="activity-profile-meta">
+        <span>{member.role}</span>
+        <span>{member.grade}</span>
+        <span>{member.lab}</span>
+      </div>
+      <div className="activity-repo-list">
+        {member.sharedRepos.slice(0, 3).map((repo) => <span key={repo}>{repo}</span>)}
+      </div>
+
+      <footer className="activity-directory-card-footer">
+        <span><Icon name="link" size={14} /> @{member.githubHandle}</span>
+        <span><Icon name="network" size={14} /> 프로젝트 {member.sharedRepos.length}</span>
+        <span><Icon name="chart" size={14} /> 수상 {member.awards.length}</span>
+        <Icon name="chevron-right" size={15} />
+      </footer>
+    </Link>
   )
 }
 
 export function LeaderboardPage() {
-  const { isLoggedIn, user } = useAuth()
-  const location = useLocation()
+  const { user } = useAuth()
   const [query, setQuery] = useState('')
   const [gradeFilter, setGradeFilter] = useState('all')
   const [labFilter, setLabFilter] = useState('all')
-  const [selectedMemberId, setSelectedMemberId] = useState('')
+  const [viewMode, setViewMode] = useState<ViewMode>('card')
   const [members, setMembers] = useState<ActivityMember[]>([])
-  const [slideStart, setSlideStart] = useState(0)
 
   const normalizedQuery = query.trim().toLowerCase()
   const gradeOptions = ['all', ...Array.from(new Set(members.map((member) => member.grade)))]
   const labOptions = ['all', ...Array.from(new Set(members.map((member) => member.lab)))]
 
   useEffect(() => {
-    if (!isLoggedIn) {
-      Promise.resolve().then(() => {
-        setMembers([])
-        setSelectedMemberId('')
-      })
-      return
-    }
-
     usersApi.getUsers()
-      .then((items) => {
-        setMembers(items)
-        setSelectedMemberId(items[0]?.id ?? '')
-      })
-      .catch(() => setMembers([]))
-  }, [isLoggedIn])
+      .then((items) => setMembers(items.length > 0 ? items : activityMembers))
+      .catch(() => setMembers(activityMembers))
+  }, [])
 
   const filteredMembers = useMemo(() => {
-    let filtered = members
+    return members.filter((member) => {
+      if (gradeFilter !== 'all' && member.grade !== gradeFilter) return false
+      if (labFilter !== 'all' && member.lab !== labFilter) return false
+      if (!normalizedQuery) return true
 
-    if (gradeFilter !== 'all') {
-      filtered = filtered.filter((member) => member.grade === gradeFilter)
-    }
-
-    if (labFilter !== 'all') {
-      filtered = filtered.filter((member) => member.lab === labFilter)
-    }
-
-    if (normalizedQuery) {
-      filtered = filtered.filter((member) =>
-        `${member.name} ${member.githubHandle} ${member.focus} ${member.sharedRepos.join(' ')} ${member.awards.map((award) => `${award.title} ${award.organizer} ${award.rank}`).join(' ')}`
-          .toLowerCase()
-          .includes(normalizedQuery),
-      )
-    }
-
-    return filtered
+      const awards = member.awards.map((award) => `${award.title} ${award.organizer} ${award.rank}`).join(' ')
+      return `${member.name} ${member.githubHandle} ${member.focus} ${member.sharedRepos.join(' ')} ${awards}`
+        .toLowerCase()
+        .includes(normalizedQuery)
+    })
   }, [gradeFilter, labFilter, members, normalizedQuery])
-
-  const maxSlideStart = Math.max(0, filteredMembers.length - USERS_PER_SLIDE)
-  const safeSlideStart = Math.min(slideStart, maxSlideStart)
-  const visibleMembers = filteredMembers.slice(safeSlideStart, safeSlideStart + USERS_PER_SLIDE)
-  const hasPreviousSlide = safeSlideStart > 0
-  const hasNextSlide = safeSlideStart < maxSlideStart
-  const visibleRangeStart = filteredMembers.length === 0 ? 0 : safeSlideStart + 1
-  const visibleRangeEnd = Math.min(safeSlideStart + USERS_PER_SLIDE, filteredMembers.length)
-  const selectedMember =
-    filteredMembers.find((member) => member.id === selectedMemberId) ?? filteredMembers[0]
-  const selectedMemberIndex = members.findIndex((member) => member.id === selectedMember?.id)
-  const selectedUserId = selectedMember
-    ? getPublicUserId(selectedMember, Math.max(selectedMemberIndex, 0), user?.id)
-    : '1'
 
   return (
     <section className="coala-content coala-content--activity">
       <div className="activity-page activity-page--directory">
-        <CommunityBanner title="유저" tone="board" />
+        <CommunityBanner title="유저" description="함께 만드는 코알라 멤버" tone="users" />
 
-        {!isLoggedIn ? (
-          <div className="activity-login-required surface-card">
-            <div className="activity-login-icon">U</div>
-            <h3>로그인 후 유저 목록을 볼 수 있습니다.</h3>
-            <p>유저 목록에는 부원 프로필과 활동 정보가 포함되어 있어 로그인한 사용자에게만 공개됩니다.</p>
-            <Link className="write-post-button activity-login-link" to="/login" state={{ from: location }}>
-              로그인하기
-            </Link>
-          </div>
-        ) : (
-        <div className="activity-table-shell surface-card">
-          <div className="activity-table-toolbar">
+        <div className="activity-table-shell">
+          <section className="activity-directory-controls" aria-label="유저 검색 및 필터">
+            <strong className="activity-member-count">멤버 {filteredMembers.length}명</strong>
             <SearchField
               className="activity-search"
               value={query}
-              onChange={(value) => {
-                setQuery(value)
-                setSlideStart(0)
-              }}
-              placeholder="이름, GitHub, 저장소, 글 검색"
+              onChange={setQuery}
+              placeholder="이름, 기술, 프로젝트 검색"
             />
-          </div>
+            <SelectControl
+              className="activity-select-control"
+              label="학년"
+              value={gradeFilter}
+              options={gradeOptions.map((grade) => ({ value: grade, label: grade === 'all' ? '학년 전체' : grade }))}
+              onChange={setGradeFilter}
+            />
+            <SelectControl
+              className="activity-select-control"
+              label="연구실"
+              value={labFilter}
+              options={labOptions.map((lab) => ({ value: lab, label: lab === 'all' ? '연구실 전체' : lab }))}
+              onChange={setLabFilter}
+            />
+            <ViewModeToggle value={viewMode} onChange={setViewMode} className="activity-view-toggle" />
+          </section>
 
-          <div className="activity-filter-row">
-            <label>
-              <span>학년</span>
-              <select
-                value={gradeFilter}
-                onChange={(event) => {
-                  setGradeFilter(event.target.value)
-                  setSlideStart(0)
-                }}
-              >
-                {gradeOptions.map((grade) => (
-                  <option key={grade} value={grade}>
-                    {grade === 'all' ? '전체' : grade}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>연구실</span>
-              <select
-                value={labFilter}
-                onChange={(event) => {
-                  setLabFilter(event.target.value)
-                  setSlideStart(0)
-                }}
-              >
-                {labOptions.map((lab) => (
-                  <option key={lab} value={lab}>
-                    {lab === 'all' ? '전체' : lab}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          <div className="activity-directory-layout">
-            <aside className="activity-member-list" aria-label="유저 목록">
-              <div className="activity-member-slider-head">
-                <span>{visibleRangeStart}-{visibleRangeEnd} / {filteredMembers.length}</span>
-                <div className="activity-member-slider-controls">
-                  <button
-                    type="button"
-                    aria-label="이전 유저 보기"
-                    disabled={!hasPreviousSlide}
-                    onClick={() => setSlideStart((current) => Math.max(0, current - USERS_PER_SLIDE))}
-                  >
-                    <Icon name="chevron-left" size={14} />
-                  </button>
-                  <button
-                    type="button"
-                    aria-label="다음 유저 보기"
-                    disabled={!hasNextSlide}
-                    onClick={() => setSlideStart((current) => Math.min(maxSlideStart, current + USERS_PER_SLIDE))}
-                  >
-                    <Icon name="chevron-right" size={14} />
-                  </button>
-                </div>
-              </div>
-
-              <div className="activity-member-slider-window">
-                {visibleMembers.map((member) => (
+          {filteredMembers.length > 0 ? (
+            <section className="activity-recent-members" aria-label="최근 활동 유저">
+              <header className="activity-directory-section-head">
+                <div><h2>최근 활동한 멤버</h2><p>최근에 활동한 코알라 멤버입니다.</p></div>
+                <a href="#all-members">전체 보기 <Icon name="chevron-right" size={14} /></a>
+              </header>
+              <div className="activity-recent-grid">
+                {filteredMembers.slice(0, 3).map((member, index) => (
                   <MemberCard
-                    key={member.id}
+                    key={`recent-${member.id}`}
                     member={member}
-                    isSelected={selectedMember?.id === member.id}
-                    onSelect={() => setSelectedMemberId(member.id)}
+                    compact
+                    profileId={getPublicUserId(member, members.indexOf(member) >= 0 ? members.indexOf(member) : index, user?.id)}
                   />
                 ))}
               </div>
-              {filteredMembers.length > USERS_PER_SLIDE ? (
-                <label className="activity-member-range">
-                  <span>목록 위치</span>
-                  <input
-                    type="range"
-                    min={0}
-                    max={maxSlideStart}
-                    value={safeSlideStart}
-                    onChange={(event) => setSlideStart(Number(event.target.value))}
-                    aria-label="유저 목록 슬라이더"
-                  />
-                </label>
-              ) : null}
-              {filteredMembers.length === 0 ? (
-                <p className="activity-empty">조건에 맞는 유저가 없습니다.</p>
-              ) : null}
-            </aside>
-
-            <section className="activity-detail-panel">
-              {selectedMember ? (
-                <div className="activity-profile-card">
-                  <div className="activity-profile-head">
-                    <span className={`activity-avatar activity-avatar--${selectedMember.tone}`}>
-                      {selectedMember.initials}
-                    </span>
-                    <div>
-                      <h3>{selectedMember.name}</h3>
-                      <a href={selectedMember.githubUrl} target="_blank" rel="noreferrer">
-                        @{selectedMember.githubHandle}
-                      </a>
-                    </div>
-                  </div>
-                  <div className="activity-profile-meta">
-                    <span>{selectedMember.role}</span>
-                    <span>{selectedMember.grade}</span>
-                    <span>{selectedMember.lab}</span>
-                  </div>
-                  <p className="activity-profile-focus">{selectedMember.focus}</p>
-                  <div className="activity-repo-list">
-                    {selectedMember.sharedRepos.map((repo) => (
-                      <span key={repo}>{repo}</span>
-                    ))}
-                  </div>
-                  <div className="activity-award-preview">
-                    <strong>수상 내역</strong>
-                    {selectedMember.awards.length > 0 ? (
-                      <ul className="activity-award-list">
-                        {selectedMember.awards.slice(0, 2).map((award) => (
-                          <li key={award.awardId} className="activity-award-item">
-                            <span className="activity-award-rank">{award.rank}</span>
-                            <span className="activity-award-body">
-                              <span>{award.title}</span>
-                              <small>{award.organizer} · {formatAwardDate(award.awardedAt)}</small>
-                            </span>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p>등록된 수상 내역이 없습니다.</p>
-                    )}
-                  </div>
-                  <Link className="activity-profile-link" to={`/users/${selectedUserId}`}>
-                    프로필 보기
-                  </Link>
-                </div>
-              ) : null}
             </section>
-          </div>
+          ) : null}
+
+          <header id="all-members" className="activity-directory-section-head activity-directory-section-head--all">
+            <div><h2>전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
+          </header>
+          <section className={`activity-directory-grid activity-directory-grid--${viewMode}`} aria-label="전체 유저 목록">
+            {filteredMembers.map((member, index) => (
+              <MemberCard
+                key={member.id}
+                member={member}
+                profileId={getPublicUserId(member, members.indexOf(member) >= 0 ? members.indexOf(member) : index, user?.id)}
+              />
+            ))}
+          </section>
+          {filteredMembers.length === 0 ? <p className="activity-empty">조건에 맞는 유저가 없습니다.</p> : null}
         </div>
-        )}
       </div>
     </section>
   )

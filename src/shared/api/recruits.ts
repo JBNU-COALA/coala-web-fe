@@ -71,9 +71,13 @@ export type RecruitApplication = {
   body: string
   submittedAt: string
   status: string
+  userId?: number
+  userName?: string
 }
 
 export const recruitsApi = {
+  getApplications: (id: string) => client.get<RecruitApplication[]>(`/api/recruits/${encodeURIComponent(id)}/applications`).then((response) => response.data),
+  decideApplication: (id: string, applicationId: number, status: 'accepted' | 'rejected' | 'submitted') => client.patch<RecruitApplication>(`/api/recruits/${encodeURIComponent(id)}/applications/${applicationId}`, { status }).then((response) => response.data),
   getRecruits: (params?: { category?: RecruitCategory | 'all'; status?: RecruitFilterId; query?: string; sort?: 'latest' | 'popular' }) =>
     client.get<RecruitItem[]>('/api/recruits', { params }).then((response) => response.data),
 
