@@ -3,7 +3,7 @@ import { PageHero } from './PageHero'
 
 type PageFrameProps = {
   title: string
-  tone?: 'activity' | 'users'
+  tone?: 'activity' | 'users' | 'archive'
   children: ReactNode
   className?: string
   bodyClassName?: string

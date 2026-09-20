@@ -111,10 +111,10 @@ export function RecordEditor({
         }}
       >
         <Icon name="chevron-left" size={18} />
-        활동 기록
+        목록으로 돌아가기
       </Link>
       <header className="study-page-heading">
-        <h1>{record ? '활동 수정' : '활동 등록'}</h1>
+        <h1>{record ? '출석 수정' : '출석 체크'}</h1>
       </header>
       <form className="study-editor" onSubmit={submit}>
         <fieldset disabled={saving}>
@@ -221,7 +221,7 @@ export function RecordEditor({
             </p>
           )}
           <button className="study-primary study-submit" type="submit" disabled={uploading}>
-            {saving ? '저장 중...' : '기록 저장'}
+            {saving ? '저장 중...' : '저장'}
           </button>
         </fieldset>
       </form>

@@ -1,11 +1,9 @@
-import { AttendanceSession } from './AttendanceSession'
 import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { Icon } from '../../shared/ui/Icon'
-import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { routes } from '../../shared/routes'
 import {
   activityToday,
@@ -18,19 +16,19 @@ import {
 import {
   loadActivityData,
   loadActivityEditorData,
-  deleteActivityRecord,
   saveActivityRecord
 } from '../../shared/activityRepository'
 import { RequireAuth } from '../../shared/auth/RequireAuth'
 import { AttendanceList, AttendanceSummary } from './AttendanceList'
 import { ActivityCalendar } from './ActivityCalendar'
 import { RecordEditor } from './RecordEditor'
-import { toPlainContentPreview } from '../../shared/contentPreview'
 import { prepareMarkdownForDisplay, rewriteMarkdownImageUrls } from '../../shared/markdown'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import './activity.css'
 import { PageFrame } from '../../shared/ui/PageFrame'
 import { ActivityControls } from './ActivityControls'
+import { AttendanceCard } from './AttendanceCard'
+import { ActivityRecordActions } from './ActivityRecordActions'
 
 const root = routes.community.activity
 const formattedDate = (value: string) =>
@@ -82,7 +80,7 @@ function ActivityContent({
           setError(
             reason instanceof Error
               ? reason.message
-              : '활동 기록을 불러오지 못했습니다.'
+              : '출석 기록을 불러오지 못했습니다.'
           )
       })
     return () => {
@@ -96,17 +94,19 @@ function ActivityContent({
   )
     ? params.get('group')!
     : 'all'
-  const view = params.get('view') === 'records' ? 'records' : 'attendance'
   const layout = params.get('layout') === 'calendar' ? 'calendar' : 'card'
   const selectedDate = parseDate(params.get('day') ?? '')
     ? params.get('day')!
-    : start
+    : params.has('week') ? start : activityToday()
   const selectedUser = params.get('user')
-  const search = params.size ? `?${params.toString()}` : ''
+  const canonicalParams = new URLSearchParams(params)
+  canonicalParams.delete('view')
+  const search = canonicalParams.size ? `?${canonicalParams.toString()}` : ''
   const back = `${root}${search}`
   const updateFilter = (name: string, value: string) => {
     const next = new URLSearchParams(params)
-    if (value === 'all' || (name === 'view' && value === 'attendance')) next.delete(name)
+    next.delete('view')
+    if (value === 'all') next.delete(name)
     else next.set(name, value)
     if (name === 'week') next.set('day', value)
     setParams(next)
@@ -123,7 +123,7 @@ function ActivityContent({
   )
   const records = filteredRecords
     .filter((entry) =>
-      layout === 'calendar' && view === 'records'
+      layout === 'calendar'
         ? entry.date === selectedDate
         : entry.date >= start && entry.date <= end
     )
@@ -133,7 +133,7 @@ function ActivityContent({
         right.updatedAt.localeCompare(left.updatedAt)
     )
   const groupName = (id: string | null) =>
-    id ? data?.groups.find((group) => group.id === id)?.name ?? '연결된 조' : '활동 기록'
+    id ? data?.groups.find((group) => group.id === id)?.name ?? '연결된 조' : '출석 기록'
   const sourceRecruit =
     record &&
     data?.groups.find((group) => group.id === record.groupId)?.recruitId
@@ -174,7 +174,7 @@ function ActivityContent({
       ) : error ? (
         <div className="study-empty">
           <p role="alert">{error}</p>
-          {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>활동 등록</Link>}
+          {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>출석 체크</Link>}
           {
             <button
               className="study-text-button"
@@ -186,12 +186,12 @@ function ActivityContent({
         </div>
       ) : !data ? (
         <p className="study-empty" role="status">
-          활동 기록을 불러오는 중입니다.
+          출석 기록을 불러오는 중입니다.
         </p>
       ) : mode === 'edit' ? (
         mode === 'edit' && !record ? (
           <div className="study-empty">
-            <p>활동 기록을 찾을 수 없습니다.</p>
+            <p>출석 기록을 찾을 수 없습니다.</p>
             <Link to={back}>목록으로 돌아가기</Link>
           </div>
         ) : !canEdit ? (
@@ -215,7 +215,7 @@ function ActivityContent({
       ) : mode === 'detail' ? (
         !record ? (
           <div className="study-empty">
-            <p>활동 기록을 찾을 수 없습니다.</p>
+            <p>출석 기록을 찾을 수 없습니다.</p>
             <Link to={back}>목록으로 돌아가기</Link>
           </div>
         ) : (
@@ -231,7 +231,7 @@ function ActivityContent({
                   to={routes.community.activityGroup(record.groupId)}
                 >
                   {groupName(record.groupId)}
-                </Link> : <span className="study-group">활동 기록</span>}
+                </Link> : <span className="study-group">출석 기록</span>}
                 {sourceRecruit && (
                   <Link
                     className="study-text-button"
@@ -245,22 +245,7 @@ function ActivityContent({
               <h1>{record.title}</h1>
               <div className="study-detail-meta">
                 <time dateTime={record.date}>{formattedDate(record.date)}</time>
-                {canEdit && (
-                  <>
-                  <Link
-                    className="study-text-button"
-                    to={`${routes.community.activityRecordEditor(record.id)}${search}`}
-                  >
-                    <Icon name="edit" size={16} />
-                    수정
-                  </Link>
-                  <button type="button" className="study-text-button" onClick={async () => {
-                    if (!window.confirm('이 활동 기록을 삭제할까요?')) return
-                    try { await deleteActivityRecord(record); navigate(back, { replace: true }) }
-                    catch { window.alert('삭제하지 못했습니다. 권한 또는 최신 수정 내용을 확인해 주세요.') }
-                  }}>삭제</button>
-                  </>
-                )}
+                {canEdit && <ActivityRecordActions record={record} search={search} back={back} />}
               </div>
             </header>
             <div className={`study-detail-layout${record.attendance.length ? '' : ' study-detail-layout--standalone'}`}>
@@ -286,14 +271,14 @@ function ActivityContent({
       ) : (
         <>
           <header className="study-page-heading">
-            <h2>{view === 'attendance' ? '출석 체크' : '활동 기록'}</h2>
+            <h2>출석 체크</h2>
             {(
               <Link
                 className="study-primary"
                 to={`${routes.community.activityRecordNew}${search}`}
               >
                 <Icon name="plus" size={18} />
-                활동 등록
+                출석 체크
               </Link>
             )}
           </header>
@@ -316,19 +301,21 @@ function ActivityContent({
           )}
           {data.groupsError && <p className="study-error" role="alert">{data.groupsError}</p>}
           <ActivityControls groups={data.groups} start={start} end={end} selectedGroup={selectedGroup}
-            layout={layout} view={view} onFilter={updateFilter} onToday={() => {
+            layout={layout} onFilter={updateFilter} onToday={() => {
               const next = new URLSearchParams(params)
+              next.delete('view')
               next.set('week', mondayOf(activityToday()))
               next.set('day', activityToday())
               setParams(next)
             }} />
-          {layout === 'calendar' && view === 'records' && (
+          {layout === 'calendar' && (
             <>
               <ActivityCalendar
                 date={selectedDate}
                 records={filteredRecords}
                 onSelect={(day) => {
                   const next = new URLSearchParams(params)
+                  next.delete('view')
                   next.set('day', day)
                   next.set('week', mondayOf(day))
                   setParams(next)
@@ -342,83 +329,24 @@ function ActivityContent({
           {records.length === 0 ? (
             <div className="study-empty">
               <Icon name="calendar" size={28} />
-              <h2>선택한 기간에 활동 기록이 없습니다.</h2>
+              <h2>선택한 기간에 출석 기록이 없습니다.</h2>
               <p>다른 날짜의 기록을 확인해 보세요.</p>
               {manageableGroups.length > 0 && (
                 <Link
                   className="study-text-button"
                   to={`${routes.community.activityRecordNew}${search}`}
                 >
-                  활동 등록
+                  출석 체크
                   <Icon name="chevron-right" size={16} />
                 </Link>
               )}
             </div>
-          ) : view === 'records' ? (
-            <ol className={`study-feed study-feed--${layout}`}>
-              {records.map((entry) => (
-                <li key={entry.id}>
-                  <time dateTime={entry.date}>{formattedDate(entry.date)}</time>
-                  <article>
-                    <Link
-                      className="study-record-link"
-                      to={`${routes.community.activityRecord(entry.id)}${search}`}
-                    >
-                      <span
-                        className={`study-group study-group--${entry.groupId}`}
-                      >
-                        {groupName(entry.groupId)}
-                      </span>
-                      <h2>{entry.title}</h2>
-                      <p>{toPlainContentPreview(entry.content)}</p>
-                    </Link>
-                    {entry.attendance.length > 0 && <div className="study-record-footer">
-                      <div
-                        className="study-avatar-stack"
-                        aria-label={`참여자 ${entry.attendance.length}명`}
-                      >
-                        {entry.attendance.slice(0, 4).map((person) => (
-                          <CharacterAvatar
-                            key={person.userId}
-                            name={person.name}
-                            seed={person.userId}
-                            size="xs"
-                          />
-                        ))}
-                        {entry.attendance.length > 4 && (
-                          <span>+{entry.attendance.length - 4}</span>
-                        )}
-                      </div>
-                      <AttendanceSummary entries={entry.attendance} />
-                    </div>}
-                    {data.groups.find((group) => group.id === entry.groupId)
-                      ?.recruitId && (
-                      <Link
-                        className="study-source-link"
-                        to={routes.community.recruitNotice(
-                          data.groups.find(
-                            (group) => group.id === entry.groupId
-                          )!.recruitId!
-                        )}
-                      >
-                        모집 공고
-                        <Icon name="chevron-right" size={14} />
-                      </Link>
-                    )}
-                  </article>
-                </li>
-              ))}
-            </ol>
           ) : (
-            <div className="attendance-board">
-              {records.map((entry) => <AttendanceSession key={entry.id} record={entry}
-                groupName={groupName(entry.groupId)} onSave={async (value) => {
-                  const updated = await saveActivityRecord(value, true)
-                  setData((current) => current && ({ ...current,
-                    records: current.records.map((item) => item.id === updated.id ? updated : item)
-                  }))
-                }} />)}
-            </div>
+            <ol className="study-feed study-feed--card">
+              {records.map((entry) => <AttendanceCard key={entry.id} record={entry}
+                groupName={groupName(entry.groupId)} search={search}
+                recruitId={data.groups.find((group) => group.id === entry.groupId)?.recruitId} />)}
+            </ol>
           )}
         </>
       )}

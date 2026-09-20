@@ -36,7 +36,7 @@ async function api(path, method = 'GET', body) {
     await page.getByRole('button', { name: self.name + ' (' + self.githubId + ') 추가', exact: true }).click();
     await page.getByRole('radiogroup', { name: self.name + ' 출석 상태' }).getByLabel('출석', { exact: true }).check();
     const createdResponse = page.waitForResponse(r => new URL(r.url()).pathname === '/api/study/records' && r.request().method() === 'POST');
-    await page.getByRole('button', { name: '기록 저장', exact: true }).click();
+    await page.getByRole('button', { name: '저장', exact: true }).click();
     const response = await createdResponse;
     assert.equal(response.status(), 201);
     const created = await response.json();
@@ -52,7 +52,7 @@ async function api(path, method = 'GET', body) {
     await page.getByRole('link', { name: '수정', exact: true }).click();
     await page.getByRole('button', { name: self.name + ' 참여자 제외', exact: true }).click();
     const changedResponse = page.waitForResponse(r => new URL(r.url()).pathname === '/api/study/records/' + recordId && r.request().method() === 'PATCH');
-    await page.getByRole('button', { name: '기록 저장', exact: true }).click();
+    await page.getByRole('button', { name: '저장', exact: true }).click();
     assert.equal((await changedResponse).status(), 200);
     assert.deepEqual((await api('/api/study/records/' + recordId)).attendance, []);
     console.log('PASS deployed UI member search, standalone participant addition, attendance save/reload, personal activity lookup and participant removal');

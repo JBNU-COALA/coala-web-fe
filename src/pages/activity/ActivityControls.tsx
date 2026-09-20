@@ -1,5 +1,4 @@
 import { Icon } from '../../shared/ui/Icon'
-import { SectionNav } from '../../shared/ui/SectionNav'
 import { parseDate, shiftDate, type StudyGroup } from '../../shared/activity'
 
 type ActivityControlsProps = {
@@ -8,7 +7,6 @@ type ActivityControlsProps = {
   end: string
   selectedGroup: string
   layout: 'card' | 'calendar'
-  view: 'records' | 'attendance'
   onFilter: (name: string, value: string) => void
   onToday: () => void
 }
@@ -26,14 +24,13 @@ export function ActivityControls({
   end,
   selectedGroup,
   layout,
-  view,
   onFilter,
   onToday,
 }: ActivityControlsProps) {
   return (
     <>
       <div className="study-controls">
-        {layout === 'card' || view === 'attendance' ? (
+        {layout === 'card' ? (
           <div className="study-week">
             <button
               className="study-icon-button"
@@ -82,20 +79,10 @@ export function ActivityControls({
         </div>
       </div>
       <div className="study-view-toolbar">
-        <SectionNav
-          label="활동 보기"
-          items={[
-            { id: 'attendance', label: '출석 체크' },
-            { id: 'records', label: '활동 기록' },
-          ]}
-          value={view}
-          onChange={(value) => onFilter('view', value)}
-        />
-        {view === 'records' && (
-          <div
+        <div
             className="study-layout-toggle"
             role="group"
-            aria-label="활동 보기 방식"
+          aria-label="출석 체크 보기 방식"
           >
             <button
               title="카드형"
@@ -114,7 +101,6 @@ export function ActivityControls({
               <Icon name="calendar" size={18} />
             </button>
           </div>
-        )}
       </div>
     </>
   )

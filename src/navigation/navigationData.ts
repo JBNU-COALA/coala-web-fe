@@ -128,7 +128,7 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
     { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],
   archive: [
-    { id: 'archive-labs', label: '연구실', icon: 'network', path: routes.archive.labs },
+    { id: 'archive-labs', label: '연구실 자료', icon: 'network', path: routes.archive.labs },
     { id: 'archive-agents', label: '에이전트/스킬', icon: 'file', path: routes.archive.agents },
   ],
 }
@@ -235,20 +235,9 @@ const servicesActions: ContextActionDefinition[] = [
   },
 ]
 
-const archiveActions: ContextActionDefinition[] = [
-  {
-    id: 'archive-labs',
-    label: '연구실',
-    icon: 'network',
-    description: '',
-  },
-  {
-    id: 'archive-agents',
-    label: '에이전트/스킬',
-    icon: 'file',
-    description: '',
-  },
-]
+const archiveActions: ContextActionDefinition[] = (headerSubNavItems.archive ?? []).map(
+  ({ id, label, icon }) => ({ id, label, icon, description: '' }),
+)
 
 const settingsActions: ContextActionDefinition[] = [
   {

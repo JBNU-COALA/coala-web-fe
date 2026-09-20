@@ -9,7 +9,10 @@ import { isSameUserId } from '../../shared/auth/userIdentity'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
-import { PageHero } from '../../shared/ui/PageHero'
+import { PageFrame } from '../../shared/ui/PageFrame'
+import { FilterTabs } from '../../shared/ui/FilterTabs'
+import { ArchiveResourceCard } from './ArchiveResourceCard'
+import './archive.css'
 
 type ArchiveDraft = {
   category: ArchiveCategory
@@ -116,23 +119,6 @@ const emptyDraft = (category: ArchiveCategory): ArchiveDraft => ({
   tags: '',
 })
 
-function formatArchiveDate(value?: string | null) {
-  if (!value) return ''
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return value
-  return parsed.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function toArchivePreview(value: string) {
-  return value.replace(/\s+/g, ' ').trim()
-}
-
 function getArchiveItemDate(item: ArchiveItem) {
   return item.eventDate || ''
 }
@@ -217,6 +203,8 @@ export function ArchivePage() {
   const isAdmin = isAdminUser(user)
   const [items, setItems] = useState<ArchiveItem[]>([])
   const [query, setQuery] = useState('')
+  const [materialFilter, setMaterialFilter] = useState('all')
+  const [showCalendar, setShowCalendar] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [archiveError, setArchiveError] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -228,7 +216,11 @@ export function ArchivePage() {
   const [selectedDate, setSelectedDate] = useState(() => toLocalDateKey(new Date()))
 
   const activeTab = archiveTabs.find((tab) => tab.id === activeCategory) ?? archiveTabs[0]
-  const actionLabel = activeCategory === 'labs' ? '연구실 자료 등록' : '에이전트/스킬 등록'
+  const actionLabel = '자료 등록'
+  const filterOptions = activeCategory === 'labs'
+    ? [{ id: 'all', label: '전체', icon: 'layout' as const }, { id: 'SEMINAR', label: '세미나' }, { id: 'PAPER', label: '논문' }, { id: 'OTHER', label: '기타' }]
+    : [{ id: 'all', label: '전체', icon: 'layout' as const }, { id: 'SKILL', label: '스킬' }, { id: 'AGENT', label: '에이전트' }]
+  const selectedMaterial = filterOptions.some((option) => option.id === materialFilter) ? materialFilter : 'all'
   const formIsLabs = draft.category === 'labs'
 
   useEffect(() => {
@@ -266,14 +258,12 @@ export function ArchivePage() {
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
-    if (!normalizedQuery) return items
-
-    return items.filter((item) =>
-      `${item.title} ${item.summary} ${item.content} ${item.ownerName} ${item.tags.join(' ')}`
+    return items.filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
+      `${item.title} ${item.summary} ${item.content} ${item.labName ?? ''} ${item.repositoryUrl} ${item.ownerName} ${item.tags.join(' ')}`
         .toLowerCase()
         .includes(normalizedQuery),
     )
-  }, [items, query])
+  }, [items, query, selectedMaterial])
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth])
 
@@ -417,6 +407,7 @@ export function ArchivePage() {
       return
     }
 
+    if (!window.confirm('이 자료를 삭제할까요?')) return
     try {
       await archiveApi.deleteItem(item.id)
       setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))
@@ -427,82 +418,27 @@ export function ArchivePage() {
   }
 
   return (
-    <section className="coala-content coala-content--archive">
-      <div className="archive-page">
-        <PageHero
-          title="자료실"
-          eyebrow="COALA ARCHIVE"
-          description="연구실 자료와 개발 도구를 모아 공유합니다."
-          meta={`자료 ${visibleItems.length}개`}
-          tone="archive"
-          size="compact"
-          headingLevel="h1"
-        />
-
-        <header className="archive-header archive-header--actions">
-          <div><strong>{activeTab.label}</strong><span>{activeTab.eyebrow}</span></div>
-          <button type="button" className="write-post-button archive-add-button" onClick={startCreate}>
-            <Icon name="plus" size={15} />
-            {actionLabel}
+    <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
+      <section className="archive-list-controls" aria-label="자료 분류 및 검색">
+        <FilterTabs value={selectedMaterial} options={filterOptions} onChange={setMaterialFilter}
+          ariaLabel="자료 분류" separateFirst />
+        <div className="archive-search-row">
+          <SearchField className="archive-search" value={query} onChange={setQuery}
+            placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />
+          <button type="button" className="write-post-button" onClick={startCreate}>
+            <Icon name="plus" size={15} />{actionLabel}
           </button>
-        </header>
-
-        <div className="archive-workspace">
-          <section className="surface-card archive-classifier" aria-label="자료실 분류">
-            <div className="archive-tab-row" role="tablist" aria-label="자료실 하위 분류">
-              {archiveTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeCategory === tab.id}
-                  className={activeCategory === tab.id ? 'archive-tab is-active' : 'archive-tab'}
-                  onClick={() => {
-                    if (showForm && editingItemId === null) {
-                      setDraft((current) => ({ ...current, category: tab.id }))
-                    }
-                    navigate(tab.path)
-                  }}
-                >
-                  <span className="archive-tab-icon">
-                    <Icon name={tab.icon} size={17} />
-                  </span>
-                  <span>
-                    <strong>{tab.label}</strong>
-                    <small>{tab.eyebrow}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-
-            <dl className="archive-summary">
-              <div>
-                <dt>표시</dt>
-                <dd>{visibleItems.length}</dd>
-              </div>
-              <div>
-                <dt>전체</dt>
-                <dd>{items.length}</dd>
-              </div>
-            </dl>
-          </section>
-
-          <main className="archive-main">
-            <section className="surface-card archive-toolbar" aria-label="자료실 검색">
-              <div className="archive-toolbar-title">
-                <p>{activeTab.eyebrow}</p>
-                <strong>{activeTab.label} 자료</strong>
-              </div>
-              <SearchField
-                className="archive-search"
-                value={query}
-                onChange={setQuery}
-                placeholder={activeCategory === 'labs' ? '논문명, 세미나명, 태그 검색' : '스킬명, 저장소, 태그 검색'}
-              />
-              {archiveError ? <p className="auth-error archive-message">{archiveError}</p> : null}
-            </section>
-
-            {activeCategory === 'labs' ? (
+        </div>
+        <div className="archive-count-row">
+          <span>자료 {visibleItems.length}개</span>
+          {activeCategory === 'labs' && <button type="button" className="archive-calendar-toggle"
+            aria-pressed={showCalendar} onClick={() => setShowCalendar((value) => !value)}>
+            <Icon name="calendar" size={16} />캘린더
+          </button>}
+        </div>
+        {archiveError && <p className="auth-error archive-message" role="alert">{archiveError}</p>}
+      </section>
+            {activeCategory === 'labs' && showCalendar ? (
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">
                 <div className="archive-calendar-head">
                   <div>
@@ -511,7 +447,7 @@ export function ArchivePage() {
                     <span>{monthLabItems.length}개 자료 · {monthLabCount || 0}개 연구실</span>
                   </div>
                   <div className="archive-calendar-controls">
-                    <button type="button" onClick={() => setCalendarMonth((current) => shiftMonth(current, -1))}>
+                    <button type="button" title="이전 달" aria-label="이전 달" onClick={() => setCalendarMonth((current) => shiftMonth(current, -1))}>
                       <Icon name="chevron-left" size={14} />
                     </button>
                     <button
@@ -524,7 +460,7 @@ export function ArchivePage() {
                     >
                       오늘
                     </button>
-                    <button type="button" onClick={() => setCalendarMonth((current) => shiftMonth(current, 1))}>
+                    <button type="button" title="다음 달" aria-label="다음 달" onClick={() => setCalendarMonth((current) => shiftMonth(current, 1))}>
                       <Icon name="chevron-right" size={14} />
                     </button>
                   </div>
@@ -543,6 +479,8 @@ export function ArchivePage() {
                         <button
                           key={day.dateKey}
                           type="button"
+                          aria-label={`${day.dateKey}, 자료 ${dayItems.length}개`}
+                          aria-pressed={isSelected}
                           className={[
                             'archive-calendar-day',
                             day.inMonth ? '' : 'archive-calendar-day--muted',
@@ -781,82 +719,15 @@ export function ArchivePage() {
               </form>
             ) : null}
 
-            <section className="archive-results" aria-label={`${activeTab.label} 자료 목록`}>
-              <div className="archive-results-head">
-                <strong>{visibleItems.length}개 자료</strong>
-                <span>{query.trim() ? `"${query.trim()}" 검색 결과` : activeTab.label}</span>
-              </div>
-
-              <div className="archive-list">
-                {isLoading ? (
-                  <div className="surface-card archive-empty">자료를 불러오는 중입니다.</div>
-                ) : visibleItems.length === 0 ? (
-                  <div className="surface-card archive-empty">등록된 자료가 없습니다.</div>
-                ) : (
-                  visibleItems.map((item) => {
-                    const preview = toArchivePreview(item.content)
-                    const sourceHref = getArchiveSourceHref(item.sourceUrl)
-                    const itemDate = getArchiveItemDate(item)
-
-                    return (
-                      <article key={item.id} className="surface-card archive-card">
-                        <div className="archive-card-main">
-                          <div className="archive-card-head">
-                            <span className={`archive-category archive-category--${item.category}`}>
-                              {item.category === 'labs' ? getMaterialLabel(item.materialType) : getMaterialLabel(item.materialType)}
-                            </span>
-                            <small>
-                              {item.category === 'labs'
-                                ? `${item.labName || '연구실 미지정'} · ${itemDate ? formatArchiveDay(itemDate) : '날짜 미지정'}`
-                                : formatArchiveDate(item.createdAt)}
-                            </small>
-                          </div>
-                          <h3>{item.title}</h3>
-                          <p>{item.summary}</p>
-                          {preview ? <div className="archive-card-content">{preview}</div> : null}
-                          <div className="archive-card-tags">
-                            {item.tags.length > 0
-                              ? item.tags.map((tag) => <span key={tag}>{tag}</span>)
-                              : <span>태그 없음</span>}
-                          </div>
-                        </div>
-                        <footer className="archive-card-footer">
-                          <span>{item.ownerName}</span>
-                          <div className="archive-card-actions">
-                            {sourceHref ? (
-                              <a href={sourceHref} target="_blank" rel="noreferrer">
-                                <Icon name="link" size={13} />
-                                {item.category === 'labs' ? '다운로드' : '문서'}
-                              </a>
-                            ) : null}
-                            {item.repositoryUrl ? (
-                              <a href={item.repositoryUrl} target="_blank" rel="noreferrer">
-                                <Icon name="book" size={13} />
-                                저장소
-                              </a>
-                            ) : null}
-                            {canManage(item) ? (
-                              <>
-                                <button type="button" onClick={() => startEdit(item)}>
-                                  <Icon name="edit" size={13} />
-                                  수정
-                                </button>
-                                <button type="button" onClick={() => handleDelete(item)}>
-                                  삭제
-                                </button>
-                              </>
-                            ) : null}
-                          </div>
-                        </footer>
-                      </article>
-                    )
-                  })
-                )}
+            <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
+              <div className="archive-resource-grid">
+                {isLoading ? <p className="archive-empty" role="status">자료를 불러오는 중입니다.</p>
+                  : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
+                  : visibleItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
+                    sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}
+                    onEdit={() => startEdit(item)} onDelete={() => void handleDelete(item)} />)}
               </div>
             </section>
-          </main>
-        </div>
-      </div>
-    </section>
+    </PageFrame>
   )
 }

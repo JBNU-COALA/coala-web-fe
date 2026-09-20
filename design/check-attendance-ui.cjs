@@ -43,7 +43,7 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR
       await route.fulfill({ status: 200, json: data });
     });
     const root = 'http://127.0.0.1:3000';
-    await page.goto(root + '/community/activity');
+    await page.goto(root + '/community/activity/records/session-1/editor');
     await page.getByRole('radiogroup', { name: '김코알라 출석 상태' }).getByLabel('출석', { exact: true }).check();
     await page.getByRole('radiogroup', { name: '이름이 긴 참여자 출석 상태' }).getByLabel('지각', { exact: true }).check();
     await page.getByLabel('인증 사진 업로드', { exact: true }).setInputFiles({ name: 'proof.png', mimeType: 'image/png', buffer: png });
@@ -52,22 +52,23 @@ const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR
     for (const width of [320, 390, 768, 1280]) {
       await page.setViewportSize({ width, height: 900 });
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), 'attendance overflow ' + width);
-      await page.locator('.attendance-session').screenshot({ path: 'design/qa/attendance-session-' + width + '.png' });
+      await page.locator('.study-editor').screenshot({ path: 'design/qa/attendance-session-' + width + '.png' });
     }
     fail = true;
-    await page.getByRole('button', { name: '출석 저장', exact: true }).click();
+    await page.getByRole('button', { name: '저장', exact: true }).click();
     await page.getByRole('alert').filter({ hasText: '다른 사람이 먼저' }).waitFor();
     assert.equal(await page.getByRole('radiogroup', { name: '김코알라 출석 상태' }).getByLabel('출석', { exact: true }).isChecked(), true);
     fail = false;
-    await page.getByRole('button', { name: '출석 저장', exact: true }).click();
-    await page.getByText('저장했습니다', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '저장', exact: true }).click();
+    await page.waitForURL('**/records/session-1?*');
     assert.deepEqual(record.attendance.map(e => e.status), ['present', 'late']);
     assert.equal(record.photos.length, 1);
     await page.reload();
     await page.getByAltText('proof.png').waitFor();
+    await page.getByRole('link', { name: '수정', exact: true }).click();
     await page.getByRole('button', { name: '사진 1 삭제', exact: true }).click();
-    await page.getByRole('button', { name: '출석 저장', exact: true }).click();
-    await page.getByText('저장했습니다', { exact: true }).waitFor();
+    await page.getByRole('button', { name: '저장', exact: true }).click();
+    await page.waitForURL('**/records/session-1?*');
     assert.equal(record.photos.length, 0);
     record.canManage = false;
     await page.reload();

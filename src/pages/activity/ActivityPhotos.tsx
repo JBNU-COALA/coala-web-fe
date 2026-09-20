@@ -4,7 +4,7 @@ import type { ActivityPhoto } from '../../shared/activity'
 import { prepareMarkdownImageFile } from '../../shared/markdownImages'
 import { Icon } from '../../shared/ui/Icon'
 
-function ProtectedPhoto({ photo }: { photo: ActivityPhoto }) {
+export function ActivityPhotoPreview({ photo, link = false }: { photo: ActivityPhoto; link?: boolean }) {
   const [source, setSource] = useState('')
   const [failed, setFailed] = useState(false)
   useEffect(() => {
@@ -20,7 +20,8 @@ function ProtectedPhoto({ photo }: { photo: ActivityPhoto }) {
     return () => { active = false; if (url) URL.revokeObjectURL(url) }
   }, [photo.attachmentId])
   return source
-    ? <a href={source} target="_blank" rel="noreferrer" title="원본 사진 보기"><img src={source} alt={photo.originalName} /></a>
+    ? link ? <a href={source} target="_blank" rel="noreferrer" title="원본 사진 보기"><img src={source} alt={photo.originalName} /></a>
+      : <img src={source} alt={photo.originalName} loading="lazy" />
     : <span className="activity-photo-placeholder" role="status">{failed ? '사진을 불러오지 못했습니다' : '불러오는 중'}</span>
 }
 
@@ -64,7 +65,7 @@ export function ActivityPhotos({ photos, onChange, onBusy }: {
     {onChange && <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
       hidden aria-label="인증 사진 업로드" onChange={(event) => void upload(event.target.files)} />}
     {photos.length > 0 && <ul className="activity-photo-grid">{photos.map((photo, index) => <li key={photo.attachmentId}>
-      <ProtectedPhoto photo={photo} />
+      <ActivityPhotoPreview photo={photo} link />
       {onChange && <button type="button" disabled={busy} className="activity-photo-remove" aria-label={`사진 ${index + 1} 삭제`}
         title="사진 삭제" onClick={() => onChange(photos.filter((item) => item.attachmentId !== photo.attachmentId))}>×</button>}
     </li>)}</ul>}
