@@ -1,11 +1,12 @@
 /* eslint-disable react-hooks/set-state-in-effect */
+import { buildRecruitPayload, itemToDraft, type RecruitDraft } from './recruitDraft'
+import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useState, type FormEvent } from 'react'
 import {
   recruitsApi,
-  type RecruitCategory,
   type RecruitComment,
   type RecruitItem,
-  type RecruitPostPayload,
+  type RecruitCategory,
   type RecruitStatus,
 } from '../../shared/api/recruits'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -28,59 +29,6 @@ const categoryLabelById = {
   tutoring: '멘토링',
 } as const
 
-type RecruitEditDraft = {
-  title: string
-  shortDesc: string
-  category: RecruitCategory
-  status: RecruitStatus
-  roles: string
-  techStack: string
-  meetingType: string
-  expectedDuration: string
-  tags: string
-  detailContent: string
-  processList: string
-}
-
-const splitList = (value: string) =>
-  value
-    .split(/[\n,]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-
-const itemToDraft = (item: RecruitItem): RecruitEditDraft => ({
-  title: item.title,
-  shortDesc: item.shortDesc,
-  category: item.category,
-  status: item.status,
-  roles: item.roles.map((role) => `${role.label}:${role.max}`).join('\n'),
-  techStack: item.techStack.join(', '),
-  meetingType: item.meetingType,
-  expectedDuration: item.expectedDuration,
-  tags: item.tags.join(', '),
-  detailContent: item.detailContent.join('\n'),
-  processList: item.processList.join('\n'),
-})
-
-const draftToPayload = (draft: RecruitEditDraft): RecruitPostPayload => ({
-  title: draft.title.trim(),
-  shortDesc: draft.shortDesc.trim(),
-  category: draft.category,
-  status: draft.status,
-  roles: splitList(draft.roles).map((line) => {
-    const matched = line.match(/^(.+?)[\s:：/]+(\d+)$/)
-    return matched
-      ? { label: matched[1].trim(), max: Number(matched[2]) || 1 }
-      : { label: line, max: 1 }
-  }),
-  techStack: splitList(draft.techStack),
-  meetingType: draft.meetingType.trim() || '협의 후 결정',
-  expectedDuration: draft.expectedDuration.trim() || '협의 후 결정',
-  tags: splitList(draft.tags).map((tag) => (tag.startsWith('#') ? tag : `#${tag}`)),
-  detailContent: splitList(draft.detailContent),
-  processList: splitList(draft.processList),
-})
-
 export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
   const [comment, setComment] = useState('')
@@ -88,7 +36,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const [saved, setSaved] = useState(false)
   const [remoteItem, setRemoteItem] = useState<RecruitItem | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editDraft, setEditDraft] = useState<RecruitEditDraft | null>(null)
+  const [editDraft, setEditDraft] = useState<RecruitDraft | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [membershipRevision, setMembershipRevision] = useState(0)
 
@@ -136,7 +84,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
     isSameUserId(item.authorId, user?.id),
   )
 
-  const updateEditDraft = <K extends keyof RecruitEditDraft>(key: K, value: RecruitEditDraft[K]) => {
+  const updateEditDraft = <K extends keyof RecruitDraft>(key: K, value: RecruitDraft[K]) => {
     setEditDraft((current) => (current ? { ...current, [key]: value } : current))
   }
 
@@ -144,14 +92,14 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
     event.preventDefault()
     if (!editDraft || !editDraft.title.trim() || !editDraft.shortDesc.trim()) return
 
-    const payload = draftToPayload(editDraft)
     setActionError(null)
     try {
+      const payload = buildRecruitPayload(editDraft)
       const updated = await recruitsApi.updateRecruit(item.id, payload)
       setRemoteItem(updated)
       setIsEditing(false)
-    } catch {
-      setActionError('모집 공고를 수정하지 못했습니다.')
+    } catch (error) {
+      setActionError(mutationError(error, '모집 공고를 수정하지 못했습니다. 작성 내용은 유지됩니다.'))
     }
   }
 
@@ -163,8 +111,8 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
     try {
       await recruitsApi.deleteRecruit(item.id)
       onBack()
-    } catch {
-      setActionError('모집 공고를 삭제하지 못했습니다.')
+    } catch (error) {
+      setActionError(mutationError(error, '모집 공고를 삭제하지 못했습니다.'))
     }
   }
 

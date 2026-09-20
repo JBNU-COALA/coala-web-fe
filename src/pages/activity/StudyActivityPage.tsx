@@ -15,6 +15,8 @@ import {
 } from '../../shared/activity'
 import {
   loadActivityData,
+  loadActivityEditorData,
+  deleteActivityRecord,
   saveActivityRecord
 } from '../../shared/activityRepository'
 import { RequireAuth } from '../../shared/auth/RequireAuth'
@@ -63,7 +65,10 @@ function ActivityContent({
   const anchor = parseDate(params.get('day') ?? '') ? params.get('day')! : start
   useEffect(() => {
     let active = true
-    loadActivityData(anchor, recordId)
+    const loading = mode === 'new' || mode === 'edit'
+      ? loadActivityEditorData(mode === 'edit' ? recordId : undefined)
+      : loadActivityData(anchor, recordId)
+    loading
       .then((value) => {
         if (active) {
           setData(value)
@@ -81,7 +86,7 @@ function ActivityContent({
     return () => {
       active = false
     }
-  }, [reload, anchor, recordId])
+  }, [reload, anchor, recordId, mode])
 
   const end = shiftDate(start, 6)
   const selectedGroup = data?.groups.some(
@@ -111,7 +116,7 @@ function ActivityContent({
   const filteredRecords = (data?.records ?? []).filter(
     (entry) =>
       (selectedGroup === 'all' || entry.groupId === selectedGroup) &&
-      (!selectedUser ||
+      (!selectedUser || entry.authorId === selectedUser ||
         entry.attendance.some((member) => member.userId === selectedUser))
   )
   const records = filteredRecords
@@ -125,8 +130,8 @@ function ActivityContent({
         right.date.localeCompare(left.date) ||
         right.updatedAt.localeCompare(left.updatedAt)
     )
-  const groupName = (id: string) =>
-    data?.groups.find((group) => group.id === id)?.name ?? '알 수 없는 조'
+  const groupName = (id: string | null) =>
+    id ? data?.groups.find((group) => group.id === id)?.name ?? '연결된 조' : '활동 기록'
   const sourceRecruit =
     record &&
     data?.groups.find((group) => group.id === record.groupId)?.recruitId
@@ -145,7 +150,8 @@ function ActivityContent({
     )
     const next = new URLSearchParams(params)
     next.set('week', mondayOf(updated.date))
-    next.set('group', updated.groupId)
+    if (updated.groupId) next.set('group', updated.groupId)
+    else next.delete('group')
     next.set('day', updated.date)
     next.delete('view')
     navigate(
@@ -156,9 +162,17 @@ function ActivityContent({
 
   return (
     <PageFrame title="활동" className={`study-frame study-frame--${mode}`} bodyClassName={`study-page study-page--${mode}`}>
-      {error ? (
+      {mode === 'new' ? (
+        <>
+          {data?.groupsError && <p className="study-error" role="alert">{data.groupsError}
+            <button type="button" className="study-text-button" onClick={() => setReload((value) => value + 1)}>다시 불러오기</button>
+          </p>}
+          <RecordEditor data={{ groups: manageableGroups, records: [] }} initialGroup="all" onSave={save} back={back} />
+        </>
+      ) : error ? (
         <div className="study-empty">
           <p role="alert">{error}</p>
+          {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>기록 작성</Link>}
           {
             <button
               className="study-text-button"
@@ -172,18 +186,20 @@ function ActivityContent({
         <p className="study-empty" role="status">
           활동 기록을 불러오는 중입니다.
         </p>
-      ) : mode === 'new' || mode === 'edit' ? (
+      ) : mode === 'edit' ? (
         mode === 'edit' && !record ? (
           <div className="study-empty">
             <p>활동 기록을 찾을 수 없습니다.</p>
             <Link to={back}>목록으로 돌아가기</Link>
           </div>
-        ) : !manageableGroups.length || (mode === 'edit' && !canEdit) ? (
+        ) : !canEdit ? (
           <div className="study-empty">
-            <p>공고 작성자와 관리자만 활동을 기록할 수 있습니다.</p>
+            <p>이 활동을 수정할 권한이 없습니다.</p>
             <Link to={back}>목록으로 돌아가기</Link>
           </div>
         ) : (
+          <>
+          {data.groupsError && <p className="study-error" role="alert">{data.groupsError}</p>}
           <RecordEditor
             key={record?.id ?? 'new'}
             data={{ ...data, groups: manageableGroups }}
@@ -192,6 +208,7 @@ function ActivityContent({
             onSave={save}
             back={back}
           />
+          </>
         )
       ) : mode === 'detail' ? (
         !record ? (
@@ -207,12 +224,12 @@ function ActivityContent({
             </Link>
             <header className="study-detail-heading">
               <div className="study-detail-context">
-                <Link
+                {record.groupId ? <Link
                   className={`study-group study-group--${record.groupId}`}
                   to={routes.community.activityGroup(record.groupId)}
                 >
                   {groupName(record.groupId)}
-                </Link>
+                </Link> : <span className="study-group">활동 기록</span>}
                 {sourceRecruit && (
                   <Link
                     className="study-text-button"
@@ -227,6 +244,7 @@ function ActivityContent({
               <div className="study-detail-meta">
                 <time dateTime={record.date}>{formattedDate(record.date)}</time>
                 {canEdit && (
+                  <>
                   <Link
                     className="study-text-button"
                     to={`${routes.community.activityRecordEditor(record.id)}${search}`}
@@ -234,14 +252,20 @@ function ActivityContent({
                     <Icon name="edit" size={16} />
                     수정
                   </Link>
+                  <button type="button" className="study-text-button" onClick={async () => {
+                    if (!window.confirm('이 활동 기록을 삭제할까요?')) return
+                    try { await deleteActivityRecord(record); navigate(back, { replace: true }) }
+                    catch { window.alert('삭제하지 못했습니다. 권한 또는 최신 수정 내용을 확인해 주세요.') }
+                  }}>삭제</button>
+                  </>
                 )}
               </div>
             </header>
-            <div className="study-detail-layout">
+            <div className={`study-detail-layout${record.attendance.length ? '' : ' study-detail-layout--standalone'}`}>
               <article className="study-body" data-color-mode="light">
                 <MDEditor.Markdown source={rewriteMarkdownImageUrls(prepareMarkdownForDisplay(record.content), resolveApiAssetUrl)} skipHtml />
               </article>
-              <section
+              {record.attendance.length > 0 && <section
                 className="study-detail-attendance"
                 aria-label="출석 명단"
               >
@@ -252,7 +276,7 @@ function ActivityContent({
                 </div>
                 <AttendanceSummary entries={record.attendance} />
                 <AttendanceList entries={record.attendance} />
-              </section>
+              </section>}
             </div>
           </>
         )
@@ -260,7 +284,7 @@ function ActivityContent({
         <>
           <header className="study-page-heading">
             <h2>활동 기록</h2>
-            {manageableGroups.length > 0 && (
+            {(
               <Link
                 className="study-primary"
                 to={`${routes.community.activityRecordNew}${search}`}
@@ -287,6 +311,7 @@ function ActivityContent({
               </button>
             </div>
           )}
+          {data.groupsError && <p className="study-error" role="alert">{data.groupsError}</p>}
           <ActivityControls groups={data.groups} start={start} end={end} selectedGroup={selectedGroup}
             layout={layout} view={view} onFilter={updateFilter} onToday={() => {
               const next = new URLSearchParams(params)
@@ -344,7 +369,7 @@ function ActivityContent({
                       <h2>{entry.title}</h2>
                       <p>{toPlainContentPreview(entry.content)}</p>
                     </Link>
-                    <div className="study-record-footer">
+                    {entry.attendance.length > 0 && <div className="study-record-footer">
                       <div
                         className="study-avatar-stack"
                         aria-label={`참여자 ${entry.attendance.length}명`}
@@ -362,7 +387,7 @@ function ActivityContent({
                         )}
                       </div>
                       <AttendanceSummary entries={entry.attendance} />
-                    </div>
+                    </div>}
                     {data.groups.find((group) => group.id === entry.groupId)
                       ?.recruitId && (
                       <Link

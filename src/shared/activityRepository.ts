@@ -21,7 +21,6 @@ export async function loadActivityData(
   anchor = dateKey(new Date()),
   recordId?: string
 ): Promise<ActivityData> {
-  const groups = await loadActivityGroups()
   const records = (
     await client.get<StudyRecord[]>('/api/study/records', {
       params: { from: shiftDate(anchor, -42), to: shiftDate(anchor, 42) }
@@ -35,7 +34,11 @@ export async function loadActivityData(
         )
       ).data
     )
-  return { groups, records }
+  try {
+    return { groups: await loadActivityGroups(), records }
+  } catch {
+    return { groups: [], records, groupsError: '조 목록을 불러오지 못했습니다.' }
+  }
 }
 
 export async function saveActivityRecord(
@@ -43,7 +46,7 @@ export async function saveActivityRecord(
   editing: boolean
 ): Promise<StudyRecord> {
   const payload = {
-    groupId: Number(record.groupId),
+    groupId: record.groupId ? Number(record.groupId) : null,
     title: record.title,
     date: record.date,
     content: record.content,
@@ -73,4 +76,21 @@ export async function saveActivityRecord(
           : '기록을 저장하지 못했습니다. 작성 내용은 화면에 남아 있습니다.'
     )
   }
+}
+export async function loadActivityEditorData(recordId?: string): Promise<ActivityData> {
+  // Record history is not needed to start a new post.
+  const records = recordId
+    ? [(await client.get<StudyRecord>(`/api/study/records/${encodeURIComponent(recordId)}`)).data]
+    : []
+  try {
+    return { records, groups: await loadActivityGroups() }
+  } catch {
+    return { records, groups: [], groupsError: '조 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.' }
+  }
+}
+
+export async function deleteActivityRecord(record: StudyRecord) {
+  await client.delete(`/api/study/records/${encodeURIComponent(record.id)}`, {
+    params: { version: record.version }
+  })
 }

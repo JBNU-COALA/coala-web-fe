@@ -68,6 +68,8 @@ type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean
 }
 
+let refreshInFlight: Promise<AuthResponse> | null = null
+
 const client = axios.create({
   baseURL: apiBaseUrl || undefined,
 })
@@ -100,7 +102,7 @@ client.interceptors.response.use(
     const status = error.response?.status
     const refreshToken = getRefreshToken()
     const shouldRefresh =
-      (status === 401 || status === 403) &&
+      status === 401 &&
       original &&
       !original._retry &&
       !isAuthEndpoint(original.url) &&
@@ -109,16 +111,19 @@ client.interceptors.response.use(
     if (shouldRefresh) {
       original._retry = true
       try {
-        const { data } = await axios.post(
-          `${apiBaseUrl || ''}/api/auth/refresh`,
-          { refreshToken },
-        ) as { data: AuthResponse }
-        setAuthSession(data)
+        if (!refreshInFlight) {
+          refreshInFlight = axios.post<AuthResponse>(`${apiBaseUrl || ''}/api/auth/refresh`, { refreshToken })
+            .then(({ data }) => { setAuthSession(data); return data })
+            .finally(() => { refreshInFlight = null })
+        }
+        const data = await refreshInFlight
         original.headers.Authorization = `Bearer ${data.accessToken}`
         return client(original)
-      } catch {
-        clearAuthSession()
-        window.location.href = '/login'
+      } catch (refreshError) {
+        // A transient network failure must not discard the user's session or draft.
+        if (axios.isAxiosError(refreshError) && [400, 401, 403].includes(refreshError.response?.status ?? 0)) {
+          clearAuthSession()
+        }
       }
     }
     return Promise.reject(error)

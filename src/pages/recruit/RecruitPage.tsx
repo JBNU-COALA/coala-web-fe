@@ -1,3 +1,5 @@
+import { buildRecruitPayload, type RecruitDraft } from './recruitDraft'
+import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
@@ -17,8 +19,6 @@ import {
   type RecruitCategory,
   type RecruitFilterId,
   type RecruitItem,
-  type RecruitPostPayload,
-  type RecruitRole,
   type RecruitStatus,
 } from '../../shared/api/recruits'
 
@@ -59,19 +59,6 @@ const filters: { id: RecruitFilterId; label: string }[] = [
 
 const LOCAL_RECRUIT_INTEREST_STORAGE_KEY = 'coala-recruit-interests'
 
-type RecruitDraft = {
-  title: string
-  category: RecruitCategory
-  shortDesc: string
-  roles: string
-  techStack: string
-  meetingType: string
-  expectedDuration: string
-  tags: string
-  detailContent: string
-  processList: string
-}
-
 const defaultRecruitDraft: RecruitDraft = {
   title: '', category: 'project', shortDesc: '', roles: '', techStack: '',
   meetingType: '', expectedDuration: '', tags: '', detailContent: '', processList: '',
@@ -98,39 +85,6 @@ const loadSavedRecruitIds = () => {
     return new Set(Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [])
   } catch {
     return new Set<string>()
-  }
-}
-
-const splitList = (value: string) =>
-  value
-    .split(/[\n,]/)
-    .map((item) => item.trim())
-    .filter(Boolean)
-
-const parseRoles = (value: string): RecruitRole[] => {
-  const roles = splitList(value).map((line) => {
-    const matched = line.match(/^(.+?)[\s:：/]+(\d+)$/)
-    if (!matched) return { label: line, current: 0, max: 1 }
-    return { label: matched[1].trim(), current: 0, max: Number(matched[2]) || 1 }
-  })
-
-  return roles.length > 0 ? roles : [{ label: '팀원', current: 0, max: 1 }]
-}
-
-const buildRecruitPayload = (draft: RecruitDraft): RecruitPostPayload => {
-  const roles = parseRoles(draft.roles)
-  const tags = splitList(draft.tags).map((tag) => (tag.startsWith('#') ? tag : `#${tag}`))
-  return {
-    title: draft.title.trim(),
-    shortDesc: draft.shortDesc.trim(),
-    category: draft.category,
-    roles: roles.map((role) => ({ label: role.label, max: role.max })),
-    techStack: splitList(draft.techStack),
-    meetingType: draft.meetingType.trim() || '협의 후 결정',
-    expectedDuration: draft.expectedDuration.trim() || '협의 후 결정',
-    tags: tags.length > 0 ? tags : ['#모집'],
-    detailContent: splitList(draft.detailContent),
-    processList: splitList(draft.processList),
   }
 }
 
@@ -309,6 +263,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
   const [savedIds, setSavedIds] = useState<Set<string>>(() => loadSavedRecruitIds())
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
+  const [creating, setCreating] = useState(false)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [remoteRecruitItems, setRemoteRecruitItems] = useState<RecruitItem[]>([])
@@ -416,11 +371,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
   const handleCreateRecruit = async (event: FormEvent) => {
     event.preventDefault()
+    if (creating) return
     if (!draft.title.trim() || !draft.shortDesc.trim()) {
       setDraftError('제목과 한 줄 소개를 입력해주세요.')
       return
     }
 
+    setCreating(true)
+    setDraftError(null)
     try {
       const createdRecruit = await recruitsApi.createRecruit(buildRecruitPayload(draft))
       setRemoteRecruitItems((current) => [createdRecruit, ...current])
@@ -430,9 +388,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       setActiveFilter('all')
       setSortMode('latest')
       navigate(`${routes.community.recruit}?view=manage`)
-    } catch {
-      setDraftError('모집 공고를 저장하지 못했습니다. 작성 내용은 유지됩니다.')
-    }
+    } catch (error) {
+      setDraftError(mutationError(error, '모집 공고를 저장하지 못했습니다. 작성 내용은 유지됩니다.'))
+    } finally { setCreating(false) }
   }
 
   const isTabActive = (tabId: Exclude<RecruitMode, 'write'>) =>
@@ -492,6 +450,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               <span className="jcloud-label">제목</span>
               <input
                 className="jcloud-input"
+                required maxLength={150}
                 value={draft.title}
                 onChange={(event) => updateDraft('title', event.target.value)}
                 placeholder="모집 공고 제목"
@@ -501,6 +460,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               <span className="jcloud-label">한 줄 소개</span>
               <input
                 className="jcloud-input"
+                required maxLength={300}
                 value={draft.shortDesc}
                 onChange={(event) => updateDraft('shortDesc', event.target.value)}
                 placeholder="목록에 보일 모집 요약"
@@ -511,16 +471,18 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               <textarea
                 className="jcloud-textarea"
                 rows={4}
+                aria-label="모집 역할/인원"
                 value={draft.roles}
                 onChange={(event) => updateDraft('roles', event.target.value)}
                 placeholder="프론트엔드:2&#10;백엔드:1"
               />
             </label>
             <label className="jcloud-field">
-              <span className="jcloud-label">기술 스택</span>
+              <span className="jcloud-label">기술 스택 (선택)</span>
               <textarea
                 className="jcloud-textarea"
                 rows={4}
+                aria-label="기술 스택 (선택)"
                 value={draft.techStack}
                 onChange={(event) => updateDraft('techStack', event.target.value)}
                 placeholder="React, TypeScript, Spring Boot"
@@ -558,16 +520,18 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               <textarea
                 className="jcloud-textarea"
                 rows={5}
+                aria-label="모집 소개"
                 value={draft.detailContent}
                 onChange={(event) => updateDraft('detailContent', event.target.value)}
                 placeholder="모집 배경, 목표, 기대 산출물을 적어주세요."
               />
             </label>
             <label className="jcloud-field recruit-write-wide">
-              <span className="jcloud-label">진행 프로세스</span>
+              <span className="jcloud-label">진행 프로세스 (선택)</span>
               <textarea
                 className="jcloud-textarea"
                 rows={4}
+                aria-label="진행 프로세스 (선택)"
                 value={draft.processList}
                 onChange={(event) => updateDraft('processList', event.target.value)}
                 placeholder="요구사항 정리&#10;기능 구현&#10;데모 배포"
@@ -576,7 +540,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           </div>
           {draftError ? <p className="auth-error">{draftError}</p> : null}
           <div className="recruit-write-footer">
-            <button type="submit" className="jcloud-submit-button">작성 완료</button>
+            <button type="submit" className="jcloud-submit-button" disabled={creating}>{creating ? '저장 중...' : '작성 완료'}</button>
           </div>
         </form>
       ) : mode === 'applied' || mode === 'saved' ? (

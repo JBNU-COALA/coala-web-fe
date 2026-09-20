@@ -684,3 +684,4 @@ a.study-person-name:hover {
     padding-left: 52px;
   }
 }
+.study-detail-layout--standalone { grid-template-columns: minmax(0, 1fr); }

@@ -16,7 +16,8 @@ export type StudyGroup = {
 export type AttendanceEntry = StudyMember & { status: AttendanceStatus }
 export type StudyRecord = {
   id: string
-  groupId: string
+  groupId: string | null
+  authorId?: string
   title: string
   date: string
   content: string
@@ -25,7 +26,7 @@ export type StudyRecord = {
   version?: number
   canManage?: boolean
 }
-export type ActivityData = { groups: StudyGroup[]; records: StudyRecord[] }
+export type ActivityData = { groups: StudyGroup[]; records: StudyRecord[]; groupsError?: string }
 
 export function dateKey(date: Date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`

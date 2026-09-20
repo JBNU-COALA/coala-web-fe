@@ -24,7 +24,7 @@ export function RecordEditor({
   initialGroup: string
 }) {
   const firstGroup =
-    data.groups.find((group) => group.id === initialGroup) ?? data.groups[0]
+    data.groups.find((group) => group.id === initialGroup)
   const [groupId, setGroupId] = useState(
     record?.groupId ?? firstGroup?.id ?? ''
   )
@@ -42,14 +42,14 @@ export function RecordEditor({
     title !== (record?.title ?? '') ||
     content !== (record?.content ?? '') ||
     date !== (record?.date ?? dateKey(new Date())) ||
-    groupId !== (record?.groupId ?? firstGroup?.id) ||
+    groupId !== (record?.groupId ?? firstGroup?.id ?? '') ||
     JSON.stringify(attendance) !==
       JSON.stringify(
         record?.attendance ??
           firstGroup?.members.map((member) => ({
             ...member,
             status: 'unknown'
-          }))
+          })) ?? []
       )
 
   useEffect(() => {
@@ -78,7 +78,7 @@ export function RecordEditor({
     try {
       await onSave({
         id: record?.id ?? crypto.randomUUID(),
-        groupId,
+        groupId: groupId || null,
         title: title.trim(),
         date,
         content: content.trim(),
@@ -135,15 +135,14 @@ export function RecordEditor({
               />
             </label>
             <label>
-              조
+              연결할 조 (선택)
               <select
                 value={groupId}
-                disabled={!!record}
+                disabled={!!record?.groupId}
                 onChange={(event) => {
                   const next = data.groups.find(
                     (group) => group.id === event.target.value
                   )
-                  if (!next) return
                   if (
                     attendance.some((entry) => entry.status !== 'unknown') &&
                     !window.confirm(
@@ -151,15 +150,19 @@ export function RecordEditor({
                     )
                   )
                     return
-                  setGroupId(next.id)
+                  setGroupId(next?.id ?? '')
                   setAttendance(
-                    next.members.map((member) => ({
+                    next?.members.map((member) => ({
                       ...member,
                       status: 'unknown'
-                    }))
+                    })) ?? []
                   )
                 }}
               >
+                <option value="">연결 안 함</option>
+                {record?.groupId && !data.groups.some((group) => group.id === record.groupId) && (
+                  <option value={record.groupId}>기존 연결 유지</option>
+                )}
                 {data.groups.map((group) => (
                   <option key={group.id} value={group.id}>
                     {group.name}
@@ -174,11 +177,13 @@ export function RecordEditor({
               required
               rows={9}
               maxLength={20000}
+              aria-label="오늘 어떤 활동을 했나요?"
               value={content}
               onChange={(event) => setContent(event.target.value)}
               placeholder="함께 배운 내용, 진행한 작업, 다음 모임의 계획"
             />
           </label>
+          {attendance.length > 0 && <>
           <div className="study-form-section">
             <h2>
               출석 <small>{attendance.length}명</small>
@@ -201,6 +206,7 @@ export function RecordEditor({
               ? `미확인 ${attendanceCounts(attendance).unknown}명`
               : '모든 출석 상태를 확인했습니다.'}
           </p>
+          </>}
           {error && (
             <p className="study-error" role="alert">
               {error}
