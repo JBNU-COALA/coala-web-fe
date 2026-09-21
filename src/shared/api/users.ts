@@ -1,3 +1,5 @@
+import type { UserData } from './auth'
+import type { UserDetailsPayload } from './userDetails'
 import client from './client'
 
 export type AvatarTone = 'mint' | 'sky' | 'amber' | 'slate' | 'sand' | 'rose'
@@ -73,6 +75,7 @@ export type ActivityMember = {
 }
 
 export const usersApi = {
+  getMyAccount: () => client.get<UserData>('/api/users/me/account').then((r) => r.data),
   getUsers: () =>
     client.get<(Omit<ActivityMember, 'id'> & { id: number | string })[]>('/api/users')
       .then((response) => response.data.map((user) => ({ ...user, id: String(user.id) }))),
@@ -83,7 +86,7 @@ export const usersApi = {
 
   updateMyProfile: (data: {
     name?: string
-    email?: string
+    details?: UserDetailsPayload
     studentId?: string
     githubId?: string
     lab?: string

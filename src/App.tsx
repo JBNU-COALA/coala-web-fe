@@ -45,6 +45,8 @@ const RecruitApplyPage = lazy(() => import('./pages/recruit/RecruitApplyPage').t
 const LeaderboardPage = lazy(() => import('./pages/leaderboard/LeaderboardPage').then((m) => ({ default: m.LeaderboardPage })))
 const ProfilePage = lazy(() => import('./pages/profile/ProfilePage').then((m) => ({ default: m.ProfilePage })))
 const ServicesPage = lazy(() => import('./pages/services/ServicesPage').then((m) => ({ default: m.ServicesPage })))
+const ArchiveEditorPage = lazy(() => import('./pages/archive/ArchiveEditorPage').then((m) => ({ default: m.ArchiveEditorPage })))
+const ArchiveDetailPage = lazy(() => import('./pages/archive/ArchiveDetailPage').then((m) => ({ default: m.ArchiveDetailPage })))
 const ArchivePage = lazy(() => import('./pages/archive/ArchivePage').then((m) => ({ default: m.ArchivePage })))
 const AdminPage = lazy(() => import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
 
@@ -788,6 +790,9 @@ function App() {
         <Route path="/services/user/:serviceId" element={<ServicesPage />} />
         <Route path="/services/user" element={<ServicesPage />} />
         <Route path="/services" element={<ServicesPage />} />
+        <Route path="/archive/:category/new" element={<ArchiveEditorPage key={location.pathname} />} />
+        <Route path="/archive/:category/:itemId/editor" element={<ArchiveEditorPage key={location.pathname} />} />
+        <Route path="/archive/:category/:itemId" element={<ArchiveDetailPage key={location.pathname} />} />
         <Route path="/archive" element={<ArchivePage />} />
         <Route path="/archive/labs" element={<ArchivePage />} />
         <Route path="/archive/agents" element={<ArchivePage />} />

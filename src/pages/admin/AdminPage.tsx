@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { AdminOverview, type AdminDestination } from './AdminOverview'
+import { AdminUserEditor } from './AdminUserEditor'
+import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
 import { Link, Navigate } from 'react-router-dom'
 import {
   adminApi,
@@ -22,7 +24,7 @@ import { routes } from '../../shared/routes'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 
-type AdminTab = 'stats' | 'users' | 'posts' | 'services' | 'instances' | 'about'
+type AdminTab = AdminDestination
 
 type ServiceDraft = {
   title: string
@@ -72,9 +74,10 @@ type AboutDraft = {
 }
 
 const adminTabs: { id: AdminTab; label: string; icon: IconName }[] = [
-  { id: 'stats', label: '통계', icon: 'chart' },
-  { id: 'users', label: '유저 관리', icon: 'users' },
+  { id: 'stats', label: '운영 현황', icon: 'chart' },
+  { id: 'users', label: '회원 관리', icon: 'users' },
   { id: 'posts', label: '게시글 관리', icon: 'message' },
+  { id: 'reports', label: '신고 처리', icon: 'bell' },
   { id: 'services', label: '서비스 관리', icon: 'network' },
   { id: 'instances', label: '인스턴스 관리', icon: 'settings' },
   { id: 'about', label: '소개 관리', icon: 'edit' },
@@ -136,15 +139,6 @@ const sanctionOptions: { value: AdminUserSanctionType; label: string }[] = [
   { value: 'ACCOUNT_SUSPENDED', label: '계정 정지' },
   { value: 'PERMANENT_BANNED', label: '영구 정지' },
 ]
-
-const academicStatusLabel: Record<UserData['academicStatus'], string> = {
-  PROFESSOR: '교수',
-  ASSISTANT: '조교',
-  ENROLLED: '재학생',
-  ON_LEAVE: '휴학생',
-  GRADUATED: '졸업생',
-  GENERAL: '일반',
-}
 
 const emptyServiceDraft: ServiceDraft = {
   title: '',
@@ -358,9 +352,12 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
 }
 
 export function AdminPage() {
-  const { user } = useAuth()
+  const { user, updateUser } = useAuth()
   const hasAdminAccess = isAdminUser(user)
   const [activeTab, setActiveTab] = useState<AdminTab>('stats')
+  const [userQuery, setUserQuery] = useState('')
+  const [pendingReportCount, setPendingReportCount] = useState<number | null>(null)
+  const [loadFailures, setLoadFailures] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [statusMessage, setStatusMessage] = useState('관리자 데이터를 불러오는 중입니다.')
   const [users, setUsers] = useState<UserData[]>([])
@@ -422,43 +419,9 @@ export function AdminPage() {
     }
   }, [boards, instanceApplications, memberServices, posts, reports, users])
 
-  const postBreakdown = useMemo(
-    () => postStatusOptions
-      .filter((option) => option.value !== 'ALL')
-      .map((option) => ({
-        label: option.label,
-        value: posts.filter((post) => post.status === option.value).length,
-      })),
-    [posts],
-  )
-
-  const roleBreakdown = useMemo(
-    () => roleOptions.map((option) => ({
-      label: option.label,
-      value: users.filter((item) => normalizeRole(item.role) === option.value).length,
-    })),
-    [users],
-  )
-
-  const serviceBreakdown = useMemo(() => {
-    const labels = ['운영중', '운영중지', '운영종료']
-    return labels.map((label) => ({
-      label,
-      value: memberServices.filter((service) => service.status === label).length,
-    }))
-  }, [memberServices])
-
-  const instanceBreakdown = useMemo(() => {
-    const labels: { id: ApplyStatus; label: string }[] = [
-      { id: 'pending', label: '대기' },
-      { id: 'approved', label: '승인' },
-      { id: 'rejected', label: '반려' },
-    ]
-    return labels.map((label) => ({
-      label: label.label,
-      value: instanceApplications.filter((instance) => instance.status === label.id).length,
-    }))
-  }, [instanceApplications])
+  const filteredUsers = users.filter((item) =>
+    `${item.name} ${item.email} ${item.studentId} ${item.department}`.toLowerCase().includes(userQuery.trim().toLowerCase()))
+  const filteredPosts = posts.filter((post) => postStatus === 'ALL' || post.status === postStatus)
 
   const loadAdminData = async () => {
     if (!hasAdminAccess) return
@@ -474,16 +437,18 @@ export function AdminPage() {
       instancesResult,
       inquiriesResult,
       aboutResult,
+      pendingReportsResult,
     ] = await Promise.allSettled([
       adminApi.getUsers(),
       adminApi.getBoards(),
-      adminApi.getPosts(postStatus),
+      adminApi.getPosts('ALL'),
       adminApi.getReports(reportStatus),
       adminApi.getAuditLogs(),
       adminApi.getMemberServices(),
       adminApi.getInstanceApplications(),
       adminApi.getInstanceInquiries(),
       siteApi.getAbout(),
+      adminApi.getReports('PENDING'),
     ])
 
     const failures = [
@@ -498,6 +463,14 @@ export function AdminPage() {
       aboutResult,
     ].filter((result) => result.status === 'rejected').length
 
+    setLoadFailures([
+      usersResult.status === 'rejected' ? 'users' : '',
+      postsResult.status === 'rejected' ? 'posts' : '',
+      servicesResult.status === 'rejected' ? 'services' : '',
+      instancesResult.status === 'rejected' ? 'instances' : '',
+      logsResult.status === 'rejected' ? 'logs' : '',
+    ].filter(Boolean))
+    setPendingReportCount(pendingReportsResult.status === 'fulfilled' ? pendingReportsResult.value.length : null)
     if (usersResult.status === 'fulfilled') {
       setUsers(usersResult.value)
       setSelectedUserId((current) => current ?? usersResult.value[0]?.id ?? null)
@@ -528,28 +501,33 @@ export function AdminPage() {
     }
 
     setStatusMessage(
-      failures === 0
-        ? '백엔드 관리자 API와 연결되었습니다.'
+      failures === 0 && pendingReportsResult.status === 'fulfilled'
+        ? '최신 상태입니다.'
         : `관리자 데이터 일부를 불러오지 못했습니다. 실패 API ${failures}개`,
     )
     setIsLoading(false)
   }
 
   useEffect(() => {
+    // Server refresh hydrates the selected records and their controlled drafts.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAdminData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAdminAccess, postStatus, reportStatus])
+  }, [hasAdminAccess, reportStatus])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setServiceDraft(selectedService ? serviceToDraft(selectedService) : emptyServiceDraft)
   }, [selectedService])
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selectedInstance) setInstanceDraft(instanceToDraft(selectedInstance))
   }, [selectedInstance])
 
   useEffect(() => {
     if (!selectedPost) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInfoDraft(emptyInfoDraft)
       setRecruitDraft(emptyRecruitDraft)
       return
@@ -791,6 +769,7 @@ export function AdminPage() {
     try {
       const updated = await adminApi.handleReport(report.id, status, reason)
       setReports((items) => items.map((item) => (item.id === updated.id ? updated : item)))
+      setPendingReportCount((await adminApi.getReports('PENDING')).length)
       setStatusMessage('신고 상태를 변경했습니다.')
       await refreshAuditLogs()
     } catch {
@@ -876,6 +855,7 @@ export function AdminPage() {
             <button
               key={tab.id}
               type="button"
+              aria-current={activeTab === tab.id ? 'page' : undefined}
               className={activeTab === tab.id ? 'admin-tab is-active' : 'admin-tab'}
               onClick={() => setActiveTab(tab.id)}
             >
@@ -897,95 +877,36 @@ export function AdminPage() {
             <h2>{adminTabs.find((tab) => tab.id === activeTab)?.label}</h2>
           </div>
           <div className="admin-row-actions">
-            <p className="admin-status">{isLoading ? '불러오는 중...' : statusMessage}</p>
-            <button type="button" className="admin-ghost-button" onClick={() => void loadAdminData()}>
+            <p className="admin-status" role="status">{isLoading ? '불러오는 중...' : statusMessage}</p>
+            <button type="button" className="admin-ghost-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => void loadAdminData()}>
               새로고침
             </button>
           </div>
         </header>
 
-        {activeTab === 'stats' ? (
-          <div className="admin-stack">
-            <div className="admin-metric-grid">
-              <Metric label="유저" value={stats.userCount} icon="users" />
-              <Metric label="운영 권한" value={stats.staffCount} icon="settings" />
-              <Metric label="게시글" value={stats.postCount} icon="message" />
-              <Metric label="미처리 신고" value={stats.pendingReports} icon="bell" />
-              <Metric label="서비스" value={stats.activeServices} icon="network" />
-              <Metric label="인스턴스 대기" value={stats.pendingInstances} icon="layout" />
-            </div>
-            <div className="admin-chart-grid">
-              <DonutChart
-                label="운영 권한 비율"
-                value={stats.staffCount}
-                total={stats.userCount}
-                detail={`운영진 ${formatNumber(stats.staffCount)}명`}
-              />
-              <DonutChart
-                label="공개 게시글 비율"
-                value={stats.visiblePosts}
-                total={stats.postCount}
-                detail={`공개 ${formatNumber(stats.visiblePosts)}개`}
-                accent="#456fa8"
-              />
-              <MiniBarChart title="유저 권한" items={roleBreakdown} total={stats.userCount} />
-              <MiniBarChart title="인스턴스 상태" items={instanceBreakdown} total={instanceApplications.length} />
-              <MiniBarChart title="서비스 상태" items={serviceBreakdown} total={memberServices.length} />
-            </div>
-            <div className="admin-two-column">
-              <div className="admin-panel">
-                <div className="admin-panel-header">
-                  <h3>게시글 상태</h3>
-                  <span>조회수 {formatNumber(stats.totalViews)}</span>
-                </div>
-                <div className="admin-bar-list">
-                  {postBreakdown.map((item) => (
-                    <div key={item.label} className="admin-bar-row">
-                      <span>{item.label}</span>
-                      <div className="admin-bar-track">
-                        <i style={{ width: `${stats.postCount ? Math.max(8, (item.value / stats.postCount) * 100) : 0}%` }} />
-                      </div>
-                      <strong>{item.value}</strong>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="admin-panel">
-                <div className="admin-panel-header">
-                  <h3>최근 감사 로그</h3>
-                  <span>{auditLogs.length}건</span>
-                </div>
-                <DataTable
-                  headers={['관리자', '작업', '대상', '사유', '시각']}
-                  rows={auditLogs.slice(0, 6).map((log) => [
-                    log.adminName,
-                    log.action,
-                    `${log.targetType} #${log.targetId}`,
-                    log.reason || '-',
-                    formatDate(log.createdAt),
-                  ])}
-                  empty="감사 로그가 없습니다."
-                />
-              </div>
-            </div>
-            <ReportsPanel
-              reports={reports}
-              reportStatus={reportStatus}
-              onStatusChange={setReportStatus}
-              onHandle={handleReport}
-            />
-          </div>
-        ) : null}
+        {activeTab === 'stats' && <AdminOverview counts={{
+          users: isLoading || loadFailures.includes('users') ? null : stats.userCount,
+          posts: isLoading || loadFailures.includes('posts') ? null : stats.postCount,
+          services: isLoading || loadFailures.includes('services') ? null : stats.activeServices,
+          reports: isLoading ? null : pendingReportCount,
+          instances: isLoading || loadFailures.includes('instances') ? null : stats.pendingInstances,
+        }} logs={loadFailures.includes('logs') ? [] : auditLogs} onNavigate={setActiveTab} />}
+        {activeTab === 'reports' && <ReportsPanel reports={reports} reportStatus={reportStatus}
+          onStatusChange={setReportStatus} onHandle={handleReport} />}
 
         {activeTab === 'users' ? (
           <div className="admin-two-column admin-two-column--wide-left">
             <div className="admin-panel">
               <div className="admin-panel-header">
-                <h3>유저 목록</h3>
+                <h3>회원 목록</h3>
                 <span>{users.length}명</span>
               </div>
+              <label className="admin-member-search"><Icon name="search" size={16} />
+                <input aria-label="회원 검색" placeholder="이름, 이메일, 학번, 학과 검색" value={userQuery} onChange={(event) => setUserQuery(event.target.value)} />
+              </label>
               <div className="admin-list">
-                {users.map((item) => (
+                {filteredUsers.length === 0 && <p className="admin-empty">검색 결과가 없습니다.</p>}
+                {filteredUsers.map((item) => (
                   <button
                     key={item.id}
                     type="button"
@@ -1002,25 +923,23 @@ export function AdminPage() {
             <div className="admin-stack">
               <div className="admin-panel admin-form">
                 <div className="admin-panel-header">
-                  <h3>유저 상세</h3>
+                  <h3>회원정보</h3>
                   {selectedUser ? <span>ID {selectedUser.id}</span> : null}
                 </div>
                 {selectedUser ? (
                   <>
                     <div className="admin-detail-grid">
-                      <Detail label="이름" value={selectedUser.name} />
-                      <Detail label="이메일" value={selectedUser.email} />
-                      <Detail label="닉네임" value={selectedUser.nickname ?? '-'} />
-                      <Detail label="소속" value={selectedUser.department || '-'} />
-                      <Detail label="연구실" value={selectedUser.lab || '-'} />
-                      <Detail label="학적" value={academicStatusLabel[selectedUser.academicStatus]} />
-                      <Detail label="학번" value={selectedUser.studentId || '-'} />
-                      <Detail label="GitHub" value={selectedUser.githubId || '-'} />
                       <Detail label="이메일 인증" value={selectedUser.verified ? '완료' : '미완료'} />
                       <Detail label="가입일" value={formatDate(selectedUser.createdAt)} />
                     </div>
+                    <AdminUserEditor key={selectedUser.id} user={selectedUser} onSave={(saved) => {
+                      setUsers((items) => items.map((item) => item.id === saved.id ? saved : item))
+                      if (saved.id === user.id) updateUser(saved)
+                      void refreshAuditLogs()
+                    }} />
                     <Field label="권한">
                       <select
+                        disabled={normalizeRole(user.role) !== 'SUPER_ADMIN'}
                         value={normalizeRole(selectedUser.role)}
                         onChange={(event) => void updateSelectedUserRole(event.target.value as AdminUserRole)}
                       >
@@ -1158,7 +1077,7 @@ export function AdminPage() {
                   </select>
                 </div>
                 <div className="admin-list">
-                  {posts.map((post) => (
+                  {filteredPosts.map((post) => (
                     <button
                       key={post.contentKey}
                       type="button"
@@ -1637,85 +1556,6 @@ export function AdminPage() {
         ) : null}
       </div>
     </section>
-  )
-}
-
-function DonutChart({
-  label,
-  value,
-  total,
-  detail,
-  accent = '#1f6b4a',
-}: {
-  label: string
-  value: number
-  total: number
-  detail: string
-  accent?: string
-}) {
-  const percent = total > 0 ? Math.round((value / total) * 100) : 0
-
-  return (
-    <div className="admin-chart-card admin-chart-card--donut">
-      <div
-        className="admin-donut"
-        style={{
-          '--chart-percent': `${percent}%`,
-          '--chart-accent': accent,
-        } as CSSProperties}
-      >
-        <strong>{percent}%</strong>
-      </div>
-      <div>
-        <h3>{label}</h3>
-        <p>{detail}</p>
-        <span>{formatNumber(value)} / {formatNumber(total)}</span>
-      </div>
-    </div>
-  )
-}
-
-function MiniBarChart({
-  title,
-  items,
-  total,
-}: {
-  title: string
-  items: { label: string; value: number }[]
-  total: number
-}) {
-  return (
-    <div className="admin-chart-card">
-      <div className="admin-chart-title">
-        <h3>{title}</h3>
-        <span>{formatNumber(total)}건</span>
-      </div>
-      <div className="admin-mini-bar-list">
-        {items.map((item) => {
-          const percent = total > 0 ? Math.max(3, (item.value / total) * 100) : 0
-
-          return (
-            <div key={item.label} className="admin-mini-bar-row">
-              <span>{item.label}</span>
-              <div className="admin-mini-bar-track">
-                <i style={{ width: `${percent}%` }} />
-              </div>
-              <strong>{formatNumber(item.value)}</strong>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function Metric({ label, value, icon }: { label: string; value: number; icon: IconName }) {
-  return (
-    <div className="admin-metric">
-      <Icon name={icon} size={18} />
-      <span>{label}</span>
-      <strong>{formatNumber(value)}</strong>
-    </div>
   )
 }
 

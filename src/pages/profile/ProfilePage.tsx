@@ -14,6 +14,8 @@ import './profile-layout.css'
 import { PageFrame } from '../../shared/ui/PageFrame'
 import { SectionNav } from '../../shared/ui/SectionNav'
 import { ProfileStats } from './ProfileStats'
+import { UserDetailsFields } from '../../shared/ui/UserDetailsFields'
+import { userDetailsDraft, userDetailsPayload, type UserDetailsDraft } from '../../shared/api/userDetails'
 
 type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
 type AuthoredContentKind = 'board' | 'info' | 'recruit'
@@ -67,19 +69,7 @@ const avatarToneOptions: { id: AvatarTone; label: string }[] = [
   { id: 'rose', label: 'Rose' },
 ]
 
-type EditableGender = keyof typeof genderLabel
-type EditableAcademicStatus = keyof typeof academicStatusLabel
-
-type AccountDraft = {
-  name: string
-  email: string
-  studentId: string
-  githubId: string
-  lab: string
-  gender: EditableGender
-  academicStatus: EditableAcademicStatus
-  linkedinUrl: string
-}
+type AccountDraft = UserDetailsDraft
 
 type ProfileCustomizationDraft = {
   avatarTone: AvatarTone
@@ -88,16 +78,7 @@ type ProfileCustomizationDraft = {
   links: UserProfileLink[]
 }
 
-const defaultAccountDraft: AccountDraft = {
-  name: '',
-  email: '',
-  studentId: '',
-  githubId: '',
-  lab: '',
-  gender: 'PREFER_NOT_TO_SAY',
-  academicStatus: 'ENROLLED',
-  linkedinUrl: '',
-}
+const defaultAccountDraft = userDetailsDraft()
 
 const defaultCustomizationDraft: ProfileCustomizationDraft = {
   avatarTone: 'mint',
@@ -223,6 +204,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [awardDrafts, setAwardDrafts] = useState<UserAward[]>([])
   const [customizationDraft, setCustomizationDraft] = useState<ProfileCustomizationDraft>(defaultCustomizationDraft)
   const [newProfileLink, setNewProfileLink] = useState<UserProfileLink>({ label: '', url: '' })
+  const [profileSaveError, setProfileSaveError] = useState('')
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
@@ -241,6 +223,12 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const profileMember = publicMember
   const isOwnProfile = Boolean(profileMember.isMe) || isSameUserId(user?.id, effectiveProfileUserId)
   const canEdit = isOwnProfile
+  useEffect(() => {
+    if (!canEdit) return
+    let active = true
+    usersApi.getMyAccount().then((account) => { if (active) updateUser(account) }).catch(() => {})
+    return () => { active = false }
+  }, [canEdit, user?.id, updateUser])
 
   const displayName = isOwnProfile ? user?.name ?? profileMember.name ?? user?.email ?? '사용자' : profileMember.name
   const displayRole = isOwnProfile && user?.academicStatus
@@ -321,9 +309,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     }
   }, [effectiveProfileUserId])
 
+  useEffect(() => { setProfileSaveState('idle') }, [effectiveProfileUserId])
+
   useEffect(() => {
     setEditing(false)
-    setProfileSaveState('idle')
     setBio(firstNonBlank(profileMember.bio, profileMember.focus))
     setActivityNote(profileMember.activityNote ?? '')
     setAwardNote(profileMember.awardNote ?? '')
@@ -333,18 +322,10 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setAwardDrafts(profileMember.awards)
     setCustomizationDraft(getMemberCustomization(profileMember))
     setNewProfileLink({ label: '', url: '' })
-    setAccountDraft({
-      name: user?.name ?? profileMember.name ?? '',
-      email: user?.email ?? '',
-      studentId: user?.studentId ?? '',
-      githubId: firstNonBlank(user?.githubId, profileMember.githubHandle),
-      lab: firstNonBlank(user?.lab, profileMember.lab),
-      gender: user?.gender ?? 'PREFER_NOT_TO_SAY',
-      academicStatus: user?.academicStatus ?? 'ENROLLED',
-      linkedinUrl: user?.linkedinUrl ?? '',
-    })
+    setAccountDraft(userDetailsDraft(user))
   }, [
     canEdit,
+    user,
     effectiveProfileUserId,
     profileMember,
     profileMember.activityNote,
@@ -444,7 +425,8 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   }
 
   const saveProfile = async () => {
-    if (!canEdit) return
+    if (!canEdit || profileSaveState === 'saving') return
+    setProfileSaveError('')
     setProfileSaveState('saving')
     try {
       const normalizedRepos = sharedRepoDrafts.map((repo) => repo.trim()).filter(Boolean)
@@ -469,14 +451,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
           .slice(0, 5),
       }
       const updated = await usersApi.updateMyProfile({
-        name: accountDraft.name.trim(),
-        email: accountDraft.email.trim().toLowerCase(),
-        studentId: accountDraft.studentId.trim(),
-        githubId: normalizeGithubHandle(accountDraft.githubId),
-        lab: accountDraft.lab.trim(),
-        gender: accountDraft.gender,
-        academicStatus: accountDraft.academicStatus,
-        linkedinUrl: accountDraft.linkedinUrl.trim(),
+        details: userDetailsPayload(accountDraft),
         bio,
         activityNote,
         awardNote: JSON.stringify(normalizedAwards),
@@ -490,20 +465,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
       setSharedReposInput(updated.sharedRepos.join('\n'))
       setCustomizationDraft(getMemberCustomization(updated))
       setNewProfileLink({ label: '', url: '' })
-      updateUser({
-        name: accountDraft.name.trim(),
-        email: accountDraft.email.trim().toLowerCase(),
-        studentId: accountDraft.studentId.trim(),
-        githubId: normalizeGithubHandle(accountDraft.githubId),
-        lab: accountDraft.lab.trim() || null,
-        gender: accountDraft.gender,
-        academicStatus: accountDraft.academicStatus,
-        linkedinUrl: accountDraft.linkedinUrl.trim() || null,
-        updatedAt: new Date().toISOString(),
-      })
+      updateUser(await usersApi.getMyAccount())
       setEditing(false)
       setProfileSaveState('saved')
-    } catch {
+    } catch (error) {
+      setProfileSaveError(error instanceof Error ? error.message : '프로필을 저장하지 못했습니다.')
       setProfileSaveState('error')
     }
   }
@@ -515,10 +481,6 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
       return
     }
     void saveProfile()
-  }
-
-  const updateAccountDraftField = <K extends keyof AccountDraft>(key: K, value: AccountDraft[K]) => {
-    setAccountDraft((current) => ({ ...current, [key]: value }))
   }
 
   const updateCustomizationDraft = <K extends keyof ProfileCustomizationDraft>(
@@ -679,7 +641,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             </button>
           ) : null}
         </div>
-        {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error">프로필을 저장하지 못했습니다.</p> : null}
+        {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error" role="alert">{profileSaveError}</p> : null}
         {profileSaveState === 'saved' ? <p className="profile-save-message">프로필을 저장했습니다.</p> : null}
 
         <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
@@ -708,84 +670,17 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">기본 정보</h3>
               {editing ? (
-                <div className="profile-edit-grid">
-                  <label className="profile-edit-field">
-                    <span>이름</span>
-                    <input
-                      className="auth-input"
-                      value={accountDraft.name}
-                      onChange={(event) => updateAccountDraftField('name', event.target.value)}
-                    />
-                  </label>
-                  <label className="profile-edit-field">
-                    <span>이메일</span>
-                    <input
-                      className="auth-input"
-                      type="email"
-                      value={accountDraft.email}
-                      onChange={(event) => updateAccountDraftField('email', event.target.value)}
-                    />
-                  </label>
-                  <label className="profile-edit-field">
-                    <span>학번</span>
-                    <input
-                      className="auth-input"
-                      value={accountDraft.studentId}
-                      onChange={(event) => updateAccountDraftField('studentId', event.target.value)}
-                    />
-                  </label>
-                  <label className="profile-edit-field">
-                    <span>GitHub</span>
-                    <input
-                      className="auth-input"
-                      value={accountDraft.githubId}
-                      onChange={(event) => updateAccountDraftField('githubId', event.target.value)}
-                    />
-                  </label>
-                  <label className="profile-edit-field">
-                    <span>소속 연구실</span>
-                    <input
-                      className="auth-input"
-                      value={accountDraft.lab}
-                      onChange={(event) => updateAccountDraftField('lab', event.target.value)}
-                    />
-                  </label>
-                  <label className="profile-edit-field">
-                    <span>성별</span>
-                    <select
-                      className="auth-input"
-                      value={accountDraft.gender}
-                      onChange={(event) => updateAccountDraftField('gender', event.target.value as EditableGender)}
-                    >
-                      {Object.entries(genderLabel).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="profile-edit-field">
-                    <span>학적</span>
-                    <select
-                      className="auth-input"
-                      value={accountDraft.academicStatus}
-                      onChange={(event) => updateAccountDraftField('academicStatus', event.target.value as EditableAcademicStatus)}
-                    >
-                      {Object.entries(academicStatusLabel).map(([value, label]) => (
-                        <option key={value} value={value}>{label}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label className="profile-edit-field profile-edit-field--wide">
-                    <span>LinkedIn</span>
-                    <input
-                      className="auth-input"
-                      type="url"
-                      value={accountDraft.linkedinUrl}
-                      onChange={(event) => updateAccountDraftField('linkedinUrl', event.target.value)}
-                    />
-                  </label>
-                </div>
+                <UserDetailsFields value={accountDraft} onChange={setAccountDraft}
+                  email={user?.email ?? ''} disabled={profileSaveState === 'saving'} />
               ) : canEdit ? (
                 <ul className="profile-handles-list">
+                  {[['닉네임', user?.nickname], ['생년월일', user?.birthDate], ['학년', user?.grade ? `${user.grade}학년` : ''], ['백준 ID', user?.baekjoonId]].map(([label, value]) => (
+                    <li className="profile-handle-item" key={label}>
+                      <span className="profile-handle-icon"><Icon name="user" size={14} /></span>
+                      <span className="profile-handle-body"><span className="profile-handle-service">{label}</span>
+                        <span className="profile-handle-value">{value || '등록 안 함'}</span></span>
+                    </li>
+                  ))}
                   <li className="profile-handle-item">
                     <span className="profile-handle-icon profile-handle-icon--github">
                       <Icon name="user" size={14} />

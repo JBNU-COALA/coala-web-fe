@@ -1,3 +1,4 @@
+import type { UserDetailsPayload } from './userDetails'
 import client from './client'
 import type { UserData } from './auth'
 import type { BoardData, CreateBoardRequest, UpdateBoardRequest } from './boards'
@@ -78,6 +79,8 @@ export type AdminUserSanctionRequest = {
 }
 
 export const adminApi = {
+  updateUserProfile: (userId: number, data: UserDetailsPayload) =>
+    client.patch<UserData>(`/api/admin/users/${userId}/profile`, data).then((r) => r.data),
   getUsers: () => client.get<UserData[]>('/api/admin/users').then((r) => r.data),
 
   updateUserRole: (userId: number, role: AdminUserRole) =>

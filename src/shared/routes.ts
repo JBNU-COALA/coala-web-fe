@@ -50,6 +50,9 @@ export const routes = {
     root: '/archive',
     labs: '/archive/labs',
     agents: '/archive/agents',
+    new: (category: 'labs' | 'agents') => `/archive/${category}/new`,
+    detail: (category: 'labs' | 'agents', id: number) => `/archive/${category}/${id}`,
+    editor: (category: 'labs' | 'agents', id: number) => `/archive/${category}/${id}/editor`,
   },
   users: {
     root: '/users',

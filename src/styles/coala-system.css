@@ -20,7 +20,7 @@
 }
 
 html {
-  min-width: 320px;
+  min-width: 0;
   overflow-y: scroll;
   scrollbar-gutter: stable;
 }
@@ -774,7 +774,7 @@ textarea {
 .info-board-shell { overflow: visible; }
 .info-list--editorial.board-post-list--card {
   grid-template-columns: 1.7fr 0.85fr 0.85fr;
-  grid-template-rows: repeat(2, 210px);
+  grid-template-rows: repeat(2, minmax(240px, auto));
 }
 .info-list--editorial.board-post-list--card > .info-post-row:first-child { grid-row: 1 / 3; }
 .info-list--editorial .info-post-row,
@@ -783,6 +783,16 @@ textarea {
   overflow: hidden;
 }
 .info-list--editorial .board-post-card--card { border-color: var(--coala-line); }
+.info-list--editorial.board-post-list--card .info-post-card { display: flex; flex-direction: column; height: 100%; }
+.info-list--editorial.board-post-list--card .info-post-open { flex: 1 0 auto; }
+.info-list--editorial.board-post-list--card .board-post-thumbnail--card { flex-shrink: 0; }
+.info-list--editorial .info-post-stats { flex: 0 0 auto; flex-wrap: wrap; row-gap: 8px; }
+.info-list--editorial .info-post-stats > .board-stat { min-width: 0; }
+.info-list--editorial .info-post-stats > .board-stat:nth-child(2) { flex: 1 1 50px; overflow: hidden; }
+.info-list--editorial .info-post-stats > .board-stat:nth-child(2) span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.info-list--editorial .info-list-actions { flex: 0 0 auto; }
+.info-list--editorial .board-post-main { min-height: 0; }
+
 .info-list--editorial .info-post-row:first-child .board-post-thumbnail--card { aspect-ratio: auto; height: 302px; }
 .info-list--editorial .info-post-row:not(:first-child) .board-post-thumbnail--card { height: 102px; aspect-ratio: auto; }
 .info-list--editorial .info-post-row:not(:first-child) .board-post-main { padding: 10px 12px; }

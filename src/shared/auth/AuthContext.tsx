@@ -1,5 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
 import { clearAuthSession, getRefreshToken, getStoredUser, setAuthSession, setStoredUser } from './tokenStorage'
 
@@ -58,14 +58,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data
   }
 
-  const updateUser = (patch: Partial<UserData>) => {
+  const updateUser = useCallback((patch: Partial<UserData>) => {
     setUser((current) => {
       if (!current) return current
       const next = { ...current, ...patch }
       setStoredUser(next)
       return next
     })
-  }
+  }, [])
 
   const logout = async () => {
     await authApi.logout().catch(() => {})

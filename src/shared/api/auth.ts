@@ -32,6 +32,7 @@ export type UserData = {
   lab: string | null
   studentId: string
   grade: number | null
+  baekjoonId?: string | null
   githubId: string | null
   linkedinUrl: string | null
   academicStatus: 'PROFESSOR' | 'ASSISTANT' | 'ENROLLED' | 'ON_LEAVE' | 'GRADUATED' | 'GENERAL'
