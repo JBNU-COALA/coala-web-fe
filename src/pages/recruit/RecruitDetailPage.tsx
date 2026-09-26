@@ -1,8 +1,8 @@
 import { RecruitRoleFields } from './RecruitRoleFields'
-/* eslint-disable react-hooks/set-state-in-effect */
 import { buildRecruitPayload, itemToDraft, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   recruitsApi,
   type RecruitComment,
@@ -17,6 +17,9 @@ import { Icon } from '../../shared/ui/Icon'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { StudyConnections } from '../../shared/ui/StudyConnections'
 import { RecruitParticipants } from './RecruitParticipants'
+import { routes } from '../../shared/routes'
+import { useRecruitBookmarks } from './useRecruitBookmarks'
+import './recruit-workspace.css'
 
 type RecruitDetailPageProps = {
   recruitId: string
@@ -34,18 +37,20 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const { isLoggedIn, user } = useAuth()
   const [comment, setComment] = useState('')
   const [localComments, setLocalComments] = useState<RecruitComment[]>([])
-  const [saved, setSaved] = useState(false)
+  const bookmarks = useRecruitBookmarks()
+  const saved = bookmarks.savedIds.has(recruitId)
   const [remoteItem, setRemoteItem] = useState<RecruitItem | null>(null)
   const [isEditing, setIsEditing] = useState(false)
   const [editDraft, setEditDraft] = useState<RecruitDraft | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [membershipRevision, setMembershipRevision] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [commenting, setCommenting] = useState(false)
 
   const item = remoteItem?.id === recruitId ? remoteItem : null
   const [loading, setLoading] = useState(true)
   useEffect(() => {
     setLocalComments([])
-    setSaved(false)
     setIsEditing(false)
     setActionError(null)
     let active = true
@@ -77,7 +82,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
   const comments = [...item.comments, ...localComments]
   const totalCurrent = item.roles.reduce((sum, role) => sum + role.current, 0)
   const totalMax = item.roles.reduce((sum, role) => sum + role.max, 0)
-  const participationRate = totalMax > 0 ? (totalCurrent / totalMax) * 100 : 0
+  const participationRate = totalMax > 0 ? Math.min(100, (totalCurrent / totalMax) * 100) : 0
   const isOpen = item.status !== 'closed'
   const isOperator = isAdminUser(user)
   const canManageRecruit = Boolean(
@@ -91,9 +96,10 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
 
   const handleUpdateRecruit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!editDraft || !editDraft.title.trim() || !editDraft.shortDesc.trim()) return
+    if (saving || !editDraft || !editDraft.title.trim() || !editDraft.shortDesc.trim()) return
 
     setActionError(null)
+    setSaving(true)
     try {
       const payload = buildRecruitPayload(editDraft)
       const updated = await recruitsApi.updateRecruit(item.id, payload)
@@ -101,33 +107,36 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
       setIsEditing(false)
     } catch (error) {
       setActionError(mutationError(error, '모집 공고를 수정하지 못했습니다. 작성 내용은 유지됩니다.'))
-    }
+    } finally { setSaving(false) }
   }
 
   const handleDeleteRecruit = async () => {
+    if (saving) return
     const confirmed = window.confirm('모집 공고를 삭제할까요? 지원서와 댓글도 함께 삭제됩니다.')
     if (!confirmed) return
 
     setActionError(null)
+    setSaving(true)
     try {
       await recruitsApi.deleteRecruit(item.id)
       onBack()
     } catch (error) {
       setActionError(mutationError(error, '모집 공고를 삭제하지 못했습니다.'))
-    }
+    } finally { setSaving(false) }
   }
 
   const handleSubmitComment = async (event: FormEvent) => {
     event.preventDefault()
     const trimmedComment = comment.trim()
-    if (!trimmedComment || !isLoggedIn) return
+    if (!trimmedComment || !isLoggedIn || commenting) return
+    setCommenting(true)
     try {
       const created = await recruitsApi.createComment(item.id, trimmedComment)
       setLocalComments((current) => [...current, created])
       setComment('')
     } catch {
       setActionError('질문 등록에 실패했습니다.')
-    }
+    } finally { setCommenting(false) }
   }
 
   return (
@@ -140,7 +149,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
           </button>
 
           <article className="recruit-detail-card recruit-detail-hero-card">
-            {actionError ? <p className="auth-error">{actionError}</p> : null}
+            {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
             <div className="recruit-detail-badges">
               <span className="recruit-detail-badge recruit-detail-badge--primary">
                 {item.status === 'open' ? '모집 중' : item.status === 'closing-soon' ? '마감 임박' : '모집 마감'}
@@ -155,11 +164,11 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
 
             {canManageRecruit ? (
               <div className="recruit-manage-actions">
-                <button type="button" className="ghost-button" onClick={() => setIsEditing((value) => !value)}>
+                <button type="button" className="ghost-button" disabled={saving} onClick={() => { setEditDraft(itemToDraft(item)); setIsEditing((value) => !value) }}>
                   <Icon name="edit" size={14} />
                   {isEditing ? '수정 취소' : '수정'}
                 </button>
-                <button type="button" className="ghost-button" onClick={handleDeleteRecruit}>
+                <button type="button" className="ghost-button" disabled={saving} onClick={handleDeleteRecruit}>
                   <Icon name="file" size={14} />
                   삭제
                 </button>
@@ -221,7 +230,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
                   <span className="jcloud-label">진행 프로세스</span>
                   <textarea className="jcloud-textarea" rows={3} value={editDraft.processList} onChange={(event) => updateEditDraft('processList', event.target.value)} />
                 </label>
-                <button type="submit" className="jcloud-submit-button">저장하기</button>
+                <button type="submit" className="jcloud-submit-button" disabled={saving}>{saving ? '저장 중...' : '저장하기'}</button>
               </form>
             ) : null}
 
@@ -308,8 +317,8 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
                   onChange={(event) => setComment(event.target.value)}
                 />
                 <div className="recruit-qa-form-footer">
-                  <button type="submit" className="recruit-qa-submit" disabled={!comment.trim()}>
-                    질문 등록
+                  <button type="submit" className="recruit-qa-submit" disabled={!comment.trim() || commenting}>
+                    {commenting ? '등록 중...' : '질문 등록'}
                   </button>
                 </div>
               </form>
@@ -386,18 +395,22 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
               type="button"
               className={saved ? 'recruit-interest-button recruit-interest-button--active' : 'recruit-interest-button'}
               aria-pressed={saved}
-              onClick={() => {
-                if (!isLoggedIn) {
-                  setActionError('관심 프로젝트 저장은 로그인 후 가능합니다.')
-                  return
+              disabled={bookmarks.loading || Boolean(bookmarks.error) || bookmarks.isPending(item.id)}
+              onClick={async () => {
+                setActionError(null)
+                try {
+                  const result = await bookmarks.toggle(item.id)
+                  if (result) setRemoteItem(result.item ?? { ...item, bookmarks: Math.max(0, item.bookmarks - 1) })
+                } catch (error) {
+                  setActionError(error instanceof Error ? error.message : '관심 공고를 변경하지 못했습니다.')
                 }
-                setSaved((current) => !current)
-                recruitsApi.bookmark(item.id).catch(() => {})
               }}
             >
               <Icon name="heart" size={16} />
               {saved ? '관심 공고 저장됨' : '관심 공고 저장'}
             </button>
+            {bookmarks.error && <div className="recruit-load-state"><p role="alert">{bookmarks.error}</p>
+              <button type="button" className="ghost-button" onClick={bookmarks.retry}>다시 불러오기</button></div>}
           </section>
 
           <section className="recruit-host-card">
@@ -405,7 +418,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
             <div className="recruit-host-info">
               <CharacterAvatar name={item.host} seed={item.authorId ?? item.host} size="md" className="leader-avatar" />
               <div>
-                <p className="recruit-host-name">{item.host}</p>
+                <p className="recruit-host-name">{item.authorId ? <Link to={routes.users.detail(item.authorId)}>{item.host}</Link> : item.host}</p>
                 <p className="recruit-host-role">{item.hostRole}</p>
               </div>
             </div>

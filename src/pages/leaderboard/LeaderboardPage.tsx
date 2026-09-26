@@ -75,6 +75,8 @@ export function LeaderboardPage() {
   const [labFilter, setLabFilter] = useState('all')
   const [viewMode, setViewMode] = useState<ViewMode>('card')
   const [loadError, setLoadError] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadRevision, setLoadRevision] = useState(0)
   const [members, setMembers] = useState<ActivityMember[]>([])
 
   const normalizedQuery = query.trim().toLowerCase()
@@ -82,10 +84,15 @@ export function LeaderboardPage() {
   const labOptions = ['all', ...Array.from(new Set(members.map((member) => member.lab)))]
 
   useEffect(() => {
-    usersApi.getUsers()
-      .then(setMembers)
-      .catch(() => setLoadError('유저 목록을 불러오지 못했습니다.'))
-  }, [])
+    let active = true
+    Promise.resolve().then(() => {
+      if (active) { setIsLoading(true); setLoadError('') }
+      return usersApi.getUsers()
+    }).then((items) => { if (active) setMembers(items) })
+      .catch(() => { if (active) { setMembers([]); setLoadError('유저 목록을 불러오지 못했습니다.') } })
+      .finally(() => { if (active) setIsLoading(false) })
+    return () => { active = false }
+  }, [loadRevision, user?.id])
 
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
@@ -106,9 +113,10 @@ export function LeaderboardPage() {
         <CommunityBanner title="유저" description="함께 만드는 코알라 멤버" tone="users" />
 
         <div className="activity-table-shell">
-          {loadError && <p role="alert" className="auth-error">{loadError}</p>}
+          {loadError && <div><p role="alert" className="auth-error">{loadError}</p>
+            <button type="button" className="ghost-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}
           <section className="activity-directory-controls" aria-label="유저 검색 및 필터">
-            <strong className="activity-member-count">멤버 {filteredMembers.length}명</strong>
+            <strong className="activity-member-count">{isLoading || loadError ? '멤버' : `멤버 ${filteredMembers.length}명`}</strong>
             <SearchField
               className="activity-search"
               value={query}
@@ -132,7 +140,7 @@ export function LeaderboardPage() {
             <ViewModeToggle value={viewMode} onChange={setViewMode} className="activity-view-toggle" />
           </section>
 
-          {filteredMembers.length > 0 ? (
+          {!isLoading && !loadError && filteredMembers.length > 0 ? (
             <section className="activity-recent-members" aria-label="최근 활동 유저">
               <header className="activity-directory-section-head">
                 <div><h2>최근 활동한 멤버</h2><p>최근에 활동한 코알라 멤버입니다.</p></div>
@@ -155,7 +163,7 @@ export function LeaderboardPage() {
             <div><h2>전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
           </header>
           <section className={`activity-directory-grid activity-directory-grid--${viewMode}`} aria-label="전체 유저 목록">
-            {filteredMembers.map((member) => (
+            {!isLoading && !loadError && filteredMembers.map((member) => (
               <MemberCard
                 key={member.id}
                 member={member}
@@ -163,7 +171,8 @@ export function LeaderboardPage() {
               />
             ))}
           </section>
-          {filteredMembers.length === 0 ? <p className="activity-empty">조건에 맞는 유저가 없습니다.</p> : null}
+          {isLoading ? <p className="activity-empty" role="status">유저 목록을 불러오는 중입니다.</p>
+            : !loadError && filteredMembers.length === 0 ? <p className="activity-empty">조건에 맞는 유저가 없습니다.</p> : null}
         </div>
       </div>
     </section>

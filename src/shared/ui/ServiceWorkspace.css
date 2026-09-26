@@ -1,0 +1,32 @@
+.service-workspace-nav {
+  display: flex;
+  gap: 4px;
+  padding: 6px;
+  border-bottom: 1px solid var(--coala-line, #d8e4df);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.service-workspace-tab {
+  flex: 1 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #50675d;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.service-workspace-tab svg { flex-shrink: 0; }
+.service-workspace-tab:hover { background: #eef4f0; }
+.service-workspace-tab.is-active { background: #1a5d41; color: #fff; }
+.service-workspace-tab:focus-visible { outline: 2px solid #1a5d41; outline-offset: -2px; }
+@media (max-width: 370px) {
+  .service-workspace-tab { gap: 4px; padding-inline: 8px; font-size: 12px; }
+}

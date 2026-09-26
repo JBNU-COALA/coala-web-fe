@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { useRequestScope } from '../../useRequestScope'
 import { infoApi, type InfoArticle, type InfoFilterId } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
@@ -7,6 +8,9 @@ import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { SelectControl } from '../../shared/ui/SelectControl'
+import { ListingControls } from '../../shared/ui/ListingControls'
+import { Pagination } from '../../shared/ui/Pagination'
+import { usePagination } from '../../shared/ui/usePagination'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
@@ -85,21 +89,39 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
   const [query, setQuery] = useState('')
   const [resources, setResources] = useState<InfoArticle[]>([])
-  const [savedResourceIds, setSavedResourceIds] = useState<Set<number>>(() => new Set())
   const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<InfoListViewMode>('card')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [likeError, setLikeError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadRevision, setLoadRevision] = useState(0)
+  const [pendingIds, setPendingIds] = useState<Set<number>>(new Set())
+  const mutationLocks = useRef(new Set<number>())
+  const captureRequest = useRequestScope()
+
+  function beginMutation(id: number) {
+    if (mutationLocks.current.has(id)) return false
+    mutationLocks.current.add(id)
+    setPendingIds(new Set(mutationLocks.current))
+    return true
+  }
+
+  function finishMutation(id: number) {
+    mutationLocks.current.delete(id)
+    setPendingIds(new Set(mutationLocks.current))
+  }
 
   const normalizedQuery = query.trim().toLowerCase()
-  const activeFilterLabel =
-    infoTabFilters.find((filter) => filter.id === activeFilter)?.label ?? '전체'
 
   useEffect(() => {
-    infoApi.getArticles(activeFilter, query)
-      .then(setResources)
-      .catch(() => setResources([]))
-  }, [activeFilter, query])
+    let active = true
+    infoApi.getArticles('all')
+      .then((items) => { if (active) { setResources(items); setLoadError(null) } })
+      .catch(() => { if (active) setLoadError('정보공유 목록을 불러오지 못했습니다.') })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
+  }, [loadRevision, isLoggedIn])
 
   const visibleResources = useMemo(() => {
     const filteredByType =
@@ -119,14 +141,24 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
       return bTime - aTime
     })
   }, [activeFilter, normalizedQuery, resources, sortMode])
+  const pagination = usePagination(visibleResources, `${activeFilter}:${normalizedQuery}:${sortMode}`)
 
-  const toggleSavedResource = (resourceId: number) => {
-    setSavedResourceIds((current) => {
-      const next = new Set(current)
-      if (next.has(resourceId)) next.delete(resourceId)
-      else next.add(resourceId)
-      return next
-    })
+  const toggleSavedResource = async (resourceId: number) => {
+    if (!isLoggedIn) {
+      setLikeError('정보 저장은 로그인 후 이용할 수 있습니다.')
+      return
+    }
+    if (!beginMutation(resourceId)) return
+    const isCurrent = captureRequest()
+    setLikeError(null)
+    try {
+      const updated = await infoApi.bookmarkArticle(resourceId)
+      if (isCurrent()) setResources((current) => current.map((item) => item.id === resourceId
+        ? { ...item, bookmarkedByMe: updated.bookmarkedByMe, bookmarkCount: updated.bookmarkCount } : item))
+    } catch {
+      if (isCurrent()) setLikeError('정보 저장에 실패했습니다. 다시 시도해 주세요.')
+      return
+    } finally { if (isCurrent()) finishMutation(resourceId) }
   }
 
   const copyResourceTitle = async (resourceId: number, title: string) => {
@@ -145,9 +177,12 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
       return
     }
 
+    if (!beginMutation(article.id)) return
+    const isCurrent = captureRequest()
     setLikeError(null)
     try {
       const response = await infoApi.likeArticle(article.id)
+      if (!isCurrent()) return
       setResources((current) =>
         current.map((item) => (
           item.id === article.id
@@ -156,7 +191,9 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
         )),
       )
     } catch {
-      setLikeError('좋아요 처리에 실패했습니다.')
+      if (isCurrent()) setLikeError('좋아요 처리에 실패했습니다.')
+    } finally {
+      if (isCurrent()) finishMutation(article.id)
     }
   }
 
@@ -169,24 +206,15 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
           meta={`게시글 ${visibleResources.length}개`}
         />
 
-        <section className="surface-card community-list-controls info-list-controls" aria-label="정보공유 필터">
-          <div className="community-list-summary">
-            <div className="community-list-heading">
-              <p>{activeFilterLabel}</p>
-              <strong>게시글 {visibleResources.length}개</strong>
-            </div>
-          </div>
-
-          <FilterTabs
+        <ListingControls className="page-container" label="정보공유 필터" count={`게시글 ${visibleResources.length}개`}
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}
+          filters={<FilterTabs
             value={activeFilter}
             options={infoTabs}
             onChange={setActiveFilter}
             ariaLabel="정보공유 분류"
             separateFirst
-            className="community-filter-tabs"
-          />
-
-          <div className="community-list-actions">
+          />}>
             <SearchField
               className="community-list-search"
               value={query}
@@ -212,13 +240,11 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               <Icon name="edit" size={15} />
               글쓰기
             </button>
-          </div>
-          {likeError ? <p className="auth-error board-like-error">{likeError}</p> : null}
-        </section>
+        </ListingControls>
 
         <article className={`surface-card board-shell info-board-shell board-shell--${viewMode}`} aria-label="정보공유 목록">
           <ul className={`board-post-list info-list info-list--editorial board-post-list--${viewMode}`}>
-            {visibleResources.map((card) => {
+            {pagination.pageItems.map((card) => {
               const [fallbackSourceName, fallbackSourceDate] = card.source.split('|').map((part) => part.trim())
               const sourceName = card.authorName || card.sourceName || fallbackSourceName
               const sourceDate = card.sourceDate || fallbackSourceDate
@@ -294,6 +320,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                           className={card.likedByMe ? 'board-like-button is-liked' : 'board-like-button'}
                           aria-pressed={Boolean(card.likedByMe)}
                           aria-label={`${card.title} 좋아요`}
+                          disabled={pendingIds.has(card.id)}
                           onClick={() => {
                             void toggleInfoLike(card)
                           }}
@@ -304,15 +331,15 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         <button
                           type="button"
                           className={
-                            savedResourceIds.has(card.id)
+                            card.bookmarkedByMe
                               ? 'info-list-action info-list-action--active'
                               : 'info-list-action'
                           }
                           aria-label="정보 저장"
-                          aria-pressed={savedResourceIds.has(card.id)}
+                          disabled={pendingIds.has(card.id)}
+                          aria-pressed={Boolean(card.bookmarkedByMe)}
                           onClick={() => {
-                            toggleSavedResource(card.id)
-                            infoApi.bookmarkArticle(card.id).catch(() => {})
+                            void toggleSavedResource(card.id)
                           }}
                         >
                           <Icon name="book" size={14} />
@@ -332,16 +359,12 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               )
             })}
 
-            {visibleResources.length === 0 ? (
+            {loading ? <li className="empty-post-state" role="status">정보를 불러오는 중입니다.</li> : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button type="button" className="ghost-button" onClick={() => { setLoading(true); setLoadRevision((value) => value + 1) }}>다시 불러오기</button></li> : visibleResources.length === 0 ? (
               <li className="empty-post-state">조건에 맞는 정보가 없습니다.</li>
             ) : null}
           </ul>
+          <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
 
-          <footer className="board-pagination" aria-label="페이지">
-            <button type="button" className="page-button is-active">
-              1
-            </button>
-          </footer>
         </article>
       </article>
     </section>

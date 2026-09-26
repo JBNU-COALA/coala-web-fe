@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
-import { clearAuthSession, getRefreshToken, getStoredUser, setAuthSession, setStoredUser } from './tokenStorage'
+import { AUTH_SESSION_EVENT, clearAuthSession, getAuthSessionVersion, getRefreshToken, getStoredUser, handleAuthStorageEvent, setAuthSession, setStoredUser } from './tokenStorage'
 
 type AuthState = {
   user: UserData | null
@@ -25,25 +25,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   useEffect(() => {
+    const syncSession = () => setUser(getRefreshToken() ? getStoredUser() : null)
+    window.addEventListener(AUTH_SESSION_EVENT, syncSession)
+    window.addEventListener('storage', handleAuthStorageEvent)
     const refreshToken = getRefreshToken()
-    if (!refreshToken) return
-
-    let active = true
-
-    authApi.refresh(refreshToken)
-      .then((data) => {
-        if (!active) return
-        setAuthSession(data)
-        setUser(data.user)
-      })
-      .catch(() => {
-        if (!active) return
-        clearAuthSession()
-        setUser(null)
-      })
+    // Bootstrap and expired API calls share one refresh, including StrictMode replays.
+    if (refreshToken) void authApi.refresh(refreshToken).catch(() => {})
 
     return () => {
-      active = false
+      window.removeEventListener(AUTH_SESSION_EVENT, syncSession)
+      window.removeEventListener('storage', handleAuthStorageEvent)
     }
   }, [])
 
@@ -68,7 +59,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const logout = async () => {
+    const version = getAuthSessionVersion()
     await authApi.logout().catch(() => {})
+    if (version !== getAuthSessionVersion()) return
     clearAuthSession()
     setUser(null)
   }

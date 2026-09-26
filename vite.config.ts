@@ -8,7 +8,11 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    envPrefix: 'API_',
+    // Only this public URL may enter the browser bundle; proxy targets stay server-side.
+    envPrefix: [],
+    define: {
+      'import.meta.env.API_BASE_URL': JSON.stringify(env.API_BASE_URL || ''),
+    },
     server: {
       port: 3000,
       proxy: {

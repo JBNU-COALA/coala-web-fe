@@ -1,0 +1,72 @@
+.filter-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  margin: 0;
+  padding: 2px 0 8px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: #c8d5cf transparent;
+}
+
+.filter-tab-slot {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+}
+
+.filter-tab-divider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 22px;
+  margin-inline: 4px;
+  background: var(--coala-line, #dce5e1);
+}
+
+.filter-tab {
+  --filter-accent: #426156;
+  --filter-wash: #f0f5f2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: auto;
+  min-height: 40px;
+  padding: 8px 14px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: var(--filter-wash);
+  color: var(--filter-accent);
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease;
+}
+
+.filter-tab--notice, .filter-tab--news { --filter-accent: #b83250; --filter-wash: #fff0f3; }
+.filter-tab--free, .filter-tab--contest { --filter-accent: #2764a5; --filter-wash: #edf5ff; }
+.filter-tab--humor { --filter-accent: #7547b5; --filter-wash: #f5efff; }
+.filter-tab--lab { --filter-accent: #167550; --filter-wash: #eaf7f0; }
+.filter-tab--resource { --filter-accent: #52617b; --filter-wash: #eef1f6; }
+.filter-tab:hover { border-color: currentColor; }
+.filter-tab.is-active { background: var(--coala-green-700, #185c43); color: #fff; }
+.filter-tab:focus-visible { outline: 2px solid #2478d5; outline-offset: -2px; }
+.filter-tab svg { flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .filter-tabs { gap: 6px; }
+  .filter-tab-slot { gap: 6px; }
+  .filter-tab { min-height: 44px; padding-inline: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-tab { transition: none; }
+}

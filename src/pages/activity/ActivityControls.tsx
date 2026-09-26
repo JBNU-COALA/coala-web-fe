@@ -70,6 +70,9 @@ export function ActivityControls({
             onChange={(event) => onFilter('group', event.target.value)}
           >
             <option value="all">전체 조</option>
+            {selectedGroup !== 'all' && !groups.some((group) => group.id === selectedGroup) && (
+              <option value={selectedGroup}>선택한 조</option>
+            )}
             {groups.map((group) => (
               <option key={group.id} value={group.id}>
                 {group.name}

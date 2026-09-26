@@ -1,0 +1,6 @@
+.listing-pagination { display: flex; align-items: center; justify-content: center; gap: 4px; padding-block: 24px; }
+.listing-pagination button { display: inline-grid; place-items: center; flex: 0 0 36px; height: 36px; padding: 0; border: 0; border-radius: 6px; font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; color: #586b61; background: transparent; cursor: pointer; }
+.listing-pagination button[aria-current] { background: #e5f2eb; color: #15593e; font-weight: 700; }
+.listing-pagination button:hover:not(:disabled) { background: #edf2ef; }
+.listing-pagination button:disabled { opacity: .35; cursor: default; }
+.listing-pagination button:focus-visible { outline: 2px solid #2478d5; outline-offset: 2px; }

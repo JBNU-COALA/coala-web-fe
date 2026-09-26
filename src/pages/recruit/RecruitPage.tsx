@@ -2,7 +2,7 @@ import { RecruitRoleFields } from './RecruitRoleFields'
 import { buildRecruitPayload, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { SectionNav } from '../../shared/ui/SectionNav'
 import { Icon } from '../../shared/ui/Icon'
@@ -21,7 +21,11 @@ import {
   type RecruitFilterId,
   type RecruitItem,
   type RecruitStatus,
+  type RecruitApplication,
 } from '../../shared/api/recruits'
+import { useRecruitBookmarks } from './useRecruitBookmarks'
+import { applicationStatusLabel, useRecruitApplications } from './useRecruitApplications'
+import './recruit-workspace.css'
 
 type RecruitPageProps = {
   onSelectRecruit: (id: string) => void
@@ -58,8 +62,6 @@ const filters: { id: RecruitFilterId; label: string }[] = [
   { id: 'closing-soon', label: '마감 임박' },
 ]
 
-const LOCAL_RECRUIT_INTEREST_STORAGE_KEY = 'coala-recruit-interests'
-
 const defaultRecruitDraft: RecruitDraft = {
   title: '', category: 'project', shortDesc: '', roles: [{ key: 'role-0', label: '', max: 1 }], techStack: '',
   meetingType: '', expectedDuration: '', tags: '', detailContent: '', processList: '',
@@ -77,18 +79,6 @@ const getStatusClass = (status: RecruitStatus) => {
   return 'recruit-status--closed'
 }
 
-const loadSavedRecruitIds = () => {
-  if (typeof window === 'undefined') return new Set<string>()
-
-  try {
-    const raw = window.localStorage.getItem(LOCAL_RECRUIT_INTEREST_STORAGE_KEY)
-    const parsed = raw ? JSON.parse(raw) : []
-    return new Set(Array.isArray(parsed) ? parsed.filter((id) => typeof id === 'string') : [])
-  } catch {
-    return new Set<string>()
-  }
-}
-
 type RecruitListProps = {
   items: RecruitItem[]
   variant: RecruitListVariant
@@ -99,6 +89,9 @@ type RecruitListProps = {
   onEmptyAction?: () => void
   appliedIds: Set<string>
   savedIds: Set<string>
+  applications: RecruitApplication[]
+  isBookmarkPending: (id: string) => boolean
+  bookmarksUnavailable: boolean
   onSelectRecruit: (id: string) => void
   onOpenApplication: (id: string) => void
   onToggleSaved: (id: string) => void
@@ -114,6 +107,9 @@ function RecruitList({
   onEmptyAction,
   appliedIds,
   savedIds,
+  applications,
+  isBookmarkPending,
+  bookmarksUnavailable,
   onSelectRecruit,
   onOpenApplication,
   onToggleSaved,
@@ -123,7 +119,8 @@ function RecruitList({
       {items.map((item) => {
         const isOpen = item.status === 'open'
         const isClosingSoon = item.status === 'closing-soon'
-        const canApply = isOpen || isClosingSoon
+        const application = applications.find((entry) => entry.recruitId === item.id)
+        const canApply = (isOpen || isClosingSoon) && application?.status !== 'accepted'
         const isApplied = appliedIds.has(item.id)
         const previewSource = [item.shortDesc, ...item.detailContent].join('\n')
         const previewImageUrl = extractFirstContentImage(previewSource) || '/coala-card-placeholder.png'
@@ -200,13 +197,19 @@ function RecruitList({
                   관리
                 </button>
               ) : variant === 'applied' ? (
-                <span className="recruit-card-static-chip">지원 완료</span>
+                <>
+                  <span className={`recruit-application-status recruit-application-status--${application?.status}`}>
+                    {application ? applicationStatusLabel(application.status) : '지원 완료'}
+                  </span>
+                  {canApply && <button type="button" className="recruit-save-chip" onClick={() => onOpenApplication(item.id)}>지원서 수정</button>}
+                </>
               ) : (
                 <>
                   <button
                     type="button"
                     className={savedIds.has(item.id) ? 'recruit-save-chip recruit-save-chip--active' : 'recruit-save-chip'}
                     aria-pressed={savedIds.has(item.id)}
+                    disabled={bookmarksUnavailable || isBookmarkPending(item.id)}
                     onClick={() => onToggleSaved(item.id)}
                   >
                     {savedIds.has(item.id) ? '관심 중' : '관심'}
@@ -223,7 +226,7 @@ function RecruitList({
                       if (canApply) onOpenApplication(item.id)
                     }}
                   >
-                    {canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
+                    {application?.status === 'accepted' ? '승인 완료' : canApply ? (isApplied ? '지원서 수정' : '지원하기') : '마감'}
                   </button>
                 </>
               )}
@@ -261,13 +264,18 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const [activeFilter, setActiveFilter] = useState<RecruitFilterId>('all')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [query, setQuery] = useState('')
-  const [appliedIds, setAppliedIds] = useState<Set<string>>(new Set())
-  const [savedIds, setSavedIds] = useState<Set<string>>(() => loadSavedRecruitIds())
+  const applications = useRecruitApplications()
+  const bookmarks = useRecruitBookmarks()
+  const appliedIds = new Set(applications.items.map((application) => application.recruitId))
+  const savedIds = bookmarks.savedIds
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [creating, setCreating] = useState(false)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [remoteRecruitItems, setRemoteRecruitItems] = useState<RecruitItem[]>([])
+  const [listLoading, setListLoading] = useState(true)
+  const [listError, setListError] = useState('')
+  const [listRevision, setListRevision] = useState(0)
 
   const normalizedQuery = query.trim().toLowerCase()
   const allRecruitItems = remoteRecruitItems
@@ -275,24 +283,13 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     categories.find((category) => category.id === activeCategory)?.label ?? '전체'
 
   useEffect(() => {
+    let active = true
     recruitsApi.getRecruits()
-      .then(setRemoteRecruitItems)
-      .catch(() => setActionError('모집 목록을 불러오지 못했습니다.'))
-  }, [])
-
-  useEffect(() => {
-    if (!isLoggedIn) return
-
-    recruitsApi.getMyApplications()
-      .then((applications) => {
-        setAppliedIds(new Set(applications.map((application) => application.recruitId)))
-      })
-      .catch(() => setActionError('지원 내역을 불러오지 못했습니다.'))
-  }, [isLoggedIn])
-
-  useEffect(() => {
-    window.localStorage.setItem(LOCAL_RECRUIT_INTEREST_STORAGE_KEY, JSON.stringify([...savedIds]))
-  }, [savedIds])
+      .then((items) => { if (active) setRemoteRecruitItems(items) })
+      .catch(() => { if (active) setListError('모집 목록을 불러오지 못했습니다.') })
+      .finally(() => { if (active) setListLoading(false) })
+    return () => { active = false }
+  }, [listRevision])
 
   const visibleItems = useMemo(() => {
     const filtered = allRecruitItems.filter((item) => {
@@ -313,15 +310,8 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     })
   }, [activeCategory, activeFilter, allRecruitItems, normalizedQuery, sortMode])
 
-  const appliedItems = useMemo(
-    () => allRecruitItems.filter((item) => appliedIds.has(item.id)),
-    [allRecruitItems, appliedIds],
-  )
-
-  const savedItems = useMemo(
-    () => allRecruitItems.filter((item) => savedIds.has(item.id)),
-    [allRecruitItems, savedIds],
-  )
+  const appliedItems = allRecruitItems.filter((item) => appliedIds.has(item.id))
+  const savedItems = bookmarks.items
   const isOperator = isAdminUser(user)
   const managedItems = useMemo(
     () => allRecruitItems.filter((item) => (
@@ -338,22 +328,15 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     navigate(routes.community.recruitApplicationNew(id))
   }
 
-  const toggleSaved = (id: string) => {
-    if (!isLoggedIn) {
-      setActionError('관심공고 저장은 로그인 후 가능합니다.')
-      return
-    }
-
+  const toggleSaved = async (id: string) => {
     setActionError(null)
-    setSavedIds((current) => {
-      const next = new Set(current)
-      if (next.has(id)) next.delete(id)
-      else {
-        next.add(id)
-        recruitsApi.bookmark(id).catch(() => setActionError('관심공고 저장에 실패했습니다.'))
-      }
-      return next
-    })
+    try {
+      const result = await bookmarks.toggle(id)
+      if (result) setRemoteRecruitItems((items) => items.map((item) => item.id === id
+        ? result.item ?? { ...item, bookmarks: Math.max(0, item.bookmarks - 1) } : item))
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : '관심 공고를 변경하지 못했습니다.')
+    }
   }
 
   const updateDraft = <Key extends keyof RecruitDraft>(key: Key, value: RecruitDraft[Key]) => {
@@ -400,16 +383,17 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const workspaceTabs: {
     id: Exclude<RecruitMode, 'write'>
     label: string
+    icon: Parameters<typeof Icon>[0]['name']
   }[] = [
-    { id: 'list', label: '모집 공고' },
-    { id: 'applied', label: '지원 내역' },
-    { id: 'saved', label: '관심 공고' },
-    { id: 'manage', label: isOperator ? '모집 관리' : '내 공고' },
+    { id: 'list', label: '모집 공고', icon: 'users' },
+    { id: 'applied', label: '지원 내역', icon: 'file' },
+    { id: 'saved', label: '관심 공고', icon: 'heart' },
+    { id: 'manage', label: isOperator ? '모집 관리' : '내 공고', icon: 'edit' },
   ]
 
   return (
     <section className="coala-content coala-content--recruit">
-      <CommunityBanner title="모집" tone="recruit" meta={`모집 공고 ${visibleItems.length}개`} />
+      <CommunityBanner title="모집" tone="recruit" meta={listLoading || listError ? undefined : `모집 공고 ${visibleItems.length}개`} />
 
       <SectionNav label="모집 메뉴" className="page-container" items={workspaceTabs}
         value={workspaceTabs.find((tab) => isTabActive(tab.id))?.id ?? 'list'}
@@ -419,7 +403,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           공고 등록
         </button>
       )} />
-      {actionError ? <p className="auth-error">{actionError}</p> : null}
+      {user && <div className="recruit-profile-return"><Link to={routes.users.detail(user.id)}><Icon name="user" size={15} />내 프로필</Link></div>}
+      {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
+      {(bookmarks.error || applications.error) && <div className="recruit-load-state">
+        <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button" onClick={() => {
+          if (bookmarks.error) bookmarks.retry()
+          if (applications.error) applications.retry()
+        }}>다시 불러오기</button>
+      </div>}
 
       {mode === 'write' ? (
         <form className="surface-card recruit-write-panel" onSubmit={handleCreateRecruit}>
@@ -533,7 +524,15 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <button type="submit" className="jcloud-submit-button" disabled={creating}>{creating ? '저장 중...' : '작성 완료'}</button>
           </div>
         </form>
-      ) : mode === 'applied' || mode === 'saved' ? (
+      ) : mode !== 'list' && !isLoggedIn ? (
+        <p className="recruit-load-state" role="status">내 모집 내역은 로그인 후 확인할 수 있습니다.</p>
+      ) : listLoading || (mode === 'applied' && applications.loading) || (mode === 'saved' && bookmarks.loading) ? (
+        <p className="recruit-load-state" role="status">모집 내역을 불러오는 중입니다.</p>
+      ) : listError ? (
+        <div className="recruit-load-state"><p role="alert">{listError}</p>
+          <button type="button" className="ghost-button" onClick={() => { setListError(''); setListLoading(true); setListRevision((value) => value + 1) }}>다시 불러오기</button>
+        </div>
+      ) : (mode === 'applied' && applications.error) || (mode === 'saved' && bookmarks.error) ? null : mode === 'applied' || mode === 'saved' ? (
         <section className="recruit-dashboard-panel">
           <RecruitList
             items={mode === 'applied' ? appliedItems : savedItems}
@@ -545,6 +544,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             onEmptyAction={() => changeMode('list')}
             appliedIds={appliedIds}
             savedIds={savedIds}
+            applications={applications.items}
+            isBookmarkPending={bookmarks.isPending}
+            bookmarksUnavailable={bookmarks.loading || Boolean(bookmarks.error)}
             onSelectRecruit={onSelectRecruit}
             onOpenApplication={openApplication}
             onToggleSaved={toggleSaved}
@@ -562,6 +564,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             onEmptyAction={() => changeMode('write')}
             appliedIds={appliedIds}
             savedIds={savedIds}
+            applications={applications.items}
+            isBookmarkPending={bookmarks.isPending}
+            bookmarksUnavailable={bookmarks.loading || Boolean(bookmarks.error)}
             onSelectRecruit={onSelectRecruit}
             onOpenApplication={openApplication}
             onToggleSaved={toggleSaved}
@@ -632,6 +637,9 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             }}
             appliedIds={appliedIds}
             savedIds={savedIds}
+            applications={applications.items}
+            isBookmarkPending={bookmarks.isPending}
+            bookmarksUnavailable={bookmarks.loading || Boolean(bookmarks.error)}
             onSelectRecruit={onSelectRecruit}
             onOpenApplication={openApplication}
             onToggleSaved={toggleSaved}

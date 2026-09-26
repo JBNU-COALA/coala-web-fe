@@ -29,6 +29,7 @@ import { PageFrame } from '../../shared/ui/PageFrame'
 import { ActivityControls } from './ActivityControls'
 import { AttendanceCard } from './AttendanceCard'
 import { ActivityRecordActions } from './ActivityRecordActions'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 const root = routes.community.activity
 const formattedDate = (value: string) =>
@@ -56,48 +57,41 @@ function ActivityContent({
   mode: 'list' | 'detail' | 'new' | 'edit'
 }) {
   const { recordId } = useParams()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const [params, setParams] = useSearchParams()
-  const [data, setData] = useState<ActivityData | null>(null)
-  const [error, setError] = useState('')
+  const [result, setResult] = useState<{ key: string; data?: ActivityData; error?: string } | null>(null)
   const [reload, setReload] = useState(0)
-  const start = mondayOf(params.get('week') ?? activityToday())
-  const anchor = parseDate(params.get('day') ?? '') ? params.get('day')! : start
+  const validDay = parseDate(params.get('day') ?? '') ? params.get('day')! : null
+  const validWeek = parseDate(params.get('week') ?? '') ? params.get('week')! : null
+  const start = mondayOf(validWeek ?? validDay ?? activityToday())
+  const selectedDate = validDay ?? (validWeek ? start : activityToday())
+  const layout = params.get('layout') === 'calendar' ? 'calendar' : 'card'
+  // Day selection within a calendar month reuses the already loaded date window.
+  const anchor = mode === 'list' ? (layout === 'calendar' ? `${selectedDate.slice(0, 7)}-01` : start) : ''
+  const requestKey = `${user?.id}:${mode}:${recordId ?? ''}:${anchor}:${reload}`
+  const data = result?.key === requestKey ? result.data : undefined
+  const error = result?.key === requestKey ? result.error : undefined
   useEffect(() => {
-    let active = true
-    const loading = mode === 'new' || mode === 'edit'
-      ? loadActivityEditorData(mode === 'edit' ? recordId : undefined)
-      : loadActivityData(anchor, recordId)
+    const controller = new AbortController()
+    const loading = mode === 'list'
+      ? loadActivityData(anchor, undefined, controller.signal)
+      : loadActivityEditorData(mode === 'new' ? undefined : recordId, controller.signal)
     loading
       .then((value) => {
-        if (active) {
-          setData(value)
-          setError('')
-        }
+        if (!controller.signal.aborted) setResult({ key: requestKey, data: value })
       })
-      .catch((reason: unknown) => {
-        if (active)
-          setError(
-            reason instanceof Error
-              ? reason.message
-              : '출석 기록을 불러오지 못했습니다.'
-          )
+      .catch(() => {
+        if (!controller.signal.aborted)
+          setResult({ key: requestKey, error: '출석 기록을 불러오지 못했습니다.' })
       })
     return () => {
-      active = false
+      controller.abort()
     }
-  }, [reload, anchor, recordId, mode])
+  }, [requestKey, anchor, recordId, mode])
 
   const end = shiftDate(start, 6)
-  const selectedGroup = data?.groups.some(
-    (group) => group.id === params.get('group')
-  )
-    ? params.get('group')!
-    : 'all'
-  const layout = params.get('layout') === 'calendar' ? 'calendar' : 'card'
-  const selectedDate = parseDate(params.get('day') ?? '')
-    ? params.get('day')!
-    : params.has('week') ? start : activityToday()
+  const selectedGroup = params.get('group') || 'all'
   const selectedUser = params.get('user')
   const canonicalParams = new URLSearchParams(params)
   canonicalParams.delete('view')
@@ -140,16 +134,6 @@ function ActivityContent({
 
   const save = async (value: StudyRecord) => {
     const updated = await saveActivityRecord(value, mode === 'edit')
-    setData(
-      (current) =>
-        current && {
-          ...current,
-          records: [
-            updated,
-            ...current.records.filter((entry) => entry.id !== updated.id)
-          ]
-        }
-    )
     const next = new URLSearchParams(params)
     next.set('week', mondayOf(updated.date))
     if (updated.groupId) next.set('group', updated.groupId)
@@ -164,14 +148,7 @@ function ActivityContent({
 
   return (
     <PageFrame title="활동" className={`study-frame study-frame--${mode}`} bodyClassName={`study-page study-page--${mode}`}>
-      {mode === 'new' ? (
-        <>
-          {data?.groupsError && <p className="study-error" role="alert">{data.groupsError}
-            <button type="button" className="study-text-button" onClick={() => setReload((value) => value + 1)}>다시 불러오기</button>
-          </p>}
-          <RecordEditor data={{ groups: manageableGroups, records: [] }} initialGroup="all" onSave={save} back={back} />
-        </>
-      ) : error ? (
+      {error ? (
         <div className="study-empty">
           <p role="alert">{error}</p>
           {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>출석 체크</Link>}
@@ -188,6 +165,17 @@ function ActivityContent({
         <p className="study-empty" role="status">
           출석 기록을 불러오는 중입니다.
         </p>
+      ) : mode === 'new' ? (
+        <>
+          {data.groupsError ? <p className="study-error" role="alert">{data.groupsError}
+            <button type="button" className="study-text-button" onClick={() => setReload((value) => value + 1)}>다시 불러오기</button>
+          </p> : selectedGroup !== 'all' && !manageableGroups.some((group) => group.id === selectedGroup) ? (
+            <div className="study-empty"><p role="alert">선택한 조를 찾을 수 없거나 출석을 등록할 권한이 없습니다.</p>
+              <Link to={back}>활동 목록으로 돌아가기</Link>
+            </div>
+          ) : <RecordEditor key={`new:${selectedGroup}`} data={{ groups: manageableGroups, records: [] }}
+            initialGroup={selectedGroup} initialDate={selectedDate} onSave={save} back={back} />}
+        </>
       ) : mode === 'edit' ? (
         mode === 'edit' && !record ? (
           <div className="study-empty">
@@ -284,13 +272,13 @@ function ActivityContent({
           </header>
           {selectedUser && (
             <div className="study-user-filter">
-              <span>
+              <Link to={routes.users.detail(selectedUser)}>
                 {data.groups
                   .flatMap((group) => group.members)
                   .find((member) => member.userId === selectedUser)?.name ??
                   '사용자'}
                 의 활동
-              </span>
+              </Link>
               <button
                 className="study-text-button"
                 onClick={() => updateFilter('user', 'all')}

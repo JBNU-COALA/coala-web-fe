@@ -19,6 +19,7 @@ export type InfoArticle = {
   thumbnailAttachmentId?: number | null
   viewCount: number
   bookmarkCount: number
+  bookmarkedByMe?: boolean
   likeCount?: number
   likedByMe?: boolean
   createdAt?: string | null
@@ -44,6 +45,7 @@ export type InfoArticleLikeResponse = {
 }
 
 export const infoApi = {
+  getMyBookmarks: () => client.get<InfoArticle[]>('/api/info/bookmarks/me').then((response) => response.data),
   getArticles: (filter?: InfoFilterId | 'all', query?: string) =>
     client.get<InfoArticle[]>('/api/info', { params: { filter, query } }).then((response) => response.data),
 

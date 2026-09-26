@@ -1,14 +1,12 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isSameUserId } from '../../shared/auth/userIdentity'
 import { attachmentsApi } from '../../shared/api/attachments'
 import { resolveApiAssetUrl } from '../../shared/api/client'
-import { boardsApi } from '../../shared/api/boards'
-import { postsApi, type PostListItem } from '../../shared/api/posts'
 import { usersApi, type ActivityMember, type AvatarTone, type UserAward, type UserProfileLink } from '../../shared/api/users'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
-import { Icon } from '../../shared/ui/Icon'
+import { Icon, type IconName } from '../../shared/ui/Icon'
 import { StudyConnections } from '../../shared/ui/StudyConnections'
 import './profile-layout.css'
 import { PageFrame } from '../../shared/ui/PageFrame'
@@ -16,24 +14,13 @@ import { SectionNav } from '../../shared/ui/SectionNav'
 import { ProfileStats } from './ProfileStats'
 import { UserDetailsFields } from '../../shared/ui/UserDetailsFields'
 import { userDetailsDraft, userDetailsPayload, type UserDetailsDraft } from '../../shared/api/userDetails'
+import { routes } from '../../shared/routes'
+import { ProfileTasks } from './ProfileTasks'
+import { ProfileActivityList } from './ProfileActivityList'
+import { useProfileOverview } from './useProfileOverview'
+import { authoredItems } from './profileOverview'
 
-type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts'
-type AuthoredContentKind = 'board' | 'info' | 'recruit'
-
-type AuthoredContentItem = {
-  id: string
-  kind: AuthoredContentKind
-  title: string
-  excerpt: string
-  createdAt: string
-  viewCount?: number
-}
-
-const contentKindLabel: Record<AuthoredContentKind, string> = {
-  board: '게시판',
-  info: '정보공유',
-  recruit: '모집',
-}
+type ProfileTab = 'overview' | 'activity' | 'awards' | 'posts' | 'services'
 
 const genderLabel = {
   MALE: '남성',
@@ -127,43 +114,10 @@ type ProfilePageProps = {
   profileUserId?: string
 }
 
-function apiPostToAuthoredContent(post: PostListItem): AuthoredContentItem {
-  const boardName = post.boardName ?? ''
-  const kind: AuthoredContentKind =
-    boardName.toLowerCase().includes('recruit') || boardName.includes('모집')
-      ? 'recruit'
-      : 'board'
-
-  return {
-    id: `api-${post.boardId}-${post.postId}`,
-    kind,
-    title: post.title,
-    excerpt: post.content.replace(/<[^>]+>/g, '').slice(0, 100),
-    createdAt: post.createdAt,
-    viewCount: post.viewCount,
-  }
-}
-
-function formatDate(dateStr: string) {
-  const parsed = new Date(dateStr)
-  if (Number.isNaN(parsed.getTime())) return dateStr
-  return parsed.toLocaleDateString('ko-KR')
-}
-
 function formatAwardDate(dateStr: string) {
   const parsed = new Date(dateStr)
   if (Number.isNaN(parsed.getTime())) return dateStr
   return parsed.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
-}
-
-function memberLogsToAuthoredContents(member: ActivityMember): AuthoredContentItem[] {
-  return member.logs.map((log) => ({
-    id: `log-${member.id}-${log.id}`,
-    kind: log.type === 'note' ? 'info' : log.type === 'release' ? 'recruit' : 'board',
-    title: log.title,
-    excerpt: `${log.repository} · ${log.description}`,
-    createdAt: log.timeLabel,
-  }))
 }
 
 function firstNonBlank(...values: Array<string | null | undefined>) {
@@ -190,9 +144,24 @@ function getMemberCustomization(member: ActivityMember): ProfileCustomizationDra
 }
 
 export function ProfilePage({ profileUserId }: ProfilePageProps) {
+  const { user } = useAuth()
+  const id = profileUserId ?? (user ? String(user.id) : '')
+  return <ProfileContent key={`${user?.id ?? 'guest'}:${id}`} profileUserId={id} />
+}
+
+function ProfileContent({ profileUserId }: ProfilePageProps) {
   const { isLoggedIn, user, updateUser } = useAuth()
   const photoInputRef = useRef<HTMLInputElement | null>(null)
-  const [tab, setTab] = useState<ProfileTab>('overview')
+  const [params, setParams] = useSearchParams()
+  const requestedTab = params.get('tab')
+  const tab: ProfileTab = requestedTab === 'activity' || requestedTab === 'awards' || requestedTab === 'posts' || requestedTab === 'services'
+    ? requestedTab : 'overview'
+  const setTab = (value: ProfileTab) => {
+    const next = new URLSearchParams(params)
+    if (value === 'overview') next.delete('tab')
+    else next.set('tab', value)
+    setParams(next)
+  }
   const [editing, setEditing] = useState(false)
   const [bio, setBio] = useState('')
   const [activityNote, setActivityNote] = useState('')
@@ -206,23 +175,19 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   const [newProfileLink, setNewProfileLink] = useState<UserProfileLink>({ label: '', url: '' })
   const [profileSaveError, setProfileSaveError] = useState('')
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
-  const [authoredContents, setAuthoredContents] = useState<AuthoredContentItem[]>([])
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
   const [isUploadingProfilePhoto, setIsUploadingProfilePhoto] = useState(false)
-  const [publicMembers, setPublicMembers] = useState<ActivityMember[]>([])
   const [profileError, setProfileError] = useState('')
+  const [profileRevision, setProfileRevision] = useState(0)
   const [profileDetail, setProfileDetail] = useState<ActivityMember | null>(null)
 
   const effectiveProfileUserId = profileUserId ?? (user ? String(user.id) : '')
-  const matchedPublicMember = publicMembers.find((member) => member.id === effectiveProfileUserId)
-  const publicMember =
-    (profileDetail?.id === effectiveProfileUserId ? profileDetail : null) ??
-    matchedPublicMember ??
-    emptyProfileMember
-  const profileMember = publicMember
-  const isOwnProfile = Boolean(profileMember.isMe) || isSameUserId(user?.id, effectiveProfileUserId)
-  const canEdit = isOwnProfile
+  const profileMember = profileDetail ?? emptyProfileMember
+  const isOwnProfile = isLoggedIn && isSameUserId(user?.id, effectiveProfileUserId)
+  const canEdit = isOwnProfile && profileMember !== emptyProfileMember
+  const overview = useProfileOverview(effectiveProfileUserId, user?.id)
+  const authoredContents = authoredItems(overview.data?.items ?? [])
   useEffect(() => {
     if (!canEdit) return
     let active = true
@@ -262,35 +227,15 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    setProfilePhoto(window.localStorage.getItem(profilePhotoStorageKey))
+    try { setProfilePhoto(window.localStorage.getItem(profilePhotoStorageKey)) } catch { setProfilePhoto(null) }
     setPhotoError(null)
   }, [profilePhotoStorageKey])
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      setPublicMembers([])
-      return
-    }
-
-    let active = true
-
-    usersApi.getUsers()
-      .then((members) => {
-        if (active) setPublicMembers(members)
-      })
-      .catch(() => {
-        if (active) setPublicMembers([])
-      })
-
-    return () => {
-      active = false
-    }
-  }, [isLoggedIn])
 
   useEffect(() => {
     const numericProfileUserId = Number(effectiveProfileUserId)
     if (!Number.isSafeInteger(numericProfileUserId) || numericProfileUserId <= 0) {
       setProfileDetail(null)
+      setProfileError('올바른 사용자 프로필을 찾을 수 없습니다.')
       return
     }
 
@@ -307,12 +252,12 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     return () => {
       active = false
     }
-  }, [effectiveProfileUserId])
+  }, [effectiveProfileUserId, profileRevision])
 
   useEffect(() => { setProfileSaveState('idle') }, [effectiveProfileUserId])
 
   useEffect(() => {
-    setEditing(false)
+    if (editing) return
     setBio(firstNonBlank(profileMember.bio, profileMember.focus))
     setActivityNote(profileMember.activityNote ?? '')
     setAwardNote(profileMember.awardNote ?? '')
@@ -324,7 +269,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     setNewProfileLink({ label: '', url: '' })
     setAccountDraft(userDetailsDraft(user))
   }, [
-    canEdit,
+    editing,
     user,
     effectiveProfileUserId,
     profileMember,
@@ -349,39 +294,12 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
     user?.studentId,
   ])
 
-  useEffect(() => {
-    if (!isOwnProfile || !user) {
-      setAuthoredContents(memberLogsToAuthoredContents(profileMember))
-      return
-    }
-
-    const fetchAuthoredContents = async () => {
-      try {
-        const boards = await boardsApi.getBoards(true)
-        const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
-        const apiContents = postsArrays
-          .flat()
-          .filter((p) => isSameUserId(p.userId, user.id))
-          .map(apiPostToAuthoredContent)
-
-        setAuthoredContents(
-          apiContents.length > 0
-            ? apiContents.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
-            : memberLogsToAuthoredContents(profileMember),
-        )
-      } catch {
-        setAuthoredContents(memberLogsToAuthoredContents(profileMember))
-      }
-    }
-
-    fetchAuthoredContents()
-  }, [isOwnProfile, profileMember, user])
-
-  const tabs: { id: ProfileTab; label: string }[] = [
-    { id: 'overview', label: '개요' },
-    { id: 'activity', label: '활동 내역' },
-    { id: 'awards', label: '수상 내역' },
-    { id: 'posts', label: '작성 내용' },
+  const tabs: { id: ProfileTab; label: string; icon: IconName }[] = [
+    { id: 'overview', label: '개요', icon: 'user' },
+    { id: 'activity', label: '활동 내역', icon: 'calendar' },
+    { id: 'awards', label: '수상 내역', icon: 'chart' },
+    { id: 'posts', label: '작성 내용', icon: 'file' },
+    { id: 'services', label: '서비스', icon: 'network' },
   ]
 
   const handlePhotoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -425,7 +343,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   }
 
   const saveProfile = async () => {
-    if (!canEdit || profileSaveState === 'saving') return
+    if (!canEdit || profileSaveState === 'saving' || isUploadingProfilePhoto) return
     setProfileSaveError('')
     setProfileSaveState('saving')
     try {
@@ -459,13 +377,12 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
         customization: JSON.stringify(normalizedCustomization),
       })
       setProfileDetail(updated)
-      setPublicMembers((members) => members.map((member) => (member.id === updated.id ? updated : member)))
       setAwardDrafts(updated.awards)
       setSharedRepoDrafts(updated.sharedRepos)
       setSharedReposInput(updated.sharedRepos.join('\n'))
       setCustomizationDraft(getMemberCustomization(updated))
       setNewProfileLink({ label: '', url: '' })
-      updateUser(await usersApi.getMyAccount())
+      void usersApi.getMyAccount().then(updateUser).catch(() => {})
       setEditing(false)
       setProfileSaveState('saved')
     } catch (error) {
@@ -566,6 +483,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
   if (profileMember === emptyProfileMember) return (
     <PageFrame title="프로필" tone="users">
       <p role={profileError ? 'alert' : 'status'}>{profileError || '프로필을 불러오는 중입니다.'}</p>
+      {profileError && <button type="button" className="ghost-button" onClick={() => { setProfileError(''); setProfileRevision((value) => value + 1) }}>다시 불러오기</button>}
     </PageFrame>
   )
 
@@ -583,11 +501,11 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
               />
               {canEdit ? (
                 <div className="profile-photo-controls">
-                  <button type="button" className="profile-photo-button" onClick={() => photoInputRef.current?.click()}>
+                  <button type="button" className="profile-photo-button" disabled={isUploadingProfilePhoto || profileSaveState === 'saving'} onClick={() => photoInputRef.current?.click()}>
                     {isUploadingProfilePhoto ? '업로드 중' : '사진 변경'}
                   </button>
                   {displayProfileImage ? (
-                    <button type="button" className="profile-photo-button profile-photo-button--muted" onClick={removeProfilePhoto}>
+                    <button type="button" className="profile-photo-button profile-photo-button--muted" disabled={isUploadingProfilePhoto || profileSaveState === 'saving'} onClick={removeProfilePhoto}>
                       삭제
                     </button>
                   ) : null}
@@ -630,28 +548,37 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
             </div>
           </div>
           {canEdit ? (
+            <div className="profile-edit-actions">
+            {editing && <button type="button" className="ghost-button" disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
+              onClick={() => { setEditing(false); setProfileSaveState('idle'); setPhotoError(null) }}>취소</button>}
             <button
               type="button"
               className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
               onClick={handleEditClick}
-              disabled={profileSaveState === 'saving'}
+              disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
             >
               <Icon name="edit" size={13} />
               {editing ? (profileSaveState === 'saving' ? '저장 중' : '저장') : '편집'}
             </button>
+            </div>
           ) : null}
         </div>
         {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error" role="alert">{profileSaveError}</p> : null}
-        {profileSaveState === 'saved' ? <p className="profile-save-message">프로필을 저장했습니다.</p> : null}
+        {profileSaveState === 'saved' ? <p className="profile-save-message" role="status">프로필을 저장했습니다.</p> : null}
 
-        <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
-        <ProfileStats points={profileMember.totalPoints} commits={profileMember.githubCommits}
-          repositories={profileMember.sharedRepos.length} awards={profileAwards.length} posts={authoredContents.length}
-          onAddRepository={canEdit ? startAddSharedRepo : undefined} onAddAward={canEdit ? startAddAward : undefined} />
+        <ProfileTasks userId={effectiveProfileUserId} ownProfile={isOwnProfile} overview={overview.data} />
+        {overview.error && <div className="profile-overview-error"><p role="alert">{overview.error}</p>
+          <button type="button" className="ghost-button" onClick={overview.retry}>다시 불러오기</button></div>}
 
         <SectionNav label="프로필 메뉴" items={tabs} value={tab} onChange={setTab} />
 
         {tab === 'overview' ? (
+          <>
+          <ProfileStats points={profileMember.totalPoints} commits={profileMember.githubCommits}
+            repositories={profileMember.sharedRepos.length} awards={profileAwards.length}
+            posts={overview.data ? authoredContents.length : undefined}
+            onAddRepository={canEdit ? startAddSharedRepo : undefined} onAddAward={canEdit ? startAddAward : undefined} />
+          <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
           <div className="profile-section-grid profile-section-grid--overview">
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">소개</h3>
@@ -819,7 +746,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                     <span>공개 링크</span>
                     <div className="profile-repeat-editor">
                       {customizationDraft.links.map((link, index) => (
-                        <div className="profile-repeat-row profile-repeat-row--link" key={`${link.label}-${index}`}>
+                        <div className="profile-repeat-row profile-repeat-row--link" key={index}>
                           <input
                             className="auth-input"
                             value={link.label}
@@ -874,10 +801,16 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
               )}
             </div>
           </div>
+          </>
         ) : null}
 
         {tab === 'activity' ? (
           <div className="profile-section-grid profile-section-grid--single">
+            <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
+            <section className="profile-section-card">
+              <h3 className="profile-section-title">활동 · 출석 기록</h3>
+              <ProfileActivityList {...overview} items={(overview.data?.items ?? []).filter((item) => item.kind === 'study')} />
+            </section>
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">GitHub 현황</h3>
               <div className="profile-activity-block">
@@ -909,7 +842,7 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
                   {editing ? (
                     <div className="profile-repeat-editor">
                       {sharedRepoDrafts.map((repo, index) => (
-                        <div className="profile-repeat-row" key={`${repo}-${index}`}>
+                        <div className="profile-repeat-row" key={index}>
                           <input
                             className="auth-input"
                             value={repo}
@@ -1088,35 +1021,17 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 
         {tab === 'posts' ? (
           <div className="surface-card profile-section-card">
-            <h3 className="profile-section-title">작성 내용 ({authoredContents.length})</h3>
-            {authoredContents.length === 0 ? (
-              <p style={{ opacity: 0.5, fontSize: '0.875rem' }}>작성한 내용이 없습니다.</p>
-            ) : (
-              <ul className="profile-post-list">
-                {authoredContents.map((item) => (
-                  <li key={item.id} className="profile-post-item">
-                    <div className="profile-post-body">
-                      <span className={`profile-content-kind profile-content-kind--${item.kind}`}>
-                        {contentKindLabel[item.kind]}
-                      </span>
-                      <p className="profile-post-title">{item.title}</p>
-                      <p className="profile-post-excerpt">{item.excerpt}</p>
-                    </div>
-                    <div className="profile-post-meta">
-                      <span className="profile-post-time">{formatDate(item.createdAt)}</span>
-                      {typeof item.viewCount === 'number' ? (
-                        <span className="profile-post-stat">
-                          <Icon name="eye" size={11} />
-                          {item.viewCount}
-                        </span>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+            <h3 className="profile-section-title">작성 내용{overview.data ? ` (${authoredContents.length})` : ''}</h3>
+            <ProfileActivityList {...overview} items={authoredContents} emptyText="작성한 내용이 없습니다." />
           </div>
         ) : null}
+        {tab === 'services' && <section className="profile-section-card profile-services">
+          <div className="profile-section-title-row"><h3 className="profile-section-title">서비스{isOwnProfile ? ' · 신청 내역' : ''}</h3>
+            <Link to={routes.services.user}>서비스 둘러보기<Icon name="chevron-right" size={14} /></Link>
+          </div>
+          <ProfileActivityList {...overview} items={(overview.data?.items ?? []).filter((item) => ['service', 'instance', 'domain'].includes(item.kind))}
+            emptyText="등록된 서비스 내역이 없습니다." />
+        </section>}
     </PageFrame>
   )
 }

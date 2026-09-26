@@ -3,11 +3,12 @@ import {
   clearAuthSession,
   getAccessToken,
   getRefreshToken,
-  setAuthSession,
+  getAuthSessionVersion,
+  replaceRefreshedSession,
 } from '../auth/tokenStorage'
 import type { AuthResponse } from './auth'
 
-// vite.config.ts 의 envPrefix='API_' 와 일치.
+// vite.config.ts exposes only this public URL through an explicit define.
 // same-origin 배포에서는 API_BASE_URL 을 비워두고, https 페이지에서 http API 주소가 들어오면
 // 혼합 콘텐츠 문제를 피하기 위해 same-origin /api 로 되돌린다.
 const rawBaseUrl = ((import.meta.env.API_BASE_URL as string | undefined) ?? '').trim()
@@ -66,9 +67,33 @@ export function resolveApiAssetUrl(url: string) {
 
 type RetryableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean
+  _sessionVersion?: number
+  _accessToken?: string | null
 }
 
-let refreshInFlight: Promise<AuthResponse> | null = null
+let refreshInFlight: { version: number; token: string; promise: Promise<AuthResponse> } | null = null
+
+export function refreshAuthToken(refreshToken: string): Promise<AuthResponse> {
+  const version = getAuthSessionVersion()
+  if (getRefreshToken() !== refreshToken) return Promise.reject(new axios.CanceledError('Session changed'))
+  if (refreshInFlight?.version === version && refreshInFlight.token === refreshToken) return refreshInFlight.promise
+
+  const promise = axios.post<AuthResponse>(`${apiBaseUrl || ''}/api/auth/refresh`, { refreshToken })
+    .then(({ data }) => {
+      if (!replaceRefreshedSession(data, refreshToken, version)) throw new axios.CanceledError('Session changed')
+      return data
+    })
+    .catch((error: unknown) => {
+      if (version === getAuthSessionVersion() && getRefreshToken() === refreshToken &&
+        axios.isAxiosError(error) && [400, 401, 403].includes(error.response?.status ?? 0)) {
+        clearAuthSession()
+      }
+      throw error
+    })
+    .finally(() => { if (refreshInFlight?.promise === promise) refreshInFlight = null })
+  refreshInFlight = { version, token: refreshToken, promise }
+  return promise
+}
 
 const client = axios.create({
   baseURL: apiBaseUrl || undefined,
@@ -87,8 +112,13 @@ function isAuthEndpoint(url?: string) {
   ].some((endpoint) => pathname.startsWith(endpoint))
 }
 
-client.interceptors.request.use((config) => {
+client.interceptors.request.use((config: RetryableRequestConfig) => {
+  if (config._sessionVersion !== undefined && config._sessionVersion !== getAuthSessionVersion()) {
+    throw new axios.CanceledError('Session changed')
+  }
+  config._sessionVersion = getAuthSessionVersion()
   const token = getAccessToken()
+  config._accessToken = token
   if (token && !isAuthEndpoint(config.url)) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -105,26 +135,23 @@ client.interceptors.response.use(
       status === 401 &&
       original &&
       !original._retry &&
+      original._sessionVersion === getAuthSessionVersion() &&
       !isAuthEndpoint(original.url) &&
       Boolean(refreshToken)
 
     if (shouldRefresh) {
       original._retry = true
       try {
-        if (!refreshInFlight) {
-          refreshInFlight = axios.post<AuthResponse>(`${apiBaseUrl || ''}/api/auth/refresh`, { refreshToken })
-            .then(({ data }) => { setAuthSession(data); return data })
-            .finally(() => { refreshInFlight = null })
+        // A sibling request may already have rotated this session's access token.
+        const currentToken = getAccessToken()
+        if (currentToken && currentToken !== original._accessToken) {
+          original.headers.Authorization = `Bearer ${currentToken}`
+        } else {
+          const data = await refreshAuthToken(refreshToken!)
+          original.headers.Authorization = `Bearer ${data.accessToken}`
         }
-        const data = await refreshInFlight
-        original.headers.Authorization = `Bearer ${data.accessToken}`
         return client(original)
-      } catch (refreshError) {
-        // A transient network failure must not discard the user's session or draft.
-        if (axios.isAxiosError(refreshError) && [400, 401, 403].includes(refreshError.response?.status ?? 0)) {
-          clearAuthSession()
-        }
-      }
+      } catch { /* Keep transient failures from discarding the session or draft. */ }
     }
     return Promise.reject(error)
   },

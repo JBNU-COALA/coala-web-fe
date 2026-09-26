@@ -1,20 +1,33 @@
 import type { UserDetailsPayload } from './userDetails'
 import client from './client'
 import type { UserData } from './auth'
-import type { BoardData, CreateBoardRequest, UpdateBoardRequest } from './boards'
-import type { InfoArticle, InfoArticlePayload } from './info'
+import { boardsApi } from './boards'
+import { infoApi } from './info'
 import type { PostListItem } from './posts'
-import type { RecruitItem, RecruitPostPayload } from './recruits'
-import type {
-  ApplyStatus,
-  InstanceApplication,
-  InstanceApplyPayload,
-  MemberService,
-  MemberServicePayload,
-  ServiceInquiry,
+import { recruitsApi } from './recruits'
+import type { SiteBanner, SiteBannerPayload } from './site'
+import type { StudyGroup, StudyRecord } from '../activity'
+import {
+  servicesApi,
+  type MemberService,
+  type MemberServicePayload,
+  type ServiceInquiry,
 } from './services'
 
 export type AdminUserRole = 'USER' | 'STAFF' | 'SUPER_ADMIN'
+
+export type AdminServicePayload = MemberServicePayload & {
+  owner: string
+  status: '운영중' | '운영중지' | '운영완료'
+}
+
+export type AdminInquiryStatus = 'open' | 'answered' | 'closed'
+export type AdminServiceInquiry = ServiceInquiry & {
+  content?: string
+  reply?: string
+  answeredAt?: string | null
+  authorId?: number | null
+}
 
 export type AdminPostStatus =
   | 'ACTIVE'
@@ -79,6 +92,23 @@ export type AdminUserSanctionRequest = {
 }
 
 export const adminApi = {
+  getBanners: () => client.get<SiteBanner[]>('/api/admin/banners').then((r) => r.data),
+  createBanner: (data: SiteBannerPayload) =>
+    client.post<SiteBanner>('/api/admin/banners', data).then((r) => r.data),
+  updateBanner: (id: number, data: SiteBannerPayload) =>
+    client.patch<SiteBanner>(`/api/admin/banners/${id}`, data).then((r) => r.data),
+  deleteBanner: (id: number) => client.delete<void>(`/api/admin/banners/${id}`).then((r) => r.data),
+
+  getStudyGroups: () => client.get<StudyGroup[]>('/api/study/groups').then((r) => r.data),
+  getStudyRecords: (from: string, to: string) =>
+    client.get<StudyRecord[]>('/api/study/records', { params: { from, to } }).then((r) => r.data),
+
+  getDomainApplications: servicesApi.getDomainApplications,
+  updateDomainApplication: servicesApi.updateDomainApplication,
+  getDomainInquiries: () =>
+    client.get<AdminServiceInquiry[]>('/api/services/domains/inquiries').then((r) => r.data),
+  updateInquiry: (kind: 'instances' | 'domains', id: string, data: { status: AdminInquiryStatus; reply: string }) =>
+    client.patch<AdminServiceInquiry>(`/api/services/${kind}/inquiries/${encodeURIComponent(id)}`, data).then((r) => r.data),
   updateUserProfile: (userId: number, data: UserDetailsPayload) =>
     client.patch<UserData>(`/api/admin/users/${userId}/profile`, data).then((r) => r.data),
   getUsers: () => client.get<UserData[]>('/api/admin/users').then((r) => r.data),
@@ -89,15 +119,10 @@ export const adminApi = {
   sanctionUser: (data: AdminUserSanctionRequest) =>
     client.post<void>('/api/admin/moderation/sanctions', data).then((r) => r.data),
 
-  getBoards: () => client.get<BoardData[]>('/api/boards').then((r) => r.data),
-
-  createBoard: (data: CreateBoardRequest) =>
-    client.post('/api/boards', data).then((r) => r.data),
-
-  updateBoard: (boardId: number, data: UpdateBoardRequest) =>
-    client.patch(`/api/boards/${boardId}`, data).then((r) => r.data),
-
-  deleteBoard: (boardId: number) => client.delete<void>(`/api/boards/${boardId}`).then((r) => r.data),
+  getBoards: boardsApi.getBoards,
+  createBoard: boardsApi.createBoard,
+  updateBoard: boardsApi.updateBoard,
+  deleteBoard: (boardId: number) => boardsApi.deleteBoard(boardId).then(() => undefined),
 
   getPosts: (status?: AdminPostStatus | 'ALL') =>
     client
@@ -121,23 +146,13 @@ export const adminApi = {
   unlockPost: (postId: number, reason: string) =>
     client.post<void>(`/api/admin/moderation/posts/${postId}/unlock`, { reason }).then((r) => r.data),
 
-  getInfoArticle: (articleId: number) =>
-    client.get<InfoArticle>(`/api/info/${articleId}`).then((r) => r.data),
+  getInfoArticle: infoApi.getArticle,
+  updateInfoArticle: infoApi.updateArticle,
+  deleteInfoArticle: (articleId: number) => infoApi.deleteArticle(articleId).then(() => undefined),
 
-  updateInfoArticle: (articleId: number, data: InfoArticlePayload) =>
-    client.patch<InfoArticle>(`/api/info/${articleId}`, data).then((r) => r.data),
-
-  deleteInfoArticle: (articleId: number) =>
-    client.delete<void>(`/api/info/${articleId}`).then((r) => r.data),
-
-  getRecruit: (recruitId: string) =>
-    client.get<RecruitItem>(`/api/recruits/${recruitId}`).then((r) => r.data),
-
-  updateRecruit: (recruitId: string, data: RecruitPostPayload) =>
-    client.patch<RecruitItem>(`/api/recruits/${recruitId}`, data).then((r) => r.data),
-
-  deleteRecruit: (recruitId: string) =>
-    client.delete<void>(`/api/recruits/${recruitId}`).then((r) => r.data),
+  getRecruit: recruitsApi.getRecruit,
+  updateRecruit: recruitsApi.updateRecruit,
+  deleteRecruit: recruitsApi.deleteRecruit,
 
   getReports: (status: AdminReportStatus = 'PENDING') =>
     client.get<AdminReport[]>('/api/admin/moderation/reports', { params: { status } }).then((r) => r.data),
@@ -149,28 +164,18 @@ export const adminApi = {
 
   getAuditLogs: () => client.get<AdminActionLog[]>('/api/admin/audit-logs').then((r) => r.data),
 
-  getMemberServices: () => client.get<MemberService[]>('/api/services').then((r) => r.data),
+  getMemberServices: servicesApi.getMemberServices,
 
-  createMemberService: (data: MemberServicePayload) =>
+  createMemberService: (data: AdminServicePayload) =>
     client.post<MemberService>('/api/services', data).then((r) => r.data),
 
-  updateMemberService: (serviceId: string, data: MemberServicePayload) =>
+  updateMemberService: (serviceId: string, data: AdminServicePayload) =>
     client.patch<MemberService>(`/api/services/${serviceId}`, data).then((r) => r.data),
 
-  retireMemberService: (serviceId: string) =>
-    client.delete<void>(`/api/services/${serviceId}`).then((r) => r.data),
-
-  getInstanceApplications: () =>
-    client.get<InstanceApplication[]>('/api/services/instances/applications').then((r) => r.data),
-
-  updateInstanceApplication: (
-    applicationId: string,
-    data: Partial<InstanceApplyPayload> & { status?: ApplyStatus; adminNote?: string },
-  ) =>
-    client
-      .patch<InstanceApplication>(`/api/services/instances/applications/${applicationId}`, data)
-      .then((r) => r.data),
+  retireMemberService: servicesApi.retireMemberService,
+  getInstanceApplications: servicesApi.getInstanceApplications,
+  updateInstanceApplication: servicesApi.updateInstanceApplication,
 
   getInstanceInquiries: () =>
-    client.get<ServiceInquiry[]>('/api/services/instances/inquiries').then((r) => r.data),
+    client.get<AdminServiceInquiry[]>('/api/services/instances/inquiries').then((r) => r.data),
 }

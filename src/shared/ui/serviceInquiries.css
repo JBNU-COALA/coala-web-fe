@@ -1,0 +1,43 @@
+.service-inquiries { min-width: 0; color: #25352e; font-size: 14px; letter-spacing: 0; }
+.service-inquiries-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 20px; }
+.service-inquiries h3 { margin: 0; font-size: 18px; line-height: 1.5; }
+.service-inquiries h3 small { margin-left: 8px; font-size: 13px; font-weight: 500; color: #68746e; }
+.service-inquiries-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.service-inquiries button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 12px; border: 1px solid #d4ded8; border-radius: 6px; background: #fff; color: #3c4e44; font: inherit; cursor: pointer; }
+.service-inquiries button svg { flex-shrink: 0; }
+.service-inquiries button:hover:not(:disabled) { background: #f2f6f4; }
+.service-inquiries button:disabled { opacity: .55; cursor: not-allowed; }
+.service-inquiries button.service-inquiries-primary { background: #197052; border-color: #197052; color: white; }
+.service-inquiries button.service-inquiries-primary:hover:not(:disabled) { background: #125c43; }
+.service-inquiries :is(button, input, textarea, a):focus-visible { outline: 2px solid #276caa; outline-offset: 3px; }
+.service-inquiries-form { padding-block: 20px; margin-bottom: 20px; border-block: 1px solid #dce5df; }
+.service-inquiries-form fieldset { display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
+.service-inquiries-form label { display: grid; gap: 8px; font-weight: 600; }
+.service-inquiries-form :is(input, textarea) { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px; border: 1px solid #cdd9d1; border-radius: 6px; background: #fff; color: #25352e; font: inherit; font-weight: 400; line-height: 1.6; }
+.service-inquiries-form textarea { resize: vertical; min-height: 140px; }
+.service-inquiries-form button[type=submit] { justify-self: end; }
+.service-inquiries-load-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 12px; }
+.service-inquiries-load-error p, .service-inquiries-error { margin: 0; color: #aa3636; line-height: 1.6; }
+.service-inquiries-list { margin: 0; padding: 0; list-style: none; }
+.service-inquiries-list > li { padding: 22px 0; border-top: 1px solid #dce5df; }
+.service-inquiries-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: #68746e; font-size: 12px; }
+.service-inquiries-meta time { margin-left: auto; }
+.service-inquiries-status { padding: 4px 8px; border-radius: 4px; font-weight: 600; background: #edf0f2; color: #53616c; }
+.service-inquiries-status--open { color: #805c15; background: #fff3d6; }
+.service-inquiries-status--answered { color: #1d6650; background: #e7f4ed; }
+.service-inquiries-status--closed { color: #555e6a; background: #edf0f5; }
+.service-inquiries-list h4 { margin: 14px 0 10px; font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
+.service-inquiries-content { margin: 0; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
+.service-inquiries-reply { margin-top: 20px; padding-left: 16px; border-left: 3px solid #a8c9df; }
+.service-inquiries-reply .service-inquiries-meta { margin-bottom: 10px; }
+.service-inquiries-reply strong { color: #296083; font-size: 13px; }
+.service-inquiries-awaiting, .service-inquiries-empty { color: #68746e; line-height: 1.6; }
+.service-inquiries--login { padding-block: 24px; text-align: center; }
+.service-inquiries--login h3 { margin-top: 12px; }
+.service-inquiries--login a { display: inline-flex; align-items: center; min-height: 44px; color: #197052; }
+@media (max-width: 600px) {
+  .service-inquiries-actions { width: 100%; }
+  .service-inquiries-actions button { flex: 1; }
+  .service-inquiries-meta time { margin-left: 0; }
+  .service-inquiries-form button[type=submit] { justify-self: stretch; }
+}

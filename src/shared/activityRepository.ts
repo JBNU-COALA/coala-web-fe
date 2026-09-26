@@ -12,8 +12,8 @@ export async function searchActivityMembers(query: string, signal?: AbortSignal)
   return (await client.get<ActivityMemberOption[]>('/api/study/members', { params: { query }, signal })).data
 }
 
-export async function loadActivityGroups(): Promise<StudyGroup[]> {
-  return (await client.get<StudyGroup[]>('/api/study/groups')).data
+export async function loadActivityGroups(signal?: AbortSignal): Promise<StudyGroup[]> {
+  return (await client.get<StudyGroup[]>('/api/study/groups', { signal })).data
 }
 
 export async function createActivityGroup(recruitId: string, name: string) {
@@ -24,23 +24,24 @@ export async function createActivityGroup(recruitId: string, name: string) {
 
 export async function loadActivityData(
   anchor = activityToday(),
-  recordId?: string
+  recordId?: string,
+  signal?: AbortSignal
 ): Promise<ActivityData> {
   const records = (
     await client.get<StudyRecord[]>('/api/study/records', {
-      params: { from: shiftDate(anchor, -42), to: shiftDate(anchor, 42) }
+      params: { from: shiftDate(anchor, -42), to: shiftDate(anchor, 42) }, signal
     })
   ).data
   if (recordId && !records.some((record) => record.id === recordId))
     records.push(
       (
         await client.get<StudyRecord>(
-          `/api/study/records/${encodeURIComponent(recordId)}`
+          `/api/study/records/${encodeURIComponent(recordId)}`, { signal }
         )
       ).data
     )
   try {
-    return { groups: await loadActivityGroups(), records }
+    return { groups: await loadActivityGroups(signal), records }
   } catch {
     return { groups: [], records, groupsError: '조 목록을 불러오지 못했습니다.' }
   }
@@ -87,13 +88,13 @@ export async function saveActivityRecord(
     )
   }
 }
-export async function loadActivityEditorData(recordId?: string): Promise<ActivityData> {
+export async function loadActivityEditorData(recordId?: string, signal?: AbortSignal): Promise<ActivityData> {
   // Record history is not needed to start a new post.
   const records = recordId
-    ? [(await client.get<StudyRecord>(`/api/study/records/${encodeURIComponent(recordId)}`)).data]
+    ? [(await client.get<StudyRecord>(`/api/study/records/${encodeURIComponent(recordId)}`, { signal })).data]
     : []
   try {
-    return { records, groups: await loadActivityGroups() }
+    return { records, groups: await loadActivityGroups(signal) }
   } catch {
     return { records, groups: [], groupsError: '조 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.' }
   }

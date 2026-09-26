@@ -8,7 +8,10 @@ import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { PageFrame } from '../../shared/ui/PageFrame'
-import { FilterTabs } from '../../shared/ui/FilterTabs'
+import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { ListingControls } from '../../shared/ui/ListingControls'
+import { Pagination } from '../../shared/ui/Pagination'
+import { usePagination } from '../../shared/ui/usePagination'
 import { ArchiveResourceCard } from './ArchiveResourceCard'
 import './archive.css'
 
@@ -29,14 +32,15 @@ export function ArchivePage() {
   const [showCalendar, setShowCalendar] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [archiveError, setArchiveError] = useState<string | null>(null)
+  const [loadRevision, setLoadRevision] = useState(0)
   const [calendarMonth, setCalendarMonth] = useState(() => currentMonthKey())
   const [selectedDate, setSelectedDate] = useState(() => toLocalDateKey(new Date()))
 
   const activeTab = { label: activeCategory === 'labs' ? '연구실 자료' : '에이전트/스킬' }
   const actionLabel = '자료 등록'
-  const filterOptions = activeCategory === 'labs'
-    ? [{ id: 'all', label: '전체', icon: 'layout' as const }, { id: 'SEMINAR', label: '세미나' }, { id: 'PAPER', label: '논문' }, { id: 'OTHER', label: '기타' }]
-    : [{ id: 'all', label: '전체', icon: 'layout' as const }, { id: 'SKILL', label: '스킬' }, { id: 'AGENT', label: '에이전트' }]
+  const filterOptions: FilterTabOption<string>[] = activeCategory === 'labs'
+    ? [{ id: 'all', label: '전체', icon: 'layout' }, { id: 'SEMINAR', label: '세미나', icon: 'calendar', tone: 'contest' }, { id: 'PAPER', label: '논문', icon: 'book', tone: 'lab' }, { id: 'OTHER', label: '기타', icon: 'file', tone: 'resource' }]
+    : [{ id: 'all', label: '전체', icon: 'layout' }, { id: 'SKILL', label: '스킬', icon: 'file', tone: 'resource' }, { id: 'AGENT', label: '에이전트', icon: 'network', tone: 'lab' }]
   const selectedMaterial = filterOptions.some((option) => option.id === materialFilter) ? materialFilter : 'all'
 
   useEffect(() => {
@@ -51,7 +55,7 @@ export function ArchivePage() {
     Promise.resolve()
       .then(() => {
         if (active) setIsLoading(true)
-        return archiveApi.getItems(activeCategory, query)
+        return archiveApi.getItems(activeCategory)
       })
       .then((nextItems) => {
         if (!active) return
@@ -70,7 +74,7 @@ export function ArchivePage() {
     return () => {
       active = false
     }
-  }, [activeCategory, query])
+  }, [activeCategory, loadRevision])
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
@@ -80,6 +84,7 @@ export function ArchivePage() {
         .includes(normalizedQuery),
     )
   }, [items, query, selectedMaterial])
+  const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${query}`)
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth])
 
@@ -133,25 +138,20 @@ export function ArchivePage() {
 
   return (
     <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
-      <section className="archive-list-controls" aria-label="자료 분류 및 검색">
-        <FilterTabs value={selectedMaterial} options={filterOptions} onChange={setMaterialFilter}
-          ariaLabel="자료 분류" separateFirst />
-        <div className="archive-search-row">
+      <ListingControls label="자료 분류 및 검색" count={`자료 ${visibleItems.length}개`}
+        filters={<FilterTabs value={selectedMaterial} options={filterOptions} onChange={setMaterialFilter}
+          ariaLabel="자료 분류" separateFirst />}
+        accessory={activeCategory === 'labs' && <button type="button" className="archive-calendar-toggle"
+          aria-pressed={showCalendar} onClick={() => setShowCalendar((value) => !value)}>
+          <Icon name="calendar" size={16} />캘린더
+        </button>}
+        message={archiveError && <div className="archive-message"><p className="auth-error" role="alert">{archiveError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}>
           <SearchField className="archive-search" value={query} onChange={setQuery}
             placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />
           <button type="button" className="write-post-button" onClick={startCreate}>
             <Icon name="plus" size={15} />{actionLabel}
           </button>
-        </div>
-        <div className="archive-count-row">
-          <span>자료 {visibleItems.length}개</span>
-          {activeCategory === 'labs' && <button type="button" className="archive-calendar-toggle"
-            aria-pressed={showCalendar} onClick={() => setShowCalendar((value) => !value)}>
-            <Icon name="calendar" size={16} />캘린더
-          </button>}
-        </div>
-        {archiveError && <p className="auth-error archive-message" role="alert">{archiveError}</p>}
-      </section>
+      </ListingControls>
             {activeCategory === 'labs' && showCalendar ? (
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">
                 <div className="archive-calendar-head">
@@ -278,11 +278,12 @@ export function ArchivePage() {
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
               <div className="archive-resource-grid">
                 {isLoading ? <p className="archive-empty" role="status">자료를 불러오는 중입니다.</p>
-                  : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
-                  : visibleItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
+                  : visibleItems.length === 0 && !archiveError ? <p className="archive-empty">등록된 자료가 없습니다.</p>
+                  : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
                     sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}
                     onEdit={() => startEdit(item)} onDelete={() => void handleDelete(item)} />)}
               </div>
+              <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
             </section>
     </PageFrame>
   )

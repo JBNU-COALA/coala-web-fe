@@ -81,6 +81,10 @@ export type ServiceInquiry = {
   createdAt: string
   status: string
   statusClass: string
+  content?: string
+  reply?: string
+  answeredAt?: string | null
+  authorId?: number | null
 }
 
 export type DomainApplication = {

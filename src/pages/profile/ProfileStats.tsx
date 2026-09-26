@@ -5,7 +5,7 @@ type ProfileStatsProps = {
   commits: number
   repositories: number
   awards: number
-  posts: number
+  posts?: number
   onAddRepository?: () => void
   onAddAward?: () => void
 }
@@ -34,7 +34,7 @@ export function ProfileStats({
       onAdd: onAddAward,
       addLabel: '수상 내역 추가',
     },
-    { label: '작성 내용', value: `${posts}개` },
+    { label: '작성 내용', value: posts == null ? '-' : `${posts}개` },
   ]
   return (
     <dl className="profile-stats-grid" aria-label="활동 요약">

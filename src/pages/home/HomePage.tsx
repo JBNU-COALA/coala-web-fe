@@ -1,13 +1,19 @@
-import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { recruitsApi, type RecruitItem, type RecruitStatus } from '../../shared/api/recruits'
-import { servicesApi, type MemberService } from '../../shared/api/services'
+import type { RecruitStatus } from '../../shared/api/recruits'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
-import { PageHero } from '../../shared/ui/PageHero'
 import { SafeImage } from '../../shared/ui/SafeImage'
-import { PostCard } from './PostCard'
-import { ResourcesCard } from './ResourcesCard'
+import {
+  formatHomeDate,
+  getInfoThumbnail,
+  getPostThumbnail,
+  getServiceThumbnail,
+  infoCategoryLabel,
+  preview,
+} from './homeEditorial'
+import { useHomeFeed } from './useHomeFeed'
+import { HomeCarousel } from './HomeCarousel'
+import './home-editorial.css'
 
 type HomePageProps = {
   onOpenAllPosts?: () => void
@@ -16,146 +22,193 @@ type HomePageProps = {
   onOpenInfoArticle?: (infoId: number) => void
 }
 
+const recruitStatusLabel: Record<RecruitStatus, string> = {
+  open: '모집 중',
+  'closing-soon': '마감 임박',
+  closed: '마감',
+}
+
 export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArticle }: HomePageProps) {
   const navigate = useNavigate()
-  const [services, setServices] = useState<MemberService[]>([])
-  const [serviceError, setServiceError] = useState('')
-  const [recruitError, setRecruitError] = useState('')
-  const [recruits, setRecruits] = useState<RecruitItem[]>([])
+  const { articles, posts, recruits, services, loading, errors } = useHomeFeed()
+  const storyArticles = articles.slice(0, 4)
+  const leadArticle = storyArticles[0]
+  const sideArticles = storyArticles.slice(1, 4)
 
-  useEffect(() => {
-    servicesApi.getMemberServices()
-      .then((items) => setServices(items.slice(0, 3)))
-      .catch(() => setServiceError('서비스 목록을 불러오지 못했습니다.'))
-
-    recruitsApi.getRecruits({ status: 'all', sort: 'latest' })
-      .then((items) => setRecruits(items.slice(0, 2)))
-      .catch(() => setRecruitError('모집 목록을 불러오지 못했습니다.'))
-  }, [])
-
-  const openService = (serviceId: string) => {
-    navigate(routes.services.userDetail(serviceId))
+  const openInfo = () => {
+    if (onOpenInfo) onOpenInfo()
+    else navigate(routes.community.info)
   }
-  const openRecruit = (recruitId: string) => {
-    navigate(routes.community.recruitNotice(recruitId))
+  const openArticle = (id: number) => {
+    if (onOpenInfoArticle) onOpenInfoArticle(id)
+    else navigate(routes.community.infoPost(id))
   }
-  const getRecruitStatusLabel = (status: RecruitStatus) => {
-    if (status === 'open') return '모집중'
-    if (status === 'closing-soon') return '마감 임박'
-    return '마감'
+  const openPosts = () => {
+    if (onOpenAllPosts) onOpenAllPosts()
+    else navigate(routes.community.board)
+  }
+  const openPost = (boardId: number, postId: number) => {
+    if (onOpenPost) onOpenPost(boardId, postId)
+    else navigate(routes.community.boardPost(boardId, postId))
   }
 
   return (
-    <section className="coala-content coala-content--portal">
-      <PageHero
-        title="COALA Developer Club"
-        eyebrow="TOGETHER WE BUILD"
-        description="함께 만들고 운영하는 개발 동아리"
-        tone="home"
-        size="large"
-        headingLevel="h1"
-        action={(
-          <button type="button" className="page-hero-button" onClick={() => navigate(routes.about)}>
-            동아리 소개
-            <Icon name="chevron-right" size={15} />
+    <section className="coala-content coala-content--portal home-editorial">
+      <HomeCarousel />
+
+      <section className="home-stories home-editorial-container" aria-labelledby="home-stories-title">
+        <header className="home-editorial-section-head">
+          <div>
+            <p>All stories</p>
+            <h2 id="home-stories-title">코알라의 새로운 이야기</h2>
+          </div>
+          <button type="button" onClick={openInfo}>
+            전체 보기
+            <Icon name="chevron-right" size={16} />
           </button>
-        )}
-      />
+        </header>
 
-      <div className="portal-grid portal-grid--dashboard">
-        <ResourcesCard onOpenInfo={onOpenInfo} onOpenInfoArticle={onOpenInfoArticle} dashboard />
-        <PostCard onOpenAllPosts={onOpenAllPosts} onOpenPost={onOpenPost} limit={8} dashboard />
-      </div>
-
-      <div className="portal-home-bottom">
-        <section className="surface-card panel portal-services-panel portal-services-panel--home">
-          <header className="panel-header">
-            <div>
-              <p className="portal-section-eyebrow">User Services</p>
-              <h2 className="panel-title">유저 서비스</h2>
-            </div>
-            <button type="button" className="panel-action panel-action--solid" onClick={() => navigate(routes.services.user)}>
-              서비스 보기
+        {loading ? (
+          <div className="home-editorial-loading" aria-label="홈 콘텐츠 불러오는 중" />
+        ) : leadArticle ? (
+          <div className="home-story-layout">
+            <button type="button" className="home-story-lead" onClick={() => openArticle(leadArticle.id)}>
+              <span className="home-story-lead-image">
+                <SafeImage
+                  src={getInfoThumbnail(leadArticle)}
+                  alt=""
+                  loading="eager"
+                  fallback={<img src="/coala-card-placeholder.png" alt="" />}
+                />
+              </span>
+              <span className="home-story-lead-copy">
+                <span className={`home-editorial-category home-editorial-category--${leadArticle.filter}`}>
+                  {infoCategoryLabel[leadArticle.filter]}
+                </span>
+                <strong>{leadArticle.title}</strong>
+                <span>{preview(leadArticle.content, 150)}</span>
+                <small>{leadArticle.sourceName || leadArticle.authorName || '코알라'} · {formatHomeDate(leadArticle.createdAt ?? leadArticle.sourceDate)}</small>
+              </span>
             </button>
-          </header>
 
-          {services.length > 0 ? (
-            <div className="portal-service-showcase-grid" aria-label="유저 서비스 목록">
-              {services.map((service) => (
-                <button
-                  key={service.id}
-                  type="button"
-                  className="portal-service-showcase-card"
-                  onClick={() => openService(service.id)}
-                  aria-label={`${service.title} 서비스 안내 열기`}
-                >
-                  <span className="portal-service-showcase-image">
+            <div className="home-story-side-list">
+              {sideArticles.map((article) => (
+                <button key={article.id} type="button" className="home-story-side" onClick={() => openArticle(article.id)}>
+                  <span className="home-story-side-copy">
+                    <span className={`home-editorial-category home-editorial-category--${article.filter}`}>
+                      {infoCategoryLabel[article.filter]}
+                    </span>
+                    <strong>{article.title}</strong>
+                    <small>{formatHomeDate(article.createdAt ?? article.sourceDate)} · 조회 {article.viewCount}</small>
+                  </span>
+                  <span className="home-story-side-image">
                     <SafeImage
-                      src={service.imageUrl || '/coala-card-placeholder.png'}
+                      src={getInfoThumbnail(article)}
                       alt=""
                       loading="lazy"
                       fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
                     />
                   </span>
-                  <span className="portal-service-showcase-copy">
-                    <span className="portal-service-status">{service.status}</span>
-                    <strong>{service.title}</strong>
-                    <span>{service.summary}</span>
-                    <small>{service.owner}</small>
-                  </span>
-                  <Icon name="chevron-right" size={16} />
                 </button>
               ))}
+              {sideArticles.length === 0 && <p className="home-editorial-empty">아직 더 소개할 이야기가 없습니다.</p>}
             </div>
-          ) : (
-            <div className="portal-service-empty">
-              {serviceError || '등록된 유저 서비스가 없습니다.'}
-            </div>
-          )}
-        </section>
+          </div>
+        ) : (
+          <p className="home-editorial-empty">{errors.articles ? '정보공유를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.' : '새로운 이야기를 준비하고 있습니다.'}</p>
+        )}
+      </section>
 
-        <section className="surface-card panel portal-recruit-panel">
-          <header className="panel-header">
-            <div>
-              <p className="portal-section-eyebrow">Recruit</p>
-              <h2 className="panel-title">모집</h2>
-            </div>
-            <button type="button" className="panel-action" onClick={() => navigate(routes.community.recruit)}>
-              모집 보기
-            </button>
-          </header>
-
-          {recruits.length > 0 ? (
-            <ul className="portal-recruit-list" aria-label="최근 모집 공고">
-              {recruits.map((recruit) => (
-                <li key={recruit.id}>
-                  <button
-                    type="button"
-                    className="portal-recruit-item"
-                    onClick={() => openRecruit(recruit.id)}
-                    aria-label={`${recruit.title} 모집 공고 열기`}
-                  >
-                    <span className={`portal-recruit-status portal-recruit-status--${recruit.status}`}>
-                      {getRecruitStatusLabel(recruit.status)}
+      <section className="home-community-band">
+        <div className="home-editorial-container home-community-layout">
+          <section className="home-popular" aria-labelledby="home-popular-title">
+            <header className="home-editorial-section-head home-editorial-section-head--compact">
+              <div>
+                <p>Community</p>
+                <h2 id="home-popular-title">지금 많이 읽는 글</h2>
+              </div>
+              <button type="button" onClick={openPosts}>게시판 보기</button>
+            </header>
+            <ol className="home-popular-list">
+              {posts.map((post, index) => (
+                <li key={`${post.boardId}-${post.postId}`}>
+                  <button type="button" onClick={() => openPost(post.boardId, post.postId)}>
+                    <b>{String(index + 1).padStart(2, '0')}</b>
+                    <span>
+                      <small>{post.boardName ?? '게시판'}</small>
+                      <strong>{post.title}</strong>
+                      <em>{post.authorName || '코알라 멤버'} · 댓글 {post.commentCount ?? 0}</em>
                     </span>
-                    <span className="portal-recruit-copy">
-                      <strong>{recruit.title}</strong>
-                      <span>{recruit.shortDesc}</span>
-                      <small>
-                        {recruit.authorName || recruit.host} · {recruit.currentMembers}/{recruit.maxMembers}명 · {recruit.expectedDuration}
-                      </small>
+                    <span className="home-popular-thumb">
+                      <SafeImage src={getPostThumbnail(post)} alt="" loading="lazy" />
                     </span>
                   </button>
                 </li>
               ))}
+              {!loading && posts.length === 0 && <li className="home-editorial-empty">{errors.posts ? '게시글을 불러오지 못했습니다.' : '게시글이 없습니다.'}</li>}
+            </ol>
+          </section>
+
+          <section className="home-recruit" aria-labelledby="home-recruit-title">
+            <header className="home-editorial-section-head home-editorial-section-head--compact">
+              <div>
+                <p>Together</p>
+                <h2 id="home-recruit-title">함께할 사람을 찾고 있어요</h2>
+              </div>
+              <button type="button" onClick={() => navigate(routes.community.recruit)}>모집 보기</button>
+            </header>
+            <ul className="home-recruit-list">
+              {recruits.map((recruit) => (
+                <li key={recruit.id}>
+                  <button type="button" onClick={() => navigate(routes.community.recruitNotice(recruit.id))}>
+                    <span className={`home-recruit-status home-recruit-status--${recruit.status}`}>
+                      {recruitStatusLabel[recruit.status]}
+                    </span>
+                    <strong>{recruit.title}</strong>
+                    <span>{recruit.shortDesc}</span>
+                    <small>{recruit.currentMembers}/{recruit.maxMembers}명 · {recruit.meetingType}</small>
+                  </button>
+                </li>
+              ))}
+              {!loading && recruits.length === 0 && <li className="home-editorial-empty">{errors.recruits ? '모집을 불러오지 못했습니다.' : '진행 중인 모집이 없습니다.'}</li>}
             </ul>
-          ) : (
-            <div className="portal-service-empty">
-              {recruitError || '등록된 모집 공고가 없습니다.'}
-            </div>
-          )}
-        </section>
-      </div>
+          </section>
+        </div>
+      </section>
+
+      <section className="home-services home-editorial-container" aria-labelledby="home-services-title">
+        <header className="home-editorial-section-head">
+          <div>
+            <p>Made by COALA</p>
+            <h2 id="home-services-title">배운 것을 서비스로 만듭니다</h2>
+          </div>
+          <button type="button" onClick={() => navigate(routes.services.user)}>
+            서비스 전체 보기
+            <Icon name="chevron-right" size={16} />
+          </button>
+        </header>
+        <div className="home-service-grid">
+          {services.map((service) => (
+            <button key={service.id} type="button" className="home-service-item" onClick={() => navigate(routes.services.userDetail(service.id))}>
+              <span className="home-service-image">
+                <SafeImage
+                  src={getServiceThumbnail(service.imageUrl)}
+                  alt=""
+                  loading="lazy"
+                  fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+                />
+              </span>
+              <span className="home-service-copy">
+                <small>{service.status} · {service.owner}</small>
+                <strong>{service.title}</strong>
+                <span>{service.summary}</span>
+                <em>{service.tags.slice(0, 3).map((tag) => `#${tag}`).join(' ')}</em>
+              </span>
+            </button>
+          ))}
+          {!loading && services.length === 0 && <p className="home-editorial-empty">{errors.services ? '서비스를 불러오지 못했습니다.' : '공개된 유저 서비스가 없습니다.'}</p>}
+        </div>
+      </section>
     </section>
   )
 }

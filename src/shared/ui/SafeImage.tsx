@@ -5,15 +5,15 @@ type SafeImageProps = ImgHTMLAttributes<HTMLImageElement> & {
 }
 
 export function SafeImage({ fallback = null, onError, ...props }: SafeImageProps) {
-  const [failed, setFailed] = useState(false)
+  const [failedSrc, setFailedSrc] = useState<string | null | undefined>(null)
 
-  if (failed) return fallback
+  if (failedSrc !== null && failedSrc === props.src) return fallback
 
   return (
     <img
       {...props}
       onError={(event) => {
-        setFailed(true)
+        setFailedSrc(props.src)
         onError?.(event)
       }}
     />

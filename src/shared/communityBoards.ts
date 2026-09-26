@@ -6,6 +6,7 @@ type BoardLike = {
   boardId: number
   boardName: string
   boardType: 'NORMAL' | 'RECRUIT' | 'ANONYMOUS'
+  categoryKey?: string | null
 }
 
 const communityBoardNameToFilter: Record<string, CommunityBoardFilterId> = {
@@ -38,21 +39,23 @@ function resolveName<T extends string>(name: string, map: Record<string, T>) {
   return map[normalized] ?? Object.entries(map).find(([key]) => normalized.includes(key))?.[1] ?? null
 }
 
-export function resolveCommunityBoardFilter(board: Pick<BoardLike, 'boardName' | 'boardType'>) {
+export function resolveCommunityBoardFilter(board: Pick<BoardLike, 'boardName' | 'boardType' | 'categoryKey'>) {
   if (board.boardType !== 'NORMAL') return null
+  if (board.categoryKey) return ['notice', 'free', 'humor'].includes(board.categoryKey) ? board.categoryKey as CommunityBoardFilterId : null
   return resolveName(board.boardName, communityBoardNameToFilter)
 }
 
-export function resolveInfoBoardFilter(board: Pick<BoardLike, 'boardName' | 'boardType'>) {
+export function resolveInfoBoardFilter(board: Pick<BoardLike, 'boardName' | 'boardType' | 'categoryKey'>) {
   if (board.boardType !== 'NORMAL') return null
+  if (board.categoryKey) return ['news', 'contest', 'lab', 'resource'].includes(board.categoryKey) ? board.categoryKey as InfoBoardFilterId : null
   return resolveName(board.boardName, infoBoardNameToFilter)
 }
 
-export function isCommunityBoard(board: Pick<BoardLike, 'boardName' | 'boardType'>) {
+export function isCommunityBoard(board: Pick<BoardLike, 'boardName' | 'boardType' | 'categoryKey'>) {
   return resolveCommunityBoardFilter(board) !== null
 }
 
-export function isInfoBoard(board: Pick<BoardLike, 'boardName' | 'boardType'>) {
+export function isInfoBoard(board: Pick<BoardLike, 'boardName' | 'boardType' | 'categoryKey'>) {
   return resolveInfoBoardFilter(board) !== null
 }
 

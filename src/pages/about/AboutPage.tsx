@@ -3,20 +3,20 @@ import { useNavigate } from 'react-router-dom'
 import { siteApi, type SiteAboutContent } from '../../shared/api/site'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { Icon } from '../../shared/ui/Icon'
-import { PageHero } from '../../shared/ui/PageHero'
-import { SectionHeading } from '../../shared/ui/SectionHeading'
-import { SafeImage } from '../../shared/ui/SafeImage'
 import { routes } from '../../shared/routes'
+import { Icon, type IconName } from '../../shared/ui/Icon'
+import './about.css'
 
 const defaultAboutContent: SiteAboutContent = { title: '', description: '', chips: [] }
 
+const togetherLinks: { title: string; description: string; icon: IconName; route: string; tone: string }[] = [
+  { title: '배워요', description: '스터디와 활동', icon: 'book', route: routes.community.activity, tone: 'mint' },
+  { title: '만들어요', description: '프로젝트와 서비스', icon: 'network', route: routes.services.root, tone: 'blue' },
+  { title: '나눠요', description: '기록과 정보공유', icon: 'message', route: routes.community.info, tone: 'coral' },
+]
+
 function toDraft(content: SiteAboutContent) {
-  return {
-    title: content.title,
-    description: content.description,
-    chipsText: content.chips.join(', '),
-  }
+  return { title: content.title, description: content.description, chipsText: content.chips.join(', ') }
 }
 
 export function AboutPage() {
@@ -27,6 +27,7 @@ export function AboutPage() {
   const [draft, setDraft] = useState(() => toDraft(defaultAboutContent))
   const [isEditing, setIsEditing] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     siteApi.getAbout()
@@ -39,7 +40,9 @@ export function AboutPage() {
 
   const saveAbout = async (event: FormEvent) => {
     event.preventDefault()
-    if (!draft.title.trim() || !draft.description.trim()) return
+    if (!draft.title.trim() || !draft.description.trim() || saving) return
+    setSaving(true)
+    setMessage(null)
     try {
       const saved = await siteApi.updateAbout({
         title: draft.title.trim(),
@@ -52,142 +55,102 @@ export function AboutPage() {
       setMessage('소개 페이지를 저장했습니다.')
     } catch {
       setMessage('소개 페이지 저장에 실패했습니다.')
+    } finally {
+      setSaving(false)
     }
   }
 
   return (
     <section className="coala-content coala-content--about">
-      <div className="about-page">
-        <PageHero
-          title="동아리 코알라"
-          eyebrow="JEONBUK NATIONAL UNIVERSITY"
-          description="함께 만들고 운영하는 개발 동아리"
-          meta="전북대학교 컴퓨터인공지능학부 · Since 2018"
-          tone="about"
-          size="large"
-          headingLevel="h1"
-          action={(
-            <button type="button" className="page-hero-button" onClick={() => navigate(routes.community.activity)}>
-              활동 보기
-              <Icon name="chevron-right" size={15} />
-            </button>
-          )}
-        />
+      <div className="about-together">
+        <header className="about-together-hero">
+          <img src="/coala-card-placeholder.png" alt="노트북 앞에서 함께할 사람을 기다리는 코알라" />
+          <div className="about-together-hero-copy about-together-container">
+            <p>전북대학교 개발 동아리 코알라</p>
+            <h1>같이 해요.</h1>
+            <strong>코드도, 프로젝트도,<br />성장도 같이.</strong>
+            <div>
+              <button type="button" onClick={() => navigate(routes.community.activity)}>활동 보기</button>
+              <button type="button" onClick={() => navigate(routes.community.recruit)}>모집 보기 <Icon name="chevron-right" size={16} /></button>
+            </div>
+          </div>
+        </header>
 
-        <section className="about-intro">
-          <div className="about-intro-head">
-            <p className="about-intro-eyebrow">COALA</p>
-            {canEdit ? (
-              <button
-                type="button"
-                className="about-edit-button"
-                onClick={() => {
+        <main>
+          <section className="about-together-intro about-together-container" aria-labelledby="about-intro-title">
+            <div className="about-together-intro-head">
+              <p>COALA</p>
+              {canEdit ? (
+                <button type="button" onClick={() => {
                   setDraft(toDraft(content))
                   setIsEditing((current) => !current)
-                }}
-              >
-                <Icon name="edit" size={14} />
-                수정
-              </button>
-            ) : null}
-          </div>
-          {isEditing ? (
-            <form className="about-edit-form" onSubmit={saveAbout}>
-              <label className="jcloud-field">
-                <span className="jcloud-label">제목</span>
-                <input
-                  className="jcloud-input"
-                  value={draft.title}
-                  onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-                />
-              </label>
-              <label className="jcloud-field">
-                <span className="jcloud-label">소개</span>
-                <textarea
-                  className="jcloud-textarea"
-                  rows={4}
-                  value={draft.description}
-                  onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))}
-                />
-              </label>
-              <label className="jcloud-field">
-                <span className="jcloud-label">키워드</span>
-                <input
-                  className="jcloud-input"
-                  value={draft.chipsText}
-                  onChange={(event) => setDraft((current) => ({ ...current, chipsText: event.target.value }))}
-                />
-              </label>
-              <div className="about-edit-actions">
-                <button type="submit" className="jcloud-submit-button">저장</button>
-                <button
-                  type="button"
-                  className="ghost-button"
-                  onClick={() => {
+                  setMessage(null)
+                }}>
+                  <Icon name="edit" size={15} /> 소개 수정
+                </button>
+              ) : null}
+            </div>
+
+            {isEditing ? (
+              <form className="about-together-edit" onSubmit={saveAbout}>
+                <label className="jcloud-field">
+                  <span className="jcloud-label">제목</span>
+                  <input className="jcloud-input" value={draft.title} maxLength={100} required
+                    onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))} />
+                </label>
+                <label className="jcloud-field about-together-edit-wide">
+                  <span className="jcloud-label">소개</span>
+                  <textarea className="jcloud-textarea" rows={4} value={draft.description} maxLength={1000} required
+                    onChange={(event) => setDraft((current) => ({ ...current, description: event.target.value }))} />
+                </label>
+                <label className="jcloud-field about-together-edit-wide">
+                  <span className="jcloud-label">키워드</span>
+                  <input className="jcloud-input" value={draft.chipsText} placeholder="프로젝트, 스터디, 서비스 운영"
+                    onChange={(event) => setDraft((current) => ({ ...current, chipsText: event.target.value }))} />
+                </label>
+                <div className="about-together-edit-actions">
+                  <button type="button" disabled={saving} onClick={() => {
                     setDraft(toDraft(content))
                     setIsEditing(false)
-                  }}
-                >
-                  취소
-                </button>
+                  }}>취소</button>
+                  <button type="submit" disabled={saving}>{saving ? '저장 중' : '저장'}</button>
+                </div>
+              </form>
+            ) : (
+              <div className="about-together-intro-copy">
+                <h2 id="about-intro-title">{content.title || '함께 만들고 운영하는 개발 동아리'}</h2>
+                <div>
+                  <p>{content.description || '코알라는 프로젝트, 스터디, 서비스 운영을 통해 개발 경험을 쌓는 전북대학교 개발 동아리입니다.'}</p>
+                  {content.chips.length > 0 ? <p className="about-together-keywords">{content.chips.join(' · ')}</p> : null}
+                </div>
               </div>
-            </form>
-          ) : (
-            <>
-              {content.title ? <SectionHeading title={content.title} description={content.description} /> : <p>등록된 소개가 없습니다.</p>}
-              <div className="about-intro-grid">
-                {content.chips.map((chip, index) => (
-                  <article key={chip}>
-                    <span className="about-capability-icon">
-                      <Icon name={(['file', 'book', 'settings', 'users'] as const)[index % 4]} size={22} />
-                    </span>
-                    <strong>{chip}</strong>
-                  </article>
-                ))}
-              </div>
-            </>
-          )}
-          {message ? <p className="about-edit-message">{message}</p> : null}
-        </section>
+            )}
+            {message ? <p className="about-together-message" role="status">{message}</p> : null}
+          </section>
 
-        <section className="about-now-section">
-          <SectionHeading title="지금 코알라에서는" description="프로젝트, 정보, 서비스를 한곳에서 확인하세요." />
-          <div className="about-now-grid">
-            {[
-              { label: '프로젝트', title: 'COAS 오픈소스 프로젝트', description: '코알라의 서비스를 함께 만들고 운영합니다.', path: routes.services.root, icon: 'network' as const },
-              { label: '커뮤니티', title: '정보와 경험 공유', description: '개발 자료와 동아리 소식을 나눕니다.', path: routes.community.info, icon: 'book' as const },
-              { label: '모집', title: '함께할 팀 찾기', description: '스터디와 프로젝트 멤버를 찾습니다.', path: routes.community.recruit, icon: 'users' as const },
-            ].map((item) => (
-              <button key={item.label} type="button" className="about-now-card" onClick={() => navigate(item.path)}>
-                <span className="about-now-media">
-                  <SafeImage
-                    src="/coala-card-placeholder.png"
-                    alt=""
-                    loading="lazy"
-                    fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
-                  />
-                </span>
-                <span className="about-now-card-body">
-                  <small><Icon name={item.icon} size={14} />{item.label}</small>
-                  <strong>{item.title}</strong>
-                  <p>{item.description}</p>
-                  <span className="about-now-card-meta">COALA <Icon name="chevron-right" size={16} /></span>
-                </span>
+          <section className="about-together-links about-together-container" aria-label="코알라에서 함께하는 일">
+            {togetherLinks.map((item) => (
+              <button key={item.title} type="button" onClick={() => navigate(item.route)}>
+                <span className={`about-together-icon about-together-icon--${item.tone}`}><Icon name={item.icon} size={22} /></span>
+                <strong>{item.title}</strong>
+                <small>{item.description}</small>
+                <Icon name="chevron-right" size={17} />
               </button>
             ))}
-          </div>
-        </section>
+          </section>
 
-        <section className="about-join-band">
-          <div>
-            <h2>함께할 준비가 되었나요?</h2>
-            <p>코알라의 활동을 살펴보고 함께해 주세요.</p>
-          </div>
-          <div>
-            <button type="button" className="ghost-button" onClick={() => navigate(routes.community.board)}>커뮤니티 보기</button>
-            <button type="button" className="jcloud-submit-button" onClick={() => navigate('/signup')}>회원가입</button>
-          </div>
-        </section>
+          <section className="about-together-join">
+            <div className="about-together-container">
+              <img src="/favicon-green.svg" alt="" />
+              <h2>같이 해요.</h2>
+              <p>처음이어도 괜찮아요. 함께 시작하면 됩니다.</p>
+              <div>
+                <button type="button" onClick={() => navigate(routes.community.recruit)}>모집 보기</button>
+                <button type="button" onClick={() => navigate('/signup')}>회원가입</button>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     </section>
   )

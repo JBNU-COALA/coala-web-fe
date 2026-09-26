@@ -1,4 +1,4 @@
-import client from './client'
+import client, { refreshAuthToken } from './client'
 
 export type LoginRequest = {
   email: string
@@ -94,6 +94,5 @@ export const authApi = {
 
   logout: () => client.post('/api/auth/logout'),
 
-  refresh: (refreshToken: string) =>
-    client.post<AuthResponse>('/api/auth/refresh', { refreshToken }).then((r) => r.data),
+  refresh: refreshAuthToken,
 }

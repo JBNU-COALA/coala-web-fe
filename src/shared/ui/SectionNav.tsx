@@ -1,9 +1,10 @@
 import { useEffect, useRef, type ReactNode } from 'react'
+import { Icon, type IconName } from './Icon'
 import './SectionNav.css'
 
 type SectionNavProps<T extends string> = {
   label: string
-  items: readonly { id: T; label: string }[]
+  items: readonly { id: T; label: string; icon?: IconName }[]
   value: T
   onChange: (id: T) => void
   action?: ReactNode
@@ -49,7 +50,8 @@ export function SectionNav<T extends string>({
             className="section-nav-item"
             onClick={() => onChange(item.id)}
           >
-            {item.label}
+            {item.icon && <Icon name={item.icon} size={16} />}
+            <span>{item.label}</span>
           </button>
         ))}
       </div>

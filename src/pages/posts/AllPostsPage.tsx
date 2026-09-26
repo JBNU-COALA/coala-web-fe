@@ -10,9 +10,12 @@ import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { SelectControl } from '../../shared/ui/SelectControl'
+import { ListingControls } from '../../shared/ui/ListingControls'
+import { Pagination } from '../../shared/ui/Pagination'
+import { usePagination } from '../../shared/ui/usePagination'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
+import { isCommunityBoard, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 
 type AllPostsPageProps = {
@@ -106,27 +109,31 @@ export function AllPostsPage({
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [viewMode, setViewMode] = useState<PostListViewMode>('list')
   const [likeError, setLikeError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [loadRevision, setLoadRevision] = useState(0)
 
   useEffect(() => {
+    let active = true
     const fetchData = async () => {
       setIsLoading(true)
+      setLoadError(null)
       try {
-        const boards = await boardsApi.getBoards(true)
+        const boards = (await boardsApi.getBoards(true)).filter(isCommunityBoard)
         const postsArrays = await Promise.all(boards.map((b) => postsApi.getPosts(b.boardId)))
         const combined: EnrichedPost[] = postsArrays.flatMap((posts, i) =>
           posts.map((p) => ({ ...p, board: boards[i] })),
         )
-        setEnrichedPosts(combined)
+        if (active) setEnrichedPosts(combined)
       } catch {
-        setEnrichedPosts([])
+        if (active) setLoadError('게시글을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
       } finally {
-        setIsLoading(false)
+        if (active) setIsLoading(false)
       }
     }
     fetchData()
-  }, [])
+    return () => { active = false }
+  }, [loadRevision])
 
-  const currentBoardLabel = activeBoard === 'all' ? '전체' : postCategoryMeta[activeBoard].label
   const normalizedQuery = query.trim().toLowerCase()
   const isOperator = user?.role === 'STAFF' || user?.role === 'SUPER_ADMIN'
   const canWriteCurrentBoard = activeBoard !== 'notice' || isOperator
@@ -152,6 +159,7 @@ export function AllPostsPage({
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     })
   }, [activeBoard, enrichedPosts, normalizedQuery, sortMode])
+  const pagination = usePagination(visiblePosts, `${activeBoard}:${normalizedQuery}:${sortMode}`)
 
   const togglePostLike = async (post: EnrichedPost) => {
     if (!isLoggedIn) {
@@ -179,24 +187,15 @@ export function AllPostsPage({
       <div className="board-page">
         <CommunityBanner title={title} tone="board" meta={`게시글 ${visiblePosts.length}개`} />
 
-        <section className="surface-card community-list-controls board-list-controls" aria-label="게시판 필터">
-          <div className="community-list-summary">
-            <div className="community-list-heading">
-              <p>{currentBoardLabel}</p>
-              <strong>게시글 {visiblePosts.length}개</strong>
-            </div>
-          </div>
-
-          <FilterTabs
+        <ListingControls className="page-container" label="게시판 필터" count={`게시글 ${visiblePosts.length}개`}
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}
+          filters={<FilterTabs
             value={activeBoard}
             options={boardTabs}
             onChange={setActiveBoard}
             ariaLabel="게시판 분류"
             separateFirst
-            className="community-filter-tabs"
-          />
-
-          <div className="community-list-actions">
+          />}>
             <SearchField
               className="community-list-search"
               value={query}
@@ -227,9 +226,7 @@ export function AllPostsPage({
               <Icon name="edit" size={15} />
               글쓰기
             </button>
-          </div>
-          {likeError ? <p className="auth-error board-like-error">{likeError}</p> : null}
-        </section>
+        </ListingControls>
 
         <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
           {viewMode === 'list' ? (
@@ -246,8 +243,8 @@ export function AllPostsPage({
           <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
             {isLoading ? (
               <li className="empty-post-state">게시글을 불러오는 중...</li>
-            ) : (
-              visiblePosts.map((post) => {
+            ) : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></li> : (
+              pagination.pageItems.map((post) => {
                 const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
                 const categoryMeta = postCategoryMeta[category]
                 const compositeId = `${post.boardId}-${post.postId}`
@@ -268,6 +265,7 @@ export function AllPostsPage({
                         tabIndex={0}
 	                      onClick={() => onOpenPost(post.boardId, post.postId)}
                         onKeyDown={(event) => {
+                          if (event.target !== event.currentTarget) return
                           if (event.key !== 'Enter' && event.key !== ' ') return
                           event.preventDefault()
                           onOpenPost(post.boardId, post.postId)
@@ -341,16 +339,12 @@ export function AllPostsPage({
               })
             )}
 
-            {!isLoading && visiblePosts.length === 0 && (
+            {!isLoading && !loadError && visiblePosts.length === 0 && (
               <li className="empty-post-state">조건에 맞는 게시글이 없습니다.</li>
             )}
           </ul>
+          <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
 
-          <footer className="board-pagination" aria-label="페이지">
-            <button type="button" className="page-button is-active">
-              1
-            </button>
-          </footer>
         </article>
       </div>
     </section>

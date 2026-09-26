@@ -6,6 +6,7 @@ import { Icon } from '../../shared/ui/Icon'
 import {
   activityToday,
   attendanceCounts,
+  parseDate,
   type ActivityData,
   type StudyRecord,
   type AttendanceEntry
@@ -17,21 +18,24 @@ export function RecordEditor({
   record,
   onSave,
   back,
-  initialGroup
+  initialGroup,
+  initialDate = activityToday()
 }: {
   data: ActivityData
   record?: StudyRecord
   onSave: (record: StudyRecord) => Promise<void>
   back: string
   initialGroup: string
+  initialDate?: string
 }) {
   const firstGroup =
     data.groups.find((group) => group.id === initialGroup)
   const [groupId, setGroupId] = useState(
-    record?.groupId ?? firstGroup?.id ?? ''
+    record ? record.groupId ?? '' : firstGroup?.id ?? ''
   )
   const [title, setTitle] = useState(record?.title ?? '')
-  const [date, setDate] = useState(record?.date ?? activityToday())
+  const defaultDate = parseDate(initialDate) && initialDate <= activityToday() ? initialDate : activityToday()
+  const [date, setDate] = useState(record?.date ?? defaultDate)
   const [content, setContent] = useState(record?.content ?? '')
   const [attendance, setAttendance] = useState<AttendanceEntry[]>(
     record?.attendance ??
@@ -46,8 +50,8 @@ export function RecordEditor({
     JSON.stringify(photos) !== JSON.stringify(record?.photos ?? []) ||
     title !== (record?.title ?? '') ||
     content !== (record?.content ?? '') ||
-    date !== (record?.date ?? activityToday()) ||
-    groupId !== (record?.groupId ?? firstGroup?.id ?? '') ||
+    date !== (record?.date ?? defaultDate) ||
+    groupId !== (record ? record.groupId ?? '' : firstGroup?.id ?? '') ||
     JSON.stringify(attendance) !==
       JSON.stringify(
         record?.attendance ??
@@ -74,7 +78,7 @@ export function RecordEditor({
       setError('제목과 활동 내용을 입력해 주세요.')
       return
     }
-    if (date > activityToday()) {
+    if (!parseDate(date) || date > activityToday()) {
       setError('활동을 진행한 날짜를 선택해 주세요.')
       return
     }

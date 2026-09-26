@@ -30,4 +30,6 @@ dist-ssr
 !.env.*.example
 .build
 build
+.vitest/
+coverage/
 AGENTS.md

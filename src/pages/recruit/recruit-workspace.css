@@ -1,0 +1,22 @@
+.coala-content--recruit .recruit-profile-return { display: flex; justify-content: flex-end; padding: 8px 0; }
+.coala-content--recruit .recruit-profile-return a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; color: #4c655b; font-size: 13px; text-decoration: none; }
+.coala-content--recruit .recruit-load-state { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0; padding: 20px 0; color: #56635e; font-size: 14px; }
+.coala-content--recruit .recruit-load-state p { margin: 0; }
+.coala-content--recruit .recruit-application-status { color: #856621; font-size: 12px; font-weight: 650; }
+.coala-content--recruit .recruit-application-status--accepted { color: #16714e; }
+.coala-content--recruit .recruit-application-status--rejected { color: #a24545; }
+.coala-content--recruit .recruit-host-name a { color: inherit; text-decoration: none; }
+.coala-content--recruit .recruit-host-name a:hover { text-decoration: underline; }
+.coala-content--recruit .recruit-card-actions button:disabled,
+.coala-content--recruit .recruit-interest-button:disabled { opacity: .6; cursor: not-allowed; }
+.coala-content--recruit .recruit-application-panel { min-width: 0; }
+.coala-content--recruit .recruit-application-panel fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 20px; }
+.coala-content--recruit .recruit-card-title,
+.coala-content--recruit .recruit-detail-title,
+.coala-content--recruit .recruit-application-head h3 { overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .coala-content--recruit .recruit-application-head { flex-wrap: wrap; gap: 12px; }
+  .coala-content--recruit .recruit-application-head > div { min-width: 0; }
+  .coala-content--recruit .recruit-application-footer { flex-wrap: wrap; gap: 8px; }
+  .coala-content--recruit .recruit-card-actions { flex-wrap: wrap; }
+}

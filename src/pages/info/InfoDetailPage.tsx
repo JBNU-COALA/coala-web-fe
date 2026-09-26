@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { useRequestScope } from '../../useRequestScope'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
@@ -61,25 +62,54 @@ const categoryCopy = {
   },
 } as const
 
-export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPageProps) {
+export function InfoDetailPage(props: InfoDetailPageProps) {
+  return <InfoDetailContent key={props.infoId} {...props} />
+}
+
+function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
   const [infoActionError, setInfoActionError] = useState<string | null>(null)
   const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [item, setItem] = useState<InfoArticle | null>(null)
+  const [loadError, setLoadError] = useState(false)
+  const [mutationPending, setMutationPending] = useState(false)
+  const [loadRevision, setLoadRevision] = useState(0)
+  const mutationLock = useRef(false)
+  const captureRequest = useRequestScope()
+
+  function beginMutation() {
+    if (mutationLock.current) return false
+    mutationLock.current = true
+    setMutationPending(true)
+    return true
+  }
+
+  function finishMutation() {
+    mutationLock.current = false
+    setMutationPending(false)
+  }
 
   useEffect(() => {
+    let active = true
     const numericId = Number(infoId)
-    if (Number.isNaN(numericId)) return
-    setInfoActionError(null)
-    setLikeMessage(null)
+    if (!Number.isSafeInteger(numericId) || numericId <= 0) return
     infoApi.getArticle(numericId)
-      .then(setItem)
-      .catch(() => setItem(null))
-  }, [infoId])
+      .then((value) => {
+        if (active) {
+          setItem(value)
+          setLoadError(false)
+          setInfoActionError(null)
+          setLikeMessage(null)
+        }
+      })
+      .catch(() => { if (active) { setItem(null); setLoadError(true) } })
+    return () => { active = false }
+  }, [infoId, loadRevision])
 
-  if (!item) {
+  const invalidId = !Number.isSafeInteger(Number(infoId)) || Number(infoId) <= 0
+  if (!item || item.id !== Number(infoId)) {
     return (
       <section className="coala-content coala-content--post-detail">
         <article className="surface-card post-detail info-detail-page">
@@ -89,7 +119,8 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
               <span>정보공유로 돌아가기</span>
             </button>
           </header>
-          <p className="empty-post-state">정보공유 글을 불러오는 중입니다.</p>
+          <p className="empty-post-state" role={loadError || invalidId ? 'alert' : 'status'}>{invalidId ? '올바르지 않은 게시글 주소입니다.' : loadError ? '정보공유 글을 불러오지 못했습니다. 삭제되었거나 접근 권한이 없는 글일 수 있습니다.' : '정보공유 글을 불러오는 중입니다.'}</p>
+          {loadError && !invalidId && <button type="button" className="ghost-button" onClick={() => { setLoadError(false); setLoadRevision((value) => value + 1) }}>다시 불러오기</button>}
         </article>
       </section>
     )
@@ -132,29 +163,51 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
       return
     }
 
+    if (!beginMutation()) return
+    const isCurrent = captureRequest()
     setLikeMessage(null)
     try {
       const response = await infoApi.likeArticle(item.id)
+      if (!isCurrent()) return
       setItem((current) => current
         ? { ...current, likeCount: response.likeCount, likedByMe: response.liked }
         : current)
     } catch {
-      setLikeMessage('좋아요 처리에 실패했습니다.')
+      if (isCurrent()) setLikeMessage('좋아요 처리에 실패했습니다.')
+    } finally {
+      if (isCurrent()) finishMutation()
     }
   }
 
   const handleDeleteInfo = async () => {
-    if (!item) return
+    if (!item || mutationLock.current) return
     const confirmed = window.confirm('정보공유 글을 삭제할까요? 첨부 이미지도 함께 정리됩니다.')
     if (!confirmed) return
 
+    if (!beginMutation()) return
+    const isCurrent = captureRequest()
     setInfoActionError(null)
     try {
       await infoApi.deleteArticle(item.id)
-      onBack()
+      if (isCurrent()) onBack()
     } catch {
-      setInfoActionError('정보공유 글 삭제 권한이 없거나 삭제에 실패했습니다.')
+      if (isCurrent()) setInfoActionError('정보공유 글 삭제 권한이 없거나 삭제에 실패했습니다.')
+    } finally {
+      if (isCurrent()) finishMutation()
     }
+  }
+
+  const handleBookmark = async () => {
+    if (!isLoggedIn) { setInfoActionError('정보 저장은 로그인 후 이용할 수 있습니다.'); return }
+    if (!beginMutation()) return
+    const isCurrent = captureRequest()
+    setInfoActionError(null)
+    try {
+      const updated = await infoApi.bookmarkArticle(item.id)
+      if (isCurrent()) setItem((current) => current ? { ...current, bookmarkedByMe: updated.bookmarkedByMe, bookmarkCount: updated.bookmarkCount } : current)
+    }
+    catch { if (isCurrent()) setInfoActionError('정보 저장에 실패했습니다. 다시 시도해 주세요.') }
+    finally { if (isCurrent()) finishMutation() }
   }
 
   return (
@@ -167,17 +220,20 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
           </button>
 
           <div className="post-header-actions">
+            <button type="button" className="ghost-button" aria-pressed={Boolean(item.bookmarkedByMe)} disabled={mutationPending} onClick={() => void handleBookmark()}>
+              <Icon name="book" size={15} /><span>{item.bookmarkedByMe ? '저장됨' : '저장'}</span>
+            </button>
             <button type="button" className="ghost-button" onClick={onWrite}>
               <Icon name="edit" size={15} />
               <span>정보 글쓰기</span>
             </button>
             {canManageInfo ? (
               <>
-                <button type="button" className="ghost-button" onClick={onEdit}>
+                <button type="button" className="ghost-button" disabled={mutationPending} onClick={onEdit}>
                   <Icon name="edit" size={15} />
                   <span>수정</span>
                 </button>
-                <button type="button" className="ghost-button" onClick={handleDeleteInfo}>
+                <button type="button" className="ghost-button" disabled={mutationPending} onClick={handleDeleteInfo}>
                   <Icon name="file" size={15} />
                   <span>삭제</span>
                 </button>
@@ -241,6 +297,7 @@ export function InfoDetailPage({ infoId, onBack, onWrite, onEdit }: InfoDetailPa
                 type="button"
                 className={item.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}
                 aria-pressed={Boolean(item.likedByMe)}
+                disabled={mutationPending}
                 onClick={handleToggleInfoLike}
               >
                 <Icon name="heart" size={15} />

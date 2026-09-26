@@ -9372,43 +9372,6 @@
   overflow: hidden;
 }
 
-.jcloud-tab-bar {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 10px 16px 0;
-  border-bottom: 1px solid #d8e4df;
-}
-
-.jcloud-tab-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 38px;
-  padding: 0 14px;
-  border: 0;
-  background: transparent;
-  color: #6d847a;
-  font-size: 13.5px;
-  font-weight: 700;
-  border-radius: 8px 8px 0 0;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -1px;
-  transition: all 0.15s ease;
-}
-
-.jcloud-tab-btn:hover {
-  background: #eef4f0;
-  color: #2e5547;
-}
-
-.jcloud-tab-btn.is-active {
-  color: #1a5d41;
-  border-bottom-color: #1a5d41;
-  background: transparent;
-}
-
 .jcloud-tab-content {
   padding: 24px;
 }
@@ -10100,157 +10063,11 @@
 }
 
 /* ── ADMIN PANEL ── */
-.jcloud-admin-shell {
-  display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  gap: 20px;
-  min-height: 480px;
-}
-
-.jcloud-admin-list-col {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border-right: 1px solid #e0eae5;
-  padding-right: 20px;
-}
-
-.jcloud-admin-app-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  overflow-y: auto;
-  max-height: 560px;
-}
-
-.jcloud-admin-app-row {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px;
-  border: 1.5px solid #d8e4df;
-  border-radius: 10px;
-  background: #f8fbfa;
-  cursor: pointer;
-  text-align: left;
-  transition: all 0.15s;
-}
-
-.jcloud-admin-app-row:hover {
-  border-color: #8bbfaa;
-  background: #f0f8f3;
-}
-
-.jcloud-admin-app-row.is-selected {
-  border-color: #1a5d41;
-  background: #eaf5ef;
-}
-
-.jcloud-admin-app-top {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.jcloud-admin-app-name {
-  margin: 0;
-  font-size: 13px;
-  font-weight: 700;
-  color: #1e3d31;
-}
-
-.jcloud-admin-app-sid {
-  font-weight: 500;
-  color: #7b9a8e;
-}
-
-.jcloud-admin-app-date {
-  margin: 0;
-  font-size: 11px;
-  color: #9ab0a8;
-}
-
-.jcloud-admin-detail-col {
-  display: flex;
-  flex-direction: column;
-}
-
-.jcloud-admin-empty {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  color: #9ab0a8;
-  text-align: center;
-  padding: 40px 24px;
-}
-
-.jcloud-admin-empty p {
-  margin: 0;
-  font-size: 13.5px;
-  max-width: 280px;
-}
-
-.jcloud-admin-detail {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.jcloud-admin-detail-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.jcloud-admin-detail-id {
-  margin: 0 0 6px;
-  font-size: 11px;
-  color: #9ab0a8;
-  font-family: 'Courier New', monospace;
-}
-
-.jcloud-admin-detail-title-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.jcloud-admin-info-grid {
-  background: #f5f9f7;
-  border: 1px solid #d8e4df;
-  border-radius: 12px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
 
 .jcloud-admin-note-section {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.jcloud-admin-file-section {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.jcloud-admin-actions {
-  display: flex;
-  gap: 10px;
-  padding-top: 4px;
-  border-top: 1px solid #e0eae5;
 }
 
 .jcloud-action-btn {
@@ -10344,21 +10161,6 @@
 
   .jcloud-field-row {
     grid-template-columns: 1fr;
-  }
-
-  .jcloud-admin-shell {
-    grid-template-columns: 1fr;
-  }
-
-  .jcloud-admin-list-col {
-    border-right: 0;
-    border-bottom: 1px solid #e0eae5;
-    padding-right: 0;
-    padding-bottom: 16px;
-  }
-
-  .jcloud-admin-app-list {
-    max-height: 280px;
   }
 }
 
@@ -11671,6 +11473,8 @@
 }
 
 .member-service-detail-media {
+  min-width: 0;
+  overflow: hidden;
   min-height: 360px;
   padding: 18px;
   background-size: cover;
@@ -11679,6 +11483,15 @@
   display: flex;
   align-items: flex-start;
   justify-content: flex-end;
+}
+
+.member-service-detail-media img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .member-service-detail-media::before {
@@ -12017,7 +11830,9 @@
 .member-service-card {
   padding: 18px;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 12px;
+  min-width: 0;
   min-height: 100%;
 }
 
@@ -14556,9 +14371,18 @@
 
 .member-service-media {
   height: 130px;
-  margin: -18px -18px 4px;
+  min-width: 0;
+  margin: 0 -18px 4px;
+  overflow: hidden;
   background-size: cover;
   background-position: center;
+}
+
+.member-service-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .member-service-media--empty,
@@ -14817,110 +14641,6 @@
   letter-spacing: 0;
   word-break: keep-all;
   overflow-wrap: anywhere;
-}
-
-.coala-content--about {
-  width: 100%;
-  max-width: none;
-  display: block;
-  grid-template-columns: none;
-  grid-template-areas: none;
-}
-
-.about-page {
-  display: grid;
-  gap: 20px;
-}
-
-.about-intro {
-  padding: 28px 0;
-  display: grid;
-  gap: 14px;
-}
-
-.about-intro-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.about-intro-eyebrow {
-  margin: 0;
-  color: #1f5f43;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.about-intro h3 {
-  margin: 0;
-  color: #162f28;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.about-intro p {
-  margin: 0;
-  max-width: 780px;
-  color: #52685d;
-  font-size: 15px;
-  line-height: 1.8;
-  word-break: keep-all;
-}
-
-.about-intro-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.about-intro-grid span {
-  min-height: 30px;
-  border-radius: 999px;
-  border: 1px solid #d7e5dd;
-  background: #f6fbf8;
-  color: #245340;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 12px;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.about-edit-button {
-  min-height: 34px;
-  border: 1px solid #cfe0d8;
-  border-radius: 999px;
-  background: #ffffff;
-  color: #1f5f43;
-  padding: 0 12px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 12px;
-  font-weight: 900;
-  cursor: pointer;
-}
-
-.about-edit-form {
-  display: grid;
-  gap: 12px;
-}
-
-.about-edit-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.about-edit-message {
-  margin: 0;
-  color: #1f5f43;
-  font-size: 13px;
-  font-weight: 900;
 }
 
 .leader-avatar--mint,
@@ -15319,30 +15039,6 @@
   overflow: visible;
 }
 
-.official-service-panel .jcloud-tab-bar {
-  flex-wrap: wrap;
-  gap: 8px;
-  padding: 8px;
-  border-bottom: 0;
-}
-
-.official-service-panel .jcloud-tab-btn {
-  flex: 1 1 180px;
-  min-width: 0;
-  height: 42px;
-  border: 1px solid #d5e1db;
-  border-radius: 10px;
-  margin-bottom: 0;
-  justify-content: center;
-  background: #f7faf8;
-}
-
-.official-service-panel .jcloud-tab-btn.is-active {
-  border-color: #1a5d41;
-  background: #1a5d41;
-  color: #f6fff9;
-}
-
 .official-service-panel .jcloud-tab-content {
   min-width: 0;
   overflow: visible;
@@ -15411,17 +15107,6 @@
   text-underline-offset: 3px;
 }
 
-@media (max-width: 860px) {
-  .official-service-panel .jcloud-tab-bar {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .official-service-panel .jcloud-tab-btn {
-    flex-basis: auto;
-  }
-}
-
 @media (max-width: 760px) {
   .velog-board-picker {
     padding: 16px 18px;
@@ -15445,9 +15130,6 @@
 }
 
 @media (max-width: 560px) {
-  .official-service-panel .jcloud-tab-bar {
-    grid-template-columns: 1fr;
-  }
 
   .recruit-write-panel {
     padding: 20px;

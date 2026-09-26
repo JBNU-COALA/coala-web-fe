@@ -96,7 +96,8 @@ export function ArchiveEditorPage() {
 
   return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트/스킬'} tone="archive" bodyClassName="archive-content">
     <Link className="archive-back-link" to={listPath} onClick={(event) => { event.preventDefault(); if (!saving && !isUploadingArchiveFile) closeForm() }}><Icon name="chevron-left" size={16} />목록으로 돌아가기</Link>
-    {!isLoggedIn ? <p className="archive-empty">로그인 후 자료를 등록할 수 있습니다. <Link to="/login">로그인</Link></p>
+    {!isLoggedIn ? <div className="archive-empty"><p>로그인 후 자료를 등록할 수 있습니다.</p>
+      <Link className="primary-button" to="/login" state={{ from: location }}>로그인</Link></div>
       : loading ? <p role="status">자료를 불러오는 중입니다.</p>
       : !allowed ? <p role="alert">{archiveError}</p>
       : <form className="archive-form archive-editor" onSubmit={handleSubmit}>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import DOMPurify from 'dompurify'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
@@ -11,23 +11,15 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import type { UserData } from '../../shared/api/auth'
 import { isSameUserId } from '../../shared/auth/userIdentity'
 import { copyMarkdown, htmlToReadableMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
-import { resolveCommunityBoardFilter } from '../../shared/communityBoards'
+import { parsePostRouteKey, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
+import { useRequestScope } from '../../useRequestScope'
 
 type PostDetailPageProps = {
   postId: string
   onBack: () => void
   onWrite: () => void
   onEdit: () => void
-}
-
-function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
-  const parts = compositeId.split('-')
-  if (parts.length < 2) return null
-  const boardId = Number(parts[0])
-  const postId = Number(parts[1])
-  if (Number.isNaN(boardId) || Number.isNaN(postId)) return null
-  return { boardId, postId }
 }
 
 function formatDate(dateStr: string) {
@@ -90,8 +82,24 @@ function appendReply(comments: CommentItem[], parentCommentId: number, reply: Co
   })
 }
 
-export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPageProps) {
+export function PostDetailPage(props: PostDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
+  const parsed = parsePostRouteKey(props.postId)
+  if (!parsed || parsed.boardId <= 0 || parsed.postId <= 0) {
+    return (
+      <section className="coala-content coala-content--post-detail">
+        <button type="button" className="post-back-button" onClick={props.onBack}>목록으로 돌아가기</button>
+        <p className="empty-post-state">올바르지 않은 게시글 주소입니다.</p>
+      </section>
+    )
+  }
+  return <PostDetailSession key={`${props.postId}:${isLoggedIn ? user?.id : 'guest'}`} {...props} />
+}
+
+function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPageProps) {
+  const { isLoggedIn, user } = useAuth()
+  const captureScope = useRequestScope()
+  const pendingActions = useRef(new Set<string>())
   const [post, setPost] = useState<PostDetail | null>(null)
   const [comments, setComments] = useState<CommentItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -110,36 +118,25 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
 
-  const parsed = useMemo(() => parseCompositeId(postId), [postId])
+  const parsed = parsePostRouteKey(postId)!
+  const { boardId, postId: realPostId } = parsed
 
   useEffect(() => {
-    if (!parsed) {
-      setError('올바르지 않은 게시글 주소입니다.')
-      setIsLoading(false)
-      return
-    }
-
-    const { boardId, postId: realPostId } = parsed
-    setIsLoading(true)
-    setError(null)
-    setPostActionError(null)
-    setCommentActionError(null)
-    setReportMessage(null)
-    setLikeMessage(null)
-
+    const isCurrent = captureScope()
     Promise.all([
       postsApi.getPostDetail(boardId, realPostId),
       postsApi.getComments(realPostId),
     ])
       .then(([postData, commentData]) => {
+        if (!isCurrent()) return
         setPost(postData)
         setComments(commentData.map((comment) => normalizeComment(comment, null)))
       })
       .catch(() => {
-        setError('게시글을 찾을 수 없습니다.')
+        if (isCurrent()) setError('게시글을 찾을 수 없습니다.')
       })
-      .finally(() => setIsLoading(false))
-  }, [parsed])
+      .finally(() => { if (isCurrent()) setIsLoading(false) })
+  }, [boardId, captureScope, realPostId])
 
   const handleCopyShareLink = async () => {
     try {
@@ -153,42 +150,50 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
 
   const handleSubmitComment = async (e: FormEvent) => {
     e.preventDefault()
-    if (!newComment.trim() || !parsed) return
+    if (!newComment.trim() || pendingActions.current.has('comment')) return
+    const isCurrent = captureScope()
+    const submittedDraft = newComment
+    pendingActions.current.add('comment')
     setIsSubmittingComment(true)
     setCommentActionError(null)
     try {
       const created = await postsApi.createComment(parsed.postId, newComment.trim())
+      if (!isCurrent()) return
       setComments((prev) => [...prev, normalizeComment(created, user)])
-      setNewComment('')
+      setNewComment((current) => current === submittedDraft ? '' : current)
     } catch {
-      setCommentActionError('댓글 작성 권한이 없거나 등록에 실패했습니다.')
+      if (isCurrent()) setCommentActionError('댓글 작성 권한이 없거나 등록에 실패했습니다.')
     } finally {
-      setIsSubmittingComment(false)
+      pendingActions.current.delete('comment')
+      if (isCurrent()) setIsSubmittingComment(false)
     }
   }
 
   const handleSubmitReply = async (parentCommentId: number, e: FormEvent) => {
     e.preventDefault()
-    if (!parsed) return
+    if (pendingActions.current.has('reply')) return
     const content = (replyInputs[parentCommentId] ?? '').trim()
     if (!content) return
+    const isCurrent = captureScope()
+    pendingActions.current.add('reply')
 
     setSubmittingReplyId(parentCommentId)
     setCommentActionError(null)
     try {
       const created = await postsApi.createReply(parsed.postId, parentCommentId, content)
+      if (!isCurrent()) return
       setComments((prev) => appendReply(prev, parentCommentId, normalizeComment(created, user, parentCommentId)))
-      setStatusAfterReply(parentCommentId)
+      setReplyInputs((prev) => ({
+        ...prev,
+        [parentCommentId]: prev[parentCommentId]?.trim() === content ? '' : prev[parentCommentId],
+      }))
+      setActiveReplyId((current) => current === parentCommentId ? null : current)
     } catch {
-      setCommentActionError('답글 작성 권한이 없거나 등록에 실패했습니다.')
+      if (isCurrent()) setCommentActionError('답글 작성 권한이 없거나 등록에 실패했습니다.')
     } finally {
-      setSubmittingReplyId(null)
+      pendingActions.current.delete('reply')
+      if (isCurrent()) setSubmittingReplyId(null)
     }
-  }
-
-  const setStatusAfterReply = (parentCommentId: number) => {
-    setReplyInputs((prev) => ({ ...prev, [parentCommentId]: '' }))
-    setActiveReplyId(null)
   }
 
   const updateCommentInTree = (
@@ -215,49 +220,65 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
   }
 
   const handleUpdateComment = async (commentId: number) => {
-    if (!parsed) return
+    const action = `comment:${commentId}`
+    if (pendingActions.current.has(action)) return
     const content = commentEditDrafts[commentId]?.trim()
     if (!content) return
+    const isCurrent = captureScope()
+    pendingActions.current.add(action)
     setCommentActionError(null)
     try {
       const updated = await postsApi.updateComment(parsed.postId, commentId, content)
+      if (!isCurrent()) return
       setComments((prev) => updateCommentInTree(prev, commentId, {
         content: updated.content,
         updatedAt: updated.updatedAt,
       }))
-      setEditingCommentId(null)
+      setEditingCommentId((current) => current === commentId ? null : current)
     } catch {
-      setCommentActionError('댓글 수정 권한이 없거나 저장에 실패했습니다.')
+      if (isCurrent()) setCommentActionError('댓글 수정 권한이 없거나 저장에 실패했습니다.')
+    } finally {
+      pendingActions.current.delete(action)
     }
   }
 
   const handleDeleteComment = async (commentId: number) => {
-    if (!parsed) return
+    const action = `comment:${commentId}`
+    if (pendingActions.current.has(action)) return
+    const isCurrent = captureScope()
+    pendingActions.current.add(action)
     setCommentActionError(null)
     try {
       await postsApi.deleteComment(parsed.postId, commentId)
+      if (!isCurrent()) return
       setComments((prev) => removeCommentFromTree(prev, commentId))
       setEditingCommentId((current) => (current === commentId ? null : current))
     } catch {
-      setCommentActionError('댓글 삭제 권한이 없거나 삭제에 실패했습니다.')
+      if (isCurrent()) setCommentActionError('댓글 삭제 권한이 없거나 삭제에 실패했습니다.')
+    } finally {
+      pendingActions.current.delete(action)
     }
   }
 
   const handleDeletePost = async () => {
-    if (!parsed || !post) return
+    if (!post || pendingActions.current.has('delete')) return
     const confirmed = window.confirm('게시글을 삭제할까요? 댓글과 첨부 자료도 함께 삭제됩니다.')
     if (!confirmed) return
-
+    const isCurrent = captureScope()
+    pendingActions.current.add('delete')
     setPostActionError(null)
     try {
       await postsApi.deletePost(parsed.postId)
-      onBack()
+      if (isCurrent()) onBack()
     } catch {
-      setPostActionError('게시글 삭제 권한이 없거나 삭제에 실패했습니다.')
+      if (isCurrent()) setPostActionError('게시글 삭제 권한이 없거나 삭제에 실패했습니다.')
+    } finally {
+      pendingActions.current.delete('delete')
     }
   }
 
   const handleReport = async (targetType: 'POST' | 'COMMENT', targetId: number) => {
+    const isCurrent = captureScope()
     const reasonDetail = window.prompt('신고 사유를 입력해주세요.')
     if (reasonDetail === null) return
 
@@ -271,27 +292,31 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
         reasonType,
         reasonDetail: normalized || undefined,
       })
-      setReportMessage('신고가 접수되었습니다.')
+      if (isCurrent()) setReportMessage('신고가 접수되었습니다.')
     } catch {
-      setReportMessage('이미 신고했거나 신고 접수에 실패했습니다.')
+      if (isCurrent()) setReportMessage('이미 신고했거나 신고 접수에 실패했습니다.')
     }
   }
 
   const handleTogglePostLike = async () => {
-    if (!post) return
+    if (!post || pendingActions.current.has('like')) return
     if (!isLoggedIn) {
       setLikeMessage('좋아요는 로그인 후 누를 수 있습니다.')
       return
     }
-
+    const isCurrent = captureScope()
+    pendingActions.current.add('like')
     setLikeMessage(null)
     try {
       const response = await postsApi.likePost(post.postId)
+      if (!isCurrent()) return
       setPost((current) => current
         ? { ...current, likeCount: response.likeCount, likedByMe: response.liked }
         : current)
     } catch {
-      setLikeMessage('좋아요 처리에 실패했습니다.')
+      if (isCurrent()) setLikeMessage('좋아요 처리에 실패했습니다.')
+    } finally {
+      pendingActions.current.delete('like')
     }
   }
 
@@ -454,7 +479,7 @@ export function PostDetailPage({ postId, onBack, onWrite, onEdit }: PostDetailPa
             <button
               type="submit"
               className="write-post-button"
-              disabled={submittingReplyId === comment.commentId || !replyValue.trim()}
+              disabled={submittingReplyId !== null || !replyValue.trim()}
             >
               답글 등록
             </button>

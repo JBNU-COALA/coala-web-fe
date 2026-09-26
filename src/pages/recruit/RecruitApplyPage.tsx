@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
@@ -6,6 +5,10 @@ import '@uiw/react-md-editor/markdown-editor.css'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { Icon } from '../../shared/ui/Icon'
 import { recruitsApi, type RecruitItem } from '../../shared/api/recruits'
+import { useAuth } from '../../shared/auth/AuthContext'
+import { mutationError } from '../../shared/api/mutationError'
+import { applicationStatusLabel, useRecruitApplications } from './useRecruitApplications'
+import './recruit-workspace.css'
 import { copyMarkdown, downloadMarkdown, toMarkdownFilename, type MarkdownCopyState } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
@@ -45,10 +48,22 @@ const createDefaultApplicationDraft = (item: RecruitItem): RecruitApplicationDra
 })
 
 export function RecruitApplyPage() {
+  const [params] = useSearchParams()
+  const { user } = useAuth()
+  const recruitId = params.get('id')
+  return <RecruitApplicationContent key={`${user?.id}:${recruitId}`} recruitId={recruitId} />
+}
+
+function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) {
   const navigate = useNavigate()
   const editorRootRef = useRef<HTMLDivElement | null>(null)
-  const [searchParams] = useSearchParams()
-  const recruitId = searchParams.get('id')
+  const applications = useRecruitApplications()
+  const application = applications.items.find((entry) => entry.recruitId === recruitId)
+  const [loading, setLoading] = useState(Boolean(recruitId))
+  const [loadError, setLoadError] = useState('')
+  const [revision, setRevision] = useState(0)
+  const [saving, setSaving] = useState(false)
+  const [initialized, setInitialized] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [submitted, setSubmitted] = useState(false)
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
@@ -74,19 +89,36 @@ export function RecruitApplyPage() {
   )
 
   useEffect(() => {
+    let active = true
     if (recruitId) {
-      recruitsApi.getRecruit(recruitId).then(setRemoteItem).catch(() => setRemoteItem(null))
+      recruitsApi.getRecruit(recruitId)
+        .then((value) => { if (active) setRemoteItem(value) })
+        .catch(() => { if (active) setLoadError('모집 공고를 불러오지 못했습니다.') })
+        .finally(() => { if (active) setLoading(false) })
     }
-  }, [recruitId])
+    return () => { active = false }
+  }, [recruitId, revision])
 
   useEffect(() => {
-    if (!item) return
-    setDraft(createDefaultApplicationDraft(item))
+    if (!item || applications.loading || applications.error || initialized) return
+    setDraft(application ? { role: application.role, body: application.body } : createDefaultApplicationDraft(item))
     setSubmitted(false)
     setError(null)
-  }, [item])
+    setInitialized(true)
+  }, [item, application, applications.loading, applications.error, initialized])
+
+  const locked = item?.status === 'closed' || application?.status === 'accepted'
+  const originalDraft = application ?? (item ? createDefaultApplicationDraft(item) : { role: '', body: '' })
+  const dirty = initialized && !submitted && (draft.role !== originalDraft.role || draft.body !== originalDraft.body)
+  useEffect(() => {
+    if (!dirty) return
+    const guard = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = '' }
+    window.addEventListener('beforeunload', guard)
+    return () => window.removeEventListener('beforeunload', guard)
+  }, [dirty])
 
   const goBackToRecruit = () => {
+    if (dirty && !window.confirm('작성 중인 지원 내용을 취소할까요?')) return
     navigate(item ? routes.community.recruitNotice(item.id) : routes.community.recruit)
   }
 
@@ -114,10 +146,11 @@ export function RecruitApplyPage() {
   }
 
   const handleEditorPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget
     try {
       const markdown = await readMarkdownImagesFromClipboard(event, { onError: setImageError })
       if (markdown) {
-        insertImagesIntoEditor(event.currentTarget, markdown)
+        insertImagesIntoEditor(textarea, markdown)
         setImageError(null)
       }
     } catch (error) {
@@ -126,10 +159,11 @@ export function RecruitApplyPage() {
   }
 
   const handleEditorDrop = async (event: DragEvent<HTMLTextAreaElement>) => {
+    const textarea = event.currentTarget
     try {
       const markdown = await readMarkdownImagesFromDrop(event, { onError: setImageError })
       if (markdown) {
-        insertImagesIntoEditor(event.currentTarget, markdown)
+        insertImagesIntoEditor(textarea, markdown)
         setImageError(null)
       }
     } catch (error) {
@@ -145,7 +179,7 @@ export function RecruitApplyPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
-    if (!item) return
+    if (!item || saving || locked || !initialized) return
 
     const markdownBody = draft.body.replace(/[#*_`>\-\s]/g, '')
     if (!draft.role.trim() || !markdownBody.trim()) {
@@ -153,21 +187,28 @@ export function RecruitApplyPage() {
       return
     }
 
+    setSaving(true)
     try {
       await recruitsApi.apply(item.id, { role: draft.role.trim(), body: draft.body })
       setSubmitted(true)
       setError(null)
-    } catch {
-      setError('지원서를 제출하지 못했습니다. 로그인 상태를 확인해주세요.')
-    }
+    } catch (error) {
+      setError(mutationError(error, '지원서를 제출하지 못했습니다. 작성 내용은 유지됩니다.'))
+    } finally { setSaving(false) }
   }
 
-  if (!item) {
+  if (!item || applications.loading || applications.error || !initialized) {
     return (
       <section className="coala-content coala-content--recruit">
         <CommunityBanner title="지원하기" tone="recruit" />
         <div className="surface-card recruit-application-empty">
-          <strong>지원할 모집 공고를 찾을 수 없습니다.</strong>
+          <strong role={loadError || applications.error ? 'alert' : 'status'}>
+            {loadError || applications.error || (loading || applications.loading || item ? '지원서를 불러오는 중입니다.' : '지원할 모집 공고를 찾을 수 없습니다.')}
+          </strong>
+          {(loadError || applications.error) && <button type="button" className="ghost-button" onClick={() => {
+            if (loadError) { setLoadError(''); setLoading(true); setRevision((value) => value + 1) }
+            if (applications.error) applications.retry()
+          }}>다시 불러오기</button>}
           <button type="button" className="recruit-row-button recruit-row-button--primary" onClick={() => navigate(routes.community.recruit)}>
             모집 목록
           </button>
@@ -190,8 +231,8 @@ export function RecruitApplyPage() {
             <button type="button" className="recruit-row-button" onClick={goBackToRecruit}>
               공고로 돌아가기
             </button>
-            <button type="button" className="recruit-row-button recruit-row-button--primary" onClick={() => navigate(routes.community.recruit)}>
-              모집 목록
+            <button type="button" className="recruit-row-button recruit-row-button--primary" onClick={() => navigate(`${routes.community.recruit}?view=applications`)}>
+              지원 내역
             </button>
           </div>
         </div>
@@ -206,22 +247,28 @@ export function RecruitApplyPage() {
       <form className="surface-card recruit-application-panel recruit-application-panel--page" onSubmit={handleSubmit}>
         <header className="recruit-application-head">
           <div>
-            <p>지원하기</p>
+            <p>{application ? `지원서 · ${applicationStatusLabel(application.status)}` : '지원하기'}</p>
             <h3>{item.title}</h3>
           </div>
           <button type="button" className="recruit-row-button" onClick={goBackToRecruit}>
             공고로 돌아가기
           </button>
         </header>
+        {locked && <p role="status">{application?.status === 'accepted' ? '승인된 지원서는 수정할 수 없습니다.' : '모집이 마감되어 지원서를 제출할 수 없습니다.'}</p>}
 
+        <fieldset disabled={saving || locked}>
         <label className="jcloud-field">
           <span className="jcloud-label">지원 역할</span>
-          <input
+          <select
             className="jcloud-input"
+            required
             value={draft.role}
             onChange={(event) => setDraft({ ...draft, role: event.target.value })}
-            placeholder="프론트엔드, 백엔드, 기획"
-          />
+          >
+            <option value="">역할 선택</option>
+            {draft.role && !item.roles.some((role) => role.label === draft.role) && <option value={draft.role} disabled>{draft.role} (모집 종료)</option>}
+            {item.roles.map((role) => <option key={role.label} value={role.label}>{role.label} ({role.current}/{role.max}명)</option>)}
+          </select>
         </label>
 
         <label className="jcloud-field recruit-application-editor-field">
@@ -235,6 +282,9 @@ export function RecruitApplyPage() {
               visibleDragbar={false}
               commands={applicationCommands}
               textareaProps={{
+                disabled: saving || locked,
+                maxLength: 20000,
+                'aria-label': '지원 내용',
                 onPaste: handleEditorPaste,
                 onDrop: handleEditorDrop,
                 onDragOver: handleEditorDragOver,
@@ -244,8 +294,8 @@ export function RecruitApplyPage() {
           </div>
         </label>
 
-        {error ? <p className="auth-error">{error}</p> : null}
-        {imageError ? <p className="auth-error">{imageError}</p> : null}
+        {error ? <p className="auth-error" role="alert">{error}</p> : null}
+        {imageError ? <p className="auth-error" role="alert">{imageError}</p> : null}
 
         <div className="recruit-application-footer">
           <button
@@ -260,10 +310,11 @@ export function RecruitApplyPage() {
             <Icon name="file" size={15} />
             .md
           </button>
-          <button type="submit" className="jcloud-submit-button">
-            제출
+          <button type="submit" className="jcloud-submit-button" disabled={saving || locked}>
+            {saving ? '제출 중...' : application ? '지원서 수정' : '제출'}
           </button>
         </div>
+        </fieldset>
       </form>
     </section>
   )

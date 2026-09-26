@@ -1,9 +1,4 @@
-.archive-content { min-width: 0; }
-.archive-list-controls { padding: 0 0 18px; border-bottom: 1px solid var(--coala-line); margin-bottom: 24px; }
-.archive-search-row { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
-.archive-content .archive-search { flex: 1; width: auto; min-width: 0; max-width: none; }
-.archive-search-row .write-post-button { flex-shrink: 0; white-space: nowrap; }
-.archive-count-row { display: flex; align-items: center; justify-content: space-between; min-height: 40px; margin-top: 8px; font-size: 13px; color: #63727d; }
+.page-frame-body.archive-content { min-width: 0; padding-top: 0; }
 .archive-calendar-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; border: 0; background: none; color: #536573; font: inherit; cursor: pointer; }
 .archive-calendar-toggle[aria-pressed=true] { color: #08734e; }
 .archive-resource-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
@@ -33,13 +28,6 @@
 @media (max-width: 760px) {
   .archive-resource-grid { grid-template-columns: minmax(0, 1fr); }
   .archive-resource { padding: 18px; }
-  .archive-search-row { gap: 8px; }
-  .archive-search-row .write-post-button { padding-inline: 12px; font-size: 13px; min-width: 0; }
-}
-@media (max-width: 380px) {
-  .archive-search-row { flex-wrap: wrap; }
-  .archive-content .archive-search { flex-basis: 100%; }
-  .archive-search-row .write-post-button { margin-left: auto; }
 }
 .archive-back-link { display: inline-flex; align-items: center; gap: 6px; color: #526779; font-size: 13px; text-decoration: none; min-height: 40px; margin-bottom: 16px; }
 .archive-content .archive-editor { max-width: 840px; padding: 0; margin-inline: auto; border: 0; border-radius: 0; background: none; }

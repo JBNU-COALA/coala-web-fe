@@ -1,11 +1,12 @@
 import type { AdminActionLog } from '../../shared/api/admin'
 import { Icon } from '../../shared/ui/Icon'
 
-export type AdminDestination = 'stats' | 'users' | 'posts' | 'reports' | 'services' | 'instances' | 'about'
+export type AdminDestination = 'stats' | 'users' | 'boards' | 'posts' | 'reports' | 'services' | 'instances' | 'domains' | 'about' | 'banners' | 'activity'
 
-export function AdminOverview({ counts, logs, onNavigate }: {
+export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
   counts: { users: number | null; posts: number | null; services: number | null; reports: number | null; instances: number | null }
   logs: AdminActionLog[]
+  logsUnavailable?: boolean
   onNavigate: (tab: AdminDestination) => void
 }) {
   return <div className="admin-overview">
@@ -21,6 +22,15 @@ export function AdminOverview({ counts, logs, onNavigate }: {
         </button>)}
       </div>
     </section>
+    <section className="admin-shortcuts" aria-label="사이트 관리">
+      {([
+        { key: 'banners', label: '홈 배너', icon: 'image' },
+        { key: 'about', label: '동아리 소개', icon: 'edit' },
+        { key: 'boards', label: '게시판 설정', icon: 'layout' },
+        { key: 'activity', label: '활동 관리', icon: 'calendar' },
+        { key: 'domains', label: '도메인 신청', icon: 'link' },
+      ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}><Icon name={item.icon} size={18} /><span>{item.label}</span><Icon name="chevron-right" size={16} /></button>)}
+    </section>
     <section className="admin-summary-band" aria-label="운영 현황">
       {([
         { key: 'users', label: '회원', value: counts.users },
@@ -32,7 +42,7 @@ export function AdminOverview({ counts, logs, onNavigate }: {
     </section>
     <section className="admin-recent-actions">
       <h3>최근 관리자 작업</h3>
-      {logs.length === 0 ? <p className="admin-empty">표시할 작업이 없습니다.</p> : <ul>
+      {logsUnavailable ? <p className="admin-error">작업 기록을 불러오지 못했습니다.</p> : logs.length === 0 ? <p className="admin-empty">표시할 작업이 없습니다.</p> : <ul>
         {logs.slice(0, 8).map((log) => <li key={log.id}>
           <div><strong>{log.adminName}</strong><span>{actionLabel(log.action)}</span>
             <small>{log.targetType} #{log.targetId}</small></div>

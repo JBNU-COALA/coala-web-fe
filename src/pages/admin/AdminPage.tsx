@@ -1,7 +1,15 @@
 import { AdminOverview, type AdminDestination } from './AdminOverview'
 import { AdminUserEditor } from './AdminUserEditor'
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, Navigate } from 'react-router-dom'
+import { AdminAboutPanel } from './AdminAboutPanel'
+import { AdminActivityPanel } from './AdminActivityPanel'
+import { AdminBannersPanel } from './AdminBannersPanel'
+import { AdminBoardsPanel } from './AdminBoardsPanel'
+import { AdminDomainsPanel } from './AdminDomainsPanel'
+import { AdminInquiriesPanel } from './AdminInquiriesPanel'
+import { AdminServicesPanel } from './AdminServicesPanel'
+import { AdminField as Field } from './AdminFields'
+import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
+import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import {
   adminApi,
   type AdminActionLog,
@@ -13,11 +21,10 @@ import {
   type AdminUserSanctionType,
 } from '../../shared/api/admin'
 import type { UserData } from '../../shared/api/auth'
-import type { BoardData, BoardType } from '../../shared/api/boards'
+import type { BoardData } from '../../shared/api/boards'
 import type { InfoArticle, InfoArticlePayload, InfoFilterId } from '../../shared/api/info'
 import type { RecruitCategory, RecruitItem, RecruitPostPayload, RecruitStatus } from '../../shared/api/recruits'
-import { siteApi, type SiteAboutContent } from '../../shared/api/site'
-import type { ApplyStatus, InstanceApplication, MemberService, MemberServicePayload, ServiceInquiry } from '../../shared/api/services'
+import type { ApplyStatus, InstanceApplication, MemberService } from '../../shared/api/services'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { routes } from '../../shared/routes'
@@ -25,14 +32,6 @@ import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 
 type AdminTab = AdminDestination
-
-type ServiceDraft = {
-  title: string
-  category: string
-  summary: string
-  url: string
-  tagsText: string
-}
 
 type InfoEditDraft = {
   title: string
@@ -67,20 +66,18 @@ type InstanceDraft = {
   adminNote: string
 }
 
-type AboutDraft = {
-  title: string
-  description: string
-  chipsText: string
-}
-
 const adminTabs: { id: AdminTab; label: string; icon: IconName }[] = [
   { id: 'stats', label: '운영 현황', icon: 'chart' },
   { id: 'users', label: '회원 관리', icon: 'users' },
+  { id: 'banners', label: '배너 관리', icon: 'image' },
+  { id: 'about', label: '소개 관리', icon: 'edit' },
+  { id: 'boards', label: '게시판 관리', icon: 'layout' },
   { id: 'posts', label: '게시글 관리', icon: 'message' },
+  { id: 'activity', label: '활동 관리', icon: 'calendar' },
   { id: 'reports', label: '신고 처리', icon: 'bell' },
   { id: 'services', label: '서비스 관리', icon: 'network' },
   { id: 'instances', label: '인스턴스 관리', icon: 'settings' },
-  { id: 'about', label: '소개 관리', icon: 'edit' },
+  { id: 'domains', label: '도메인 관리', icon: 'link' },
 ]
 
 const roleOptions: { value: AdminUserRole; label: string }[] = [
@@ -139,20 +136,6 @@ const sanctionOptions: { value: AdminUserSanctionType; label: string }[] = [
   { value: 'ACCOUNT_SUSPENDED', label: '계정 정지' },
   { value: 'PERMANENT_BANNED', label: '영구 정지' },
 ]
-
-const emptyServiceDraft: ServiceDraft = {
-  title: '',
-  category: 'productivity',
-  summary: '',
-  url: '',
-  tagsText: '',
-}
-
-const defaultAboutContent: SiteAboutContent = {
-  title: '함께 만들고 운영하는 개발 동아리',
-  description: '코알라는 프로젝트, 스터디, 서비스 운영을 통해 개발 경험을 쌓는 전북대학교 개발 동아리입니다.',
-  chips: ['프로젝트', '스터디', '서비스 운영', '커뮤니티'],
-}
 
 const emptyInfoDraft: InfoEditDraft = {
   title: '',
@@ -239,19 +222,6 @@ function parseRecruitRoles(value: string) {
   return roles.length > 0 ? roles : [{ label: '팀원', max: 1 }]
 }
 
-function toServicePayload(draft: ServiceDraft): MemberServicePayload {
-  return {
-    title: draft.title.trim(),
-    category: draft.category.trim(),
-    summary: draft.summary.trim(),
-    url: draft.url.trim(),
-    tags: draft.tagsText
-      .split(',')
-      .map((tag) => tag.trim())
-      .filter(Boolean),
-  }
-}
-
 function infoToDraft(article: InfoArticle): InfoEditDraft {
   return {
     title: article.title,
@@ -314,24 +284,6 @@ function toRecruitPayload(draft: RecruitEditDraft): RecruitPostPayload {
   }
 }
 
-function serviceToDraft(service: MemberService): ServiceDraft {
-  return {
-    title: service.title,
-    category: service.category,
-    summary: service.summary,
-    url: service.url,
-    tagsText: service.tags.join(', '),
-  }
-}
-
-function aboutToDraft(content: SiteAboutContent): AboutDraft {
-  return {
-    title: content.title,
-    description: content.description,
-    chipsText: content.chips.join(', '),
-  }
-}
-
 function instanceToDraft(instance: InstanceApplication): InstanceDraft {
   return {
     instanceType: instance.instanceType,
@@ -342,23 +294,21 @@ function instanceToDraft(instance: InstanceApplication): InstanceDraft {
   }
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <label className="admin-field">
-      <span>{label}</span>
-      {children}
-    </label>
-  )
-}
-
 export function AdminPage() {
   const { user, updateUser } = useAuth()
   const hasAdminAccess = isAdminUser(user)
-  const [activeTab, setActiveTab] = useState<AdminTab>('stats')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const requestedTab = searchParams.get('tab')
+  const activeTab: AdminTab = adminTabs.find((tab) => tab.id === requestedTab)?.id ?? 'stats'
+  const setActiveTab = (tab: AdminTab) => setSearchParams({ tab })
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [postQuery, setPostQuery] = useState('')
+  const [contentType, setContentType] = useState('ALL')
   const [userQuery, setUserQuery] = useState('')
   const [pendingReportCount, setPendingReportCount] = useState<number | null>(null)
   const [loadFailures, setLoadFailures] = useState<string[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const loadSequence = useRef(0)
   const [statusMessage, setStatusMessage] = useState('관리자 데이터를 불러오는 중입니다.')
   const [users, setUsers] = useState<UserData[]>([])
   const [boards, setBoards] = useState<BoardData[]>([])
@@ -367,20 +317,11 @@ export function AdminPage() {
   const [auditLogs, setAuditLogs] = useState<AdminActionLog[]>([])
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
   const [instanceApplications, setInstanceApplications] = useState<InstanceApplication[]>([])
-  const [inquiries, setInquiries] = useState<ServiceInquiry[]>([])
-  const [aboutContent, setAboutContent] = useState<SiteAboutContent>(defaultAboutContent)
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [selectedContentKey, setSelectedContentKey] = useState<string | null>(null)
-  const [selectedServiceId, setSelectedServiceId] = useState<string | null>(null)
   const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null)
   const [postStatus, setPostStatus] = useState<AdminPostStatus | 'ALL'>('ALL')
   const [reportStatus, setReportStatus] = useState<AdminReportStatus>('PENDING')
-  const [boardDraft, setBoardDraft] = useState({
-    boardName: '',
-    description: '',
-    boardType: 'NORMAL' as BoardType,
-  })
-  const [serviceDraft, setServiceDraft] = useState<ServiceDraft>(emptyServiceDraft)
   const [sanctionDraft, setSanctionDraft] = useState({
     type: 'WARNING' as AdminUserSanctionType,
     reason: '',
@@ -393,14 +334,13 @@ export function AdminPage() {
     status: 'pending',
     adminNote: '',
   })
-  const [aboutDraft, setAboutDraft] = useState<AboutDraft>(() => aboutToDraft(defaultAboutContent))
   const [infoDraft, setInfoDraft] = useState<InfoEditDraft>(emptyInfoDraft)
   const [recruitDraft, setRecruitDraft] = useState<RecruitEditDraft>(emptyRecruitDraft)
   const [isContentDraftLoading, setIsContentDraftLoading] = useState(false)
+  const [hasContentDraftError, setHasContentDraftError] = useState(false)
 
   const selectedUser = users.find((item) => item.id === selectedUserId) ?? null
   const selectedPost = posts.find((item) => item.contentKey === selectedContentKey) ?? null
-  const selectedService = memberServices.find((item) => item.id === selectedServiceId) ?? null
   const selectedInstance = instanceApplications.find((item) => item.id === selectedInstanceId) ?? null
 
   const stats = useMemo(() => {
@@ -413,7 +353,7 @@ export function AdminPage() {
       postCount: posts.length,
       visiblePosts,
       pendingReports: reports.filter((report) => report.status === 'PENDING').length,
-      activeServices: memberServices.filter((service) => service.status !== '운영중지' && service.status !== '운영종료').length,
+      activeServices: memberServices.filter((service) => !['운영중지', '운영종료', '운영완료'].includes(service.status)).length,
       pendingInstances: instanceApplications.filter((instance) => instance.status === 'pending').length,
       totalViews: posts.reduce((sum, post) => sum + post.viewCount, 0),
     }
@@ -421,10 +361,13 @@ export function AdminPage() {
 
   const filteredUsers = users.filter((item) =>
     `${item.name} ${item.email} ${item.studentId} ${item.department}`.toLowerCase().includes(userQuery.trim().toLowerCase()))
-  const filteredPosts = posts.filter((post) => postStatus === 'ALL' || post.status === postStatus)
+  const filteredPosts = posts.filter((post) => (postStatus === 'ALL' || post.status === postStatus) &&
+    (contentType === 'ALL' || post.contentType === contentType) &&
+    `${post.title} ${post.authorName ?? ''} ${post.boardName ?? ''}`.toLowerCase().includes(postQuery.trim().toLowerCase()))
 
   const loadAdminData = async () => {
     if (!hasAdminAccess) return
+    const sequence = ++loadSequence.current
     setIsLoading(true)
 
     const [
@@ -435,8 +378,6 @@ export function AdminPage() {
       logsResult,
       servicesResult,
       instancesResult,
-      inquiriesResult,
-      aboutResult,
       pendingReportsResult,
     ] = await Promise.allSettled([
       adminApi.getUsers(),
@@ -446,10 +387,10 @@ export function AdminPage() {
       adminApi.getAuditLogs(),
       adminApi.getMemberServices(),
       adminApi.getInstanceApplications(),
-      adminApi.getInstanceInquiries(),
-      siteApi.getAbout(),
       adminApi.getReports('PENDING'),
     ])
+
+    if (sequence !== loadSequence.current) return
 
     const failures = [
       usersResult,
@@ -459,12 +400,13 @@ export function AdminPage() {
       logsResult,
       servicesResult,
       instancesResult,
-      inquiriesResult,
-      aboutResult,
+      pendingReportsResult,
     ].filter((result) => result.status === 'rejected').length
 
     setLoadFailures([
       usersResult.status === 'rejected' ? 'users' : '',
+      boardsResult.status === 'rejected' ? 'boards' : '',
+      reportsResult.status === 'rejected' ? 'reports' : '',
       postsResult.status === 'rejected' ? 'posts' : '',
       servicesResult.status === 'rejected' ? 'services' : '',
       instancesResult.status === 'rejected' ? 'instances' : '',
@@ -473,7 +415,7 @@ export function AdminPage() {
     setPendingReportCount(pendingReportsResult.status === 'fulfilled' ? pendingReportsResult.value.length : null)
     if (usersResult.status === 'fulfilled') {
       setUsers(usersResult.value)
-      setSelectedUserId((current) => current ?? usersResult.value[0]?.id ?? null)
+      setSelectedUserId((current) => usersResult.value.some((item) => item.id === current) ? current : usersResult.value[0]?.id ?? null)
     }
     if (boardsResult.status === 'fulfilled') setBoards(boardsResult.value)
     if (postsResult.status === 'fulfilled') {
@@ -488,18 +430,11 @@ export function AdminPage() {
     if (logsResult.status === 'fulfilled') setAuditLogs(logsResult.value)
     if (servicesResult.status === 'fulfilled') {
       setMemberServices(servicesResult.value)
-      setSelectedServiceId((current) => current ?? servicesResult.value[0]?.id ?? null)
     }
     if (instancesResult.status === 'fulfilled') {
       setInstanceApplications(instancesResult.value)
-      setSelectedInstanceId((current) => current ?? instancesResult.value[0]?.id ?? null)
+      setSelectedInstanceId((current) => instancesResult.value.some((item) => item.id === current) ? current : instancesResult.value[0]?.id ?? null)
     }
-    if (inquiriesResult.status === 'fulfilled') setInquiries(inquiriesResult.value)
-    if (aboutResult.status === 'fulfilled') {
-      setAboutContent(aboutResult.value)
-      setAboutDraft(aboutToDraft(aboutResult.value))
-    }
-
     setStatusMessage(
       failures === 0 && pendingReportsResult.status === 'fulfilled'
         ? '최신 상태입니다.'
@@ -510,24 +445,18 @@ export function AdminPage() {
 
   useEffect(() => {
     // Server refresh hydrates the selected records and their controlled drafts.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadAdminData()
+    return () => { loadSequence.current += 1 }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasAdminAccess, reportStatus])
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setServiceDraft(selectedService ? serviceToDraft(selectedService) : emptyServiceDraft)
-  }, [selectedService])
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (selectedInstance) setInstanceDraft(instanceToDraft(selectedInstance))
   }, [selectedInstance])
 
   useEffect(() => {
+    setHasContentDraftError(false)
     if (!selectedPost) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setInfoDraft(emptyInfoDraft)
       setRecruitDraft(emptyRecruitDraft)
       return
@@ -542,13 +471,8 @@ export function AdminPage() {
         })
         .catch(() => {
           if (isCurrent) {
-            setInfoDraft({
-              ...emptyInfoDraft,
-              title: selectedPost.title,
-              sourceName: selectedPost.authorName ?? '',
-              content: selectedPost.content,
-            })
-            setStatusMessage('정보공유 상세를 불러오지 못해 목록 데이터로 편집 폼을 채웠습니다.')
+            setHasContentDraftError(true)
+            setStatusMessage('정보공유 상세를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.')
           }
         })
         .finally(() => {
@@ -562,12 +486,8 @@ export function AdminPage() {
         })
         .catch(() => {
           if (isCurrent) {
-            setRecruitDraft({
-              ...emptyRecruitDraft,
-              title: selectedPost.title,
-              detailContentText: selectedPost.content,
-            })
-            setStatusMessage('모집 상세를 불러오지 못해 목록 데이터로 편집 폼을 채웠습니다.')
+            setHasContentDraftError(true)
+            setStatusMessage('모집 상세를 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.')
           }
         })
         .finally(() => {
@@ -613,6 +533,7 @@ export function AdminPage() {
     try {
       const updated = await adminApi.updateUserRole(selectedUser.id, role)
       setUsers((items) => items.map((item) => (item.id === updated.id ? updated : item)))
+      if (updated.id === user.id) updateUser(updated)
       setStatusMessage('유저 권한을 변경했습니다.')
       await refreshAuditLogs()
     } catch {
@@ -638,49 +559,6 @@ export function AdminPage() {
     }
   }
 
-  const createBoard = async (event: FormEvent) => {
-    event.preventDefault()
-    if (!boardDraft.boardName.trim()) return
-    try {
-      await adminApi.createBoard({
-        boardName: boardDraft.boardName.trim(),
-        description: boardDraft.description.trim(),
-        boardType: boardDraft.boardType,
-      })
-      setBoards(await adminApi.getBoards())
-      setBoardDraft({ boardName: '', description: '', boardType: 'NORMAL' })
-      setStatusMessage('게시판을 생성했습니다.')
-    } catch {
-      setStatusMessage('게시판 생성에 실패했습니다.')
-    }
-  }
-
-  const updateBoardActive = async (board: BoardData, isActive: boolean) => {
-    try {
-      await adminApi.updateBoard(board.boardId, {
-        boardName: board.boardName,
-        description: board.description,
-        isActive,
-      })
-      setBoards((items) => items.map((item) => (item.boardId === board.boardId ? { ...item, isActive } : item)))
-      setStatusMessage('게시판 상태를 변경했습니다.')
-    } catch {
-      setStatusMessage('게시판 상태 변경에 실패했습니다.')
-    }
-  }
-
-  const deleteBoard = async (board: BoardData) => {
-    const reason = window.confirm(`${board.boardName} 게시판을 비활성화할까요?`)
-    if (!reason) return
-    try {
-      await adminApi.deleteBoard(board.boardId)
-      setBoards((items) => items.map((item) => (item.boardId === board.boardId ? { ...item, isActive: false } : item)))
-      setStatusMessage('게시판을 비활성화했습니다.')
-    } catch {
-      setStatusMessage('게시판 비활성화에 실패했습니다.')
-    }
-  }
-
   const runPostAction = async (action: 'hide' | 'restore' | 'delete' | 'lock' | 'unlock') => {
     if (!selectedPost) return
     if (selectedPost.contentType !== 'POST' || !selectedPost.postId) {
@@ -703,7 +581,7 @@ export function AdminPage() {
       if (action === 'delete') await adminApi.deletePost(selectedPost.postId, reason)
       if (action === 'lock') await adminApi.lockPost(selectedPost.postId, reason)
       if (action === 'unlock') await adminApi.unlockPost(selectedPost.postId, reason)
-      setPosts(await adminApi.getPosts(postStatus))
+      setPosts(await adminApi.getPosts('ALL'))
       setStatusMessage(`${actionLabel} 처리를 완료했습니다.`)
       await refreshAuditLogs()
     } catch {
@@ -713,13 +591,13 @@ export function AdminPage() {
 
   const saveInfoContent = async (event: FormEvent) => {
     event.preventDefault()
-    if (!selectedPost?.postId || selectedPost.contentType !== 'INFO') return
+    if (!selectedPost?.postId || selectedPost.contentType !== 'INFO' || hasContentDraftError || isContentDraftLoading) return
     const payload = toInfoPayload(infoDraft)
     if (!payload.title || !payload.content) return
     try {
       const saved = await adminApi.updateInfoArticle(selectedPost.postId, payload)
       setInfoDraft(infoToDraft(saved))
-      setPosts(await adminApi.getPosts(postStatus))
+      setPosts(await adminApi.getPosts('ALL'))
       setSelectedContentKey(`info-${saved.id}`)
       setStatusMessage('정보공유 글을 수정했습니다.')
     } catch {
@@ -729,13 +607,13 @@ export function AdminPage() {
 
   const saveRecruitContent = async (event: FormEvent) => {
     event.preventDefault()
-    if (!selectedPost?.externalId || selectedPost.contentType !== 'RECRUIT') return
+    if (!selectedPost?.externalId || selectedPost.contentType !== 'RECRUIT' || hasContentDraftError || isContentDraftLoading) return
     const payload = toRecruitPayload(recruitDraft)
     if (!payload.title || !payload.shortDesc || payload.techStack.length === 0 || payload.detailContent.length === 0) return
     try {
       const saved = await adminApi.updateRecruit(selectedPost.externalId, payload)
       setRecruitDraft(recruitToDraft(saved))
-      setPosts(await adminApi.getPosts(postStatus))
+      setPosts(await adminApi.getPosts('ALL'))
       setSelectedContentKey(`recruit-${saved.id}`)
       setStatusMessage('모집 공고를 수정했습니다.')
     } catch {
@@ -754,7 +632,7 @@ export function AdminPage() {
       if (selectedPost.contentType === 'RECRUIT' && selectedPost.externalId) {
         await adminApi.deleteRecruit(selectedPost.externalId)
       }
-      const nextPosts = await adminApi.getPosts(postStatus)
+      const nextPosts = await adminApi.getPosts('ALL')
       setPosts(nextPosts)
       setSelectedContentKey(nextPosts[0]?.contentKey ?? null)
       setStatusMessage(`${contentTypeLabel[selectedPost.contentType]} 글을 삭제했습니다.`)
@@ -768,43 +646,12 @@ export function AdminPage() {
     if (!reason) return
     try {
       const updated = await adminApi.handleReport(report.id, status, reason)
-      setReports((items) => items.map((item) => (item.id === updated.id ? updated : item)))
+      setReports((items) => items.map((item) => (item.id === updated.id ? updated : item)).filter((item) => item.status === reportStatus))
       setPendingReportCount((await adminApi.getReports('PENDING')).length)
       setStatusMessage('신고 상태를 변경했습니다.')
       await refreshAuditLogs()
     } catch {
       setStatusMessage('신고 처리에 실패했습니다.')
-    }
-  }
-
-  const saveService = async (event: FormEvent) => {
-    event.preventDefault()
-    const payload = toServicePayload(serviceDraft)
-    if (!payload.title || !payload.category || !payload.summary || !payload.url || payload.tags.length === 0) return
-    try {
-      const saved = selectedService
-        ? await adminApi.updateMemberService(selectedService.id, payload)
-        : await adminApi.createMemberService(payload)
-      setMemberServices((items) => {
-        const exists = items.some((item) => item.id === saved.id)
-        return exists ? items.map((item) => (item.id === saved.id ? saved : item)) : [saved, ...items]
-      })
-      setSelectedServiceId(saved.id)
-      setStatusMessage(selectedService ? '서비스 정보를 저장했습니다.' : '서비스를 등록했습니다.')
-    } catch {
-      setStatusMessage('서비스 저장에 실패했습니다.')
-    }
-  }
-
-  const retireService = async () => {
-    if (!selectedService || !window.confirm(`${selectedService.title} 서비스를 운영 중지할까요?`)) return
-    try {
-      await adminApi.retireMemberService(selectedService.id)
-      const services = await adminApi.getMemberServices()
-      setMemberServices(services)
-      setStatusMessage('서비스를 운영 중지했습니다.')
-    } catch {
-      setStatusMessage('서비스 운영 중지에 실패했습니다.')
     }
   }
 
@@ -822,23 +669,6 @@ export function AdminPage() {
       setStatusMessage('인스턴스 신청을 저장했습니다.')
     } catch {
       setStatusMessage('인스턴스 신청 저장에 실패했습니다.')
-    }
-  }
-
-  const saveAbout = async (event: FormEvent) => {
-    event.preventDefault()
-    if (!aboutDraft.title.trim() || !aboutDraft.description.trim()) return
-    try {
-      const saved = await siteApi.updateAbout({
-        title: aboutDraft.title.trim(),
-        description: aboutDraft.description.trim(),
-        chips: aboutDraft.chipsText.split(',').map((chip) => chip.trim()).filter(Boolean),
-      })
-      setAboutContent(saved)
-      setAboutDraft(aboutToDraft(saved))
-      setStatusMessage('소개 페이지를 저장했습니다.')
-    } catch {
-      setStatusMessage('소개 페이지 저장에 실패했습니다.')
     }
   }
 
@@ -878,11 +708,19 @@ export function AdminPage() {
           </div>
           <div className="admin-row-actions">
             <p className="admin-status" role="status">{isLoading ? '불러오는 중...' : statusMessage}</p>
-            <button type="button" className="admin-ghost-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => void loadAdminData()}>
+            <button type="button" className="admin-ghost-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => { setRefreshKey((value) => value + 1); void loadAdminData() }}>
               새로고침
             </button>
           </div>
         </header>
+
+        {loadFailures.includes(activeTab) && <p className="admin-error" role="alert">이 항목을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>}
+        {activeTab === 'banners' && <AdminBannersPanel refreshKey={refreshKey} />}
+        {activeTab === 'about' && <AdminAboutPanel refreshKey={refreshKey} />}
+        {activeTab === 'activity' && <AdminActivityPanel refreshKey={refreshKey} />}
+        {activeTab === 'domains' && <AdminDomainsPanel refreshKey={refreshKey} />}
+        {activeTab === 'boards' && !isLoading && !loadFailures.includes('boards') && <AdminBoardsPanel boards={boards} onChange={setBoards} />}
+        {activeTab === 'services' && !isLoading && !loadFailures.includes('services') && <AdminServicesPanel services={memberServices} onChange={setMemberServices} />}
 
         {activeTab === 'stats' && <AdminOverview counts={{
           users: isLoading || loadFailures.includes('users') ? null : stats.userCount,
@@ -890,11 +728,11 @@ export function AdminPage() {
           services: isLoading || loadFailures.includes('services') ? null : stats.activeServices,
           reports: isLoading ? null : pendingReportCount,
           instances: isLoading || loadFailures.includes('instances') ? null : stats.pendingInstances,
-        }} logs={loadFailures.includes('logs') ? [] : auditLogs} onNavigate={setActiveTab} />}
-        {activeTab === 'reports' && <ReportsPanel reports={reports} reportStatus={reportStatus}
+        }} logs={auditLogs} logsUnavailable={loadFailures.includes('logs')} onNavigate={setActiveTab} />}
+        {activeTab === 'reports' && !isLoading && !loadFailures.includes('reports') && <ReportsPanel reports={reports} reportStatus={reportStatus}
           onStatusChange={setReportStatus} onHandle={handleReport} />}
 
-        {activeTab === 'users' ? (
+        {activeTab === 'users' && !isLoading && !loadFailures.includes('users') ? (
           <div className="admin-two-column admin-two-column--wide-left">
             <div className="admin-panel">
               <div className="admin-panel-header">
@@ -996,77 +834,14 @@ export function AdminPage() {
           </div>
         ) : null}
 
-        {activeTab === 'posts' ? (
+        {activeTab === 'posts' && !isLoading && !loadFailures.includes('posts') ? (
           <div className="admin-stack">
-            <div className="admin-two-column">
-              <div className="admin-panel">
-                <div className="admin-panel-header">
-                  <h3>게시판</h3>
-                  <span>{stats.activeBoardCount}/{stats.boardCount} 활성</span>
-                </div>
-                <div className="admin-list">
-                  {boards.map((board) => (
-                    <div key={board.boardId} className="admin-manage-row">
-                      <div>
-                        <strong>{board.boardName}</strong>
-                        <small>
-                          {board.description || board.boardType}
-                          {board.boardName === '공지' ? ' · 운영진 작성' : ''}
-                        </small>
-                      </div>
-                      <button
-                        type="button"
-                        className={board.isActive ? 'admin-chip is-on' : 'admin-chip'}
-                        onClick={() => void updateBoardActive(board, !board.isActive)}
-                      >
-                        {board.isActive ? '활성' : '숨김'}
-                      </button>
-                      <button type="button" className="admin-ghost-button" onClick={() => void deleteBoard(board)}>
-                        비활성화
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <form className="admin-panel admin-form" onSubmit={createBoard}>
-                <div className="admin-panel-header">
-                  <h3>게시판 생성</h3>
-                </div>
-                <Field label="게시판 이름">
-                  <input
-                    value={boardDraft.boardName}
-                    onChange={(event) => setBoardDraft((current) => ({ ...current, boardName: event.target.value }))}
-                  />
-                </Field>
-                <Field label="설명">
-                  <textarea
-                    rows={3}
-                    value={boardDraft.description}
-                    onChange={(event) => setBoardDraft((current) => ({ ...current, description: event.target.value }))}
-                  />
-                </Field>
-                <Field label="유형">
-                  <select
-                    value={boardDraft.boardType}
-                    onChange={(event) => setBoardDraft((current) => ({ ...current, boardType: event.target.value as BoardType }))}
-                  >
-                    <option value="NORMAL">일반</option>
-                    <option value="RECRUIT">모집</option>
-                    <option value="ANONYMOUS">익명</option>
-                  </select>
-                </Field>
-                <button type="submit" className="admin-primary-button" disabled={!boardDraft.boardName.trim()}>
-                  <Icon name="plus" size={15} />
-                  게시판 생성
-                </button>
-              </form>
-            </div>
-
             <div className="admin-two-column admin-two-column--wide-left">
               <div className="admin-panel">
                 <div className="admin-panel-header">
                   <h3>게시글</h3>
                   <select
+                    aria-label="게시글 상태"
                     className="admin-inline-select"
                     value={postStatus}
                     onChange={(event) => setPostStatus(event.target.value as AdminPostStatus | 'ALL')}
@@ -1076,7 +851,12 @@ export function AdminPage() {
                     ))}
                   </select>
                 </div>
+                <label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="게시글 검색" placeholder="제목, 작성자, 게시판 검색" value={postQuery} onChange={(event) => setPostQuery(event.target.value)} /></label>
+                <select className="admin-inline-select" aria-label="게시글 유형" value={contentType} onChange={(event) => setContentType(event.target.value)}>
+                  <option value="ALL">전체 유형</option><option value="POST">게시판</option><option value="INFO">정보공유</option><option value="RECRUIT">모집</option>
+                </select>
                 <div className="admin-list">
+                  {filteredPosts.length === 0 && <p className="admin-empty">조건에 맞는 게시글이 없습니다.</p>}
                   {filteredPosts.map((post) => (
                     <button
                       key={post.contentKey}
@@ -1128,6 +908,7 @@ export function AdminPage() {
                     ) : null}
                     {selectedPost.contentType === 'INFO' ? (
                       <form className="admin-content-edit-form" onSubmit={saveInfoContent}>
+                        {hasContentDraftError && <p className="admin-error" role="alert">상세 조회에 실패하여 편집할 수 없습니다. 새로고침해 주세요.</p>}
                         <div className="admin-panel-subhead">
                           <strong>정보공유 수정</strong>
                           <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()}>
@@ -1200,13 +981,14 @@ export function AdminPage() {
                             onChange={(event) => setInfoDraft((current) => ({ ...current, content: event.target.value }))}
                           />
                         </Field>
-                        <button type="submit" className="admin-primary-button" disabled={isContentDraftLoading || !infoDraft.title.trim() || !infoDraft.content.trim()}>
+                        <button type="submit" className="admin-primary-button" disabled={isContentDraftLoading || hasContentDraftError || !infoDraft.title.trim() || !infoDraft.content.trim()}>
                           정보공유 저장
                         </button>
                       </form>
                     ) : null}
                     {selectedPost.contentType === 'RECRUIT' ? (
                       <form className="admin-content-edit-form" onSubmit={saveRecruitContent}>
+                        {hasContentDraftError && <p className="admin-error" role="alert">상세 조회에 실패하여 편집할 수 없습니다. 새로고침해 주세요.</p>}
                         <div className="admin-panel-subhead">
                           <strong>모집 수정</strong>
                           <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()}>
@@ -1309,7 +1091,7 @@ export function AdminPage() {
                             onChange={(event) => setRecruitDraft((current) => ({ ...current, processListText: event.target.value }))}
                           />
                         </Field>
-                        <button type="submit" className="admin-primary-button" disabled={isContentDraftLoading || !recruitDraft.title.trim() || !recruitDraft.shortDesc.trim()}>
+                        <button type="submit" className="admin-primary-button" disabled={isContentDraftLoading || hasContentDraftError || !recruitDraft.title.trim() || !recruitDraft.shortDesc.trim()}>
                           모집 저장
                         </button>
                       </form>
@@ -1323,82 +1105,7 @@ export function AdminPage() {
           </div>
         ) : null}
 
-        {activeTab === 'services' ? (
-          <div className="admin-two-column admin-two-column--wide-left">
-            <div className="admin-panel">
-              <div className="admin-panel-header">
-                <h3>유저 서비스</h3>
-                <span>{memberServices.length}개</span>
-              </div>
-              <div className="admin-list">
-                {memberServices.map((service) => (
-                  <button
-                    key={service.id}
-                    type="button"
-                    className={selectedServiceId === service.id ? 'admin-list-row is-active' : 'admin-list-row'}
-                    onClick={() => setSelectedServiceId(service.id)}
-                  >
-                    <span>{service.title}</span>
-                    <small>{service.category} · {service.owner}</small>
-                    <b>{service.status}</b>
-                  </button>
-                ))}
-              </div>
-            </div>
-            <form className="admin-panel admin-form" onSubmit={saveService}>
-              <div className="admin-panel-header">
-                <h3>{selectedService ? '서비스 상세' : '서비스 등록'}</h3>
-                <div className="admin-row-actions">
-                  {selectedService ? (
-                    <button type="button" className="admin-danger-button" onClick={() => void retireService()}>
-                      운영 중지
-                    </button>
-                  ) : null}
-                  <button type="button" className="admin-ghost-button" onClick={() => setSelectedServiceId(null)}>
-                    신규
-                  </button>
-                </div>
-              </div>
-              <Field label="서비스 이름">
-                <input
-                  value={serviceDraft.title}
-                  onChange={(event) => setServiceDraft((current) => ({ ...current, title: event.target.value }))}
-                />
-              </Field>
-              <Field label="카테고리">
-                <input
-                  value={serviceDraft.category}
-                  onChange={(event) => setServiceDraft((current) => ({ ...current, category: event.target.value }))}
-                />
-              </Field>
-              <Field label="요약">
-                <textarea
-                  rows={3}
-                  value={serviceDraft.summary}
-                  onChange={(event) => setServiceDraft((current) => ({ ...current, summary: event.target.value }))}
-                />
-              </Field>
-              <Field label="URL">
-                <input
-                  value={serviceDraft.url}
-                  onChange={(event) => setServiceDraft((current) => ({ ...current, url: event.target.value }))}
-                />
-              </Field>
-              <Field label="태그">
-                <input
-                  value={serviceDraft.tagsText}
-                  onChange={(event) => setServiceDraft((current) => ({ ...current, tagsText: event.target.value }))}
-                />
-              </Field>
-              <button type="submit" className="admin-primary-button">
-                <Icon name="edit" size={15} />
-                서비스 저장
-              </button>
-            </form>
-          </div>
-        ) : null}
-
-        {activeTab === 'instances' ? (
+        {activeTab === 'instances' && !isLoading && !loadFailures.includes('instances') ? (
           <div className="admin-stack">
             <div className="admin-two-column admin-two-column--wide-left">
               <div className="admin-panel">
@@ -1485,75 +1192,10 @@ export function AdminPage() {
                 )}
               </div>
             </div>
-            <div className="admin-panel">
-              <div className="admin-panel-header">
-                <h3>인스턴스 문의</h3>
-                <span>{inquiries.length}건</span>
-              </div>
-              <DataTable
-                headers={['제목', '작성자', '상태', '요약', '작성일']}
-                rows={inquiries.map((inquiry) => [
-                  inquiry.title,
-                  inquiry.author,
-                  inquiry.status,
-                  inquiry.summary,
-                  formatDate(inquiry.createdAt),
-                ])}
-                empty="인스턴스 문의가 없습니다."
-              />
-            </div>
           </div>
         ) : null}
 
-        {activeTab === 'about' ? (
-          <div className="admin-two-column admin-two-column--wide-left">
-            <form className="admin-panel admin-form" onSubmit={saveAbout}>
-              <div className="admin-panel-header">
-                <h3>소개 페이지 수정</h3>
-                <span>동아리 소개</span>
-              </div>
-              <Field label="제목">
-                <input
-                  value={aboutDraft.title}
-                  onChange={(event) => setAboutDraft((current) => ({ ...current, title: event.target.value }))}
-                />
-              </Field>
-              <Field label="소개 문구">
-                <textarea
-                  rows={5}
-                  value={aboutDraft.description}
-                  onChange={(event) => setAboutDraft((current) => ({ ...current, description: event.target.value }))}
-                />
-              </Field>
-              <Field label="키워드">
-                <input
-                  value={aboutDraft.chipsText}
-                  onChange={(event) => setAboutDraft((current) => ({ ...current, chipsText: event.target.value }))}
-                />
-              </Field>
-              <button type="submit" className="admin-primary-button">
-                <Icon name="edit" size={15} />
-                소개 저장
-              </button>
-            </form>
-            <div className="admin-panel">
-              <div className="admin-panel-header">
-                <h3>현재 소개</h3>
-                <span>미리보기</span>
-              </div>
-              <div className="admin-about-preview">
-                <p className="admin-kicker">COALA</p>
-                <h3>{aboutContent.title}</h3>
-                <p>{aboutContent.description}</p>
-                <div className="admin-about-chips">
-                  {aboutContent.chips.map((chip) => (
-                    <span key={chip}>{chip}</span>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : null}
+        {activeTab === 'instances' && <AdminInquiriesPanel kind="instances" refreshKey={refreshKey} />}
       </div>
     </section>
   )
@@ -1619,6 +1261,7 @@ function ReportsPanel({
       <div className="admin-panel-header">
         <h3>신고 관리</h3>
         <select
+          aria-label="신고 상태"
           className="admin-inline-select"
           value={reportStatus}
           onChange={(event) => onStatusChange(event.target.value as AdminReportStatus)}

@@ -28,9 +28,12 @@ import {
 import {
   isAnonymousBoard,
   isCommunityBoard,
+  parsePostRouteKey,
+  parseRouteId,
   resolveCommunityBoardFilter,
 } from '../../shared/communityBoards'
 import { infoApi, type InfoFilterId } from '../../shared/api/info'
+import { useRequestScope } from '../../useRequestScope'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 5000
@@ -98,12 +101,8 @@ function hasInlineBase64Image(markdown: string) {
 }
 
 function parseCompositeId(compositeId: string): { boardId: number; postId: number } | null {
-  const parts = compositeId.split('-')
-  if (parts.length < 2) return null
-  const boardId = Number(parts[0])
-  const postId = Number(parts[1])
-  if (Number.isNaN(boardId) || Number.isNaN(postId)) return null
-  return { boardId, postId }
+  const parsed = parsePostRouteKey(compositeId)
+  return parsed && parsed.boardId > 0 && parsed.postId > 0 ? parsed : null
 }
 
 function getAttachmentIdFromUrl(value?: string | null) {
@@ -121,9 +120,18 @@ function uniqueIds(ids: Array<number | null | undefined>) {
   return [...new Set(ids.filter((id): id is number => typeof id === 'number' && Number.isFinite(id) && id > 0))]
 }
 
-export function PostWriterPage({ onClose, writerType = 'community', editPostId }: PostWriterPageProps) {
+export function PostWriterPage(props: PostWriterPageProps) {
   const { user } = useAuth()
-  const infoAuthorName = user?.nickname?.trim() || user?.name || '코알라'
+  return <PostWriterSession key={JSON.stringify([props.writerType ?? 'community', props.editPostId ?? null, user?.id ?? null])} {...props} />
+}
+
+function PostWriterSession({ onClose, writerType = 'community', editPostId }: PostWriterPageProps) {
+  const { user } = useAuth()
+  const [infoAuthorName] = useState(() => user?.nickname?.trim() || user?.name || '코알라')
+  const captureScope = useRequestScope()
+  const publishing = useRef(false)
+  const pendingUploads = useRef(0)
+  const [uploadCount, setUploadCount] = useState(0)
   const editorRootRef = useRef<HTMLDivElement | null>(null)
   const canWriteNotice = noticeWriterRoles.has(user?.role ?? '')
   const getWritableBoards = useCallback((list: BoardData[]) => (
@@ -148,7 +156,12 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const [isUploadingInfoImage, setIsUploadingInfoImage] = useState(false)
   const [isPublishing, setIsPublishing] = useState(false)
   const [publishError, setPublishError] = useState<string | null>(null)
-  const isEditMode = Boolean(editPostId)
+  const isEditMode = editPostId !== undefined
+  const validEditId = !isEditMode || Boolean(writerType === 'info' ? parseRouteId(editPostId) : parseCompositeId(editPostId))
+  const [isEditLoading, setIsEditLoading] = useState(isEditMode && validEditId)
+  const [loadError, setLoadError] = useState<string | null>(validEditId ? null : '올바르지 않은 게시글 주소입니다.')
+  const [isBoardsLoading, setIsBoardsLoading] = useState(writerType !== 'info')
+  const [boardError, setBoardError] = useState<string | null>(null)
 
   useEffect(() => {
     const dirty = Boolean(title.trim()) || Boolean(content.trim())
@@ -177,55 +190,46 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
 
       const nextBoards = getWritableBoards(preferredBoards)
       setBoards(nextBoards)
-      setSelectedBoardId((current) => (
-        editPostId && current && nextBoards.some((board) => board.boardId === current)
-          ? current
-          : nextBoards[0]?.boardId ?? null
-      ))
+      setSelectedBoardId((current) => current ?? (isEditMode ? null : nextBoards[0]?.boardId ?? null))
+      setBoardError(nextBoards.length ? null : '작성 가능한 게시판이 없습니다.')
     }).catch(() => {
       if (!active) return
       setBoards([])
       setSelectedBoardId(null)
-      setPublishError('게시판 분류를 불러오지 못했습니다.')
+      setBoardError('게시판 분류를 불러오지 못했습니다.')
+    }).finally(() => {
+      if (active) setIsBoardsLoading(false)
     })
     return () => { active = false }
-  }, [editPostId, getWritableBoards, writerType])
+  }, [getWritableBoards, isEditMode, writerType])
 
   useEffect(() => {
-    if (!editPostId) {
-      setTitle('')
-      setContent('')
-      setTagsInput('')
-      setAttachmentIds([])
-      setThumbnailAttachmentId(null)
-      setInfoEditFilter(null)
-      setInfoSourceName(infoAuthorName)
-      setInfoSourceDate(new Date().toISOString().slice(0, 10))
-      setInfoImageUrl('')
-      setInfoImageAttachmentId(null)
-      return
-    }
-
-    const parsed = parseCompositeId(editPostId)
+    if (!editPostId || !validEditId) return
+    const isCurrent = captureScope()
+    const parsed = writerType === 'info' ? null : parseCompositeId(editPostId)
     if (parsed) {
       postsApi.getPostDetail(parsed.boardId, parsed.postId).then((post) => {
+        if (!isCurrent()) return
         setTitle(post.title)
         setContent(prepareMarkdownForDisplay(post.content))
         setTagsInput(post.boardName ?? '')
         setSelectedBoardId(post.boardId)
-        setAttachmentIds([])
+        setAttachmentIds(uniqueIds([...getAttachmentIdsFromText(post.content), post.thumbnailAttachmentId]))
         setThumbnailAttachmentId(post.thumbnailAttachmentId ?? null)
         setInfoImageUrl('')
         setInfoImageAttachmentId(null)
       }).catch(() => {
-        setPublishError('수정할 게시글을 불러오지 못했습니다.')
+        if (isCurrent()) setLoadError('수정할 게시글을 불러오지 못했습니다.')
+      }).finally(() => {
+        if (isCurrent()) setIsEditLoading(false)
       })
       return
     }
 
-    const infoArticleId = Number(editPostId)
-    if (writerType === 'info' && Number.isFinite(infoArticleId)) {
+    const infoArticleId = parseRouteId(editPostId)
+    if (writerType === 'info' && infoArticleId) {
       infoApi.getArticle(infoArticleId).then((article) => {
+        if (!isCurrent()) return
         setTitle(article.title)
         const displayContent = prepareMarkdownForDisplay(article.content)
         setContent(displayContent)
@@ -243,31 +247,57 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
         setThumbnailAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? nextAttachmentIds[0] ?? null)
         setInfoImageUrl(article.imageUrl || extractFirstMarkdownImageUrl(displayContent) || '')
         setInfoImageAttachmentId(article.thumbnailAttachmentId ?? imageAttachmentId ?? null)
-      }).catch(() => {})
+      }).catch(() => {
+        if (isCurrent()) setLoadError('수정할 게시글을 불러오지 못했습니다.')
+      }).finally(() => {
+        if (isCurrent()) setIsEditLoading(false)
+      })
     }
-  }, [editPostId, infoAuthorName, writerType])
+  }, [captureScope, editPostId, infoAuthorName, validEditId, writerType])
 
   const tags = useMemo(
     () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
     [tagsInput],
   )
-  const imageUploadCommand = useMemo(
-    () => createMarkdownImageCommand({
-      uploadImage: async (file) => {
-        const uploaded = await attachmentsApi.uploadImage(file)
-        setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
-        setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
-        if (writerType === 'info') {
-          setInfoImageUrl((current) => current || uploaded.url)
-          setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
-        }
-        return uploaded.url
-      },
-      onError: setImageError,
-      getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
-    }),
-    [writerType],
-  )
+  const uploadEditorImage = useCallback(async (file: File) => {
+    const isCurrent = captureScope()
+    if (publishing.current) throw new Error('저장이 끝난 뒤 이미지를 첨부해주세요.')
+    pendingUploads.current += 1
+    setUploadCount(pendingUploads.current)
+    try {
+      const uploaded = await attachmentsApi.uploadImage(file)
+      if (!isCurrent()) throw new Error('종료된 편집 화면입니다.')
+      setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
+      setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
+      if (writerType === 'info') {
+        setInfoImageUrl((current) => current || uploaded.url)
+        setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
+      }
+      return uploaded.url
+    } finally {
+      pendingUploads.current -= 1
+      if (isCurrent()) setUploadCount(pendingUploads.current)
+    }
+  }, [captureScope, writerType])
+  const imageUploadCommand = useMemo(() => ({
+    ...commands.image,
+    name: 'image-upload',
+    keyCommand: 'image-upload',
+    buttonProps: { 'aria-label': '이미지 첨부', title: '이미지 첨부' },
+    icon: <Icon name="image" size={13} />,
+    execute: (...args: Parameters<NonNullable<typeof commands.image.execute>>) => {
+      const isCurrent = captureScope()
+      if (publishing.current) return
+      createMarkdownImageCommand({
+        uploadImage: (file) => {
+          if (!isCurrent()) return Promise.reject(new Error('종료된 편집 화면입니다.'))
+          return uploadEditorImage(file)
+        },
+        onError: (message) => { if (isCurrent()) setImageError(message) },
+        getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
+      }).execute?.(...args)
+    },
+  }), [captureScope, uploadEditorImage])
   const editorCommands = useMemo(
     () => [
       commands.bold,
@@ -299,21 +329,30 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   const handleInfoImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
-    if (!file) return
+    if (!file || publishing.current || isUploadingInfoImage) return
+    const isCurrent = captureScope()
+    pendingUploads.current += 1
+    setUploadCount(pendingUploads.current)
 
     setIsUploadingInfoImage(true)
     setImageError(null)
     try {
       const uploadFile = await prepareMarkdownImageFile(file)
+      if (!isCurrent()) return
       const uploaded = await attachmentsApi.uploadImage(uploadFile)
+      if (!isCurrent()) return
       setInfoImageUrl(uploaded.url)
       setInfoImageAttachmentId(uploaded.attachmentId)
       setAttachmentIds((current) => uniqueIds([...current, uploaded.attachmentId]))
       setThumbnailAttachmentId(uploaded.attachmentId)
     } catch (error) {
-      setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
+      if (isCurrent()) setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
     } finally {
-      setIsUploadingInfoImage(false)
+      pendingUploads.current -= 1
+      if (isCurrent()) {
+        setUploadCount(pendingUploads.current)
+        setIsUploadingInfoImage(false)
+      }
     }
   }
 
@@ -328,6 +367,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
   }
 
   const insertImagesIntoEditor = (textarea: HTMLTextAreaElement, markdown: string) => {
+    const isCurrent = captureScope()
     const result = insertMarkdownBlockAtRange(
       textarea.value,
       markdown,
@@ -336,6 +376,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
     )
     setContent(result.value)
     window.requestAnimationFrame(() => {
+      if (!isCurrent() || !textarea.isConnected) return
       textarea.focus()
       textarea.setSelectionRange(result.cursor, result.cursor)
     })
@@ -343,51 +384,39 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
 
   const handleEditorPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
     const textarea = event.currentTarget
+    const isCurrent = captureScope()
     try {
       const markdown = await readMarkdownImagesFromClipboard(event, {
-        uploadImage: async (file) => {
-          const uploaded = await attachmentsApi.uploadImage(file)
-          setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
-          setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
-          if (writerType === 'info') {
-            setInfoImageUrl((current) => current || uploaded.url)
-            setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
-          }
-          return uploaded.url
+        uploadImage: (file) => {
+          if (!isCurrent()) return Promise.reject(new Error('종료된 편집 화면입니다.'))
+          return uploadEditorImage(file)
         },
-        onError: setImageError,
       })
-      if (markdown) {
+      if (markdown && isCurrent()) {
         insertImagesIntoEditor(textarea, markdown)
         setImageError(null)
       }
     } catch (error) {
-      setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
+      if (isCurrent()) setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
     }
   }
 
   const handleEditorDrop = async (event: DragEvent<HTMLTextAreaElement>) => {
     const textarea = event.currentTarget
+    const isCurrent = captureScope()
     try {
       const markdown = await readMarkdownImagesFromDrop(event, {
-        uploadImage: async (file) => {
-          const uploaded = await attachmentsApi.uploadImage(file)
-          setAttachmentIds((current) => [...new Set([...current, uploaded.attachmentId])])
-          setThumbnailAttachmentId((current) => current ?? uploaded.attachmentId)
-          if (writerType === 'info') {
-            setInfoImageUrl((current) => current || uploaded.url)
-            setInfoImageAttachmentId((current) => current ?? uploaded.attachmentId)
-          }
-          return uploaded.url
+        uploadImage: (file) => {
+          if (!isCurrent()) return Promise.reject(new Error('종료된 편집 화면입니다.'))
+          return uploadEditorImage(file)
         },
-        onError: setImageError,
       })
-      if (markdown) {
+      if (markdown && isCurrent()) {
         insertImagesIntoEditor(textarea, markdown)
         setImageError(null)
       }
     } catch (error) {
-      setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
+      if (isCurrent()) setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
     }
   }
 
@@ -404,6 +433,8 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
 
   const handlePublish = async (event: FormEvent) => {
     event.preventDefault()
+    if (publishing.current || pendingUploads.current > 0 || isEditLoading || isBoardsLoading || loadError || boardError) return
+    const isCurrent = captureScope()
     const trimmedTitle = title.trim()
     const trimmedContent = content.trim()
 
@@ -432,11 +463,12 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
       return
     }
 
-    if (writerType !== 'info' && !selectedBoardId) {
+    if (writerType !== 'info' && !boards.some((board) => board.boardId === selectedBoardId)) {
       setPublishError('게시판을 선택해주세요.')
       return
     }
 
+    publishing.current = true
     setIsPublishing(true)
     setPublishError(null)
     try {
@@ -470,13 +502,13 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
           attachmentIds: nextAttachmentIds,
           thumbnailAttachmentId: nextThumbnailAttachmentId,
         }
-        if (editPostId && Number.isFinite(Number(editPostId))) {
+        if (editPostId) {
           const updatedArticle = await infoApi.updateArticle(Number(editPostId), payload)
-          onClose({ postId: updatedArticle.id })
+          if (isCurrent()) onClose({ postId: updatedArticle.id })
           return
         } else {
           const createdArticle = await infoApi.createArticle(payload)
-          onClose({ postId: createdArticle.id })
+          if (isCurrent()) onClose({ postId: createdArticle.id })
           return
         }
       } else if (editPostId) {
@@ -489,7 +521,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
             attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
             thumbnailAttachmentId: thumbnailAttachmentId ?? undefined,
           })
-          onClose({ boardId: selectedBoardId!, postId: parsed.postId })
+          if (isCurrent()) onClose({ boardId: selectedBoardId!, postId: parsed.postId })
           return
         } else {
           throw new Error('invalid post id')
@@ -502,15 +534,17 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
           thumbnailAttachmentId,
         })
       }
-      onClose()
+      if (isCurrent()) onClose()
     } catch (error) {
+      if (!isCurrent()) return
       if (editPostId) {
         setPublishError(getApiErrorMessage(error, '게시글 수정 권한이 없거나 저장에 실패했습니다.'))
         return
       }
       setPublishError(getApiErrorMessage(error, '게시글 발행에 실패했습니다. 다시 시도해주세요.'))
     } finally {
-      setIsPublishing(false)
+      publishing.current = false
+      if (isCurrent()) setIsPublishing(false)
     }
   }
 
@@ -547,7 +581,10 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
             </div>
           </header>
 
-          <div className="post-writer-fields velog-writer-fields">
+          {isEditLoading && <p role="status">게시글을 불러오는 중...</p>}
+          {loadError && <p className="auth-error" role="alert">{loadError}</p>}
+          {boardError && <p className="auth-error" role="alert">{boardError}</p>}
+          <fieldset className="post-writer-fields velog-writer-fields" disabled={isPublishing || isEditLoading || Boolean(loadError)} style={{ border: 0, margin: 0, minWidth: 0 }}>
             {writerType === 'info' && (
               <label className="auth-label">
                 정보공유 분류
@@ -642,7 +679,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                     />
                   </label>
                   {infoImageUrl ? (
-                    <button type="button" className="ghost-button" onClick={clearInfoImage}>
+                    <button type="button" className="ghost-button" onClick={clearInfoImage} disabled={isUploadingInfoImage}>
                       제거
                     </button>
                   ) : null}
@@ -673,7 +710,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 }}
               />
             </div>
-          </div>
+          </fieldset>
 
           <footer className="velog-writer-footer" aria-live="polite">
             <div>
@@ -684,7 +721,7 @@ export function PostWriterPage({ onClose, writerType = 'community', editPostId }
                 <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>
               </span>
             </div>
-            <button type="submit" className="write-post-button velog-publish-button" disabled={isPublishing}>
+            <button type="submit" className="write-post-button velog-publish-button" disabled={isPublishing || isEditLoading || isBoardsLoading || uploadCount > 0 || Boolean(loadError || boardError)}>
               <Icon name="plus" size={16} />
               {isPublishing ? (isEditMode ? '저장 중...' : '발행 중...') : (isEditMode ? '저장하기' : '발행하기')}
             </button>

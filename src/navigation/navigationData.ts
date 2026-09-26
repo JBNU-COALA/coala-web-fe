@@ -176,34 +176,11 @@ export function resolveServicesTab(pathname: string, search = ''): ServicesTab {
   return 'coas'
 }
 
-const communityActions: ContextActionDefinition[] = [
-  // Keep both community navigation surfaces in the same order.
-  {
-    id: 'community-board',
-    label: '게시판',
-    icon: 'message',
-    description: '',
-  },
-  {
-    id: 'community-qna',
-    label: '질문게시판',
-    icon: 'help-circle',
-    description: '',
-  },
-  {
-    id: 'community-info',
-    label: '정보공유',
-    icon: 'book',
-    description: '',
-  },
-  {
-    id: 'community-recruit',
-    label: '모집',
-    icon: 'users',
-    description: '',
-  },
-  { id: 'community-activity', label: '활동', icon: 'calendar', description: '' },
-]
+function contextActions(section: HeaderRoute): ContextActionDefinition[] {
+  return (headerSubNavItems[section] ?? []).map(({ id, label, icon }) => ({ id, label, icon, description: '' }))
+}
+
+const communityActions = contextActions('community')
 
 const activityActions: ContextActionDefinition[] = [
   {
@@ -214,30 +191,8 @@ const activityActions: ContextActionDefinition[] = [
   },
 ]
 
-const servicesActions: ContextActionDefinition[] = [
-  {
-    id: 'services-coas',
-    label: 'COAS',
-    icon: 'layout',
-    description: '',
-  },
-  {
-    id: 'services-official',
-    label: '공식서비스',
-    icon: 'settings',
-    description: '',
-  },
-  {
-    id: 'services-user',
-    label: '유저 서비스',
-    icon: 'link',
-    description: '',
-  },
-]
-
-const archiveActions: ContextActionDefinition[] = (headerSubNavItems.archive ?? []).map(
-  ({ id, label, icon }) => ({ id, label, icon, description: '' }),
-)
+const servicesActions = contextActions('services')
+const archiveActions = contextActions('archive')
 
 const settingsActions: ContextActionDefinition[] = [
   {

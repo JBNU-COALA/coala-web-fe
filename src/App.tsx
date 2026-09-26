@@ -18,6 +18,7 @@ import { RequireAuth } from './shared/auth/RequireAuth'
 import { isAdminUser } from './shared/auth/adminAccess'
 import { notificationsApi, type NotificationItem } from './shared/api/notifications'
 import { routes } from './shared/routes'
+import { useRequestScope } from './useRequestScope'
 import {
   makePostRouteKey,
   parsePostRouteKey,
@@ -221,6 +222,11 @@ function formatNotificationTime(value?: string | null) {
 }
 
 function App() {
+  const { isLoggedIn, user } = useAuth()
+  return <AppSession key={isLoggedIn ? `user:${user?.id}` : 'guest'} />
+}
+
+function AppSession() {
   const location = useLocation()
   const navigate = useNavigate()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -232,11 +238,16 @@ function App() {
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0)
   const [isNotificationLoading, setIsNotificationLoading] = useState(false)
   const [notificationError, setNotificationError] = useState<string | null>(null)
+  const [menuPathname, setMenuPathname] = useState(location.pathname)
   const mainNavRef = useRef<HTMLElement | null>(null)
   const closeSubNavTimerRef = useRef<number | null>(null)
   const releaseSubNavTimerRef = useRef<number | null>(null)
   const { isLoggedIn, user, logout } = useAuth()
   const isAdmin = isAdminUser(user)
+  const captureScope = useRequestScope()
+  const notificationRequest = useRef(0)
+  const unreadRequest = useRef(0)
+  const markingRead = useRef(false)
 
   const clearSubNavTimers = useCallback(() => {
     if (closeSubNavTimerRef.current) {
@@ -277,15 +288,12 @@ function App() {
     [activeRoute, location.pathname, location.search],
   )
 
-  useEffect(() => {
-    const closeOnRouteChange = window.setTimeout(() => {
-      setProfileMenuOpen(false)
-      setNotificationMenuOpen(false)
-      setExpandedMainNav(null)
-    }, 0)
-
-    return () => window.clearTimeout(closeOnRouteChange)
-  }, [location.pathname])
+  if (menuPathname !== location.pathname) {
+    setMenuPathname(location.pathname)
+    setProfileMenuOpen(false)
+    setNotificationMenuOpen(false)
+    setExpandedMainNav(null)
+  }
 
   useEffect(() => {
     if (!expandedMainNav) return undefined
@@ -316,6 +324,9 @@ function App() {
   const loadNotifications = useCallback(async () => {
     if (!isLoggedIn) return
 
+    const isCurrent = captureScope()
+    const request = ++notificationRequest.current
+    const countRequest = ++unreadRequest.current
     setIsNotificationLoading(true)
     setNotificationError(null)
     try {
@@ -323,39 +334,33 @@ function App() {
         notificationsApi.getNotifications(),
         notificationsApi.getUnreadCount(),
       ])
+      if (!isCurrent() || request !== notificationRequest.current) return
       setNotifications(items)
-      setUnreadNotificationCount(unread.count)
+      if (countRequest === unreadRequest.current) setUnreadNotificationCount(unread.count)
     } catch {
+      if (!isCurrent() || request !== notificationRequest.current) return
       setNotificationError('알림을 불러오지 못했습니다.')
     } finally {
-      setIsNotificationLoading(false)
+      if (isCurrent() && request === notificationRequest.current) setIsNotificationLoading(false)
     }
-  }, [isLoggedIn])
-
-  useEffect(() => {
-    if (!isLoggedIn) {
-      setNotifications([])
-      setUnreadNotificationCount(0)
-      setNotificationMenuOpen(false)
-      return
-    }
-
-    notificationsApi.getUnreadCount()
-      .then((response) => setUnreadNotificationCount(response.count))
-      .catch(() => setUnreadNotificationCount(0))
-  }, [isLoggedIn, user?.id])
+  }, [captureScope, isLoggedIn])
 
   useEffect(() => {
     if (!isLoggedIn) return undefined
-
-    const intervalId = window.setInterval(() => {
+    const isCurrent = captureScope()
+    const refreshCount = () => {
+      if (markingRead.current) return
+      const request = ++unreadRequest.current
       notificationsApi.getUnreadCount()
-        .then((response) => setUnreadNotificationCount(response.count))
+        .then((response) => {
+          if (isCurrent() && request === unreadRequest.current) setUnreadNotificationCount(response.count)
+        })
         .catch(() => {})
-    }, 60000)
-
+    }
+    refreshCount()
+    const intervalId = window.setInterval(refreshCount, 60000)
     return () => window.clearInterval(intervalId)
-  }, [isLoggedIn, user?.id])
+  }, [captureScope, isLoggedIn])
 
   const handleHeaderSubNavSelect = (path: string, parentId: string) => {
     navigate(path)
@@ -496,8 +501,6 @@ function App() {
 
   const handleLogout = async () => {
     await logout()
-    setProfileMenuOpen(false)
-    setNotificationMenuOpen(false)
     navigate('/')
   }
 
@@ -515,20 +518,32 @@ function App() {
 
   const handleToggleNotifications = () => {
     setProfileMenuOpen(false)
-    setNotificationMenuOpen((current) => {
-      const next = !current
-      if (next) void loadNotifications()
-      return next
-    })
+    setNotificationMenuOpen(!notificationMenuOpen)
+    if (!notificationMenuOpen && !markingRead.current) void loadNotifications()
   }
 
   const handleOpenNotification = async (notification: NotificationItem) => {
+    if (markingRead.current) return
+    const isCurrent = captureScope()
     if (!notification.read) {
+      markingRead.current = true
+      ++notificationRequest.current
+      ++unreadRequest.current
+      setIsNotificationLoading(false)
+      setNotificationError(null)
+      try {
+        await notificationsApi.markRead(notification.id)
+        if (!isCurrent()) return
+      } catch {
+        if (isCurrent()) setNotificationError('알림 읽음 처리에 실패했습니다.')
+        return
+      } finally {
+        markingRead.current = false
+      }
       setNotifications((current) =>
         current.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
       )
       setUnreadNotificationCount((current) => Math.max(0, current - 1))
-      notificationsApi.markRead(notification.id).catch(() => {})
     }
 
     setNotificationMenuOpen(false)
@@ -538,12 +553,22 @@ function App() {
   }
 
   const handleMarkAllNotificationsRead = async () => {
+    if (markingRead.current) return
+    markingRead.current = true
+    const isCurrent = captureScope()
+    ++notificationRequest.current
+    ++unreadRequest.current
+    setIsNotificationLoading(false)
+    setNotificationError(null)
     try {
       await notificationsApi.markAllRead()
+      if (!isCurrent()) return
       setNotifications((current) => current.map((item) => ({ ...item, read: true })))
       setUnreadNotificationCount(0)
     } catch {
-      setNotificationError('알림 읽음 처리에 실패했습니다.')
+      if (isCurrent()) setNotificationError('알림 읽음 처리에 실패했습니다.')
+    } finally {
+      markingRead.current = false
     }
   }
 
@@ -754,7 +779,7 @@ function App() {
 
         <Route
           path="/users"
-          element={<LeaderboardPage />}
+          element={<RequireAuth><LeaderboardPage /></RequireAuth>}
         />
         <Route
           path="/users/:userId"
