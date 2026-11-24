@@ -1141,7 +1141,10 @@ function AppSession() {
         </div>
       ) : null}
 
-      <main className={isAdminRoute ? 'coala-shell coala-shell--admin' : isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}>
+      <main
+        key={['/portal', '/login', '/signup', '/password-reset'].includes(location.pathname) ? location.pathname : 'content'}
+        className={`${isAdminRoute ? 'coala-shell coala-shell--admin' : isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}${['/portal', '/login', '/signup', '/password-reset'].includes(location.pathname) ? ' coala-page-enter' : ''}`}
+      >
         {appRoutes}
       </main>
 

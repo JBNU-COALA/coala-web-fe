@@ -2,6 +2,7 @@ import './auth.css'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { authApi } from '../../shared/api/auth'
+import safetyLock from '../../assets/safety_lock.mp4'
 
 type PasswordResetLocationState = {
   email?: string
@@ -60,6 +61,10 @@ export function PasswordResetPage() {
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
+    if (!codeSent) {
+      await requestCode()
+      return
+    }
     setError(null)
     setMessage(null)
 
@@ -95,10 +100,12 @@ export function PasswordResetPage() {
   }
 
   return (
-    <section className="coala-content coala-content--auth">
+    <section className="coala-content coala-content--auth coala-content--reset">
       <article className="surface-card auth-shell email-verification-shell">
         <div className="auth-intro email-verification-intro">
-          <h2 className="auth-title">비밀번호 변경</h2>
+          <video className="auth-lock-video" src={safetyLock} autoPlay muted playsInline preload="metadata" aria-hidden="true" />
+          <h2 className="auth-title">Coala 계정의<br />비밀번호를 재설정합니다</h2>
+          <p className="auth-reset-description">{isCompleted ? '새 비밀번호로 로그인해주세요.' : codeSent ? '이메일로 받은 인증번호와 새 비밀번호를 입력해주세요.' : '인증번호를 받을 이메일 계정을 입력해주세요.'}</p>
         </div>
 
         <form className="auth-form email-verification-form" onSubmit={handleSubmit}>
@@ -110,22 +117,30 @@ export function PasswordResetPage() {
               autoComplete="email"
               placeholder="name@jbnu.ac.kr"
               value={email}
-              onChange={(event) => setEmail(event.target.value)}
+              onChange={(event) => {
+                setEmail(event.target.value)
+                setCodeSent(false)
+                setCode('')
+                setNewPassword('')
+                setConfirmPassword('')
+                setMessage(null)
+                setError(null)
+              }}
               disabled={isSubmitting || isCompleted}
               required
             />
           </label>
 
-          <button
+          {codeSent && !isCompleted && <button
             type="button"
             className="auth-secondary-button"
             onClick={requestCode}
             disabled={isSubmitting || isCompleted}
           >
             {codeSent ? '인증번호 다시 보내기' : '인증번호 보내기'}
-          </button>
+          </button>}
 
-          <label className="auth-label">
+          {codeSent && !isCompleted && <><label className="auth-label">
             인증번호
             <input
               className="auth-input email-verification-code-input"
@@ -165,26 +180,26 @@ export function PasswordResetPage() {
               disabled={isSubmitting || isCompleted}
               required
             />
-          </label>
+          </label></>}
 
           {message ? (
-            <p className={isCompleted ? 'auth-success' : 'auth-helper-panel'}>{message}</p>
+            <p role="status" className={isCompleted ? 'auth-success' : 'auth-helper-panel'}>{message}</p>
           ) : null}
-          {error ? <p className="auth-error">{error}</p> : null}
+          {error ? <p role="alert" className="auth-error">{error}</p> : null}
 
+          <div className="auth-reset-actions">
+          <Link className="auth-reset-back" to="/login">로그인으로 돌아가기</Link>
           {isCompleted ? (
             <button type="button" className="auth-submit" onClick={() => navigate('/login', { replace: true })}>
               로그인으로 이동
             </button>
           ) : (
-            <button type="submit" className="auth-submit" disabled={isSubmitting}>
-              {isSubmitting ? '변경 중...' : '비밀번호 변경'}
+            <button type="submit" className="auth-submit" disabled={isSubmitting || !normalizedEmail}>
+              {isSubmitting ? (codeSent ? '변경 중...' : '발송 중...') : codeSent ? '변경' : '다음'}
             </button>
           )}
 
-          <Link className="auth-switch email-verification-link" to="/login">
-            로그인으로 돌아가기
-          </Link>
+          </div>
         </form>
       </article>
     </section>

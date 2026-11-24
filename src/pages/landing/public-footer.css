@@ -1,19 +1,32 @@
 .public-footer{background:#fff;color:#515965;padding:48px 6% 54px;font-family:'Manrope','Noto Sans KR',sans-serif;text-align:left}
 .public-footer-inner{max-width:1200px;margin:0 auto}
-.public-footer a.public-footer-brand{display:block;width:fit-content;margin-bottom:10px;text-decoration:none}
+.public-footer a.public-footer-brand{display:block;width:fit-content;margin-bottom:4px;text-decoration:none}
 .public-footer-brand img{display:block;width:64px;height:64px;filter:brightness(0) saturate(100%) invert(33%)}
-.public-footer-channels{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.public-footer-channels{display:flex;align-items:center;gap:12px;margin-bottom:8px}
 .public-footer-channels button,.public-footer a.public-footer-channel{display:grid;place-items:center;width:40px;height:40px;padding:8px;border:0;border-radius:50%;background:#f5f6f7;color:#515965;opacity:1}
 .public-footer-channels button{cursor:default}
 .public-footer-channels svg{width:24px;height:24px}
 .public-footer-channel img{width:29px;height:29px;filter:brightness(0) saturate(100%) invert(33%)}
-.public-footer p{margin:0 0 5px!important;font-size:15px;line-height:1.8}
-.public-footer small{font-size:15px;font-weight:400;line-height:1.8}
+.public-footer p{margin:0 0 3px!important;font-size:14px;line-height:1.6}
+.public-footer small{font-size:14px;font-weight:400;line-height:1.6}
 .public-footer a:focus-visible{outline:2px solid #286b45;outline-offset:5px}
 .recruiting-brand img{display:block;width:52px;height:52px;filter:brightness(0) saturate(100%) invert(25%)}
 @media(max-width:600px){.public-footer{padding:32px 6% 38px}}
-.public-footer{padding:56px 6% 60px}.public-footer-brand img{width:84px;height:84px}.public-footer-channels{gap:16px;margin-bottom:18px}.public-footer-channels button,.public-footer a.public-footer-channel{width:52px;height:52px;padding:12px}.public-footer-channels svg{width:28px;height:28px}.public-footer-channel img{width:36px;height:36px}.public-footer p,.public-footer small{font-size:17px}.recruiting-brand img{width:140px;height:48px}@media(max-width:600px){.public-footer{padding:38px 6% 44px}.public-footer-brand img{width:72px;height:72px}.public-footer p,.public-footer small{font-size:15px}.recruiting-brand img{width:112px;height:40px}}
+.public-footer{padding:18px 6% 20px}.public-footer-brand img{width:72px;height:72px}.public-footer-channels{gap:12px;margin-bottom:8px}.public-footer-channels button,.public-footer a.public-footer-channel{width:44px;height:44px;padding:10px}.public-footer-channels svg{width:24px;height:24px}.public-footer-channel img{width:30px;height:30px}.public-footer p,.public-footer small{font-size:14px}.recruiting-brand img{width:140px;height:48px}@media(max-width:600px){.public-footer{padding:16px 6% 18px}.public-footer-brand img{width:72px;height:72px}.public-footer p,.public-footer small{font-size:14px}.recruiting-brand img{width:112px;height:40px}}
 .public-footer a.public-footer-channel{display:flex;align-items:center;justify-content:center;padding:0}.public-footer-channel img{display:block;flex-shrink:0;transform:translateX(-1.5px)}
 .coala-app > .public-footer{background:#06100b;color:#a7b6a7;border-top:1px solid #294333;margin-top:auto}
 .coala-app > .public-footer .public-footer-brand img,.coala-app > .public-footer .public-footer-channel img{filter:none}
 .coala-app > .public-footer .public-footer-channels button,.coala-app > .public-footer a.public-footer-channel{background:#152b20;color:#f0f2e8}
+
+.public-footer-inner{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;column-gap:24px}
+.public-footer a.public-footer-brand{grid-column:1;grid-row:1}
+.public-footer-channels{grid-column:2;grid-row:1;align-self:center;gap:14px;margin:0}
+.public-footer-inner>p,.public-footer-inner>small{grid-column:1 / -1}
+.public-footer-channels button,.public-footer a.public-footer-channel{width:56px;height:56px;padding:12px;flex-shrink:0}
+.public-footer-channels svg{width:30px;height:30px}
+.public-footer a.public-footer-channel{padding:0}
+.public-footer-channel img{width:38px;height:38px}
+@media(max-width:600px){.public-footer-inner{column-gap:12px}.public-footer-channels{gap:10px}.public-footer-channels button,.public-footer a.public-footer-channel{width:48px;height:48px;padding:10px}.public-footer-channels svg{width:26px;height:26px}.public-footer a.public-footer-channel{padding:0}.public-footer-channel img{width:34px;height:34px}}
+
+.public-footer a.public-footer-brand{margin-bottom:12px}
+.public-footer .public-footer-inner>p{font-size:15px}

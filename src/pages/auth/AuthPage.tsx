@@ -27,7 +27,12 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const redirectTo =
     (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/'
 
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => {
+    try { return localStorage.getItem('coala.savedEmail') || '' } catch { return '' }
+  })
+  const [rememberEmail, setRememberEmail] = useState(() => {
+    try { return Boolean(localStorage.getItem('coala.savedEmail')) } catch { return false }
+  })
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [name, setName] = useState('')
@@ -75,6 +80,10 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     try {
       if (isLogin) {
         await login(normalizedEmail, password)
+        try {
+          if (rememberEmail) localStorage.setItem('coala.savedEmail', normalizedEmail)
+          else localStorage.removeItem('coala.savedEmail')
+        } catch { /* Login remains available when browser storage is disabled. */ }
       } else {
         const response = await signup({
           email: normalizedEmail,
@@ -112,7 +121,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   }
 
   return (
-    <section className="coala-content coala-content--auth">
+    <section className={`coala-content coala-content--auth${isLogin ? ' coala-content--login' : ''}`}>
       <article className="surface-card auth-shell">
         <div className="auth-intro">
           <h2 className="auth-title">{isLogin ? '로그인' : '회원가입'}</h2>
@@ -121,7 +130,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
         <form className="auth-form" onSubmit={handleSubmit}>
           {!isLogin && (
             <label className="auth-label">
-              이름
+              <span>이름 {!isLogin && <span aria-hidden="true">*</span>}</span>
               <input
                 className="auth-input"
                 type="text"
@@ -134,12 +143,12 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           )}
 
           <label className="auth-label">
-            이메일
+            <span>이메일 {!isLogin && <span aria-hidden="true">*</span>}</span>
             <input
               className="auth-input"
               type="email"
               autoComplete="email"
-              placeholder="name@jbnu.ac.kr"
+              placeholder={isLogin ? '이메일을 입력해주세요.' : 'name@jbnu.ac.kr'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -147,7 +156,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           </label>
 
           <label className="auth-label">
-            비밀번호
+            <span>비밀번호 {!isLogin && <span aria-hidden="true">*</span>}</span>
             <input
               className="auth-input"
               type="password"
@@ -162,7 +171,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           {!isLogin && (
             <>
               <label className="auth-label">
-                비밀번호 확인
+                <span>비밀번호 확인 {!isLogin && <span aria-hidden="true">*</span>}</span>
                 <input
                   className="auth-input"
                   type="password"
@@ -176,7 +185,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
 
               <div className="auth-form-grid">
                 <label className="auth-label">
-                  성별
+                  <span>성별 {!isLogin && <span aria-hidden="true">*</span>}</span>
                   <select
                     className="auth-input"
                     value={gender}
@@ -191,7 +200,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
                 </label>
 
                 <label className="auth-label">
-                  학년
+                  <span>학년 {!isLogin && <span aria-hidden="true">*</span>}</span>
                   <select
                     className="auth-input"
                     value={grade}
@@ -208,7 +217,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </div>
 
               <label className="auth-label">
-                학번
+                <span>학번 {!isLogin && <span aria-hidden="true">*</span>}</span>
                 <input
                   className="auth-input"
                   type="text"
@@ -220,7 +229,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </label>
 
               <label className="auth-label">
-                학적
+                <span>학적 {!isLogin && <span aria-hidden="true">*</span>}</span>
                 <select
                   className="auth-input"
                   value={academicStatus}
@@ -237,14 +246,14 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </label>
 
               <label className="auth-label">
-                연구실 (선택)
+                연구실
                 <input className="auth-input" type="text" maxLength={120}
                   placeholder="소속 연구실명" value={customLab}
                   onChange={(event) => setCustomLab(event.target.value)} />
               </label>
 
               <label className="auth-label">
-                GitHub 아이디
+                <span>GitHub 아이디 {!isLogin && <span aria-hidden="true">*</span>}</span>
                 <input
                   className="auth-input"
                   type="text"
@@ -262,7 +271,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </label>
 
               <label className="auth-label">
-                LinkedIn 프로필 URL <span className="auth-optional">선택</span>
+                LinkedIn 프로필 URL
                 <input
                   className="auth-input"
                   type="url"
@@ -276,22 +285,22 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
 
           {error && <p className="auth-error">{error}</p>}
 
+          {isLogin && <div className="auth-login-options">
+            <label className="auth-remember"><input type="checkbox" checked={rememberEmail} onChange={(event) => {
+              setRememberEmail(event.target.checked)
+              if (!event.target.checked) {
+                try { localStorage.removeItem('coala.savedEmail') } catch { /* Storage is optional. */ }
+              }
+            }} />이메일 저장</label>
+            <button type="button" className="auth-recovery" onClick={() => navigate(routes.auth.passwordReset, { state: { email: email.trim().toLowerCase() } })}>비밀번호 찾기</button>
+          </div>}
+
           <button type="submit" className="auth-submit" disabled={isLoading}>
             {isLoading ? '처리 중...' : isLogin ? '로그인' : '회원가입'}
           </button>
 
-          {isLogin ? (
-            <button
-              type="button"
-              className="auth-switch"
-              onClick={() => navigate(routes.auth.passwordReset, { state: { email: email.trim().toLowerCase() } })}
-            >
-              비밀번호를 잊으셨나요? 비밀번호 변경
-            </button>
-          ) : null}
-
-          <button type="button" className="auth-switch" onClick={onSwitchMode}>
-            {isLogin ? '아직 계정이 없나요? 회원가입' : '이미 계정이 있나요? 로그인'}
+          <button type="button" className={isLogin ? 'auth-signup-outline' : 'auth-switch'} onClick={onSwitchMode}>
+            {isLogin ? '회원가입' : '이미 계정이 있나요? 로그인'}
           </button>
         </form>
       </article>

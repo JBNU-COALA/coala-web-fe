@@ -28,12 +28,16 @@ const history = [
     { scope: 'campus', name: '전북대학교 캡스톤 경진대회', result: '최우수상' },
     { scope: 'campus', name: '전북대학교 캡스톤 경진대회', result: '우수상' },
   ] },
+  { year: '2025', entries: [
+    { scope: 'external', name: '한국컴퓨터종합학술대회(KCC 2025)', result: '학부 논문 우수상' },
+    { scope: 'external', name: 'Kuberstronaut', result: '취득' },
+  ] },
 ] as const
 
 export function AchievementTimeline() {
   return <section className="achievement-section" aria-labelledby="achievement-title">
     <div className="achievement-inner">
-      <header className="achievement-heading"><div><p className="section-eyebrow">History</p><h2 id="achievement-title">수상 이력</h2></div><div className="achievement-legend"><span className="is-campus">교내</span><span className="is-external">교외</span></div></header>
+      <header className="achievement-heading"><div><p className="section-eyebrow">History</p><h2 id="achievement-title">수상 및 자격 취득 이력</h2></div><div className="achievement-legend"><span className="is-campus">교내</span><span className="is-external">교외</span></div></header>
       <ol className="achievement-timeline">{history.map(({ year, entries }) => <li className="achievement-year" key={year}>
         <h3><time dateTime={year}>{year}</time></h3>
         <ul>{entries.map((entry) => <li className={`achievement-item is-${entry.scope}`} key={`${entry.name}-${entry.result}`}><span className="achievement-scope">{entry.scope === 'campus' ? '교내' : '교외'}</span><span className="achievement-name">{entry.name}</span><strong>{entry.result}</strong></li>)}</ul>

@@ -201,7 +201,7 @@ Latest scale and animation decisions (supersede the earlier sizing notes below):
 - GitHub and Instagram remain disabled placeholders with accessible 준비 중 labels until official URLs are supplied. Never invent external account URLs.
 - Exact location text: `동아리방 : 공과대학 7호관 지하 7009-1호`.
 - Copyright: `© COALA. All rights reserved.`
-- Make elements comfortably large: desktop brand 84 × 84px, circular icon controls 52 × 52px, channel artwork 28px (Coala mark 36px), address and copyright 17px. Mobile brand 72px and text 15px; retain 52px controls.
+- Make elements comfortably large: brand 72 × 72px, circular icon controls 44 × 44px, channel artwork 24px (Coala mark 30px), address and copyright 14px on desktop and mobile. Compact vertical padding: 18px top / 20px bottom on desktop, 16px / 18px on mobile. Channel gap is 12px and bottom margin is 8px; brand bottom margin is 4px. Address and copyright use 1.6 line-height with a 3px paragraph bottom margin. Apply these sizes to the shared footer on all pages.
 - Pale gray icon circles (`#f5f6f7`) and charcoal artwork/text (`#515965`). Content max-width 1200px, desktop padding 56px 6% 60px, mobile 38px 6% 44px.
 - Center the footer Coala icon with a padding-free flex container; keep its 36px artwork from shrinking. Apply a -1.5px horizontal optical correction for the SVG's asymmetric whitespace.
 - Shared implementation: `src/pages/landing/PublicFooter.tsx` and `public-footer.css`. Apply changes to both landing and recruiting through this shared component.
@@ -425,3 +425,33 @@ Do not:
 ### Member-site branding and footer
 - Login and member pages use the transparent Coala symbol and handwritten wordmark together in black, matching the public header composition.
 - Replace the old single-line copyright footer throughout the member site with the shared `PublicFooter`, including its forest palette, channels, club address, and community link.
+
+### History — 2025 additions
+- Include “한국컴퓨터종합학술대회(KCC 2025)” as the event name with “학부 논문 우수상” as its result, and Kuberstronaut attainment in 2025, both under external achievements. Do not display the paper title.
+- Label the section `History / 수상 및 자격 취득 이력` to cover awards and certification achievements.
+
+### Login form
+- Center a 412px-wide login form with a modest 22px heading, white 40px inputs, and a compact email-save/password-recovery row.
+- Use a dark rectangular login button followed by an outlined signup button. Omit social login and promotional copy; retain email authentication and existing password recovery.
+- Save only the email locally after successful login when requested; never store the password. Clear the saved email when unchecked.
+
+### Password reset and signup forms
+- Match the compact login form styling on signup while preserving all existing Coala fields and validation.
+- Password reset shows the local `safety_lock.mp4` in a 130px circular frame, then the title, guidance, email field and a back/next action row.
+- After successful code delivery, reveal the six-digit code, new password and confirmation fields with resend support. Preserve the existing request/confirm API, 8–64 character validation, mismatch errors and success return to login. Changing the email resets the code stage.
+- Focused account inputs use a near-black border and a subtle 3px gray outer ring across login, signup and password reset.
+
+### Footer channels — latest placement
+- Place the three circular channel controls at the top right, aligned with the brand at the top left. Address and copyright occupy full-width rows underneath.
+- Enlarge circles to 56px on desktop and 48px on mobile, with 30px/26px artwork and a 38px/34px Coala mark. Use 14px/10px gaps. Preserve compact footer padding and 14px contact text.
+- Footer refinement: increase the address to 15px and leave 12px below the brand before the address; keep copyright at 14px.
+
+### Community and account page transitions
+- Community home, login, signup and password reset content fades in with a 14px upward entrance over 420ms. Replay on entering each route; keep the shared header and footer stationary.
+- Disable this animation when reduced motion is requested. Existing auth redirects remain unchanged.
+
+### Signup dropdown surfaces
+- Gender, grade and academic-status selectors use native customizable pickers where supported: a 14px rounded white popup, subtle shadow, padded options, pale-green selection and rotating chevron.
+- Animate popup opacity and vertical scale over 180–220ms, including dismissal. Retain native keyboard/accessibility/form behavior and standard select fallback in unsupported browsers. Disable transitions for reduced motion.
+- Signup labels show an asterisk only for required fields; omit optional-field labels. Native required semantics remain unchanged.
+- Hide dropdown checkmarks; indicate the selected option through its pale-green background and text styling.

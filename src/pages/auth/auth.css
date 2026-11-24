@@ -75,3 +75,89 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.coala-content.coala-content--login { width: min(100%, 460px); padding: 100px 24px 120px; }
+.coala-content--login .auth-intro { padding-bottom: 24px; }
+.coala-content--login .auth-title { font-size: 22px; font-weight: 500; color: #111827; }
+.coala-content--login .auth-form { display: flex; flex-direction: column; gap: 20px; }
+.coala-content--login .auth-label { gap: 8px; font-size: 13px; font-weight: 400; color: #111827; }
+.coala-content--login .auth-input { height: 40px; border: 1px solid #cdd3dc; border-radius: 7px; background: #fff; padding: 0 12px; font-size: 14px; font-weight: 400; color: #111827; }
+.coala-content--login .auth-input:focus { outline: 2px solid #687b70; outline-offset: 2px; }
+.auth-login-options { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 4px; font-size: 12px; color: #4b5563; }
+.auth-remember { display: inline-flex; align-items: center; gap: 7px; cursor: pointer; }
+.auth-remember input { width: 14px; height: 14px; margin: 0; accent-color: #111827; }
+.auth-recovery { border: 0; padding: 4px 0; background: transparent; color: inherit; font: inherit; cursor: pointer; }
+.coala-content--login .auth-submit,.coala-content--login .auth-signup-outline { width: 100%; min-height: 42px; margin: 0; border-radius: 0; font-size: 14px; font-weight: 500; cursor: pointer; }
+.coala-content--login .auth-submit { background: #111827; color: #fff; border: 1px solid #111827; }
+.coala-content--login .auth-submit:hover:not(:disabled) { background: #263244; }
+.coala-content--login .auth-signup-outline { margin-top: -8px; background: #fff; border: 1px solid #111827; color: #111827; }
+.coala-content--login .auth-signup-outline:hover { background: #f6f7f8; }
+@media (max-width: 600px) { .coala-content.coala-content--login { padding: 56px 24px 72px; } }
+
+/* Shared compact account forms. Keep existing signup fields and validation. */
+.coala-content.coala-content--auth:not(.coala-content--login) { width: min(100%, 460px); padding: 56px 24px 80px; }
+.coala-content--auth:not(.coala-content--login) .auth-title { font-size: 22px; font-weight: 500; color: #111827; }
+.coala-content--auth:not(.coala-content--login) .auth-form { display: flex; flex-direction: column; gap: 18px; }
+.coala-content--auth:not(.coala-content--login) .auth-label { font-size: 13px; font-weight: 400; gap: 7px; color: #111827; }
+.coala-content--auth:not(.coala-content--login) .auth-input { height: 40px; border: 1px solid #cdd3dc; border-radius: 7px; background: #fff; color: #111827; padding: 0 12px; font-size: 14px; font-weight: 400; }
+.coala-content--auth:not(.coala-content--login) .auth-submit { background: #111827; color: #fff; border: 1px solid #111827; border-radius: 0; min-height: 42px; font-size: 14px; font-weight: 500; }
+.coala-content--auth:not(.coala-content--login) .auth-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.coala-content.coala-content--reset { padding-top: 80px; padding-bottom: 100px; }
+.coala-content--reset .auth-lock-video { display: block; width: 130px; height: 130px; object-fit: cover; border-radius: 50%; margin: 0 auto 24px; background: #e2eaf0; }
+.coala-content--reset .auth-intro { padding-bottom: 22px; }
+.coala-content--reset .auth-title { line-height: 1.4; }
+.auth-reset-description { margin: 14px 0 0; color: #596474; font-size: 13px; line-height: 1.7; }
+.coala-content--reset .auth-secondary-button { align-self: flex-end; min-height: 30px; padding: 0; margin-top: -8px; border: 0; background: transparent; color: #596474; font-size: 12px; }
+.auth-reset-actions { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-top: 14px; }
+.auth-reset-back { font-size: 13px; color: #111827; text-decoration: none; }
+.coala-content--reset .auth-reset-actions .auth-submit { width: auto; min-width: 80px; padding: 0 20px; margin: 0; }
+.coala-content--reset .auth-submit:disabled { background: #9ca3af; border-color: #9ca3af; opacity: 1; }
+@media (max-width: 600px) { .coala-content.coala-content--reset { padding-top: 48px; padding-bottom: 64px; } }
+
+.coala-content.coala-content--auth .auth-input:focus {
+  border-color: #111827;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.14);
+}
+
+/* Native customizable pickers retain keyboard, form and screen-reader behavior. */
+.coala-content--auth select.auth-input { cursor: pointer; transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease; }
+@supports (appearance: base-select) {
+  .coala-content--auth select.auth-input,
+  .coala-content--auth select.auth-input::picker(select) { appearance: base-select; }
+  .coala-content--auth select.auth-input { display: flex; align-items: center; justify-content: space-between; }
+  .coala-content--auth select.auth-input::picker-icon { color: #68746e; transition: rotate 200ms ease; }
+  .coala-content--auth select.auth-input:open::picker-icon { rotate: 180deg; }
+  .coala-content--auth select.auth-input::picker(select) {
+    margin-top: 8px;
+    padding: 6px;
+    border: 1px solid #e0e6e2;
+    border-radius: 14px;
+    background: #fff;
+    color: #1f2b25;
+    box-shadow: 0 12px 32px #1022191a, 0 2px 8px #1022190a;
+    opacity: 0;
+    transform: translateY(-6px) scale(.98);
+    transform-origin: top center;
+    transition: opacity 180ms ease, transform 220ms cubic-bezier(.22,1,.36,1), display 220ms allow-discrete, overlay 220ms allow-discrete;
+  }
+  .coala-content--auth select.auth-input:open::picker(select) { opacity: 1; transform: translateY(0) scale(1); }
+  @starting-style {
+    .coala-content--auth select.auth-input:open::picker(select) { opacity: 0; transform: translateY(-6px) scale(.98); }
+  }
+  .coala-content--auth select.auth-input option { min-height: 40px; padding: 10px 12px; border-radius: 9px; font-size: 14px; transition: background-color 140ms ease; }
+  .coala-content--auth select.auth-input option:checked { background: #edf4ef; color: #20543b; font-weight: 500; }
+  .coala-content--auth select.auth-input option:hover,
+  .coala-content--auth select.auth-input option:focus { background: #f1f5f2; outline: none; }
+  .coala-content--auth select.auth-input option::checkmark { color: #31744e; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coala-content--auth select.auth-input,
+  .coala-content--auth select.auth-input::picker(select),
+  .coala-content--auth select.auth-input::picker-icon,
+  .coala-content--auth select.auth-input option { transition: none; }
+}
+
+@supports (appearance: base-select) {
+  .coala-content--auth select.auth-input option::checkmark { display: none; }
+}
