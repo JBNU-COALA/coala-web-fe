@@ -29,6 +29,7 @@ import './styles/coala-system.css'
 import './styles/page-frame.css'
 import { LandingPage } from './pages/landing/LandingPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
+import { PublicFooter } from './pages/landing/PublicFooter'
 import './pages/landing/forest-theme.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
@@ -878,12 +879,12 @@ function AppSession() {
     <div className={isAdminRoute ? 'coala-app coala-app--admin' : 'coala-app'}>
       <header className="coala-header">
         <div className="coala-header-inner">
-          <button type="button" className="coala-brand" onClick={() => navigate('/')}>
+          <button type="button" className="coala-brand coala-brand--wordmark" aria-label="코알라 홈" onClick={() => navigate('/')}>
             <span className="coala-brand-mark" aria-hidden="true">
-              <img src="/favicon.svg?v=coala-20260504" alt="" />
+              <img src="/coala-logo.svg" alt="" />
             </span>
             <span className="coala-brand-copy">
-              <span className="coala-brand-word">코알라</span>
+              <img className="coala-brand-script" src="/coala-wordmark.svg" alt="Coala" />
             </span>
           </button>
 
@@ -1144,7 +1145,7 @@ function AppSession() {
         {appRoutes}
       </main>
 
-      <footer className="coala-footer">(c) 2026 동아리 코알라. All rights reserved.</footer>
+      <PublicFooter />
     </div>
   )
 }

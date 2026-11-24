@@ -201,11 +201,11 @@ Latest scale and animation decisions (supersede the earlier sizing notes below):
 - GitHub and Instagram remain disabled placeholders with accessible 준비 중 labels until official URLs are supplied. Never invent external account URLs.
 - Exact location text: `동아리방 : 공과대학 7호관 지하 7009-1호`.
 - Copyright: `© COALA. All rights reserved.`
-- Make elements comfortably large: desktop brand 96 × 96px, circular icon controls 52 × 52px, channel artwork 28px (Coala mark 36px), address and copyright 17px. Mobile brand 80px and text 15px; retain 52px controls.
+- Make elements comfortably large: desktop brand 84 × 84px, circular icon controls 52 × 52px, channel artwork 28px (Coala mark 36px), address and copyright 17px. Mobile brand 72px and text 15px; retain 52px controls.
 - Pale gray icon circles (`#f5f6f7`) and charcoal artwork/text (`#515965`). Content max-width 1200px, desktop padding 56px 6% 60px, mobile 38px 6% 44px.
 - Center the footer Coala icon with a padding-free flex container; keep its 36px artwork from shrinking. Apply a -1.5px horizontal optical correction for the SVG's asymmetric whitespace.
 - Shared implementation: `src/pages/landing/PublicFooter.tsx` and `public-footer.css`. Apply changes to both landing and recruiting through this shared component.
-- The circular Coala channel icon links to `https://coala.jbnu.ac.kr` in the same tab; the footer brand continues to link to the landing page.
+- The circular Coala channel icon links to the member community home at `/portal`. Guests sign in before entering through the existing auth guard; the footer brand continues to link to the landing page.
 
 ## Member Portal Guidelines
 
@@ -421,3 +421,7 @@ Do not:
 - Route labels and contextual menus live in `src/navigation/navigationData.ts`.
 - Home dashboard data lives in `src/data/homeData.ts`.
 - Instance UI lives under `src/pages/service/`.
+
+### Member-site branding and footer
+- Login and member pages use the transparent Coala symbol and handwritten wordmark together in black, matching the public header composition.
+- Replace the old single-line copyright footer throughout the member site with the shared `PublicFooter`, including its forest palette, channels, club address, and community link.
