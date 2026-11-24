@@ -83,14 +83,13 @@ export function HomeCarousel() {
               aria-hidden={slideIndex !== activeIndex} inert={slideIndex !== activeIndex}>
               <div className="page-container home-carousel-inner">
                 <div className="home-carousel-copy">
-                  <p className="home-carousel-eyebrow">{banner.eyebrow}</p>
                   <Heading>{banner.title}</Heading>
                   <p className="home-carousel-description">{banner.description}</p>
                   <Link to={target} className="home-carousel-link">{banner.actionLabel || '자세히 보기'}<Icon name="chevron-right" size={16} /></Link>
                 </div>
                 <div className={`home-carousel-art${banner.imageUrl ? ' home-carousel-art--custom' : ''}`} aria-hidden="true">
-                  <SafeImage src={banner.imageUrl || '/coala-developer.png'} alt="" loading={slideIndex === 0 ? 'eager' : 'lazy'}
-                    fallback={<img src="/coala-developer.png" alt="" />} />
+                  <SafeImage src={banner.imageUrl || '/coala-card-placeholder.png'} alt="" loading={slideIndex === 0 ? 'eager' : 'lazy'}
+                    fallback={<img src="/coala-card-placeholder.png" alt="" />} />
                 </div>
               </div>
             </div>

@@ -36,6 +36,8 @@
 .coala-app .jcloud-apply-form .jcloud-duration-chip:hover:not(:disabled):not(.is-selected) { border-color: #171717; color: #171717; }
 .coala-app .jcloud-apply-form .jcloud-duration-chip.is-selected { border-color: #171717; background: #171717; color: #fff; }
 .coala-app .jcloud-apply-form .jcloud-duration-chip:disabled { border-color: #e5e5e5; background: #f5f5f5; color: #8a8a8a; }
+.coala-app .jcloud-apply-form .jcloud-duration-chip { flex-direction: column; gap: 4px; text-align: center; }
+.coala-app .jcloud-apply-form .jcloud-duration-chip small { font-size: 10px; font-weight: 400; line-height: 1.4; overflow-wrap: anywhere; }
 .coala-app .jcloud-apply-form :is(.jcloud-form-section--summary, .jcloud-terms-box, .jcloud-open-source-notice) { border-color: #e5e5e5; background: #f5f5f5; color: #525252; }
 .coala-app .jcloud-apply-form .jcloud-open-source-notice :is(p, a) { color: #525252; }
 .coala-app .jcloud-apply-form .jcloud-agree-row input { accent-color: #171717; }

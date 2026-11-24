@@ -7,7 +7,11 @@
   color: #171717;
 }
 
-.activity-page--directory .activity-recent-members { background: #f5f5f5; }
+.activity-page--directory .activity-recent-members { background: transparent; padding: 0; border-radius: 0; }
+.activity-page--directory .activity-directory-section-head .activity-member-count { margin: 0; white-space: nowrap; color: #737373; font-size: 12px; font-weight: 500; }
+@media (min-width: 821px) {
+  .activity-page--directory .activity-directory-controls { grid-template-columns: minmax(280px, 1fr) minmax(118px, auto) minmax(144px, auto) 66px; }
+}
 .activity-page--directory .activity-directory-card { border-color: #e5e5e5; }
 .activity-page--directory .activity-directory-card:hover {
   border-color: #a3a3a3;

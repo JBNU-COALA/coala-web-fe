@@ -33,7 +33,6 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
   const { articles, posts, recruits, services, loading, errors } = useHomeFeed()
   const storyArticles = articles.slice(0, 4)
   const leadArticle = storyArticles[0]
-  const sideArticles = storyArticles.slice(1, 4)
 
   const openInfo = () => {
     if (onOpenInfo) onOpenInfo()
@@ -59,8 +58,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
       <section className="home-stories home-editorial-container" aria-labelledby="home-stories-title">
         <header className="home-editorial-section-head">
           <div>
-            <p>All stories</p>
-            <h2 id="home-stories-title">코알라의 새로운 이야기</h2>
+            <h2 id="home-stories-title">새로운 소식</h2>
           </div>
           <button type="button" onClick={openInfo}>
             전체 보기
@@ -71,48 +69,25 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
         {loading ? (
           <div className="home-editorial-loading" aria-label="홈 콘텐츠 불러오는 중" />
         ) : leadArticle ? (
-          <div className="home-story-layout">
-            <button type="button" className="home-story-lead" onClick={() => openArticle(leadArticle.id)}>
-              <span className="home-story-lead-image">
-                <SafeImage
-                  src={getInfoThumbnail(leadArticle)}
-                  alt=""
-                  loading="eager"
-                  fallback={<img src="/coala-card-placeholder.png" alt="" />}
-                />
+          <div className="home-story-grid">
+            {storyArticles.map((article) => {
+              const thumbnail = getInfoThumbnail(article)
+              const placeholder = <span className={`home-story-placeholder home-story-placeholder--${article.filter}`} aria-hidden="true">
+                <Icon name={article.filter === 'contest' ? 'chart' : article.filter === 'lab' ? 'book' : article.filter === 'resource' ? 'file' : 'message'} size={28} />
+                <span>{infoCategoryLabel[article.filter]}</span>
               </span>
-              <span className="home-story-lead-copy">
-                <span className={`home-editorial-category home-editorial-category--${leadArticle.filter}`}>
-                  {infoCategoryLabel[leadArticle.filter]}
+              return <button key={article.id} type="button" className="home-story-card" onClick={() => openArticle(article.id)}>
+                <span className="home-story-card-image">
+                  {thumbnail === '/coala-card-placeholder.png' ? placeholder : <SafeImage src={thumbnail} alt="" loading="lazy" fallback={placeholder} />}
                 </span>
-                <strong>{leadArticle.title}</strong>
-                <span>{preview(leadArticle.content, 150)}</span>
-                <small>{leadArticle.sourceName || leadArticle.authorName || '코알라'} · {formatHomeDate(leadArticle.createdAt ?? leadArticle.sourceDate)}</small>
-              </span>
-            </button>
-
-            <div className="home-story-side-list">
-              {sideArticles.map((article) => (
-                <button key={article.id} type="button" className="home-story-side" onClick={() => openArticle(article.id)}>
-                  <span className="home-story-side-copy">
-                    <span className={`home-editorial-category home-editorial-category--${article.filter}`}>
-                      {infoCategoryLabel[article.filter]}
-                    </span>
-                    <strong>{article.title}</strong>
-                    <small>{formatHomeDate(article.createdAt ?? article.sourceDate)} · 조회 {article.viewCount}</small>
-                  </span>
-                  <span className="home-story-side-image">
-                    <SafeImage
-                      src={getInfoThumbnail(article)}
-                      alt=""
-                      loading="lazy"
-                      fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
-                    />
-                  </span>
-                </button>
-              ))}
-              {sideArticles.length === 0 && <p className="home-editorial-empty">아직 더 소개할 이야기가 없습니다.</p>}
-            </div>
+                <span className="home-story-card-copy">
+                  <span className={`home-editorial-category home-editorial-category--${article.filter}`}>{infoCategoryLabel[article.filter]}</span>
+                  <strong>{article.title}</strong>
+                  <span className="home-story-excerpt">{preview(article.content, 100)}</span>
+                  <small>{formatHomeDate(article.createdAt ?? article.sourceDate)}<Icon name="chevron-right" size={14} /></small>
+                </span>
+              </button>
+            })}
           </div>
         ) : (
           <p className="home-editorial-empty">{errors.articles ? '정보공유를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.' : '새로운 이야기를 준비하고 있습니다.'}</p>
@@ -124,7 +99,6 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
           <section className="home-popular" aria-labelledby="home-popular-title">
             <header className="home-editorial-section-head home-editorial-section-head--compact">
               <div>
-                <p>Community</p>
                 <h2 id="home-popular-title">지금 많이 읽는 글</h2>
               </div>
               <button type="button" onClick={openPosts}>게시판 보기</button>
@@ -139,9 +113,9 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
                       <strong>{post.title}</strong>
                       <em>{post.authorName || '코알라 멤버'} · 댓글 {post.commentCount ?? 0}</em>
                     </span>
-                    <span className="home-popular-thumb">
+                    {getPostThumbnail(post) !== '/coala-card-placeholder.png' && <span className="home-popular-thumb">
                       <SafeImage src={getPostThumbnail(post)} alt="" loading="lazy" />
-                    </span>
+                    </span>}
                   </button>
                 </li>
               ))}
@@ -152,8 +126,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
           <section className="home-recruit" aria-labelledby="home-recruit-title">
             <header className="home-editorial-section-head home-editorial-section-head--compact">
               <div>
-                <p>Together</p>
-                <h2 id="home-recruit-title">함께할 사람을 찾고 있어요</h2>
+                <h2 id="home-recruit-title">함께할 멤버 모집</h2>
               </div>
               <button type="button" onClick={() => navigate(routes.community.recruit)}>모집 보기</button>
             </header>
@@ -179,8 +152,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
       <section className="home-services home-editorial-container" aria-labelledby="home-services-title">
         <header className="home-editorial-section-head">
           <div>
-            <p>Made by COALA</p>
-            <h2 id="home-services-title">배운 것을 서비스로 만듭니다</h2>
+            <h2 id="home-services-title">코알라가 만든 서비스</h2>
           </div>
           <button type="button" onClick={() => navigate(routes.services.user)}>
             서비스 전체 보기
@@ -191,12 +163,12 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
           {services.map((service) => (
             <button key={service.id} type="button" className="home-service-item" onClick={() => navigate(routes.services.userDetail(service.id))}>
               <span className="home-service-image">
-                <SafeImage
+                {service.imageUrl ? <SafeImage
                   src={getServiceThumbnail(service.imageUrl)}
                   alt=""
                   loading="lazy"
-                  fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
-                />
+                  fallback={<span className="home-service-placeholder" aria-hidden="true"><Icon name="globe" size={32} /></span>}
+                /> : <span className="home-service-placeholder" aria-hidden="true"><Icon name="globe" size={32} /></span>}
               </span>
               <span className="home-service-copy">
                 <small>{service.status} · {service.owner}</small>

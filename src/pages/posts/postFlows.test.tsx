@@ -73,6 +73,7 @@ const contentInput = () => screen.getByRole<HTMLTextAreaElement>('textbox', { na
 const submit = () => fireEvent.submit(titleInput().closest('form')!)
 
 beforeEach(() => {
+  Element.prototype.scrollIntoView = vi.fn()
   vi.resetAllMocks()
   auth.user = { id: 1, name: 'Author', nickname: 'Writer', role: 'USER' }
   vi.mocked(boardsApi.getBoards).mockResolvedValue([board(1, 'free'), board(2, 'humor')])
@@ -155,10 +156,10 @@ describe('writer draft and request boundaries', () => {
       { ...board(4, '문의사항'), categoryKey: null },
     ])
     render(<PostWriterPage onClose={vi.fn()} />)
-    await screen.findByRole('radio', { name: /General discussion/ })
-    expect(Boolean(screen.queryByRole('radio', { name: /Announcements/ }))).toBe(role !== 'USER')
-    expect(screen.queryByRole('radio', { name: /free resources/ })).toBeNull()
-    expect(screen.queryByRole('radio', { name: /문의사항/ })).toBeNull()
+    fireEvent.click(await screen.findByRole('button', { name: /게시판 선택: General discussion/ }))
+    expect(Boolean(screen.queryByRole('option', { name: /Announcements/ }))).toBe(role !== 'USER')
+    expect(screen.queryByRole('option', { name: /free resources/ })).toBeNull()
+    expect(screen.queryByRole('option', { name: /문의사항/ })).toBeNull()
   })
 
   it('ignores an edit response after switching to a new draft', async () => {
@@ -192,7 +193,7 @@ describe('writer draft and request boundaries', () => {
     render(<PostWriterPage onClose={vi.fn()} editPostId="2-1" />)
     await waitFor(() => expect(titleInput().value).toBe('Post 1'))
     await act(async () => boards.resolve([board(1, 'free'), board(2, 'humor')]))
-    expect(screen.getByRole('radio', { name: /humor/ }).getAttribute('aria-checked')).toBe('true')
+    expect(screen.getByRole('button', { name: /게시판 선택: humor/ })).toBeTruthy()
   })
 
   it('does not silently move an edit into the first writable board', async () => {
@@ -228,7 +229,7 @@ describe('writer draft and request boundaries', () => {
     vi.mocked(postsApi.createPost).mockReturnValueOnce(saving.promise).mockResolvedValueOnce({ postId: 2, title: 'Draft', content: 'Body' })
     const onClose = vi.fn()
     render(<PostWriterPage onClose={onClose} />)
-    await screen.findByRole('radio', { name: /free/ })
+    await screen.findByRole('button', { name: /게시판 선택: free/ })
     fireEvent.change(titleInput(), { target: { value: 'Draft' } })
     fireEvent.change(contentInput(), { target: { value: 'Body' } })
     submit()
@@ -273,7 +274,7 @@ describe('writer draft and request boundaries', () => {
     vi.mocked(attachmentsApi.uploadImage).mockReturnValue(uploading.promise)
     const onClose = vi.fn()
     const view = render(<PostWriterPage onClose={onClose} />)
-    await screen.findByRole('radio', { name: /free/ })
+    await screen.findByRole('button', { name: /게시판 선택: free/ })
     fireEvent.paste(contentInput(), { clipboardData: { files: [new File(['image'], 'image.png', { type: 'image/png' })] } })
     await waitFor(() => expect(attachmentsApi.uploadImage).toHaveBeenCalledTimes(1))
     expect(screen.getByRole<HTMLButtonElement>('button', { name: '발행하기' }).disabled).toBe(true)
@@ -288,7 +289,7 @@ describe('writer draft and request boundaries', () => {
     const click = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {})
     const onClose = vi.fn()
     const view = render(<PostWriterPage onClose={onClose} />)
-    await screen.findByRole('radio', { name: /free/ })
+    await screen.findByRole('button', { name: /게시판 선택: free/ })
     expect(click).not.toHaveBeenCalled()
     fireEvent.click(screen.getByRole('button', { name: '이미지 첨부' }))
     expect(click).toHaveBeenCalledTimes(1)

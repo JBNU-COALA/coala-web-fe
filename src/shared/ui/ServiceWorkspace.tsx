@@ -10,9 +10,9 @@ import './ServiceWorkspace.css'
 type ServiceTab = 'apply' | 'list' | 'inquiry'
 type ServiceKind = 'instances' | 'domains'
 const tabs: { id: ServiceTab; label: string; icon: IconName }[] = [
-  { id: 'apply', label: '신청하기', icon: 'plus' },
-  { id: 'list', label: '신청 내역', icon: 'file' },
-  { id: 'inquiry', label: '문의사항', icon: 'message' },
+  { id: 'apply', label: '신청하기', icon: 'apply-color' },
+  { id: 'list', label: '신청 내역', icon: 'file-color' },
+  { id: 'inquiry', label: '문의사항', icon: 'message-color' },
 ]
 
 export function ServiceWorkspace({ kind, form, list }: {
@@ -38,7 +38,7 @@ export function ServiceWorkspace({ kind, form, list }: {
       {tabs.map((item) => <button key={item.id} type="button"
         className={`service-workspace-tab${tab === item.id ? ' is-active' : ''}`}
         aria-current={tab === item.id ? 'page' : undefined} onClick={() => changeTab(item.id)}>
-        <Icon name={item.icon} size={14} />{item.label}
+        <Icon name={item.icon} size={18} />{item.label}
       </button>)}
       {isAdminUser(user) && <button type="button" className="service-workspace-tab"
         onClick={() => navigate(`${routes.admin}?tab=${kind}`)}>

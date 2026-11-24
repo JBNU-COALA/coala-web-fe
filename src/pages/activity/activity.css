@@ -797,3 +797,7 @@ a.study-person-name:hover {
   .coala-app .study-week { flex-basis: 100%; justify-content: space-between; }
   .coala-app .study-group-filter { margin-right: auto; }
 }
+
+.coala-app .study-group-filter .study-group-select { min-width: 120px; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; padding: 0; }
+.coala-app .study-group-select .select-control-trigger { min-height: 32px; padding: 0 14px; gap: 18px; color: #404040; font-size: 12px; font-weight: 500; }
+.coala-app .study-group-select:focus-within { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }

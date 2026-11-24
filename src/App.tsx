@@ -977,7 +977,7 @@ function AppSession() {
                     aria-expanded={notificationMenuOpen}
                     onClick={handleToggleNotifications}
                   >
-                    <Icon name="bell" size={22} />
+                    <Icon name="notification" size={28} strokeWidth={1.8} />
                     {unreadNotificationCount > 0 ? (
                       <span className="header-notification-badge">
                         {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}

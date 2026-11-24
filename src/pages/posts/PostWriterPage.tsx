@@ -16,6 +16,8 @@ import { resolveApiAssetUrl } from '../../shared/api/client'
 import { postsApi } from '../../shared/api/posts'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
+import { SelectControl } from '../../shared/ui/SelectControl'
+import './postWriter.css'
 import { copyMarkdown, extractFirstMarkdownImageUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
@@ -597,21 +599,9 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                 <div className="velog-board-picker-head">
                   <span>{copy.label} 선택</span>
                 </div>
-                <div className="velog-board-options" role="radiogroup" aria-label={`${copy.label} 분류`}>
-                  {boards.map((board) => (
-                    <button
-                      key={board.boardId}
-                      type="button"
-                      role="radio"
-                      aria-checked={selectedBoardId === board.boardId}
-                      className={selectedBoardId === board.boardId ? 'velog-board-option is-active' : 'velog-board-option'}
-                      onClick={() => setSelectedBoardId(board.boardId)}
-                    >
-                      <span>{board.boardName}</span>
-                      <small>{board.description || `${copy.label} 게시글`}</small>
-                    </button>
-                  ))}
-                </div>
+                <SelectControl label={`${copy.label} 선택`} value={String(selectedBoardId ?? '')}
+                  options={boards.map((board) => ({ value: String(board.boardId), label: board.boardName }))}
+                  onChange={(value) => setSelectedBoardId(Number(value))} />
               </section>
             )}
 
@@ -623,7 +613,7 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                 className="velog-title-input"
                 type="text"
                 value={title}
-                placeholder={writerType === 'info' ? '정보공유 제목' : '제목을 입력하세요'}
+                placeholder="제목"
                 onChange={(e) => setTitle(e.target.value)}
                 maxLength={TITLE_MAX + 20}
                 aria-label="게시글 제목"

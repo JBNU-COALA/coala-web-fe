@@ -5,9 +5,15 @@ export type IconName =
   | 'profile-color'
   | 'logout-color'
   | 'server'
+  | 'server-color'
+  | 'globe-color'
+  | 'apply-color'
+  | 'file-color'
+  | 'message-color'
   | 'globe'
   | 'filter'
   | 'bell'
+  | 'notification'
   | 'book'
   | 'calendar'
   | 'chart'
@@ -56,6 +62,31 @@ const iconShape = (name: IconName) => {
       return <><path d="M4 6h16M4 12h16M4 18h16" /><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none" /><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none" /><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none" /></>
     case 'github':
       return <path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.2 19.5v-2.3c-2.7.6-3.3-1.2-3.3-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.2 1.1 2.8.8.1-.6.4-1 .7-1.2-2.2-.3-4.5-1.1-4.5-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.9-.3 2.8 1a9.8 9.8 0 0 1 5.1 0c1.9-1.3 2.8-1 2.8-1 .5 1.3.2 2.3.1 2.7 1 1 1 2 1 2.7 0 3.9-2.3 4.7-4.5 5 .4.3.7.9.7 1.8v3.2A10 10 0 0 0 12 2Z" />
+    case 'apply-color':
+      return <g stroke="none"><rect x="3" y="3" width="18" height="18" rx="5" fill="#4f7ed8" /><path d="M12 7v10M7 12h10" stroke="#fff" strokeWidth="2" /></g>
+    case 'file-color':
+      return <g stroke="none"><path d="M6 2h9l5 5v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" fill="#d99b3f" /><path d="M15 2v5h5" fill="#f9db9f" /><path d="M8 11h8M8 15h8M8 18h5" stroke="#fff" strokeWidth="1.5" /></g>
+    case 'message-color':
+      return <g stroke="none"><path d="M5 3h14a3 3 0 0 1 3 3v10a3 3 0 0 1-3 3H9l-5 3v-3a3 3 0 0 1-2-3V6a3 3 0 0 1 3-3Z" fill="#8b72ce" /><circle cx="7" cy="11" r="1.3" fill="#fff" /><circle cx="12" cy="11" r="1.3" fill="#fff" /><circle cx="17" cy="11" r="1.3" fill="#fff" /></g>
+    case 'server-color':
+      return (
+        <g stroke="none">
+          <rect x="2" y="3" width="20" height="8" rx="2.5" fill="#4f7ed8" />
+          <rect x="2" y="13" width="20" height="8" rx="2.5" fill="#315aaf" />
+          <circle cx="6" cy="7" r="1.3" fill="#bcebd1" /><circle cx="6" cy="17" r="1.3" fill="#bcebd1" />
+          <rect x="10" y="6" width="8" height="2" rx="1" fill="#dce8ff" />
+          <rect x="10" y="16" width="8" height="2" rx="1" fill="#dce8ff" />
+        </g>
+      )
+    case 'globe-color':
+      return (
+        <>
+          <circle cx="12" cy="12" r="10" fill="#588edb" stroke="none" />
+          <path d="m5 5 4-1 2 3-2 3H6L4 8Zm10 5 4 1 2 4-3 4-3-1-1-4-2-1Z" fill="#a7dfba" stroke="none" />
+          <ellipse cx="12" cy="12" rx="4.5" ry="10" stroke="#fff" strokeOpacity=".6" strokeWidth="1" />
+          <path d="M2 12h20" stroke="#fff" strokeOpacity=".6" strokeWidth="1" />
+        </>
+      )
     case 'server':
       return <><rect x="3" y="3" width="18" height="7" rx="2" /><rect x="3" y="14" width="18" height="7" rx="2" /><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6" /></>
     case 'globe':
@@ -190,6 +221,13 @@ const iconShape = (name: IconName) => {
           <circle cx="8" cy="10" r="1" />
           <circle cx="12" cy="8.5" r="1" />
           <circle cx="15.5" cy="10.5" r="1" />
+        </>
+      )
+    case 'notification':
+      return (
+        <>
+          <path d="M12 3a6 6 0 0 0-6 6v3.4c0 1.2-.4 2.3-1.2 3.2L3.5 17h17l-1.3-1.4a4.8 4.8 0 0 1-1.2-3.2V9a6 6 0 0 0-6-6Z" fill="currentColor" fillOpacity="0.12" />
+          <path d="M9.5 20a2.8 2.8 0 0 0 5 0M12 2v1" />
         </>
       )
     case 'bell':

@@ -1,4 +1,5 @@
 import { Icon } from '../../shared/ui/Icon'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { parseDate, shiftDate, type StudyGroup } from '../../shared/activity'
 
 type ActivityControlsProps = {
@@ -63,21 +64,18 @@ export function ActivityControls({
           <button className="study-text-button" onClick={onToday}>
             오늘
           </button>
-          <select
-            aria-label="활동 조"
+          <SelectControl
+            label="활동 조"
+            className="study-group-select"
             value={selectedGroup}
-            onChange={(event) => onFilter('group', event.target.value)}
-          >
-            <option value="all">전체 조</option>
-            {selectedGroup !== 'all' && !groups.some((group) => group.id === selectedGroup) && (
-              <option value={selectedGroup}>선택한 조</option>
-            )}
-            {groups.map((group) => (
-              <option key={group.id} value={group.id}>
-                {group.name}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => onFilter('group', value)}
+            options={[
+              { value: 'all', label: '전체 조' },
+              ...(selectedGroup !== 'all' && !groups.some((group) => group.id === selectedGroup)
+                ? [{ value: selectedGroup, label: '선택한 조' }] : []),
+              ...groups.map((group) => ({ value: group.id, label: group.name })),
+            ]}
+          />
         </div>
       <div className="study-view-toolbar">
         <div

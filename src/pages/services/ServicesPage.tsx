@@ -360,7 +360,7 @@ export function ServicesPage() {
                 <p className="coas-description">동아리에서 만든 프로젝트를 실제 서비스로 이어갑니다.<br />서버와 도메인을 신청하고, GitHub에서 함께 개발해 보세요.</p>
                 <div className="coas-actions">
                   <button type="button" onClick={() => navigate(routes.services.official)}>서비스 둘러보기 <Icon name="chevron-right" size={16} /></button>
-                  <a href="https://github.com/JBNU-COALA" target="_blank" rel="noopener noreferrer"><Icon name="github" size={20} /> GitHub <span className="coas-external-label">↗<span className="coas-sr-only"> (새 탭)</span></span></a>
+                  <a href="https://github.com/JBNU-COALA" target="_blank" rel="noopener noreferrer"><Icon name="github" size={20} /> GitHub <span className="coas-external-label"><Icon name="chevron-right" size={16} /><span className="coas-sr-only"> (새 탭)</span></span></a>
                 </div>
               </div>
               <div className="coas-project-banner" aria-label="COAS, Coala Open Source Project">
@@ -391,12 +391,12 @@ export function ServicesPage() {
               </header>
               <div className="official-service-preview-grid">
                 <button type="button" onClick={() => navigate(routes.services.officialInstance)}>
-                  <Icon name="server" size={24} />
+                  <Icon name="server-color" size={28} />
                   <span><strong>인스턴스 대여</strong><small>프로젝트를 배포할 서버를 신청합니다.</small></span>
                   <Icon name="chevron-right" size={17} />
                 </button>
                 <button type="button" onClick={() => navigate(routes.services.officialDomain)}>
-                  <Icon name="globe" size={24} />
+                  <Icon name="globe-color" size={28} />
                   <span><strong>도메인 신청</strong><small>코알라 도메인으로 서비스를 공개합니다.</small></span>
                   <Icon name="chevron-right" size={17} />
                 </button>

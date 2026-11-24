@@ -10,8 +10,6 @@
 .select-control-option.is-highlighted { background: #f5f5f5; color: #111; }
 
 .select-control.custom-select { position: relative; }
-.select-control-option[aria-selected="true"] { background: #f5f5f5; color: #171717; font-weight: 600; }
-.select-control-option[aria-selected="true"]::after { content: '✓'; color: #171717; font-size: 13px; }
 .select-control-menu { animation: select-menu-in 120ms ease-out; }
 @keyframes select-menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .select-control-menu { animation: none; } }

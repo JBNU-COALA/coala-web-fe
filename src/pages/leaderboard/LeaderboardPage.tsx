@@ -20,17 +20,15 @@ function getPublicUserId(member: ActivityMember, currentUserId?: number) {
 function MemberCard({
   member,
   profileId,
-  compact = false,
 }: {
   member: ActivityMember
   profileId: string
-  compact?: boolean
 }) {
   const profileImageUrl = resolveApiAssetUrl(member.customization?.profileImageUrl ?? '')
 
   return (
     <Link
-      className={`activity-directory-card${compact ? ' activity-directory-card--compact' : ''}`}
+      className="activity-directory-card"
       to={`/users/${profileId}`}
       aria-label={`${member.name} 프로필`}
     >
@@ -39,7 +37,7 @@ function MemberCard({
           name={member.name}
           seed={member.id || member.name}
           src={profileImageUrl}
-          size={compact ? 'md' : 'lg'}
+          size="lg"
         />
         <div>
           <strong className="activity-member-name">
@@ -118,7 +116,6 @@ export function LeaderboardPage() {
           {loadError && <div><p role="alert" className="auth-error">{loadError}</p>
             <button type="button" className="ghost-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}
           <section className="activity-directory-controls" aria-label="유저 검색 및 필터">
-            <strong className="activity-member-count">{isLoading || loadError ? '멤버' : `멤버 ${filteredMembers.length}명`}</strong>
             <SearchField
               className="activity-search"
               value={query}
@@ -148,12 +145,11 @@ export function LeaderboardPage() {
                 <div><h2>최근 활동한 멤버</h2><p>최근에 활동한 코알라 멤버입니다.</p></div>
                 <a href="#all-members">전체 보기 <Icon name="chevron-right" size={14} /></a>
               </header>
-              <div className="activity-recent-grid">
+              <div className={`activity-directory-grid activity-directory-grid--${viewMode}`}>
                 {filteredMembers.slice(0, 3).map((member) => (
                   <MemberCard
                     key={`recent-${member.id}`}
                     member={member}
-                    compact
                     profileId={getPublicUserId(member, user?.id)}
                   />
                 ))}
@@ -163,6 +159,7 @@ export function LeaderboardPage() {
 
           <header id="all-members" className="activity-directory-section-head activity-directory-section-head--all">
             <div><h2>전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
+            <strong className="activity-member-count">{isLoading || loadError ? '멤버' : `멤버 ${filteredMembers.length}명`}</strong>
           </header>
           <section className={`activity-directory-grid activity-directory-grid--${viewMode}`} aria-label="전체 유저 목록">
             {!isLoading && !loadError && filteredMembers.map((member) => (

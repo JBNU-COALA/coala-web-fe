@@ -8,9 +8,9 @@
 .coala-app .header-icon-button { border: 0; background: transparent; color: #525252; padding: 0; transition: color 180ms ease; }
 .coala-app .header-icon-button:hover,
 .coala-app .header-icon-button.is-open { background: transparent; color: #171717; }
-.coala-app .header-icon-button > svg { transition: transform 180ms ease; }
+.coala-app .header-icon-button > svg { width: 28px; height: 28px; flex-shrink: 0; transition: transform 180ms ease; }
 .coala-app .header-icon-button:hover > svg { transform: rotate(-10deg) scale(1.08); }
-.coala-app .header-notification-badge { top: -2px; right: -1px; }
+.coala-app .header-notification-badge { top: -3px; right: -3px; border: 2px solid #fff; }
 @media (prefers-reduced-motion: reduce) {
   .coala-app .header-user-button, .coala-app .header-icon-button, .coala-app .header-icon-button > svg { transition: none; }
   .coala-app .header-user-button:hover, .coala-app .header-icon-button:hover > svg { transform: none; }
@@ -28,7 +28,7 @@
 
 /* Reading pages use the same restrained typography as the lists. */
 .coala-app .coala-content--post-detail .post-detail {
-  max-width: 1000px; margin: 24px auto 48px; padding: 0 28px;
+  max-width: 960px; margin: 24px auto 48px; padding: 0 28px;
   background: #fff; border: 0; border-radius: 0; box-shadow: none;
 }
 .coala-app .post-detail .post-detail-header {
@@ -42,12 +42,12 @@
 }
 .coala-app .post-detail .ghost-button:hover { background: #f5f5f5; color: #171717; border-color: #a3a3a3; }
 .coala-app .post-detail .post-cover {
-  margin: 0; padding: 28px 0 24px; min-height: 0; border-radius: 0;
-  background: #fff; color: #171717; gap: 24px; border-bottom: 1px solid #e5e5e5;
+  margin: 0; padding: 24px 0 0; min-height: 0; border-radius: 0;
+  background: #fff; color: #171717; gap: 20px; border-bottom: 0;
 }
 .coala-app .post-detail .post-cover-text { gap: 14px; }
 .coala-app .post-detail .post-cover-pill { align-self: flex-start; padding: 4px 9px; background: #f5f5f5; color: #525252; font-size: 11px; border-radius: 4px; }
-.coala-app .post-detail .post-cover-title { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.45; letter-spacing: -0.035em; text-wrap: wrap; }
+.coala-app .post-detail .post-cover-title { font-size: clamp(22px, 2vw, 28px); line-height: 1.45; letter-spacing: -0.035em; text-wrap: wrap; }
 .coala-app .post-detail .post-cover-meta { margin-top: 0; color: #737373; font-size: 12px; gap: 16px; }
 .coala-app .post-detail .post-meta-author strong { font-size: 13px; color: #404040; }
 .coala-app .post-detail .post-meta-author span { font-size: 12px; color: #737373; }
@@ -108,3 +108,29 @@
 .coala-app :is(.recruit-write-footer, .velog-writer-footer) .writer-cancel-button:hover { background: #f5f5f5; color: #171717; }
 .coala-app .velog-writer-footer > div { margin-left: auto; }
 @media (max-width: 600px) { .coala-app .velog-writer-footer > div { display: none; } }
+
+/* Forum reading layout: white title area and continuous discussion rows. */
+.coala-app .post-detail .post-cover-text { padding-bottom: 20px; border-bottom: 1px solid #e5e5e5; gap: 8px; }
+.coala-app .post-detail .post-cover-title { order: -1; font-weight: 700; }
+.coala-app .post-detail .post-cover-pill { padding: 0; background: transparent; font-weight: 500; font-size: 12px; color: #737373; }
+.coala-app .post-detail .post-cover-meta { padding-top: 0; }
+.coala-app .post-detail .post-meta-author { gap: 12px; }
+.coala-app .post-detail .post-body { padding-left: 52px; padding-top: 18px; gap: 22px; }
+.coala-app .post-detail .post-content { font-size: 15px; color: #262626; line-height: 1.8; }
+.coala-app .post-detail .post-comments { margin-left: -52px; margin-top: 24px; }
+.coala-app .post-detail .post-comment-item { padding-block: 22px; }
+.coala-app .post-detail .post-comment-author-block { display: flex; align-items: center; gap: 12px; }
+.coala-app .post-detail .post-comment-author-copy { display: flex; flex-direction: column; gap: 4px; }
+.coala-app .post-detail .post-comment-content { margin: 16px 0 8px 44px; line-height: 1.8; color: #262626; }
+.coala-app .post-detail .post-comment-reply-toggle { margin-left: 44px; }
+.coala-app .recruit-card-empty { background: #fff; border: 1px solid #e5e5e5; color: #262626; box-shadow: none; }
+.coala-app .recruit-card-empty .recruit-empty-icon { background: #f5f5f5; color: #737373; }
+.coala-app .recruit-card-empty strong { color: #262626; font-weight: 600; }
+.coala-app .recruit-card-empty p { color: #8a8a8a; font-weight: 400; }
+.coala-app .recruit-card-empty button { background: #171717; color: #fff; border: 1px solid #171717; min-height: 34px; padding: 7px 14px; border-radius: 6px; font-weight: 500; }
+.coala-app .recruit-card-empty button:hover { background: #333; color: #fff; border-color: #333; }
+@media (max-width: 680px) {
+  .coala-app .post-detail .post-body { padding-left: 0; }
+  .coala-app .post-detail .post-comments { margin-left: 0; }
+  .coala-app .post-detail .post-meta-stats { width: 100%; justify-content: flex-end; }
+}

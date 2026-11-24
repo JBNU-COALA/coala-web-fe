@@ -60,7 +60,7 @@ export const instanceTypes: {
 export const durationOptions = [
   { id: '6m', label: '6개월' },
   { id: '1y', label: '1년' },
-  { id: 'permanent', label: '영구', description: '메일 보내주세요 : coala.jbnu@gmail.com', disabled: true },
+  { id: 'permanent', label: '영구', description: '장기 이용 문의 · coala.jbnu@gmail.com', disabled: true },
 ]
 
 export const statusMeta: Record<ApplyStatus, { label: string; colorClass: string }> = {
