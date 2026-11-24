@@ -44,3 +44,8 @@
 .service-inquiries .service-inquiries-refresh { width: 40px; flex: 0 0 40px; padding: 0; color: #525252; background: #fff; }
 
 .service-inquiries-form :is(input, textarea):focus { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
+
+.service-inquiries .service-inquiries-icon { width: 30px; height: 30px; min-height: 30px; flex: 0 0 30px; padding: 0; border: 0; background: transparent; color: #525252; }
+.service-inquiries-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.service-inquiries-form-actions button { min-height: 34px; padding: 6px 12px; font-size: 13px; }
+@media (max-width: 640px) { .service-inquiries-actions { width: auto; } }

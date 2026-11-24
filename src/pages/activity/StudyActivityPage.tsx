@@ -296,6 +296,7 @@ function ActivityContent({
               next.set('day', activityToday())
               setParams(next)
             }} />
+          <div className={`study-view-transition study-view-transition--${layout}`}>
           {layout === 'calendar' && (
             <>
               <ActivityCalendar
@@ -336,6 +337,7 @@ function ActivityContent({
                 recruitId={data.groups.find((group) => group.id === entry.groupId)?.recruitId} />)}
             </ol>
           )}
+          </div>
         </>
       )}
     </PageFrame>

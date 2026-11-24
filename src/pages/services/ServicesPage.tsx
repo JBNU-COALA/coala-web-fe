@@ -437,7 +437,7 @@ export function ServicesPage() {
                 className={officialMode === 'instance' ? 'service-menu-tab is-active' : 'service-menu-tab'}
                 onClick={() => navigate(routes.services.officialInstance)}
               >
-                <Icon name="server" size={22} />
+                <Icon name="server-color" size={22} />
                 <span>인스턴스 대여</span>
               </button>
               <button
@@ -445,7 +445,7 @@ export function ServicesPage() {
                 className={officialMode === 'domain' ? 'service-menu-tab is-active' : 'service-menu-tab'}
                 onClick={() => navigate(routes.services.officialDomain)}
               >
-                <Icon name="globe" size={22} />
+                <Icon name="globe-color" size={22} />
                 <span>도메인 신청</span>
               </button>
             </div>

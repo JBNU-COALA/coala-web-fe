@@ -96,6 +96,16 @@ describe('authenticated service inquiries', () => {
     expect((screen.getByLabelText('제목') as HTMLInputElement).value).toBe('')
   })
 
+  it('hides the empty list during writing and restores it on cancel', async () => {
+    render(view('instances'))
+    await screen.findByText('등록된 문의가 없습니다.')
+    startDraft()
+    expect(screen.queryByText('등록된 문의가 없습니다.')).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    expect(screen.getByText('등록된 문의가 없습니다.')).toBeTruthy()
+    expect(screen.queryByLabelText('내용')).toBeNull()
+  })
+
   it('retains the complete draft on failure and allows a successful retry', async () => {
     writes.instances.mockRejectedValueOnce(new Error('Request failed')).mockResolvedValueOnce(inquiry)
     const { container } = render(view('instances'))
@@ -122,7 +132,8 @@ describe('authenticated service inquiries', () => {
     expect(screen.queryByText('등록된 문의가 없습니다.')).toBeNull()
     startDraft()
     fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
-    await screen.findByText(inquiry.title)
+    await waitFor(() => expect(screen.queryByRole('alert')).toBeNull())
+    expect(screen.queryByText(inquiry.title)).toBeNull()
     expect((screen.getByLabelText('내용') as HTMLTextAreaElement).value).toBe('  Keep my question  ')
     expect(screen.queryByRole('alert')).toBeNull()
   })
@@ -133,9 +144,12 @@ describe('authenticated service inquiries', () => {
     await screen.findByText('검토 중')
     startDraft()
     fireEvent.click(screen.getByRole('button', { name: '새로고침' }))
-    await screen.findByText('답변 완료')
-    expect(container.querySelector('.service-inquiries-reply p')?.textContent).toBe(inquiry.reply)
+    await waitFor(() => expect((screen.getByRole('button', { name: '새로고침' }) as HTMLButtonElement).disabled).toBe(false))
+    expect(screen.queryByText('답변 완료')).toBeNull()
     expect((screen.getByLabelText('내용') as HTMLTextAreaElement).value).toBe('  Keep my question  ')
+    fireEvent.click(screen.getByRole('button', { name: '취소' }))
+    expect(screen.getByText('답변 완료')).toBeTruthy()
+    expect(container.querySelector('.service-inquiries-reply p')?.textContent).toBe(inquiry.reply)
   })
 
   it('does not let an old namespace response replace the current service', async () => {

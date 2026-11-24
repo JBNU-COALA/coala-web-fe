@@ -220,40 +220,40 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
           </button>
 
           <div className="post-header-actions">
-            <button type="button" className="ghost-button" aria-pressed={Boolean(item.bookmarkedByMe)} disabled={mutationPending} onClick={() => void handleBookmark()}>
-              <Icon name="book" size={15} /><span>{item.bookmarkedByMe ? '저장됨' : '저장'}</span>
+            <button type="button" className="ghost-button" title={item.bookmarkedByMe ? '저장됨' : '저장'} aria-pressed={Boolean(item.bookmarkedByMe)} disabled={mutationPending} onClick={() => void handleBookmark()}>
+              <Icon name="book" size={15} /><span className="sr-only">{item.bookmarkedByMe ? '저장됨' : '저장'}</span>
             </button>
-            <button type="button" className="ghost-button" onClick={onWrite}>
+            <button type="button" className="ghost-button" title="정보 글쓰기" onClick={onWrite}>
               <Icon name="edit" size={15} />
-              <span>정보 글쓰기</span>
+              <span className="sr-only">정보 글쓰기</span>
             </button>
             {canManageInfo ? (
               <>
-                <button type="button" className="ghost-button" disabled={mutationPending} onClick={onEdit}>
+                <button type="button" className="ghost-button" disabled={mutationPending} title="수정" onClick={onEdit}>
                   <Icon name="edit" size={15} />
-                  <span>수정</span>
+                  <span className="sr-only">수정</span>
                 </button>
-                <button type="button" className="ghost-button" disabled={mutationPending} onClick={handleDeleteInfo}>
+                <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={handleDeleteInfo}>
                   <Icon name="file" size={15} />
-                  <span>삭제</span>
+                  <span className="sr-only">삭제</span>
                 </button>
               </>
             ) : null}
             <button
               type="button"
               className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              onClick={handleCopyMarkdown}
+              title="마크다운 복사" onClick={handleCopyMarkdown}
             >
               <Icon name="copy" size={15} />
-              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
+              <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
             </button>
             <button
               type="button"
               className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              onClick={handleCopyShareLink}
+              title="공유 링크" onClick={handleCopyShareLink}
             >
               <Icon name={shareCopied === 'copied' ? 'copy' : 'link'} size={15} />
-              <span>{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
+              <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
             </button>
           </div>
         </header>
@@ -263,7 +263,7 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
         <div className={coverImageUrl ? 'post-cover post-cover--info post-cover--has-media' : 'post-cover post-cover--info'}>
           <div className="post-cover-text">
             <span className={`board-context-pill board-context-pill--${copy.tone} post-cover-pill`}>
-              {copy.label}
+              #{copy.label}
             </span>
             <h1 className="post-cover-title">{title}</h1>
           </div>
@@ -306,7 +306,7 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
 
         <div className="post-body">
           <div className="post-tags">
-            {tags.map((tag) => (
+            {tags.filter((tag) => tag !== copy.label).map((tag) => (
               <span key={tag} className="post-tag">#{tag}</span>
             ))}
             <span className="post-meta-updated">최종 수정: {formatDate(source.date)}</span>

@@ -2,6 +2,7 @@ export type IconName =
   | 'github'
   | 'refresh'
   | 'pencil-color'
+  | 'siren-color'
   | 'profile-color'
   | 'logout-color'
   | 'server'
@@ -50,6 +51,8 @@ type IconProps = {
 
 const iconShape = (name: IconName) => {
   switch (name) {
+    case 'siren-color':
+      return <><path d="M12 2v2M4 4l2 2M20 4l-2 2M2 11h2M20 11h2" stroke="#e35151" /><path d="M6 18v-6a6 6 0 0 1 12 0v6Z" fill="#ef6262" stroke="none" /><path d="M9 12a3 3 0 0 1 3-3" stroke="#fff" /><rect x="4" y="18" width="16" height="4" rx="1.5" fill="#737373" stroke="none" /></>
     case 'profile-color':
       return <g stroke="none"><circle cx="12" cy="7.5" r="4.5" fill="#f2b98d" /><path d="M3 22v-3a9 9 0 0 1 18 0v3Z" fill="#4f78c4" /><path d="M7.5 6.5a4.5 4.5 0 0 1 9 0c-3 0-4-2-4-2s-1 2-5 2Z" fill="#59453b" /></g>
     case 'logout-color':

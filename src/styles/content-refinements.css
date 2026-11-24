@@ -8,7 +8,7 @@
 .coala-app .header-icon-button { border: 0; background: transparent; color: #525252; padding: 0; transition: color 180ms ease; }
 .coala-app .header-icon-button:hover,
 .coala-app .header-icon-button.is-open { background: transparent; color: #171717; }
-.coala-app .header-icon-button > svg { width: 28px; height: 28px; flex-shrink: 0; transition: transform 180ms ease; }
+.coala-app .header-icon-button > svg { width: 22px; height: 22px; flex-shrink: 0; transition: transform 180ms ease; }
 .coala-app .header-icon-button:hover > svg { transform: rotate(-10deg) scale(1.08); }
 .coala-app .header-notification-badge { top: -3px; right: -3px; border: 2px solid #fff; }
 @media (prefers-reduced-motion: reduce) {
@@ -134,3 +134,76 @@
   .coala-app .post-detail .post-comments { margin-left: 0; }
   .coala-app .post-detail .post-meta-stats { width: 100%; justify-content: flex-end; }
 }
+
+.coala-app :is(.view-toggle, .study-layout-toggle) > button { transition: background-color 180ms ease, color 180ms ease; }
+.coala-app :is(.board-post-list--card, .activity-directory-grid--card, .member-service-grid, .study-view-transition--card) { animation: view-card-enter 220ms ease-out; }
+.coala-app :is(.board-post-list--list, .activity-directory-grid--list, .member-service-list, .study-view-transition--calendar) { animation: view-list-enter 220ms ease-out; }
+@keyframes view-card-enter { from { opacity: .3; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes view-list-enter { from { opacity: .3; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .coala-app :is(.board-post-list, .activity-directory-grid, .member-service-grid, .member-service-list, .study-view-transition) { animation: none; }
+  .coala-app :is(.view-toggle, .study-layout-toggle) > button { transition: none; }
+}
+
+.coala-app .header-user-button { height: 30px; padding: 0 8px 0 3px; gap: 5px; font-size: 12px; font-weight: 600; }
+.coala-app .header-user-button .header-user-avatar { width: 23px; height: 23px; min-width: 23px; }
+.coala-app .header-icon-button { width: 30px; height: 30px; }
+.coala-app .header-notification-badge { min-width: 15px; height: 15px; padding: 0 3px; font-size: 9px; top: -2px; right: -1px; }
+.coala-app .header-notification-popover { background: #fff; border-color: #e5e5e5; color: #262626; box-shadow: 0 8px 28px #00000014; }
+.coala-app .header-notification-popover::before { background: #fff; border-color: #e5e5e5; }
+.coala-app .header-notification-head { border-color: #e5e5e5; }
+.coala-app .header-notification-head :is(strong, button) { color: #262626; }
+.coala-app .header-notification-item { color: #262626; }
+.coala-app .header-notification-item.is-unread { background: #f5f5f5; }
+.coala-app .header-notification-item:hover { background: #eee; }
+.coala-app .header-notification-icon { background: #eee; color: #525252; }
+.coala-app .header-notification-copy strong { color: #262626; }
+.coala-app .header-notification-copy span { color: #666; }
+.coala-app .header-notification-copy small, .coala-app .header-notification-empty { color: #888; }
+.coala-app .archive-filter-popover { animation: filter-popover-enter 180ms ease-out; transform-origin: top right; }
+@keyframes filter-popover-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .coala-app .archive-filter-popover { animation: none; } }
+
+/* Article actions and replies stay compact and close to their content. */
+.coala-app .post-detail .post-header-actions > button,
+.coala-app .post-detail .post-report-icon { width: 30px; min-width: 30px; height: 30px; min-height: 30px; padding: 0; border: 0; background: transparent; }
+.coala-app .post-detail .post-header-actions > button:hover,
+.coala-app .post-detail .post-report-icon:hover { background: #f5f5f5; }
+.coala-app .post-detail .post-header-actions > button > svg { width: 18px; height: 18px; }
+.coala-app .post-detail .post-cover-pill { width: fit-content; padding: 4px 10px; background: #f5f5f5 !important; color: #666 !important; border-radius: 999px; }
+.coala-app .post-detail .post-like-button.is-liked > svg { color: #e54861; fill: #e54861; stroke: #e54861; }
+.coala-app .post-detail .post-comment-thread { display: block; padding-bottom: 12px; border-bottom: 1px solid #ededed; }
+.coala-app .post-detail .post-comment-item { padding-block: 16px 8px; border-bottom: 0; }
+.coala-app .post-detail .post-comment-content { margin-top: 10px; margin-bottom: 4px; }
+.coala-app .post-detail .post-comment-reply-toggle { border: 0; border-radius: 4px; padding: 4px 0; margin-top: 0; background: transparent; font-size: 12px; }
+.coala-app .post-detail .post-comment-replies { margin: 8px 0 0 16px; padding-left: 16px; border-left-width: 1px; }
+.coala-app .post-detail .post-comment-form { display: flex; align-items: center; gap: 8px; }
+.coala-app .post-detail .post-comment-form input { flex: 1; width: 0; min-width: 0; height: 36px; min-height: 36px; padding: 8px 12px; font-size: 13px; border-radius: 6px; }
+.coala-app .post-detail .post-comment-form button { flex-shrink: 0; height: 34px; min-height: 34px; padding: 0 12px; font-size: 12px; border-radius: 6px; }
+.coala-app .post-detail .post-comment-form--reply { margin: 8px 0 4px 44px; animation: filter-popover-enter 180ms ease-out; }
+.coala-app .board-context-pill, .coala-app .post-tag { border-radius: 999px; }
+@media (max-width: 640px) { .coala-app .post-detail .post-comment-form--reply { margin-left: 0; flex-wrap: wrap; } }
+@media (prefers-reduced-motion: reduce) { .coala-app .post-detail .post-comment-form--reply { animation: none; } }
+
+.coala-app .post-header-actions .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
+.coala-app .board-tag { border-radius: 999px; }
+.coala-app .post-detail .post-body { padding-left: 0; }
+.coala-app .post-detail .post-comments { margin-left: 0; }
+.coala-app .coala-content--info .board-post-card--list .info-post-stats { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; width: 100%; min-width: 0; }
+.coala-app .coala-content--info .board-post-card--list .info-post-stats .board-stat { justify-content: flex-start; }
+.coala-app .coala-content--info .board-post-card--list .info-list-actions { display: flex; margin: 0 0 0 auto; gap: 6px; }
+.coala-app .board-like-button.is-liked > svg { color: #e54861; fill: #e54861; stroke: #e54861; }
+.post-report-dialog { width: min(420px, calc(100vw - 32px)); padding: 24px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fff; color: #262626; box-shadow: 0 16px 60px #0002; }
+.post-report-dialog[open] { animation: filter-popover-enter 180ms ease-out; }
+.post-report-dialog::backdrop { background: #0005; animation: report-backdrop-enter 180ms ease-out; }
+.post-report-dialog h2 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 18px; }
+.post-report-dialog p { font-size: 13px; line-height: 1.6; color: #737373; }
+.post-report-dialog label { display: block; margin: 20px 0 8px; font-size: 13px; }
+.post-report-dialog textarea { box-sizing: border-box; width: 100%; padding: 10px 12px; resize: vertical; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #262626; font: inherit; font-size: 14px; }
+.post-report-dialog-actions { display: flex; justify-content: space-between; margin-top: 20px; gap: 12px; }
+.post-report-dialog-actions button { padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #525252; cursor: pointer; }
+.post-report-dialog-actions button[type=submit] { background: #171717; color: #fff; border-color: #171717; }
+.post-report-dialog-actions button:disabled { opacity: .45; cursor: not-allowed; }
+.post-report-dialog :focus-visible { outline: 2px solid #737373; outline-offset: 3px; }
+@keyframes report-backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .post-report-dialog[open], .post-report-dialog::backdrop { animation: none; } }

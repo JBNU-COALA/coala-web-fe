@@ -109,12 +109,13 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
     <header className="service-inquiries-header">
       <h3>{serviceNames[kind]} 문의사항</h3>
       <div className="service-inquiries-actions">
-        <button type="button" className="service-inquiries-refresh" aria-label="새로고침" title="새로고침" onClick={reload} disabled={loading || saving}>
+        <button type="button" className="service-inquiries-icon" aria-label="새로고침" title="새로고침" onClick={reload} disabled={loading || saving}>
           <Icon name="refresh" size={18} />
         </button>
-        <button type="button" className="service-inquiries-primary" disabled={saving}
+        <button type="button" className="service-inquiries-icon" disabled={saving}
+          aria-label={writing ? '작성 닫기' : '문의 작성'} title={writing ? '작성 닫기' : '문의 작성'}
           aria-expanded={writing} aria-controls={formId} onClick={() => { setWriting((value) => !value); setMessage('') }}>
-          <Icon name="pencil-color" size={20} />{writing ? '작성 닫기' : '문의 작성'}
+          <Icon name="pencil-color" size={18} />
         </button>
       </div>
     </header>
@@ -126,18 +127,21 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
         <label>내용<textarea required maxLength={5000} rows={5} value={draft.content}
           onChange={(event) => setDraft((value) => ({ ...value, content: event.target.value }))} /></label>
         {saveError && <p className="service-inquiries-error" role="alert">{saveError}</p>}
+        <div className="service-inquiries-form-actions">
+        <button type="button" onClick={() => setWriting(false)}>취소</button>
         <button type="submit" className="service-inquiries-primary" disabled={saving || loading || !draft.title.trim() || !draft.content.trim()}>
           {saving ? '등록 중...' : '문의 등록'}
         </button>
+        </div>
       </fieldset>
     </form>}
     {message && <p role="status">{message}</p>}
     {loadError && <div className="service-inquiries-load-error">
       <p role="alert">{loadError}</p><button type="button" onClick={reload} disabled={saving}>다시 불러오기</button>
     </div>}
-    {loading && <LoadingSpinner label="문의 내역을 불러오는 중입니다." />}
-    {!loading && !loadError && items?.length === 0 && <p className="service-inquiries-empty">등록된 문의가 없습니다.</p>}
-    <ul className="service-inquiries-list" aria-busy={loading}>
+    {!writing && loading && <LoadingSpinner label="문의 내역을 불러오는 중입니다." />}
+    {!writing && !loading && !loadError && items?.length === 0 && <p className="service-inquiries-empty">등록된 문의가 없습니다.</p>}
+    {!writing && <ul className="service-inquiries-list" aria-busy={loading}>
       {items?.map((item) => {
         const status = statusMeta(item.status)
         return <li key={item.id}>
@@ -157,6 +161,6 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
           </article>
         </li>
       })}
-    </ul>
+    </ul>}
   </section>
 }

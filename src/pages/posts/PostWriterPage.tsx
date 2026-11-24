@@ -566,7 +566,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
           <header className="velog-writer-topbar">
             <div className="velog-writer-type">
               <p className="post-writer-label">{copy.title}</p>
-              <span className="velog-writer-context">{copy.label}</span>
             </div>
 
             <div className="post-writer-actions velog-writer-actions">
@@ -594,11 +593,8 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                 </select>
               </label>
             )}
-            {writerType !== 'info' && boards.length > 0 && (
+            {writerType !== 'info' && boards.length > 1 && (
               <section className="velog-board-picker" aria-label={`${copy.label} 선택`}>
-                <div className="velog-board-picker-head">
-                  <span>{copy.label} 선택</span>
-                </div>
                 <SelectControl label={`${copy.label} 선택`} value={String(selectedBoardId ?? '')}
                   options={boards.map((board) => ({ value: String(board.boardId), label: board.boardName }))}
                   onChange={(value) => setSelectedBoardId(Number(value))} />

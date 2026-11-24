@@ -3,7 +3,7 @@ import DOMPurify from 'dompurify'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { postsApi, type CommentItem, type PostDetail } from '../../shared/api/posts'
-import { moderationApi, type ReportReasonType } from '../../shared/api/moderation'
+import { moderationApi } from '../../shared/api/moderation'
 import { postCategoryMeta } from '../../shared/postCategories'
 import { Icon } from '../../shared/ui/Icon'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
@@ -113,6 +113,17 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
   const [commentEditDrafts, setCommentEditDrafts] = useState<Record<number, string>>({})
   const [commentActionError, setCommentActionError] = useState<string | null>(null)
   const [reportMessage, setReportMessage] = useState<string | null>(null)
+  const reportDialog = useRef<HTMLDialogElement>(null)
+  const [reportTarget, setReportTarget] = useState<{ targetType: 'POST' | 'COMMENT'; targetId: number } | null>(null)
+  const [reportReason, setReportReason] = useState('')
+  const [reportError, setReportError] = useState('')
+  const [reportSubmitting, setReportSubmitting] = useState(false)
+  useEffect(() => {
+    if (reportTarget) reportDialog.current?.showModal()
+    else reportDialog.current?.close()
+  }, [reportTarget])
+  useEffect(() => { setReportTarget(null) }, [postId, user?.id])
+
   const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [submittingReplyId, setSubmittingReplyId] = useState<number | null>(null)
@@ -278,24 +289,30 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
     }
   }
 
-  const handleReport = async (targetType: 'POST' | 'COMMENT', targetId: number) => {
-    const isCurrent = captureScope()
-    const reasonDetail = window.prompt('신고 사유를 입력해주세요.')
-    if (reasonDetail === null) return
+  const handleReport = (targetType: 'POST' | 'COMMENT', targetId: number) => {
+    setReportReason('')
+    setReportError('')
+    setReportTarget({ targetType, targetId })
+  }
 
-    const normalized = reasonDetail.trim()
-    const reasonType: ReportReasonType = normalized ? 'OTHER' : 'SPAM'
-    setReportMessage(null)
+  const submitReport = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!reportTarget || !reportReason.trim() || pendingActions.current.has('report')) return
+    const isCurrent = captureScope()
+    pendingActions.current.add('report')
+    setReportSubmitting(true)
+    setReportError('')
     try {
-      await moderationApi.report({
-        targetType,
-        targetId,
-        reasonType,
-        reasonDetail: normalized || undefined,
-      })
-      if (isCurrent()) setReportMessage('신고가 접수되었습니다.')
+      await moderationApi.report({ ...reportTarget, reasonType: 'OTHER', reasonDetail: reportReason.trim() })
+      if (isCurrent()) {
+        setReportTarget(null)
+        setReportMessage('신고가 접수되었습니다.')
+      }
     } catch {
-      if (isCurrent()) setReportMessage('이미 신고했거나 신고 접수에 실패했습니다.')
+      if (isCurrent()) setReportError('이미 신고했거나 신고 접수에 실패했습니다.')
+    } finally {
+      pendingActions.current.delete('report')
+      setReportSubmitting(false)
     }
   }
 
@@ -324,7 +341,23 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
   if (isLoading) {
     return (
       <section className="coala-content coala-content--post-detail">
-        <article className="surface-card post-detail">
+        <dialog ref={reportDialog} className="post-report-dialog" aria-labelledby="post-report-title"
+        onCancel={(event) => { if (reportSubmitting) event.preventDefault(); else setReportTarget(null) }}
+        onClose={() => setReportTarget(null)}>
+        <form onSubmit={submitReport}>
+          <h2 id="post-report-title"><Icon name="siren-color" size={24} />신고하기</h2>
+          <p>운영진이 확인할 수 있도록 신고 사유를 알려주세요.</p>
+          <label htmlFor="post-report-reason">신고 사유</label>
+          <textarea id="post-report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)}
+            required rows={4} maxLength={1000} disabled={reportSubmitting} placeholder="신고 사유를 입력해주세요." />
+          {reportError && <p role="alert">{reportError}</p>}
+          <div className="post-report-dialog-actions">
+            <button type="button" disabled={reportSubmitting} onClick={() => setReportTarget(null)}>취소</button>
+            <button type="submit" disabled={reportSubmitting || !reportReason.trim()}>{reportSubmitting ? '접수 중...' : '신고 접수'}</button>
+          </div>
+        </form>
+      </dialog>
+      <article className="surface-card post-detail">
           <LoadingSpinner label="게시글을 불러오는 중..." />
         </article>
       </section>
@@ -334,7 +367,23 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
   if (error || !post) {
     return (
       <section className="coala-content coala-content--post-detail">
-        <article className="surface-card post-detail">
+        <dialog ref={reportDialog} className="post-report-dialog" aria-labelledby="post-report-title"
+        onCancel={(event) => { if (reportSubmitting) event.preventDefault(); else setReportTarget(null) }}
+        onClose={() => setReportTarget(null)}>
+        <form onSubmit={submitReport}>
+          <h2 id="post-report-title"><Icon name="siren-color" size={24} />신고하기</h2>
+          <p>운영진이 확인할 수 있도록 신고 사유를 알려주세요.</p>
+          <label htmlFor="post-report-reason">신고 사유</label>
+          <textarea id="post-report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)}
+            required rows={4} maxLength={1000} disabled={reportSubmitting} placeholder="신고 사유를 입력해주세요." />
+          {reportError && <p role="alert">{reportError}</p>}
+          <div className="post-report-dialog-actions">
+            <button type="button" disabled={reportSubmitting} onClick={() => setReportTarget(null)}>취소</button>
+            <button type="submit" disabled={reportSubmitting || !reportReason.trim()}>{reportSubmitting ? '접수 중...' : '신고 접수'}</button>
+          </div>
+        </form>
+      </dialog>
+      <article className="surface-card post-detail">
           <header className="post-detail-header">
             <button type="button" className="post-back-button" onClick={onBack}>
               <Icon name="chevron-left" size={16} />
@@ -382,7 +431,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
         id={`comment-${comment.commentId}`}
         key={comment.commentId}
         className={isReply ? 'post-comment-item post-comment-item--reply' : 'post-comment-thread'}
-        style={isReply ? { marginLeft: 24 } : undefined}
+
       >
         <div className={isReply ? undefined : 'post-comment-item'}>
           <div className="post-comment-topline">
@@ -412,8 +461,8 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
             ) : null}
             {isLoggedIn && !canManageComment && comment.status === 'ACTIVE' ? (
               <div className="post-comment-actions">
-                <button type="button" className="ghost-button" onClick={() => handleReport('COMMENT', comment.commentId)}>
-                  신고
+                <button type="button" className="ghost-button post-report-icon" aria-label="신고" title="신고" onClick={() => handleReport('COMMENT', comment.commentId)}>
+                  <Icon name="siren-color" size={18} />
                 </button>
               </div>
             ) : null}
@@ -451,7 +500,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
               aria-expanded={activeReplyId === comment.commentId}
               onClick={() => setActiveReplyId((current) => (current === comment.commentId ? null : comment.commentId))}
             >
-              답글
+              {activeReplyId === comment.commentId ? '답글 닫기' : '답글'}
             </button>
           ) : null}
         </div>
@@ -470,6 +519,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
             <input
               type="text"
               className="auth-input"
+              aria-label="답글"
               placeholder="답글을 입력하세요."
               value={replyValue}
               onChange={(event) => setReplyInputs((current) => ({
@@ -484,6 +534,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
             >
               답글 등록
             </button>
+            <button type="button" className="ghost-button" onClick={() => setActiveReplyId(null)}>취소</button>
           </form>
         ) : null}
       </div>
@@ -492,6 +543,22 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
 
   return (
     <section className="coala-content coala-content--post-detail">
+      <dialog ref={reportDialog} className="post-report-dialog" aria-labelledby="post-report-title"
+        onCancel={(event) => { if (reportSubmitting) event.preventDefault(); else setReportTarget(null) }}
+        onClose={() => setReportTarget(null)}>
+        <form onSubmit={submitReport}>
+          <h2 id="post-report-title"><Icon name="siren-color" size={24} />신고하기</h2>
+          <p>운영진이 확인할 수 있도록 신고 사유를 알려주세요.</p>
+          <label htmlFor="post-report-reason">신고 사유</label>
+          <textarea id="post-report-reason" value={reportReason} onChange={(event) => setReportReason(event.target.value)}
+            required rows={4} maxLength={1000} disabled={reportSubmitting} placeholder="신고 사유를 입력해주세요." />
+          {reportError && <p role="alert">{reportError}</p>}
+          <div className="post-report-dialog-actions">
+            <button type="button" disabled={reportSubmitting} onClick={() => setReportTarget(null)}>취소</button>
+            <button type="submit" disabled={reportSubmitting || !reportReason.trim()}>{reportSubmitting ? '접수 중...' : '신고 접수'}</button>
+          </div>
+        </form>
+      </dialog>
       <article className="surface-card post-detail">
         <header className="post-detail-header">
           <button type="button" className="post-back-button" onClick={onBack}>
@@ -500,43 +567,43 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
           </button>
 
           <div className="post-header-actions">
-            <button type="button" className="ghost-button" onClick={onWrite}>
+            <button type="button" className="ghost-button" title="글쓰기" onClick={onWrite}>
               <Icon name="edit" size={15} />
-              <span>글쓰기</span>
+              <span className="sr-only">글쓰기</span>
             </button>
             {canManagePost ? (
               <>
-                <button type="button" className="ghost-button" onClick={onEdit}>
+                <button type="button" className="ghost-button" title="수정" onClick={onEdit}>
                   <Icon name="edit" size={15} />
-                  <span>수정</span>
+                  <span className="sr-only">수정</span>
                 </button>
-                <button type="button" className="ghost-button" onClick={handleDeletePost}>
+                <button type="button" className="ghost-button" title="삭제" onClick={handleDeletePost}>
                   <Icon name="file" size={15} />
-                  <span>삭제</span>
+                  <span className="sr-only">삭제</span>
                 </button>
               </>
             ) : null}
             {isLoggedIn && !canManagePost ? (
-              <button type="button" className="ghost-button" onClick={() => handleReport('POST', visiblePost.postId)}>
-                <Icon name="bell" size={15} />
-                <span>신고</span>
+              <button type="button" className="ghost-button" title="신고" onClick={() => handleReport('POST', visiblePost.postId)}>
+                <Icon name="siren-color" size={15} />
+                <span className="sr-only">신고</span>
               </button>
             ) : null}
             <button
               type="button"
               className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              onClick={handleCopyMarkdown}
+              title="마크다운 복사" onClick={handleCopyMarkdown}
             >
               <Icon name="copy" size={15} />
-              <span>{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
+              <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
             </button>
             <button
               type="button"
               className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              onClick={handleCopyShareLink}
+              title="공유하기" onClick={handleCopyShareLink}
             >
               <Icon name={shareCopied === 'copied' ? 'copy' : 'link'} size={15} />
-              <span>{shareCopied === 'copied' ? '복사 완료' : '공유하기'}</span>
+              <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유하기'}</span>
             </button>
           </div>
         </header>
@@ -547,7 +614,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
         <div className="post-cover">
           <div className="post-cover-text">
             <span className={`board-context-pill board-context-pill--${category.tone} post-cover-pill`}>
-              {category.label}
+              #{category.label}
             </span>
             <h1 className="post-cover-title">{visiblePost.title}</h1>
           </div>
@@ -572,6 +639,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
               <button
                 type="button"
                 className={visiblePost.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}
+                aria-label="좋아요"
                 aria-pressed={Boolean(visiblePost.likedByMe)}
                 onClick={handleTogglePostLike}
               >
@@ -584,9 +652,6 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
 
         <div className="post-body">
           <div className="post-tags">
-            {[category.label].map((tag) => (
-              <span key={tag} className="post-tag">#{tag}</span>
-            ))}
             <span className="post-meta-updated">최종 수정: {formatDate(visiblePost.updatedAt)}</span>
           </div>
 

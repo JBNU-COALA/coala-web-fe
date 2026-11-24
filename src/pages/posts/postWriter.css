@@ -5,17 +5,17 @@
 .coala-app .velog-writer-type .post-writer-label { color: #737373; font-size: 13px; font-weight: 500; }
 .coala-app .velog-writer-context { background: #f5f5f5; color: #525252; font-size: 11px; border-radius: 4px; }
 .coala-app .velog-writer-actions .ghost-button { min-height: 32px; padding: 0 10px; border: 1px solid #ddd; border-radius: 5px; color: #525252; background: #fff; font-size: 12px; }
-.coala-app .velog-board-picker { display: flex; align-items: center; gap: 12px; padding: 16px 40px; background: #fff; border: 0; margin: 0; }
+.coala-app .velog-board-picker { display: flex; align-items: center; gap: 12px; padding: 12px 28px; background: #fff; border: 0; margin: 0; }
 .coala-app .velog-board-picker-head { margin: 0; }
 .coala-app .velog-board-picker-head span { color: #737373; font-size: 12px; font-weight: 500; }
-.coala-app .velog-board-picker .select-control { width: 180px; border: 1px solid #ddd; border-radius: 5px; padding: 0; background: #fff; }
+.coala-app .velog-board-picker .select-control { width: 120px; border: 1px solid #ddd; border-radius: 5px; padding: 0; background: #fff; }
 .coala-app .velog-board-picker .select-control-trigger { min-height: 32px; font-size: 12px; font-weight: 500; }
 .coala-app .velog-writer-fields { padding: 0; }
-.coala-app .velog-title-field { margin: 0 40px; padding: 28px 0 18px; border-color: #e5e5e5; }
+.coala-app .velog-title-field { margin: 0 28px; padding: 20px 0 14px; border-color: #e5e5e5; }
 .coala-app .velog-title-input { font-size: 30px; font-weight: 500; line-height: 1.5; color: #262626; }
 .coala-app .velog-title-input::placeholder { color: #a3a3a3; }
 .coala-app .velog-title-field:focus-within { border-color: #171717; }
-.coala-app .velog-tag-field { min-height: 44px; padding: 8px 40px; border-color: #e5e5e5; }
+.coala-app .velog-tag-field { min-height: 44px; padding: 8px 28px; border-color: #e5e5e5; }
 .coala-app .velog-tag-input { color: #525252; font-size: 12px; }
 .coala-app .velog-tag-input::placeholder { color: #aaa; }
 .coala-app .velog-editor-wrap .w-md-editor { --color-fg-default: #333; --color-border-default: #e5e5e5; --color-canvas-default: #fff; --color-canvas-subtle: #fafafa; --color-accent-fg: #171717; --color-accent-emphasis: #171717; box-shadow: none; color: #333; }
@@ -23,7 +23,7 @@
 .coala-app .velog-editor-wrap .w-md-editor-toolbar button { color: #525252; border-radius: 3px; }
 .coala-app .velog-editor-wrap .w-md-editor-toolbar button:hover,
 .coala-app .velog-editor-wrap .w-md-editor-toolbar li.active button { background: #eaeaea; color: #171717; }
-.coala-app .velog-editor-wrap :is(.w-md-editor-text-input, .w-md-editor-text-pre, .w-md-editor-preview) { padding: 28px 40px !important; font-size: 15px !important; line-height: 1.85 !important; }
+.coala-app .velog-editor-wrap :is(.w-md-editor-text-input, .w-md-editor-text-pre, .w-md-editor-preview) { padding: 24px 28px !important; font-size: 15px !important; line-height: 1.85 !important; }
 .coala-app .velog-editor-wrap .w-md-editor-text-input::placeholder { color: #a3a3a3; }
 .coala-app .velog-editor-wrap .w-md-editor-text { border-color: #e5e5e5; }
 .coala-app .velog-editor-wrap .w-md-editor-preview { background: #fff; }
@@ -34,15 +34,18 @@
 .coala-app .post-writer--velog .pw-counter--over { color: #c0392b; }
 .coala-app .post-writer--velog .pw-shortcut-hint { color: #888; }
 .coala-app .post-writer--velog kbd { color: #737373; background: #f5f5f5; border-color: #ddd; }
-.coala-app .info-writer-image-field { background: #fff; border-color: #e5e5e5; padding-inline: 40px; }
+.coala-app .info-writer-image-field { background: #fff; border-color: #e5e5e5; padding-inline: 28px; }
 .coala-app .info-writer-image-copy strong { color: #525252; }
 .coala-app .info-writer-image-copy span { color: #999; }
 @media (max-width: 680px) {
   .coala-app .coala-content--velog-writer { padding: 12px 0; }
-  .coala-app .velog-writer-topbar, .coala-app .velog-writer-footer { padding-inline: 16px; }
+  .coala-app .velog-writer-topbar, .coala-app .velog-writer-footer { padding-inline: 20px; }
   .coala-app .velog-board-picker, .coala-app .velog-tag-field, .coala-app .info-writer-image-field { padding-inline: 20px; }
   .coala-app .velog-title-field { margin-inline: 20px; }
   .coala-app .velog-title-input { font-size: 26px; }
-  .coala-app .velog-editor-wrap .w-md-editor-toolbar { padding-inline: 12px; }
+  .coala-app .velog-editor-wrap .w-md-editor-toolbar { padding-inline: 20px; }
   .coala-app .velog-editor-wrap :is(.w-md-editor-text-input, .w-md-editor-text-pre, .w-md-editor-preview) { padding-inline: 20px !important; }
 }
+
+.coala-app .post-writer--velog .post-writer-taglist { padding-inline: 28px; }
+.coala-app .velog-editor-wrap .w-md-editor-toolbar ul { margin: 0; padding: 0; }

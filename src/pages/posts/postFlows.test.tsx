@@ -3,6 +3,7 @@ import { StrictMode, type ComponentProps } from 'react'
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type MDEditor from '@uiw/react-md-editor/nohighlight'
+import { moderationApi } from '../../shared/api/moderation'
 import { postsApi, type PostDetail } from '../../shared/api/posts'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
@@ -20,6 +21,7 @@ vi.mock('../../shared/api/posts', () => ({ postsApi: {
   deletePost: vi.fn(), createComment: vi.fn(), createReply: vi.fn(),
   updateComment: vi.fn(), deleteComment: vi.fn(), likePost: vi.fn(),
 } }))
+vi.mock('../../shared/api/moderation', () => ({ moderationApi: { report: vi.fn() } }))
 vi.mock('../../shared/api/boards', () => ({ boardsApi: { getBoards: vi.fn() } }))
 vi.mock('../../shared/api/info', () => ({ infoApi: {
   getArticle: vi.fn(), createArticle: vi.fn(), updateArticle: vi.fn(),
@@ -83,6 +85,23 @@ beforeEach(() => {
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
 describe('post detail request boundaries', () => {
+  it('collects a report in a modal and submits only after confirmation', async () => {
+    HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) { this.setAttribute('open', '') })
+    HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) { this.removeAttribute('open') })
+    vi.mocked(postsApi.getPostDetail).mockResolvedValue({ ...post(1), userId: 2 })
+    vi.mocked(moderationApi.report).mockResolvedValue({} as never)
+    render(<PostDetailPage {...detailProps} postId="1-1" />)
+    await screen.findByRole('heading', { name: 'Post 1' })
+    fireEvent.click(screen.getByRole('button', { name: '신고' }))
+    expect(screen.getByRole('dialog', { name: '신고하기' })).toBeTruthy()
+    expect(moderationApi.report).not.toHaveBeenCalled()
+    fireEvent.change(screen.getByLabelText('신고 사유'), { target: { value: '스팸 게시글입니다.' } })
+    fireEvent.click(screen.getByRole('button', { name: '신고 접수' }))
+    await screen.findByText('신고가 접수되었습니다.')
+    expect(moderationApi.report).toHaveBeenCalledWith({ targetType: 'POST', targetId: 1, reasonType: 'OTHER', reasonDetail: '스팸 게시글입니다.' })
+    expect(screen.queryByRole('dialog')).toBeNull()
+  })
+
   it.each(['invalid', '0-2', '1-0', '1-2-extra', 'Infinity-1', '1-2.5'])('rejects invalid route %s without fetching', (postId) => {
     render(<PostDetailPage {...detailProps} postId={postId} />)
     expect(screen.getByText('올바르지 않은 게시글 주소입니다.')).toBeTruthy()
@@ -156,8 +175,14 @@ describe('writer draft and request boundaries', () => {
       { ...board(4, '문의사항'), categoryKey: null },
     ])
     render(<PostWriterPage onClose={vi.fn()} />)
-    fireEvent.click(await screen.findByRole('button', { name: /게시판 선택: General discussion/ }))
-    expect(Boolean(screen.queryByRole('option', { name: /Announcements/ }))).toBe(role !== 'USER')
+    await waitFor(() => expect(boardsApi.getBoards).toHaveBeenCalled())
+    if (role === 'USER') {
+      await waitFor(() => expect(screen.queryByRole('status')).toBeNull())
+      expect(screen.queryByRole('button', { name: /게시판 선택:/ })).toBeNull()
+    } else {
+      fireEvent.click(await screen.findByRole('button', { name: /게시판 선택: General discussion/ }))
+      expect(screen.getByRole('option', { name: /Announcements/ })).toBeTruthy()
+    }
     expect(screen.queryByRole('option', { name: /free resources/ })).toBeNull()
     expect(screen.queryByRole('option', { name: /문의사항/ })).toBeNull()
   })
