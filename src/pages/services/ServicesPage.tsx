@@ -3,7 +3,10 @@ import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
-import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { ListingControls } from '../../shared/ui/ListingControls'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
@@ -13,6 +16,7 @@ import { servicesApi } from '../../shared/api/services'
 import { attachmentsApi } from '../../shared/api/attachments'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { resolveServicesTab, type ServicesTab } from '../../navigation/navigationData'
+import './services-hub.css'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type UserServiceViewMode = 'card' | 'list'
@@ -112,6 +116,9 @@ export function ServicesPage() {
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
   const [serviceError, setServiceError] = useState<string | null>(null)
+  const [listError, setListError] = useState<string | null>(null)
+  const [listLoading, setListLoading] = useState(true)
+  const [listRevision, setListRevision] = useState(0)
   const [serviceImageError, setServiceImageError] = useState<string | null>(null)
   const [isUploadingServiceImage, setIsUploadingServiceImage] = useState(false)
   const [addDraft, setAddDraft] = useState(emptyServiceDraft)
@@ -125,6 +132,12 @@ export function ServicesPage() {
       : activeTab === 'official'
         ? '공식서비스'
         : '유저 서비스'
+  const activeBannerDescription =
+    activeTab === 'coas'
+      ? '코알라가 함께 만들어가는 오픈소스 프로젝트를 소개해요.'
+      : activeTab === 'official'
+        ? '동아리에서 운영하는 공식 서비스를 신청하고 이용해 보세요.'
+        : '코알라 멤버들이 직접 만든 서비스를 둘러보세요.'
   const selectedService = activeTab === 'user' && serviceId
     ? memberServices.find((service) => service.id === serviceId)
     : null
@@ -156,13 +169,17 @@ export function ServicesPage() {
   )
 
   useEffect(() => {
+    let active = true
     servicesApi.getMemberServices()
       .then((services) => {
+        if (!active) return
         setMemberServices(services as MemberService[])
-        setServiceError(null)
+        setListError(null)
       })
-      .catch(() => setServiceError('서비스 목록을 불러오지 못했습니다.'))
-  }, [])
+      .catch(() => { if (active) setListError('서비스 목록을 불러오지 못했습니다.') })
+      .finally(() => { if (active) setListLoading(false) })
+    return () => { active = false }
+  }, [listRevision])
 
   const toggleSelectedTag = (tag: string) => {
     setCurrentPage(1)
@@ -332,54 +349,54 @@ export function ServicesPage() {
   return (
     <section className="coala-content coala-content--services">
       <div className="member-services">
-        <CommunityBanner title={activeBannerTitle} tone="service" />
+        <CommunityBanner title={activeBannerTitle} description={activeBannerDescription} tone="service" />
 
         {activeTab === 'coas' ? (
-          <>
-            <section className="surface-card cossp-panel">
-              <div className="cossp-visual" role="img" aria-label="Coala Open Source Project typography">
-                <span>Coala</span>
-                <span>Open Source</span>
-                <span>Project</span>
-                <img src="/coala-developer.png" alt="" aria-hidden="true" />
+          <div className="coas-hub">
+            <section className="coas-intro" aria-labelledby="coas-title">
+              <div className="coas-intro-copy">
+                <p className="coas-kicker">COAS · 코알라 오픈소스</p>
+                <h2 id="coas-title">함께 만들고,<br />직접 운영하는 서비스.</h2>
+                <p className="coas-description">동아리에서 만든 프로젝트를 실제 서비스로 이어갑니다.<br />서버와 도메인을 신청하고, GitHub에서 함께 개발해 보세요.</p>
+                <div className="coas-actions">
+                  <button type="button" onClick={() => navigate(routes.services.official)}>서비스 둘러보기 <Icon name="chevron-right" size={16} /></button>
+                  <a href="https://github.com/JBNU-COALA" target="_blank" rel="noopener noreferrer"><Icon name="github" size={20} /> GitHub <span className="coas-external-label">↗<span className="coas-sr-only"> (새 탭)</span></span></a>
+                </div>
               </div>
-              <div className="cossp-copy">
-                <p className="services-hub-eyebrow">COAS</p>
-                <h3>코알라 오픈소스 프로젝트</h3>
-                <p className="cossp-description">COAS는 더 나은 교육과 성장을 위해 함께 기여하고 배우며 만들어가는 코알라의 오픈소스 프로젝트입니다.</p>
-                <div className="cossp-feature-grid">
-                  {[
-                    ['network', '도메인 배포', '서비스를 누구나 배포하고 운영할 수 있습니다.'],
-                    ['github', 'GitHub 협업', '오픈된 저장소에서 함께 개발하고 리뷰합니다.'],
-                    ['file', '서비스 운영 기록', '배포와 기여 내역을 투명하게 공개합니다.'],
-                    ['users', '오픈소스 기여', '작은 기여도 큰 변화를 만들 수 있습니다.'],
-                  ].map(([icon, title, description]) => (
-                    <article key={title}>
-                      <span><Icon name={icon as Parameters<typeof Icon>[0]['name']} size={21} /></span>
-                      <div><strong>{title}</strong><small>{description}</small></div>
-                    </article>
-                  ))}
+              <div className="coas-project-banner" aria-label="COAS, Coala Open Source Project">
+                <div className="coas-project-topline">
+                  <span><Icon name="github" size={18} /> JBNU-COALA</span>
+                  <span className="coas-project-public">Open source</span>
                 </div>
-                <div className="cossp-actions">
-                  <button type="button" onClick={() => navigate(routes.services.official)}>프로젝트 보기 <Icon name="chevron-right" size={15} /></button>
-                  <button type="button" onClick={() => navigate(routes.services.user)}>참여 안내</button>
+                <div className="coas-project-identity">
+                  <img src="/coala-logo.svg" alt="" />
+                  <div><strong>COAS<span>.</span></strong><p>Coala Open Source Project</p></div>
                 </div>
+                <svg className="coas-project-branches" viewBox="0 0 460 100" fill="none" aria-hidden="true">
+                  <path d="M-10 72H470" stroke="#454545" strokeWidth="2" />
+                  <path d="M85 72C115 72 112 24 145 24H280C313 24 311 72 342 72" stroke="#d3b885" strokeWidth="2" />
+                  <path d="M195 72C223 72 222 46 249 46H470" stroke="#858585" strokeWidth="2" />
+                  <g fill="#202020" stroke="#aaa" strokeWidth="2"><circle cx="36" cy="72" r="5" /><circle cx="85" cy="72" r="5" /><circle cx="195" cy="72" r="5" /><circle cx="342" cy="72" r="5" /><circle cx="411" cy="72" r="5" /></g>
+                  <g fill="#d3b885"><circle cx="155" cy="24" r="5" /><circle cx="265" cy="24" r="5" /></g>
+                  <circle cx="295" cy="46" r="4" fill="#aaa" />
+                </svg>
+                <div className="coas-project-bottomline"><span>코드를 나누고, 함께 만듭니다.</span><span aria-hidden="true">&lt;/&gt;</span></div>
               </div>
             </section>
 
             <section className="services-showcase" aria-label="서비스 둘러보기">
               <header className="services-showcase-head">
-                <div><span>OFFICIAL</span><h3>공식 서비스</h3></div>
+                <div><h3>공식 서비스</h3></div>
                 <button type="button" onClick={() => navigate(routes.services.official)}>전체 보기</button>
               </header>
               <div className="official-service-preview-grid">
                 <button type="button" onClick={() => navigate(routes.services.officialInstance)}>
-                  <Icon name="network" size={22} />
+                  <Icon name="server" size={24} />
                   <span><strong>인스턴스 대여</strong><small>프로젝트를 배포할 서버를 신청합니다.</small></span>
                   <Icon name="chevron-right" size={17} />
                 </button>
                 <button type="button" onClick={() => navigate(routes.services.officialDomain)}>
-                  <Icon name="link" size={22} />
+                  <Icon name="globe" size={24} />
                   <span><strong>도메인 신청</strong><small>코알라 도메인으로 서비스를 공개합니다.</small></span>
                   <Icon name="chevron-right" size={17} />
                 </button>
@@ -388,7 +405,7 @@ export function ServicesPage() {
 
             <section className="services-showcase" aria-label="유저 서비스 미리보기">
               <header className="services-showcase-head">
-                <div><span>MEMBER BUILT</span><h3>유저 서비스</h3></div>
+                <div><h3>유저 서비스</h3></div>
                 <button type="button" onClick={() => navigate(routes.services.user)}>전체 보기</button>
               </header>
               <div className="member-service-preview-grid">
@@ -411,7 +428,7 @@ export function ServicesPage() {
                 ))}
               </div>
             </section>
-          </>
+          </div>
         ) : activeTab === 'official' ? (
           <div className="official-service-panel">
             <div className="service-menu-tabs surface-card" aria-label="공식서비스 메뉴">
@@ -420,7 +437,7 @@ export function ServicesPage() {
                 className={officialMode === 'instance' ? 'service-menu-tab is-active' : 'service-menu-tab'}
                 onClick={() => navigate(routes.services.officialInstance)}
               >
-                <Icon name="network" size={22} />
+                <Icon name="server" size={22} />
                 <span>인스턴스 대여</span>
               </button>
               <button
@@ -428,7 +445,7 @@ export function ServicesPage() {
                 className={officialMode === 'domain' ? 'service-menu-tab is-active' : 'service-menu-tab'}
                 onClick={() => navigate(routes.services.officialDomain)}
               >
-                <Icon name="link" size={22} />
+                <Icon name="globe" size={22} />
                 <span>도메인 신청</span>
               </button>
             </div>
@@ -483,7 +500,7 @@ export function ServicesPage() {
                     </a>
                     {selectedService.githubUrl ? (
                       <a href={toExternalUrl(selectedService.githubUrl)} target="_blank" rel="noreferrer">
-                        <Icon name="network" size={15} />
+                        <Icon name="github" size={15} />
                         GitHub
                       </a>
                     ) : null}
@@ -570,76 +587,20 @@ export function ServicesPage() {
               </section>
         ) : (
           <>
-            <div className="member-services-toolbar surface-card">
-              <div className="member-services-toolbar-head">
-                <div>
-                  <span>전체 {visibleServices.length}개</span>
-                  <strong>유저 서비스</strong>
-                </div>
-                <div className="member-services-toolbar-actions">
-                  <ViewModeToggle value={viewMode} onChange={setViewMode} showLabels />
-                  <button
-                    type="button"
-                    className="member-service-add-button"
-                    onClick={startCreateService}
-                  >
-                    <Icon name="plus" size={15} />
-                    서비스 추가
-                  </button>
-                </div>
-              </div>
-
-              <div className="member-service-filter-grid">
-                <div className="member-service-filter-group">
-                  <span className="member-service-filter-label">상태</span>
-                  <FilterTabs
-                    value={selectedStatus}
-                    options={serviceStatusTabs}
-                    onChange={(status) => { setSelectedStatus(status); setCurrentPage(1) }}
-                    ariaLabel="유저 서비스 운영 상태"
-                    separateFirst
-                    className="member-service-status-filter"
-                  />
-                </div>
-
-                <div className="member-service-filter-group">
-                  <div className="member-service-tag-tools">
-                    <span className="member-service-filter-label">태그</span>
-                    {selectedTags.length > 0 ? (
-                      <button type="button" className="member-service-tag-reset" onClick={() => { setSelectedTags([]); setCurrentPage(1) }}>
-                        초기화
-                      </button>
-                    ) : null}
-                  </div>
-                  <div className="member-service-tag-cloud" aria-label="유저 서비스 태그">
-                    {visibleTagOptions.length > 0 ? (
-                      visibleTagOptions.map((tag) => (
-                        <button
-                          key={tag}
-                          type="button"
-                          className={selectedTags.includes(tag) ? 'member-service-tag-chip is-active' : 'member-service-tag-chip'}
-                          aria-pressed={selectedTags.includes(tag)}
-                          onClick={() => toggleSelectedTag(tag)}
-                        >
-                          #{tag}
-                        </button>
-                      ))
-                    ) : (
-                      <span className="member-service-tag-empty">태그가 없습니다</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="member-services-toolbar-bottom">
-                <SearchField
-                  className="member-services-search"
-                  value={query}
-                  onChange={(value) => { setQuery(value); setCurrentPage(1) }}
-                  placeholder="서비스명, 만든 유저, 태그 검색"
-                />
-              </div>
-            </div>
+            <ListingControls className="page-container" label="유저 서비스 필터"
+              accessory={visibleTagOptions.length > 0 ? <div className="member-service-tag-cloud" aria-label="유저 서비스 태그">
+                {visibleTagOptions.map((tag) => <button key={tag} type="button"
+                  className={selectedTags.includes(tag) ? 'member-service-tag-chip is-active' : 'member-service-tag-chip'}
+                  aria-pressed={selectedTags.includes(tag)} onClick={() => toggleSelectedTag(tag)}>#{tag}</button>)}
+                {selectedTags.length > 0 && <button type="button" className="member-service-tag-reset" onClick={() => { setSelectedTags([]); setCurrentPage(1) }}>초기화</button>}
+              </div> : null}>
+              <SelectControl value={selectedStatus}
+                options={serviceStatusTabs.map((tab) => ({ value: tab.id, label: tab.label }))}
+                onChange={(status) => { setSelectedStatus(status); setCurrentPage(1) }} label="운영 상태" />
+              <SearchField value={query} onChange={(value) => { setQuery(value); setCurrentPage(1) }} placeholder="서비스명, 만든 유저, 태그 검색" />
+              <ViewModeToggle value={viewMode} onChange={setViewMode} />
+              <button type="button" className="write-post-button" onClick={startCreateService}><Icon name="plus" size={15} />서비스 추가</button>
+            </ListingControls>
 
             {serviceError ? <p className="auth-error">{serviceError}</p> : null}
 
@@ -649,7 +610,7 @@ export function ServicesPage() {
                   <div>
                     <h3>{editingServiceId ? '유저 서비스 수정' : '유저 서비스 추가'}</h3>
                     <p>
-                      대표 이미지는 URL 입력 대신 이미지 첨부로 등록됩니다.
+                      서비스 정보와 대표 이미지를 등록하세요.
                     </p>
                   </div>
                   <button
@@ -868,8 +829,10 @@ export function ServicesPage() {
                   )}
                 </li>
               ))}
-              {paginatedServices.length === 0 ? (
-                <li className="surface-card empty-post-state">조건에 맞는 서비스가 없습니다.</li>
+              {listLoading ? <li className="empty-post-state"><LoadingSpinner label="서비스를 불러오는 중입니다." /></li> : listError ? (
+                <li className="empty-post-state"><p role="alert">{listError}</p><button type="button" className="ghost-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
+              ) : paginatedServices.length === 0 ? (
+                <li className="empty-post-state">조건에 맞는 서비스가 없습니다.</li>
               ) : null}
             </ul>
 

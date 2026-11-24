@@ -1,17 +1,15 @@
-import { lazy, Suspense, type FocusEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { lazy, Suspense, type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
-  buildContextPanel,
   getRouteFromPath,
   headerNavItems,
   headerSubNavItems,
   resolveServicesTab,
   routePathById,
   type AppRoute,
-  type ContextPanelItem,
 } from './navigation/navigationData'
-import { ContextPanel } from './navigation/ContextPanel'
 import { Icon } from './shared/ui/Icon'
+import { usePageTransition } from './shared/ui/usePageTransition'
 import { CharacterAvatar } from './shared/ui/CharacterAvatar'
 import { useAuth } from './shared/auth/AuthContext'
 import { RequireAuth } from './shared/auth/RequireAuth'
@@ -31,6 +29,7 @@ import { LandingPage } from './pages/landing/LandingPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
 import { PublicFooter } from './pages/landing/PublicFooter'
 import './pages/landing/forest-theme.css'
+import { LoadingSpinner } from './shared/ui/LoadingSpinner'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
@@ -227,13 +226,19 @@ function formatNotificationTime(value?: string | null) {
 function App() {
   const { isLoggedIn, user } = useAuth()
   const location = useLocation()
-  if (location.pathname === '/') return <LandingPage />
-  if (location.pathname.replace(/\/$/, '') === '/recruiting') return <RecruitingPage />
+  const publicPath = location.pathname === '/' ? '/' : (/^\/recruiting(?:\/[^/]+)?\/?$/.test(location.pathname) ? location.pathname : null)
+  if (publicPath) return <PublicPageTransition pathname={publicPath} />
   return <AppSession key={isLoggedIn ? `user:${user?.id}` : 'guest'} />
+}
+
+function PublicPageTransition({ pathname }: { pathname: string }) {
+  const ref = usePageTransition<HTMLDivElement>(pathname, 'fade')
+  return <div ref={ref}>{pathname === '/' ? <LandingPage /> : <RecruitingPage key={pathname} />}</div>
 }
 
 function AppSession() {
   const location = useLocation()
+  const mainRef = usePageTransition<HTMLElement>(location.pathname)
   const navigate = useNavigate()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [expandedMainNav, setExpandedMainNav] = useState<string | null>(null)
@@ -289,10 +294,9 @@ function AppSession() {
     activeRoute === 'verifyEmail' ||
     activeRoute === 'passwordReset'
   const isAdminRoute = location.pathname.startsWith(routes.admin)
-  const contextPanel = useMemo(
-    () => buildContextPanel(activeRoute, location.pathname, location.search),
-    [activeRoute, location.pathname, location.search],
-  )
+  const sidebarSection = headerNavItems.find((item) => item.id === activeRoute)
+  const sidebarItems = !isAuthRoute && !isAdminRoute && sidebarSection ? headerSubNavItems[sidebarSection.id] ?? [] : []
+  const sidebarTitle = sidebarSection?.label ?? ''
 
   if (menuPathname !== location.pathname) {
     setMenuPathname(location.pathname)
@@ -428,7 +432,10 @@ function AppSession() {
           location.pathname.startsWith('/services/official/domain')
       }
       if (targetPath === routes.services.user) return activeServicesTab === 'user'
-      if (targetPath === routes.services.root) return activeServicesTab === 'coas' && !targetQuery
+      if (targetPath === routes.services.root) {
+        const isServicesPage = location.pathname === routes.services.root || location.pathname.startsWith(`${routes.services.root}/`)
+        return isServicesPage && activeServicesTab === 'coas' && !targetQuery
+      }
     }
 
     if (targetPath.startsWith('/archive')) {
@@ -437,72 +444,6 @@ function AppSession() {
     }
 
     return location.pathname === targetPath
-  }
-
-  const handleContextSelect = (item: ContextPanelItem) => {
-    if (item.value === 'community-activity') {
-      navigate(routes.community.activity)
-      return
-    }
-    if (item.value === 'community-board') {
-      navigate(routes.community.board)
-      return
-    }
-
-    if (item.value === 'community-qna') {
-      navigate(routes.community.qna)
-      return
-    }
-
-    if (item.value === 'community-info') {
-      navigate(routes.community.info)
-      return
-    }
-
-    if (item.value === 'community-recruit') {
-      navigate(routes.community.recruit)
-      return
-    }
-
-    if (item.value === 'service-status' || item.value === 'service-guide' || item.value === 'services-coas') {
-      navigate(routes.services.root)
-      return
-    }
-
-    if (item.value === 'services-official') {
-      navigate(routes.services.official)
-      return
-    }
-
-    if (item.value === 'game-ranking') {
-      navigate(routes.users.root)
-      return
-    }
-
-    if (item.value === 'services-instance') {
-      navigate(routes.services.officialInstance)
-      return
-    }
-
-    if (item.value === 'services-domain') {
-      navigate(routes.services.officialDomain)
-      return
-    }
-
-    if (item.value === 'services-user') {
-      navigate(routes.services.user)
-      return
-    }
-
-    if (item.value === 'archive-labs') {
-      navigate(routes.archive.labs)
-      return
-    }
-
-    if (item.value === 'archive-agents') {
-      navigate(routes.archive.agents)
-      return
-    }
   }
 
   const handleLogout = async () => {
@@ -612,7 +553,7 @@ function AppSession() {
   }
 
   const appRoutes = (
-    <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>}>
+    <Suspense fallback={<LoadingSpinner label="로딩 중..." />}>
       <Routes>
         <Route
           path="/portal"
@@ -628,7 +569,7 @@ function AppSession() {
           }
         />
 
-        <Route path="/about" element={<Navigate to="/portal" replace />} />
+        <Route path="/about" element={<Navigate to="/" replace />} />
         <Route path="/community/activity" element={<StudyActivityPage />} />
         <Route path="/community/activity/records/new" element={<StudyActivityPage mode="new" />} />
         <Route path="/community/activity/records/:recordId" element={<StudyActivityPage mode="detail" />} />
@@ -889,7 +830,12 @@ function AppSession() {
 
           <nav
             ref={mainNavRef}
-            className={mobileNavOpen ? 'coala-main-nav is-open' : 'coala-main-nav'}
+            className={[
+              'coala-main-nav',
+              mobileNavOpen ? 'is-open' : '',
+              expandedMainNav ? 'is-mega-open' : '',
+              suppressedMainNav ? 'is-mega-suppressed' : '',
+            ].filter(Boolean).join(' ')}
             aria-label="메인 메뉴"
             onMouseEnter={handleMainNavMouseEnter}
             onMouseLeave={handleMainNavMouseLeave}
@@ -974,6 +920,40 @@ function AppSession() {
                 </div>
               )
             })}
+            <div className="main-nav-mega">
+              <div className="main-nav-mega-inner">
+                {headerNavItems.map((item) => {
+                  const subItems = headerSubNavItems[item.id] ?? []
+                  const links = subItems.length > 0
+                    ? subItems.flatMap((subItem) => [
+                        { ...subItem, depth: 0 },
+                        ...(subItem.children ?? []).map((child) => ({ ...child, depth: 1 })),
+                      ])
+                    : [{ id: `${item.id}-root`, label: `${item.label} 바로가기`, icon: item.icon, path: routePathById[item.id as AppRoute], depth: 0 }]
+                  return (
+                    <div key={item.id} className={activeRoute === item.id ? 'main-nav-mega-column is-active' : 'main-nav-mega-column'}>
+                      <p className="main-nav-mega-title">{item.label}</p>
+                      <div className="main-nav-mega-links" role="group" aria-label={`${item.label} 메뉴`}>
+                        {links.map((link) => (
+                          <button
+                            key={link.id}
+                            type="button"
+                            className={[
+                              'main-nav-mega-link',
+                              link.depth ? 'main-nav-mega-link--child' : '',
+                              isHeaderSubNavActive(link.path) ? 'is-active' : '',
+                            ].filter(Boolean).join(' ')}
+                            onClick={() => handleHeaderSubNavSelect(link.path, item.id)}
+                          >
+                            {link.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
           </nav>
 
           <div className="coala-header-actions">
@@ -1015,7 +995,7 @@ function AppSession() {
                         </button>
                       </div>
                       {isNotificationLoading ? (
-                        <p className="header-notification-empty">알림을 불러오는 중...</p>
+                        <LoadingSpinner size="sm" label="알림을 불러오는 중..." />
                       ) : notificationError ? (
                         <p className="header-notification-empty">{notificationError}</p>
                       ) : notifications.length > 0 ? (
@@ -1127,17 +1107,31 @@ function AppSession() {
         </div>
       </header>
 
-      {!isAuthRoute && activeRoute !== 'home' && contextPanel ? (
-        <div className="coala-subnav">
-          <ContextPanel panel={contextPanel} onSelect={handleContextSelect} variant="bar" />
-        </div>
-      ) : null}
-
       <main
-        key={['/portal', '/login', '/signup', '/password-reset'].includes(location.pathname) ? location.pathname : 'content'}
-        className={`${isAdminRoute ? 'coala-shell coala-shell--admin' : isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}${['/portal', '/login', '/signup', '/password-reset'].includes(location.pathname) ? ' coala-page-enter' : ''}`}
+        ref={mainRef}
+        className={isAdminRoute ? 'coala-shell coala-shell--admin' : isAuthRoute ? 'coala-shell coala-shell--auth' : 'coala-shell'}
       >
-        {appRoutes}
+        {sidebarItems.length > 0 ? (
+          <div className="coala-section-layout">
+            <aside className="coala-sidebar" aria-label={`${sidebarTitle} 메뉴`}>
+              <p className="coala-sidebar-title">{sidebarTitle}</p>
+              <nav className="coala-sidebar-nav">
+                {sidebarItems.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className={isHeaderSubNavActive(item.path) ? 'coala-sidebar-link is-active' : 'coala-sidebar-link'}
+                    aria-current={isHeaderSubNavActive(item.path) ? 'page' : undefined}
+                    onClick={() => navigate(item.path)}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </nav>
+            </aside>
+            <div className="coala-section-main">{appRoutes}</div>
+          </div>
+        ) : appRoutes}
       </main>
 
       <PublicFooter />

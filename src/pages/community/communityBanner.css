@@ -1,0 +1,53 @@
+/* Same look as the public recruiting hero banner (.rc-hero). */
+.community-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  padding: 23px 24px;
+  text-align: center;
+  background: #447957;
+  color: #fff;
+}
+.community-banner::before,
+.community-banner::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  width: 300px;
+  height: 170px;
+  background: url('/recruiting/leaves.svg') center / contain no-repeat;
+  top: -42px;
+  left: 4%;
+  transform: rotate(-12deg);
+}
+.community-banner::after {
+  left: auto;
+  right: 3%;
+  top: -30px;
+  transform: scaleX(-1) rotate(-18deg);
+}
+.community-banner-title {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.5;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+.community-banner-copy {
+  margin: 5px auto 0;
+  max-width: 640px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #e3eee5;
+  white-space: pre-line;
+  word-break: keep-all;
+}
+@media (max-width: 760px) {
+  .community-banner { padding: 22px 18px; }
+  .community-banner::before { left: -130px; opacity: 0.65; }
+  .community-banner::after { right: -130px; opacity: 0.65; }
+  .community-banner-title { font-size: 16px; }
+  .community-banner-copy { max-width: 260px; }
+}

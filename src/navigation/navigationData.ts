@@ -98,6 +98,7 @@ export function getRouteFromPath(pathname: string): AppRoute {
 }
 
 export const headerNavItems: HeaderNavItem[] = [
+  { id: 'about', label: '소개', icon: 'layout' },
   { id: 'community', label: '커뮤니티', icon: 'message' },
   { id: 'services', label: '서비스', icon: 'settings' },
   { id: 'archive', label: '자료실', icon: 'book' },
@@ -119,10 +120,6 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
       label: '공식서비스',
       icon: 'settings',
       path: routes.services.official,
-      children: [
-        { id: 'services-instance', label: '인스턴스 대여', icon: 'network', path: routes.services.officialInstance },
-        { id: 'services-domain', label: '도메인 신청', icon: 'link', path: routes.services.officialDomain },
-      ],
     },
     { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],

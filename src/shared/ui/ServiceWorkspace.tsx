@@ -45,7 +45,7 @@ export function ServiceWorkspace({ kind, form, list }: {
         <Icon name="settings" size={14} />관리자
       </button>}
     </nav>
-    <div className="jcloud-tab-content" key={user?.id ?? 'guest'}>
+    <div className="jcloud-tab-content service-workspace-content" key={`${kind}:${tab}:${user?.id ?? 'guest'}`}>
       {tab === 'apply' ? form(() => changeTab('list')) : tab === 'list' ? list : <ServiceInquiries kind={kind} />}
     </div>
   </div>

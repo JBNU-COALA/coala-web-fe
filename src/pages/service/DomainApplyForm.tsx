@@ -76,7 +76,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
     return (
       <div className="jcloud-submit-success">
         <div className="jcloud-success-icon">
-          <Icon name="link" size={28} />
+          <Icon name="user" size={28} />
         </div>
         <h3 className="jcloud-success-title">도메인 신청이 접수되었습니다.</h3>
         <p className="jcloud-success-desc">

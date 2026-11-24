@@ -9,6 +9,7 @@ import type { StudyGroup } from '../activity'
 import { routes } from '../routes'
 import { Icon } from './Icon'
 import './studyConnections.css'
+import { LoadingSpinner } from './LoadingSpinner'
 
 type StudyConnectionsProps = {
   userId?: string
@@ -71,7 +72,7 @@ function StudyConnectionsContent({
       {error && <div className="study-connection-error"><p role="alert">{error}</p>
         <button type="button" onClick={() => { setError(''); setLoading(true); setRevision((value) => value + 1) }}>다시 불러오기</button>
       </div>}
-      {loading && <p role="status">활동을 불러오는 중입니다.</p>}
+      {loading && <LoadingSpinner label="활동을 불러오는 중입니다." />}
       {groups.map((group) => (
         <div className="study-connection-row" key={group.id}>
           <Link to={routes.community.activityGroup(group.id)}>

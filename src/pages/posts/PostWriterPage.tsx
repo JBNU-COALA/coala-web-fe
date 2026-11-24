@@ -34,6 +34,7 @@ import {
 } from '../../shared/communityBoards'
 import { infoApi, type InfoFilterId } from '../../shared/api/info'
 import { useRequestScope } from '../../useRequestScope'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 5000
@@ -581,7 +582,7 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
             </div>
           </header>
 
-          {isEditLoading && <p role="status">게시글을 불러오는 중...</p>}
+          {isEditLoading && <LoadingSpinner label="게시글을 불러오는 중..." />}
           {loadError && <p className="auth-error" role="alert">{loadError}</p>}
           {boardError && <p className="auth-error" role="alert">{boardError}</p>}
           <fieldset className="post-writer-fields velog-writer-fields" disabled={isPublishing || isEditLoading || Boolean(loadError)} style={{ border: 0, margin: 0, minWidth: 0 }}>

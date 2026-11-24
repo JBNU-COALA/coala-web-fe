@@ -3,7 +3,7 @@ import { useRequestScope } from '../../useRequestScope'
 import { infoApi, type InfoArticle, type InfoFilterId } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
-import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { type FilterTabOption } from '../../shared/ui/FilterTabs'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
@@ -15,6 +15,7 @@ import { CommunityBanner } from '../community/CommunityBanner'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 type InfoSharePageProps = {
   onWriteInfo?: () => void
@@ -90,7 +91,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [query, setQuery] = useState('')
   const [resources, setResources] = useState<InfoArticle[]>([])
   const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
-  const [viewMode, setViewMode] = useState<InfoListViewMode>('card')
+  const [viewMode, setViewMode] = useState<InfoListViewMode>('list')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [likeError, setLikeError] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
@@ -202,19 +203,14 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
       <article className="info-shell">
         <CommunityBanner
           title="정보공유"
+          description="대회 · 연구실 · 학습 자료까지, 함께 보면 좋은 정보를 공유해요."
           tone="info"
-          meta={`게시글 ${visibleResources.length}개`}
         />
 
-        <ListingControls className="page-container" label="정보공유 필터" count={`게시글 ${visibleResources.length}개`}
-          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}
-          filters={<FilterTabs
-            value={activeFilter}
-            options={infoTabs}
-            onChange={setActiveFilter}
-            ariaLabel="정보공유 분류"
-            separateFirst
-          />}>
+        <ListingControls className="page-container" label="정보공유 필터"
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
+            <SelectControl label="분류" value={activeFilter} onChange={setActiveFilter}
+              options={infoTabs.map((tab) => ({ value: tab.id, label: tab.label }))} />
             <SearchField
               className="community-list-search"
               value={query}
@@ -359,7 +355,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               )
             })}
 
-            {loading ? <li className="empty-post-state" role="status">정보를 불러오는 중입니다.</li> : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button type="button" className="ghost-button" onClick={() => { setLoading(true); setLoadRevision((value) => value + 1) }}>다시 불러오기</button></li> : visibleResources.length === 0 ? (
+            {loading ? <li><LoadingSpinner label="정보를 불러오는 중입니다." /></li> : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button type="button" className="ghost-button" onClick={() => { setLoading(true); setLoadRevision((value) => value + 1) }}>다시 불러오기</button></li> : visibleResources.length === 0 ? (
               <li className="empty-post-state">조건에 맞는 정보가 없습니다.</li>
             ) : null}
           </ul>

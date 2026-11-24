@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { profileActivityHref, type ProfileActivityItem } from './profileOverview'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 const applicationStatuses: Record<string, string> = {
   submitted: '검토 중', accepted: '승인', rejected: '미선정',
@@ -14,7 +15,7 @@ export function ProfileActivityList({ items, loading, error, retry, emptyText = 
   retry: () => void
   emptyText?: string
 }) {
-  if (loading) return <p className="profile-empty-text" role="status">활동을 불러오는 중입니다.</p>
+  if (loading) return <LoadingSpinner label="활동을 불러오는 중입니다." />
   if (error) return <div className="profile-overview-error"><p role="alert">{error}</p>
     <button type="button" className="ghost-button" onClick={retry}>다시 불러오기</button></div>
   if (!items.length) return <p className="profile-empty-text">{emptyText}</p>

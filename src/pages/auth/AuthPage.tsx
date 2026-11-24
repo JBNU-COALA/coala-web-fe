@@ -1,4 +1,5 @@
 import './auth.css'
+import { AuthForm } from './AuthForm'
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -127,7 +128,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           <h2 className="auth-title">{isLogin ? '로그인' : '회원가입'}</h2>
         </div>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+        <AuthForm className="auth-form" onSubmit={handleSubmit}>
           {!isLogin && (
             <label className="auth-label">
               <span>이름 {!isLogin && <span aria-hidden="true">*</span>}</span>
@@ -302,7 +303,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
           <button type="button" className={isLogin ? 'auth-signup-outline' : 'auth-switch'} onClick={onSwitchMode}>
             {isLogin ? '회원가입' : '이미 계정이 있나요? 로그인'}
           </button>
-        </form>
+        </AuthForm>
       </article>
     </section>
   )

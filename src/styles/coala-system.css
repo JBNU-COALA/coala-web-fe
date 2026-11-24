@@ -15,7 +15,7 @@
   --coala-page-gutter: 24px;
   --coala-page-inline: 48px;
   --coala-radius: 6px;
-  --coala-header-height: 52px;
+  --coala-header-height: 72px;
   --coala-subnav-height: 44px;
 }
 
@@ -169,10 +169,11 @@ textarea {
 .main-nav-button.is-active::after {
   content: '';
   position: absolute;
-  right: 5px;
-  bottom: 0;
-  left: 5px;
-  height: 3px;
+  right: 8px;
+  bottom: 7px;
+  left: 8px;
+  height: 2px;
+  border-radius: 2px;
   background: var(--coala-green-700);
 }
 
@@ -3240,13 +3241,19 @@ textarea {
 }
 
 /* Match the public header's transparent symbol and handwritten wordmark. */
-.coala-brand--wordmark .coala-brand-mark { width: 38px; height: 38px; background: transparent; }
+.coala-brand--wordmark .coala-brand-mark { width: 32px; height: 32px; background: transparent; }
 .coala-brand--wordmark .coala-brand-mark img,
 .coala-brand--wordmark .coala-brand-script { filter: brightness(0); }
-.coala-brand--wordmark .coala-brand-script { display: block; width: 108px; height: 36px; object-fit: contain; }
+.coala-brand--wordmark .coala-brand-script { display: block; width: 92px; height: 30px; object-fit: contain; }
+@media (min-width: 1101px) {
+  .coala-header .coala-brand--wordmark .coala-brand-mark { width: 40px; height: 40px; }
+  .coala-header .coala-brand--wordmark .coala-brand-script { width: 108px; height: 36px; }
+  .coala-header .main-nav-button { font-size: 14px; }
+  .coala-header .header-action-button { min-height: 40px; font-size: 13px; }
+}
 @media (max-width: 600px) {
-  .coala-brand--wordmark .coala-brand-mark { width: 30px; height: 30px; }
-  .coala-brand--wordmark .coala-brand-script { width: 88px; height: 30px; }
+  .coala-brand--wordmark .coala-brand-mark { width: 26px; height: 26px; }
+  .coala-brand--wordmark .coala-brand-script { width: 76px; height: 26px; }
 }
 
 /* Subtle entrance for community and account navigation. */
@@ -3266,4 +3273,235 @@ textarea {
 
 @media (min-width: 901px) {
   .coala-main-nav { gap: clamp(32px, 3.2vw, 52px); }
+}
+
+/* Desktop header: one full-width mega panel listing every menu instead of per-item dropdowns. */
+.main-nav-mega { display: none; }
+@media (min-width: 901px) {
+  .coala-main-nav .main-nav-dropdown { display: none; }
+  .main-nav-mega {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    left: 0;
+    z-index: 110;
+    display: block;
+    border-top: 1px solid #e5ebe7;
+    border-bottom: 1px solid #e5ebe7;
+    background: #fff;
+    box-shadow: 0 24px 48px rgba(8, 48, 34, 0.1);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(-6px);
+    transition: opacity 160ms ease, transform 200ms cubic-bezier(.22, 1, .36, 1), visibility 160ms;
+  }
+  .coala-main-nav:hover .main-nav-mega,
+  .coala-main-nav.is-mega-open .main-nav-mega {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+  .coala-main-nav.is-mega-suppressed .main-nav-mega {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  .main-nav-mega-inner {
+    width: min(var(--coala-container), calc(100% - 48px));
+    margin: 0 auto;
+    padding: 28px 0 34px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 24px;
+  }
+  .main-nav-mega-column { display: grid; align-content: start; gap: 12px; }
+  .main-nav-mega-title {
+    margin: 0;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #e5ebe7;
+    color: #142d22;
+    font-size: 14px;
+    font-weight: 900;
+  }
+  .main-nav-mega-column.is-active .main-nav-mega-title { border-bottom-color: var(--coala-green-700); color: var(--coala-green-700); }
+  .main-nav-mega-links { display: grid; gap: 2px; }
+  .main-nav-mega-link {
+    min-height: 34px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--coala-text);
+    padding: 0 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+  }
+  .main-nav-mega-link--child { padding-left: 20px; color: #5c6b63; font-weight: 600; }
+  .main-nav-mega-link:hover,
+  .main-nav-mega-link.is-active { background: var(--coala-green-50); color: var(--coala-green-800); }
+}
+@media (min-width: 901px) and (prefers-reduced-motion: reduce) {
+  .main-nav-mega { transition: none; transform: none; }
+}
+
+/* 상단 메뉴 색상: 검정 / 회색 */
+.coala-header .main-nav-button { color: #6b6b6b; }
+.coala-header .main-nav-button:hover,
+.coala-header .main-nav-button.is-active { color: #111; }
+.coala-header .main-nav-button.is-active::after { background: #111; }
+.coala-header .main-nav-dropdown-item { color: #6b6b6b; }
+.coala-header .main-nav-dropdown-item:hover,
+.coala-header .main-nav-dropdown-item.is-active { background: #f3f3f3; color: #111; }
+.coala-header .main-nav-mega-title { color: #111; }
+.coala-header .main-nav-mega-column.is-active .main-nav-mega-title { border-bottom-color: #111; color: #111; }
+.coala-header .main-nav-mega-link,
+.coala-header .main-nav-mega-link--child { color: #6b6b6b; }
+.coala-header .main-nav-mega-link:hover,
+.coala-header .main-nav-mega-link.is-active { background: #f3f3f3; color: #111; }
+
+/* 게시판 목록: 컨트롤과 같은 폭, 넉넉한 빈 상태, 다시 불러오기 버튼은 문구 아래 */
+.coala-content--posts .board-shell--editorial { padding: 0 0 18px; }
+.coala-content--posts .board-shell--editorial.board-shell--card { padding: 18px 0; }
+.coala-content--posts .empty-post-state {
+  min-height: 360px;
+  flex-direction: column;
+  gap: 14px;
+  text-align: center;
+  font-size: 14px;
+}
+.coala-content--posts .empty-post-state p { margin: 0; }
+.coala-content--posts .empty-post-state .ghost-button { min-height: 36px; padding: 0 16px; font-size: 13px; }
+.coala-content--info .empty-post-state {
+  display: flex;
+  grid-column: 1 / -1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+  width: 100%;
+  gap: 16px;
+  padding: 48px 24px;
+  color: #737373;
+  font-size: 14px;
+  text-align: center;
+}
+.coala-content--info .empty-post-state p { margin: 0; }
+.coala-content--info .empty-post-state .ghost-button { min-height: 36px; padding: 0 16px; font-size: 13px; }
+.coala-content .empty-post-state .ghost-button {
+  background: #111;
+  border-color: #111;
+  color: #fff;
+}
+.coala-content .empty-post-state .ghost-button:hover {
+  background: #292929;
+  border-color: #292929;
+}
+
+/* 게시글 목록 글씨 크기 키움 */
+.board-table-head { min-height: 44px; font-size: 13px; font-weight: 700; }
+.board-post-card--list { min-height: 72px; padding: 12px 14px; }
+.board-tag { min-height: 26px; font-size: 12px; font-weight: 700; }
+.board-post-title { font-size: 16px; font-weight: 700; }
+.board-post-excerpt { font-size: 13px; line-height: 1.5; }
+.board-table-meta { font-size: 13px; }
+.board-avatar { font-size: 11px; }
+.board-post-card--card .board-post-meta { font-size: 12px; }
+.board-post-card--card .board-post-stats { font-size: 12px; }
+.info-list--editorial .info-post-row:not(:first-child) .board-post-title { font-size: 15px; }
+
+/* 세부 메뉴: 왼쪽 사이드바 */
+.coala-section-layout {
+  display: grid;
+  grid-template-columns: 128px minmax(0, 1fr);
+  column-gap: 24px;
+  align-items: start;
+  width: min(1800px, calc(100% - 64px));
+  margin-inline: auto;
+}
+.coala-sidebar {
+  position: sticky;
+  top: calc(var(--coala-header-height) + 24px);
+  padding: 24px 0;
+}
+.coala-sidebar-title {
+  margin: 0 0 8px;
+  padding: 0 10px;
+  color: #111;
+  font-size: 15px;
+  font-weight: 700;
+}
+.coala-sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+.coala-sidebar-link {
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6b6b6b;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.coala-sidebar-link:hover { background: #f3f3f3; color: #111; }
+.coala-sidebar-link.is-active { background: #f3f3f3; color: #111; font-weight: 700; }
+.coala-sidebar-link:focus-visible { outline: 2px solid #737373; outline-offset: 2px; }
+.coala-sidebar-link:focus:not(:focus-visible) { outline: none; box-shadow: none; }
+.coala-content--recruit .recruit-create-button,
+.coala-content--recruit .recruit-load-state .ghost-button {
+  background: #111; border-color: #111; color: #fff;
+}
+.coala-content--recruit .recruit-create-button:hover { background: #292929; border-color: #292929; }
+.coala-content--recruit .recruit-card-grid { width: 100%; }
+.coala-content--recruit .recruit-card { border-color: #e5e5e5; box-shadow: none; }
+.coala-content--recruit .recruit-card:hover { border-color: #a3a3a3; }
+.coala-section-main { min-width: 0; }
+.coala-section-main .page-container { width: 100%; }
+@media (min-width: 901px) {
+  .coala-section-layout:has(.community-banner) {
+    --section-sidebar-width: 160px;
+    --section-column-gap: 32px;
+    grid-template-columns: var(--section-sidebar-width) minmax(0, 1fr);
+    column-gap: var(--section-column-gap);
+    width: min(1600px, calc(100% - 64px));
+  }
+  .coala-app:not(.coala-app--admin) .coala-header-inner {
+    box-sizing: border-box;
+    width: min(1600px, calc(100% - 64px));
+    padding-left: 0;
+  }
+  .coala-section-layout .community-banner {
+    width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap));
+    margin-left: calc(-1 * (var(--section-sidebar-width) + var(--section-column-gap)));
+  }
+  .coala-section-layout:has(.community-banner) .coala-sidebar {
+    margin-top: 114px;
+  }
+  .coala-section-layout:has(.community-banner) :is(.board-shell, .info-board-shell) {
+    width: 100%;
+  }
+  .coala-app:has(.coala-section-layout .community-banner) > .public-footer {
+    padding-inline: 32px;
+  }
+  .coala-app:has(.coala-section-layout .community-banner) .public-footer-inner {
+    max-width: 1600px;
+  }
+}
+@media (max-width: 900px) {
+  .coala-section-layout { display: block; width: 100%; }
+  .coala-section-main .page-container { width: min(var(--coala-container), calc(100% - var(--coala-page-inline))); }
+  .coala-sidebar {
+    position: static;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e5e7eb;
+  }
+  .coala-sidebar-title { display: none; }
+  .coala-sidebar-nav { flex-direction: row; overflow-x: auto; gap: 4px; }
+  .coala-sidebar-link { width: auto; white-space: nowrap; }
 }

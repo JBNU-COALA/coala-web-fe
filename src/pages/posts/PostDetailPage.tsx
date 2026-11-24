@@ -14,6 +14,7 @@ import { copyMarkdown, htmlToReadableMarkdown, rewriteMarkdownImageUrls, normali
 import { parsePostRouteKey, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useRequestScope } from '../../useRequestScope'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 type PostDetailPageProps = {
   postId: string
@@ -324,7 +325,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
     return (
       <section className="coala-content coala-content--post-detail">
         <article className="surface-card post-detail">
-          <p className="empty-post-state">게시글을 불러오는 중...</p>
+          <LoadingSpinner label="게시글을 불러오는 중..." />
         </article>
       </section>
     )

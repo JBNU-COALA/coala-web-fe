@@ -10,6 +10,7 @@ import { PageFrame } from '../../shared/ui/PageFrame'
 import { Icon } from '../../shared/ui/Icon'
 import { buildUploadedFileContent, emptyDraft, itemToDraft, resolveArchiveCategory, stripFileExtension, toPayload } from './archiveModel'
 import './archive.css'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 export function ArchiveEditorPage() {
   const location = useLocation()
@@ -94,11 +95,12 @@ export function ArchiveEditorPage() {
     finally { setSaving(false) }
   }
 
-  return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트/스킬'} tone="archive" bodyClassName="archive-content">
-    <Link className="archive-back-link" to={listPath} onClick={(event) => { event.preventDefault(); if (!saving && !isUploadingArchiveFile) closeForm() }}><Icon name="chevron-left" size={16} />목록으로 돌아가기</Link>
-    {!isLoggedIn ? <div className="archive-empty"><p>로그인 후 자료를 등록할 수 있습니다.</p>
-      <Link className="primary-button" to="/login" state={{ from: location }}>로그인</Link></div>
-      : loading ? <p role="status">자료를 불러오는 중입니다.</p>
+  return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트/스킬'} tone="archive" className="coala-content--archive" bodyClassName="archive-content">
+    {!isLoggedIn ? <div className="archive-login-required">
+      <span className="archive-login-icon"><Icon name="user" size={28} /></span>
+      <h3>로그인이 필요합니다.</h3><p>자료 등록은 로그인 후 이용할 수 있습니다.</p>
+      <Link className="archive-login-button" to="/login" state={{ from: location }}>로그인하기</Link></div>
+      : loading ? <LoadingSpinner label="자료를 불러오는 중입니다." />
       : !allowed ? <p role="alert">{archiveError}</p>
       : <form className="archive-form archive-editor" onSubmit={handleSubmit}>
                 <div className="archive-form-head">

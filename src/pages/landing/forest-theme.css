@@ -1,5 +1,5 @@
 /* Shared public-site palette sampled from the jungle hero. */
-.jungle-site,.recruiting-site {
+.jungle-site,.recruiting-site,.recruiting-site .public-footer {
   --forest-base:#06100b;
   --forest-section:#0a1710;
   --forest-surface:#102219;
@@ -61,20 +61,6 @@
 .recruiting-site{background:var(--forest-base);color:var(--forest-text)}
 .recruiting-site .recruiting-brand img{filter:none}
 .recruiting-site .recruiting-header [aria-current]{color:var(--forest-accent)}
-.recruiting-site .recruiting-hero,.recruiting-site .recruiting-process{background:var(--forest-section)}
-.recruiting-site .recruiting-hero-logo{filter:none;opacity:.85}
-.recruiting-site .recruiting-hero p,.recruiting-site .recruiting-heading>a,
-.recruiting-site .recruiting-opening p,.recruiting-site .recruiting-steps p,
-.recruiting-site .recruiting-note,.recruiting-site .recruiting-questions details>p{color:var(--forest-muted)}
-.recruiting-site .recruiting-primary{background:var(--forest-accent);color:var(--forest-base)!important}
-.recruiting-site .recruiting-filters button,.recruiting-site .recruiting-state,
-.recruiting-site .recruiting-state button{background:var(--forest-surface);color:var(--forest-muted);border-color:var(--forest-border)}
-.recruiting-site .recruiting-filters button[aria-pressed=true]{background:var(--forest-accent);color:var(--forest-base)}
-.recruiting-site .recruiting-list,.recruiting-site .recruiting-opening,
-.recruiting-site .recruiting-steps article,.recruiting-site .recruiting-questions details{border-color:var(--forest-border)}
-.recruiting-site .recruiting-opening:hover{background:var(--forest-surface)}
-.recruiting-site .recruiting-opening span,.recruiting-site .recruiting-steps article>span{color:var(--forest-accent)}
-.recruiting-site .recruiting-opening strong{background:var(--forest-raised);color:var(--forest-accent)}
 /* All main-page sections share Activity's 1240px content grid. */
 .jungle-site .jungle-section,
 .jungle-site .project-showcase,
@@ -93,11 +79,11 @@
   margin-left:0;
   margin-right:0;
 }
-.jungle-site .apply-banner{min-height:340px;display:grid;place-items:center;padding:72px 6%;text-align:center;background:linear-gradient(#06100bbd,#06100bd9),url('/coala-card-placeholder.png') center 46%/cover no-repeat}
+.jungle-site .apply-banner{min-height:250px;display:grid;place-items:center;padding:44px 6%;text-align:center;background:linear-gradient(#06100bbd,#06100bd9),url('/coala-card-placeholder.png') center 46%/cover no-repeat}
 .apply-banner-content{max-width:900px}
-.jungle-site .apply-banner h2{margin:0 0 28px;color:#f0f2e8;font-size:30px;line-height:1.5;font-weight:500;letter-spacing:-.8px}
-.jungle-site .apply-banner .jungle-button{padding:15px 26px;border-radius:12px;font-size:16px}
-@media(max-width:600px){.jungle-site .apply-banner{min-height:280px;padding:56px 6%}.jungle-site .apply-banner h2{font-size:24px}}
+.jungle-site .apply-banner h2{margin:0 0 22px;color:#f0f2e8;font-size:24px;line-height:1.5;font-weight:500;letter-spacing:-.8px}
+.jungle-site .apply-banner .jungle-button{padding:11px 22px;border-radius:12px;font-size:14px}
+@media(max-width:600px){.jungle-site .apply-banner{min-height:220px;padding:36px 6%}.jungle-site .apply-banner h2{font-size:19px}}
 .jungle-site .apply-banner{background-image:linear-gradient(#06100b55,#06100b88),url('/coala-coding-banner.png');background-position:center}
 .jungle-site .jungle-header,.recruiting-site .recruiting-header{height:80px;padding-top:12px;padding-bottom:12px}
 .jungle-site .jungle-header .public-header-symbol,.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol{width:38px;height:38px}
@@ -105,7 +91,7 @@
 .jungle-site .jungle-header nav,.recruiting-site .recruiting-header nav{font-size:20px;gap:28px}
 .jungle-site .jungle-header nav a,.recruiting-site .recruiting-header nav a{min-height:44px}
 @media(max-width:600px){.jungle-site .jungle-header,.recruiting-site .recruiting-header{height:68px;padding-top:10px;padding-bottom:10px}.jungle-site .jungle-header .public-header-symbol,.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol{width:30px;height:30px}.jungle-site .jungle-header .jungle-logo img.jungle-brand-image,.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol){width:88px;height:30px}.jungle-site .jungle-header nav,.recruiting-site .recruiting-header nav{font-size:16px;gap:18px}}
-.jungle-site .apply-banner .jungle-button{border-radius:999px;padding:15px 30px}
+.jungle-site .apply-banner .jungle-button{border-radius:999px;padding:11px 24px}
 .jungle-site .jungle-activities{padding-top:136px;padding-bottom:140px}
 .jungle-site .jungle-activities .jungle-section-heading{gap:40px;margin-bottom:58px;align-items:flex-start}
 .jungle-site .jungle-activities .activity-introduction{max-width:520px;color:var(--forest-muted);font-size:16px;line-height:1.9}
@@ -119,3 +105,7 @@
 .jungle-site .alumni-window{padding-top:30px;padding-bottom:44px}
 @media(max-width:800px){.jungle-site .jungle-activities .jungle-section-heading{flex-direction:column;gap:24px}.jungle-site .jungle-activities .activity-introduction{margin:0}}
 @media(max-width:600px){.jungle-site .jungle-activities{padding-top:88px;padding-bottom:92px}.jungle-site .jungle-activities .jungle-section-heading{margin-bottom:38px}.jungle-site .jungle-activities .jungle-activity-grid{gap:32px}.jungle-site .alumni-showcase{padding-top:100px;padding-bottom:108px}.jungle-site .alumni-heading{margin-bottom:40px}.jungle-site .alumni-window{padding-top:24px;padding-bottom:32px}}
+
+/* 상단 메뉴 색상: 검정 / 회색 (흰 배경 리크루팅 헤더) */
+.recruiting-site .recruiting-header nav a{color:#6b6b6b}
+.recruiting-site .recruiting-header nav a:hover,.recruiting-site .recruiting-header nav [aria-current]{color:#111}

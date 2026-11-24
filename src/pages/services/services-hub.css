@@ -1,0 +1,153 @@
+.coas-hub { width: 100%; padding: 40px 0 48px; color: #171717; }
+.coas-intro { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(260px, 1fr); gap: 48px; align-items: center; padding: 16px 0 48px; border-bottom: 1px solid #e5e5e5; }
+.coas-kicker { margin: 0 0 20px; color: #737373; font-size: 13px; font-weight: 600; }
+.coas-intro h2 { margin: 0; font-size: clamp(28px, 3vw, 42px); line-height: 1.35; letter-spacing: -.05em; font-weight: 700; }
+.coas-description { margin: 22px 0 0; font-size: 15px; line-height: 1.9; color: #666; word-break: keep-all; }
+.coas-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.coas-actions > button, .coas-actions > a { display: inline-flex; align-items: center; justify-content: center; gap: 10px; min-height: 44px; padding: 0 18px; border: 1px solid #dedede; border-radius: 8px; background: #fff; color: #171717; font: inherit; font-size: 13px; font-weight: 600; text-decoration: none; cursor: pointer; }
+.coas-actions > button { background: #111; border-color: #111; color: #fff; }
+.coas-actions > button:hover { background: #333; }
+.coas-actions > a:hover { background: #f5f5f5; border-color: #999; }
+.coas-external-label { color: #737373; }
+.coas-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.coas-project-banner { overflow: hidden; min-width: 0; border: 1px solid #333; border-radius: 12px; background: #202020; color: #f5f5f3; }
+.coas-project-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 28px; padding: 20px 0; border-bottom: 1px solid #393939; font-size: 11px; letter-spacing: .05em; }
+.coas-project-topline > span:first-child { display: inline-flex; align-items: center; gap: 9px; }
+.coas-project-public { padding: 4px 9px; border: 1px solid #555; border-radius: 20px; color: #c4c4c4; font-size: 10px; white-space: nowrap; }
+.coas-project-identity { display: flex; align-items: center; gap: 20px; padding: 30px 28px 8px; }
+.coas-project-identity > img { width: 80px; height: 80px; flex-shrink: 0; }
+.coas-project-identity strong { display: block; font-size: clamp(36px, 4vw, 56px); line-height: 1; letter-spacing: -.06em; font-weight: 750; }
+.coas-project-identity strong > span { color: #d3b885; }
+.coas-project-identity p { margin: 10px 0 0; color: #b6b6b6; font-size: 12px; line-height: 1.5; }
+.coas-project-branches { display: block; width: 100%; height: 100px; }
+.coas-project-bottomline { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 28px 22px; color: #bbb; font-size: 11px; }
+.coas-project-bottomline > span:last-child { font-family: monospace; font-size: 18px; color: #d3b885; }
+.coas-hub .services-showcase { width: 100%; padding-top: 32px; }
+.coas-hub .services-showcase + .services-showcase { margin-top: 32px; padding-top: 32px; border-color: #e5e5e5; }
+.coas-hub .services-showcase-head { margin-bottom: 20px; }
+.coas-hub .services-showcase-head h3 { font-size: 20px; font-weight: 700; color: #171717; letter-spacing: -.03em; }
+.coas-hub .services-showcase-head button { color: #737373; font-size: 13px; font-weight: 500; cursor: pointer; }
+.coas-hub .official-service-preview-grid { gap: 16px; }
+.coas-hub .official-service-preview-grid > button { min-height: 112px; grid-template-columns: 40px minmax(0, 1fr) 18px; gap: 20px; padding: 24px; border-color: #e5e5e5; border-radius: 10px; color: #171717; cursor: pointer; }
+.coas-hub .official-service-preview-grid > button:hover { background: #fafafa; border-color: #aaa; }
+.coas-hub .official-service-preview-grid button > svg:first-child { width: 30px; height: 30px; padding: 0; border-radius: 0; background: none; }
+.coas-hub .official-service-preview-grid strong { font-size: 16px; }
+.coas-hub .official-service-preview-grid small { font-size: 13px; color: #737373; line-height: 1.6; }
+.coas-hub .member-service-preview-grid > button { border-color: #e5e5e5; }
+.coas-hub .member-service-preview-copy small { background: #f5f5f5; color: #525252; }
+.coas-hub .member-service-preview-copy > span { color: #737373; font-size: 13px; }
+.coas-hub :is(button, a):focus-visible { outline: 2px solid #525252; outline-offset: 3px; }
+.coala-content--services .service-section-intro { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 32px 36px; margin: 32px 0 28px; background: #202020; color: #f5f5f3; border: 1px solid #333; border-radius: 12px; }
+.service-section-intro p { margin: 0 0 14px; color: #b9aa8e; font-size: 10px; font-weight: 600; letter-spacing: .12em; }
+.service-section-intro h2 { margin: 0 0 12px; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.4; letter-spacing: -.04em; }
+.service-section-intro > div > span { color: #bcbcbc; font-size: 14px; line-height: 1.7; word-break: keep-all; }
+.service-section-art { display: flex; align-items: center; justify-content: center; gap: 20px; flex: 0 0 200px; color: #d3b885; }
+.service-section-art > img { width: 72px; height: 72px; }
+.service-section-art .service-section-connector { width: 36px; height: 1px; background: #777; }
+.service-section-art .service-section-code { font-family: monospace; font-size: 36px; color: #d3b885; }
+.coala-content--services .official-service-panel,
+.coala-content--services .member-services-toolbar,
+.coala-content--services .member-service-grid,
+.coala-content--services .member-service-list { width: 100%; }
+.coala-content--services .service-menu-tabs { border: 1px solid #dedede; border-radius: 10px; background: #fff; }
+.coala-content--services .service-menu-tab { color: #737373; border-color: #dedede; background: #fff; font-size: 14px; }
+.coala-content--services .service-menu-tab.is-active { background: #f5f5f5; color: #111; }
+.coala-content--services .service-menu-tab.is-active::after { background: #111; }
+.coala-content--services .service-workspace-tab { color: #737373; }
+.coala-content--services .service-workspace-tab.is-active { color: #111; border-color: #111; background: #f5f5f5; }
+.coala-content--services :is(.jcloud-tab-shell, .member-services-toolbar, .member-service-card, .member-service-row, .member-service-form, .member-service-detail) { border-color: #e5e5e5; box-shadow: none; }
+.coala-content--services .member-services-toolbar { padding: 24px 0; background: #fff; }
+.coala-content--services :is(.member-service-add-button, .jcloud-submit-button, .view-toggle button.is-active) { background: #111; border-color: #111; color: #fff; }
+.coala-content--services :is(.member-service-tag-chip, .member-service-status, .member-service-tags > span) { background: #f5f5f5; border-color: #dedede; color: #525252; }
+.coala-content--services .member-service-tag-chip.is-active { background: #111; border-color: #111; color: #fff; }
+.coala-content--services :is(.member-service-open-hint, .member-service-tag-reset, .member-services-toolbar-head strong) { color: #111; }
+.coala-content--services :is(.search-field, .jcloud-input, .jcloud-textarea) { border-color: #dedede; }
+.coala-content--services :is(.search-field:focus-within, .jcloud-input:focus, .jcloud-textarea:focus) { border-color: #737373; box-shadow: 0 0 0 3px #0000000d; outline: none; }
+.coala-content--services :is(button, a):focus-visible { outline-color: #737373; }
+.coala-content--services .jcloud-login-required .jcloud-success-icon { background: #f3f3f3; color: #525252; }
+.coala-content--services .jcloud-login-required .jcloud-success-title { color: #171717; }
+.coala-content--services .jcloud-login-required .jcloud-success-desc { color: #737373; }
+.coala-content--services .jcloud-login-link { background: #111; border-color: #111; color: #fff; }
+.coala-content--services .jcloud-login-link:hover { background: #292929; border-color: #292929; color: #fff; }
+.coala-content--services .service-inquiries--login > a { color: #111; text-decoration-color: #111; }
+.coala-content--services .service-inquiries--login > a:hover { color: #404040; text-decoration-color: #404040; }
+.coala-content--services {
+  --coala-green-950: #171717; --coala-green-900: #171717;
+  --coala-green-800: #262626; --coala-green-700: #111;
+  --coala-green-600: #404040; --coala-green-100: #f3f3f3;
+  --coala-green-50: #fafafa; --coala-line: #e5e5e5;
+}
+.coala-content--services .service-workspace-nav { border-color: #e5e5e5; }
+.coala-content--services .service-workspace-tab:hover,
+.coala-content--services .service-menu-tab:hover { background: #f3f3f3; color: #111; border-color: #dedede; }
+.coala-content--services .service-workspace-tab:focus,
+.coala-content--services .service-menu-tab:focus { outline: none; box-shadow: none; }
+.coala-content--services .service-workspace-tab:focus-visible,
+.coala-content--services .service-menu-tab:focus-visible { outline: 2px solid #737373; outline-offset: -3px; }
+.coala-content--services :is(.write-post-button, .member-service-add-button, .jcloud-submit-button):hover { background: #292929; border-color: #292929; color: #fff; }
+.coala-content--services :is(.ghost-button, .member-service-edit-button, .member-service-tag-chip):hover { background: #f3f3f3; border-color: #a3a3a3; color: #111; }
+.coala-content--services .empty-post-state { grid-column: 1 / -1; width: 100%; min-height: 300px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 48px 24px; border: 0; border-radius: 0; background: #fff; color: #737373; text-align: center; }
+.coala-content--services .empty-post-state p { margin: 0; }
+.coala-content--services .listing-controls-actions { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto auto; gap: 10px; align-items: center; }
+.coala-content--services .listing-controls-actions > .select-control { width: 120px; }
+.coala-content--services .listing-controls-actions > .view-toggle { display: inline-flex; width: auto; flex-shrink: 0; }
+.coala-content--services .listing-controls-actions > .view-toggle button { flex: 0 0 38px; width: 38px; white-space: nowrap; }
+@media (max-width: 640px) {
+  .coala-content--services .listing-controls-actions { grid-template-columns: 120px 1fr auto; }
+  .coala-content--services .listing-controls-actions > .search-field { grid-column: 1 / -1; grid-row: 1; }
+  .coala-content--services .listing-controls-actions > .view-toggle { justify-self: end; }
+}
+.coala-content--services .jcloud-filter-tab { background: #fff; border-color: #dedede; color: #525252; }
+.coala-content--services .jcloud-filter-tab:hover { background: #f3f3f3; border-color: #a3a3a3; color: #111; }
+.coala-content--services .jcloud-filter-tab.is-active { background: #111; border-color: #111; color: #fff; }
+.coala-content--services .jcloud-filter-tab.is-active:hover { background: #292929; border-color: #292929; }
+.coala-content--services .jcloud-filter-tab:focus { box-shadow: none; }
+.coala-content--services .jcloud-filter-tab:focus-visible { outline: 2px solid #737373; outline-offset: 2px; }
+.coala-content--services .jcloud-list-empty,
+.coala-content--services .jcloud-list-count { color: #737373; }
+.coala-content--services .jcloud-list-empty > svg { color: #737373; }
+.coala-content--services .empty-post-state .ghost-button:hover { background: #292929; border-color: #292929; color: #fff; }
+@media (max-width: 900px) {
+  .coala-content--services .service-section-intro { margin-inline: 24px; }
+  .coala-content--services .official-service-panel .service-section-intro { margin-inline: 0; }
+  .coas-hub { padding-inline: 24px; }
+  .coas-intro { gap: 24px; }
+}
+@media (max-width: 640px) {
+  .coala-content--services .service-section-intro { padding: 24px; margin: 24px 16px; gap: 16px; }
+  .coala-content--services .official-service-panel .service-section-intro { margin-inline: 0; }
+  .service-section-art { flex-basis: 64px; flex-direction: column; gap: 10px; }
+  .service-section-art > svg { width: 28px; height: 28px; }
+  .service-section-art .service-section-connector { width: 1px; height: 16px; }
+  .service-section-art > img { width: 56px; height: 56px; }
+  .service-section-art .service-section-code { font-size: 24px; }
+  .coas-hub { padding: 24px 16px 32px; }
+  .coas-intro { grid-template-columns: 1fr; gap: 28px; padding: 0 0 28px; }
+  .coas-project-topline { margin-inline: 20px; }
+  .coas-project-identity { padding-inline: 20px; gap: 14px; }
+  .coas-project-identity > img { width: 64px; height: 64px; }
+  .coas-project-bottomline { padding-inline: 20px; }
+  .coas-description { font-size: 14px; }
+  .coas-hub .official-service-preview-grid { grid-template-columns: 1fr; }
+  .coas-hub .official-service-preview-grid > button { padding: 20px 16px; gap: 12px; }
+}
+.coala-content--services .member-service-form { width: 100%; padding: 28px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fff; color: #171717; }
+.coala-content--services .member-service-form-head { padding-bottom: 20px; margin-bottom: 24px; border-bottom: 1px solid #ededed; }
+.coala-content--services .member-service-form-head h3 { color: #171717; font-size: 18px; }
+.coala-content--services .member-service-form-head p { margin-top: 8px; color: #737373; font-size: 13px; }
+.coala-content--services .member-service-form-grid { gap: 20px; }
+.coala-content--services .member-service-form .jcloud-label { color: #404040; font-size: 13px; font-weight: 600; }
+.coala-content--services .member-service-form :is(.jcloud-input, .jcloud-textarea) { background: #fff; border: 1px solid #d4d4d4; color: #171717; border-radius: 8px; box-shadow: none; }
+.coala-content--services .member-service-form :is(.jcloud-input, .jcloud-textarea)::placeholder { color: #909090; }
+.coala-content--services .member-service-form :is(.jcloud-input, .jcloud-textarea):hover { border-color: #a3a3a3; }
+.coala-content--services .member-service-form :is(.jcloud-input, .jcloud-textarea):focus { border-color: #111; background: #fff; outline: none; box-shadow: 0 0 0 3px #0000000d; }
+.coala-content--services .member-service-form .ghost-button { background: #fff; border: 1px solid #d4d4d4; color: #404040; border-radius: 7px; }
+.coala-content--services .member-service-form .ghost-button:hover { background: #f5f5f5; border-color: #a3a3a3; color: #111; }
+.coala-content--services .member-service-image-empty { color: #8a8a8a; font-size: 13px; font-weight: 400; }
+.coala-content--services .member-service-image-upload { flex-wrap: wrap; gap: 12px; }
+.coala-content--services .member-service-image-upload-button:focus-within { outline: 2px solid #737373; outline-offset: 2px; }
+.coala-content--services .member-service-form button:focus,
+.coala-content--services .listing-controls button:focus { box-shadow: none; }
+.coala-content--services .member-service-form button:focus-visible,
+.coala-content--services .listing-controls button:focus-visible { outline: 2px solid #737373; outline-offset: 2px; }
+@media (max-width: 640px) { .coala-content--services .member-service-form { padding: 20px 16px; } }

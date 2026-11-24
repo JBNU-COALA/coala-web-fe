@@ -22,6 +22,16 @@
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
+  transition: background-color 180ms ease, color 180ms ease;
+}
+.service-workspace-content { animation: service-workspace-enter 220ms ease-out; }
+@keyframes service-workspace-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .service-workspace-content { animation: none; }
+  .service-workspace-tab { transition: none; }
 }
 .service-workspace-tab svg { flex-shrink: 0; }
 .service-workspace-tab:hover { background: #eef4f0; }

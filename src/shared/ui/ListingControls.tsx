@@ -3,8 +3,8 @@ import './ListingControls.css'
 
 type ListingControlsProps = {
   label: string
-  count: string
-  filters: ReactNode
+  count?: string
+  filters?: ReactNode
   children: ReactNode
   accessory?: ReactNode
   message?: ReactNode
@@ -14,12 +14,14 @@ type ListingControlsProps = {
 export function ListingControls({ label, count, filters, children, accessory, message, className = '' }: ListingControlsProps) {
   return (
     <section className={`listing-controls ${className}`} aria-label={label}>
-      <div className="listing-controls-filters">{filters}</div>
-      <div className="listing-controls-summary">
-        <span role="status">{count}</span>
-        {accessory}
-      </div>
+      {filters ? <div className="listing-controls-filters">{filters}</div> : null}
       <div className="listing-controls-actions">{children}</div>
+      {count || accessory ? (
+        <div className="listing-controls-summary">
+          {count ? <span role="status">{count}</span> : <span />}
+          {accessory}
+        </div>
+      ) : null}
       {message}
     </section>
   )

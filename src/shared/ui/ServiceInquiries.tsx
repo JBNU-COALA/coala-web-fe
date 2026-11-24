@@ -5,6 +5,7 @@ import { mutationError } from '../api/mutationError'
 import { useAuth } from '../auth/AuthContext'
 import { Icon } from './Icon'
 import './serviceInquiries.css'
+import { LoadingSpinner } from './LoadingSpinner'
 
 type InquiryKind = 'instances' | 'domains'
 const serviceNames = { instances: '인스턴스', domains: '도메인' } as const
@@ -30,11 +31,11 @@ function answerDate(value: string) {
 export function ServiceInquiries({ kind }: { kind: InquiryKind }) {
   const { isLoggedIn, user } = useAuth()
   const location = useLocation()
-  if (!isLoggedIn || !user) return <section className="service-inquiries service-inquiries--login">
-    <Icon name="message" size={24} />
-    <h3>로그인이 필요합니다.</h3>
-    <p>{serviceNames[kind]} 문의 내역은 로그인 후 확인할 수 있습니다.</p>
-    <Link to="/login" state={{ from: location }}>로그인하기</Link>
+  if (!isLoggedIn || !user) return <section className="jcloud-login-required">
+    <div className="jcloud-success-icon"><Icon name="user" size={28} /></div>
+    <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
+    <p className="jcloud-success-desc">{serviceNames[kind]} 문의 내역은 로그인 후 확인할 수 있습니다.</p>
+    <Link className="jcloud-login-link" to="/login" state={{ from: location }}>로그인하기</Link>
   </section>
   return <AuthenticatedInquiries key={`${kind}:${user.id}`} kind={kind} />
 }
@@ -134,7 +135,7 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
     {loadError && <div className="service-inquiries-load-error">
       <p role="alert">{loadError}</p><button type="button" onClick={reload} disabled={saving}>다시 불러오기</button>
     </div>}
-    {loading && <p role="status">문의 내역을 불러오는 중입니다.</p>}
+    {loading && <LoadingSpinner label="문의 내역을 불러오는 중입니다." />}
     {!loading && !loadError && items?.length === 0 && <p className="service-inquiries-empty">등록된 문의가 없습니다.</p>}
     <ul className="service-inquiries-list" aria-busy={loading}>
       {items?.map((item) => {

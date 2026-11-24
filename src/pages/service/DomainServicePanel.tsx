@@ -168,7 +168,7 @@ function DomainLoginRequired({ message }: { message: string }) {
   return (
     <div className="jcloud-login-required">
       <div className="jcloud-success-icon">
-        <Icon name="link" size={28} />
+        <Icon name="user" size={28} />
       </div>
       <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
       <p className="jcloud-success-desc">{message}</p>

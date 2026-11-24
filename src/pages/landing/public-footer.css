@@ -46,3 +46,9 @@
   .public-footer .public-footer-channels a.public-footer-channel { transition: none; }
   .public-footer .public-footer-channels a.public-footer-channel:is(:hover,:focus-visible,:active) { transform: none; }
 }
+
+.public-footer .public-footer-channels a.public-footer-channel{position:relative}
+.public-footer .public-footer-channel[data-tooltip]::after{content:attr(data-tooltip);position:absolute;bottom:calc(100% + 10px);left:50%;padding:7px 14px;border-radius:999px;background:#152b20;color:#f0f2e8;font-size:13px;font-weight:600;line-height:1.3;white-space:nowrap;box-shadow:0 6px 18px #0003;pointer-events:none;opacity:0;transform:translate(-50%,4px);transition:opacity 180ms ease,transform 180ms ease;z-index:10}
+.public-footer .public-footer-channel[data-tooltip]:is(:hover,:focus-visible)::after{opacity:1;transform:translate(-50%,0)}
+.coala-app > .public-footer .public-footer-channel[data-tooltip]::after{background:#f0f2e8;color:#152b20}
+@media (prefers-reduced-motion: reduce){.public-footer .public-footer-channel[data-tooltip]::after{transition:none}}

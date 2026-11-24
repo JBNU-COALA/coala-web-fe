@@ -200,7 +200,7 @@ function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) 
   if (!item || applications.loading || applications.error || !initialized) {
     return (
       <section className="coala-content coala-content--recruit">
-        <CommunityBanner title="지원하기" tone="recruit" />
+        <CommunityBanner title="지원하기" description="관심 있는 모집 공고에 지원서를 작성해 제출해 보세요." tone="recruit" />
         <div className="surface-card recruit-application-empty">
           <strong role={loadError || applications.error ? 'alert' : 'status'}>
             {loadError || applications.error || (loading || applications.loading || item ? '지원서를 불러오는 중입니다.' : '지원할 모집 공고를 찾을 수 없습니다.')}
@@ -220,7 +220,7 @@ function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) 
   if (submitted) {
     return (
       <section className="coala-content coala-content--recruit">
-        <CommunityBanner title="지원하기" tone="recruit" />
+        <CommunityBanner title="지원하기" description="관심 있는 모집 공고에 지원서를 작성해 제출해 보세요." tone="recruit" />
         <div className="surface-card recruit-application-success">
           <Icon name="file" size={22} />
           <div>
@@ -242,7 +242,7 @@ function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) 
 
   return (
     <section className="coala-content coala-content--recruit">
-      <CommunityBanner title="지원하기" tone="recruit" />
+      <CommunityBanner title="지원하기" description="관심 있는 모집 공고에 지원서를 작성해 제출해 보세요." tone="recruit" />
 
       <form className="surface-card recruit-application-panel recruit-application-panel--page" onSubmit={handleSubmit}>
         <header className="recruit-application-head">

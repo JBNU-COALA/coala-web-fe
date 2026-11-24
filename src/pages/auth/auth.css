@@ -76,7 +76,8 @@
   }
 }
 
-.coala-content.coala-content--login { width: min(100%, 460px); padding: 100px 24px 120px; }
+.coala-shell--auth:has(.coala-content--login, .coala-content--reset) { display: flex; align-items: center; justify-content: center; }
+.coala-content.coala-content--login { width: min(100%, 460px); padding: 48px 24px; }
 .coala-content--login .auth-intro { padding-bottom: 24px; }
 .coala-content--login .auth-title { font-size: 22px; font-weight: 500; color: #111827; }
 .coala-content--login .auth-form { display: flex; flex-direction: column; gap: 20px; }
@@ -92,7 +93,7 @@
 .coala-content--login .auth-submit:hover:not(:disabled) { background: #263244; }
 .coala-content--login .auth-signup-outline { margin-top: -8px; background: #fff; border: 1px solid #111827; color: #111827; }
 .coala-content--login .auth-signup-outline:hover { background: #f6f7f8; }
-@media (max-width: 600px) { .coala-content.coala-content--login { padding: 56px 24px 72px; } }
+@media (max-width: 600px) { .coala-content.coala-content--login { padding: 32px 24px; } }
 
 /* Shared compact account forms. Keep existing signup fields and validation. */
 .coala-content.coala-content--auth:not(.coala-content--login) { width: min(100%, 460px); padding: 56px 24px 80px; }
@@ -102,7 +103,8 @@
 .coala-content--auth:not(.coala-content--login) .auth-input { height: 40px; border: 1px solid #cdd3dc; border-radius: 7px; background: #fff; color: #111827; padding: 0 12px; font-size: 14px; font-weight: 400; }
 .coala-content--auth:not(.coala-content--login) .auth-submit { background: #111827; color: #fff; border: 1px solid #111827; border-radius: 0; min-height: 42px; font-size: 14px; font-weight: 500; }
 .coala-content--auth:not(.coala-content--login) .auth-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.coala-content.coala-content--reset { padding-top: 80px; padding-bottom: 100px; }
+.coala-content.coala-content--auth.coala-content--reset { padding-block: 48px; }
+@media (max-width: 600px) { .coala-content.coala-content--auth.coala-content--reset { padding-block: 32px; } }
 .coala-content--reset .auth-lock-video { display: block; width: 130px; height: 130px; object-fit: cover; border-radius: 50%; margin: 0 auto 24px; background: #e2eaf0; }
 .coala-content--reset .auth-intro { padding-bottom: 22px; }
 .coala-content--reset .auth-title { line-height: 1.4; }
@@ -126,7 +128,14 @@
   .coala-content--auth select.auth-input,
   .coala-content--auth select.auth-input::picker(select) { appearance: base-select; }
   .coala-content--auth select.auth-input { display: flex; align-items: center; justify-content: space-between; }
-  .coala-content--auth select.auth-input::picker-icon { color: #68746e; transition: rotate 200ms ease; }
+  .coala-content--auth select.auth-input::picker-icon {
+    content: '';
+    width: 12px;
+    height: 12px;
+    background: #111827;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+    transition: rotate 200ms ease;
+  }
   .coala-content--auth select.auth-input:open::picker-icon { rotate: 180deg; }
   .coala-content--auth select.auth-input::picker(select) {
     margin-top: 8px;
@@ -146,10 +155,10 @@
     .coala-content--auth select.auth-input:open::picker(select) { opacity: 0; transform: translateY(-6px) scale(.98); }
   }
   .coala-content--auth select.auth-input option { min-height: 40px; padding: 10px 12px; border-radius: 9px; font-size: 14px; transition: background-color 140ms ease; }
-  .coala-content--auth select.auth-input option:checked { background: #edf4ef; color: #20543b; font-weight: 500; }
+  .coala-content--auth select.auth-input option:checked { background: #f3f4f6; color: #111827; font-weight: 500; }
   .coala-content--auth select.auth-input option:hover,
-  .coala-content--auth select.auth-input option:focus { background: #f1f5f2; outline: none; }
-  .coala-content--auth select.auth-input option::checkmark { color: #31744e; }
+  .coala-content--auth select.auth-input option:focus { background: #f3f4f6; outline: none; }
+  .coala-content--auth select.auth-input option::checkmark { color: #111827; }
 }
 @media (prefers-reduced-motion: reduce) {
   .coala-content--auth select.auth-input,
@@ -161,3 +170,18 @@
 @supports (appearance: base-select) {
   .coala-content--auth select.auth-input option::checkmark { display: none; }
 }
+
+/* Fallback chevron for browsers without customizable select. */
+@supports not (appearance: base-select) {
+  .coala-content--auth select.auth-input {
+    appearance: none;
+    padding-right: 36px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111827' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right 12px center / 12px 12px;
+  }
+}
+
+.coala-content--auth .auth-helper a,
+.coala-content--auth .auth-helper a:hover { color: #111827; }
+.auth-validation-tip { position: fixed; z-index: 1000; padding: 12px 14px; border: 1px solid #404040; border-radius: 8px; background: #262626; color: #fff; box-shadow: 0 6px 20px #0000001a; font-size: 13px; line-height: 1.5; pointer-events: none; }
+.auth-validation-tip::before { content: ''; position: absolute; top: -5px; left: 18px; width: 8px; height: 8px; background: #262626; border-top: 1px solid #404040; border-left: 1px solid #404040; transform: rotate(45deg); }
+.coala-content--auth .auth-input[aria-invalid=true] { border-color: #111; outline-color: #737373; }

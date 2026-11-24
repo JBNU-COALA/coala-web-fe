@@ -1,7 +1,14 @@
 .coala-content--recruit .recruit-profile-return { display: flex; justify-content: flex-end; padding: 8px 0; }
 .coala-content--recruit .recruit-profile-return a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; color: #4c655b; font-size: 13px; text-decoration: none; }
-.coala-content--recruit .recruit-load-state { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin: 0; padding: 20px 0; color: #56635e; font-size: 14px; }
+.coala-content--recruit .recruit-load-state { display: flex; flex-direction: column; justify-content: center; gap: 16px; align-items: center; width: 100%; min-height: 300px; margin: 0; padding: 48px 24px; color: #737373; font-size: 14px; text-align: center; }
 .coala-content--recruit .recruit-load-state p { margin: 0; }
+.coala-content--recruit .section-nav { border-color: #e5e5e5; }
+.coala-content--recruit .section-nav-item { color: #737373; font-weight: 500; }
+.coala-content--recruit .section-nav-item:hover,
+.coala-content--recruit .section-nav-item[aria-current] { color: #111; }
+.coala-content--recruit .section-nav-item[aria-current] { font-weight: 700; }
+.coala-content--recruit .section-nav-item[aria-current]::after { background: #111; height: 2px; }
+.coala-content--recruit .section-nav-item:focus-visible { outline-color: #737373; }
 .coala-content--recruit .recruit-application-status { color: #856621; font-size: 12px; font-weight: 650; }
 .coala-content--recruit .recruit-application-status--accepted { color: #16714e; }
 .coala-content--recruit .recruit-application-status--rejected { color: #a24545; }

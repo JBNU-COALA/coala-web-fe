@@ -1,4 +1,5 @@
 import './auth.css'
+import { AuthForm } from './AuthForm'
 import { useMemo, useState, type FormEvent } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { authApi } from '../../shared/api/auth'
@@ -108,7 +109,7 @@ export function PasswordResetPage() {
           <p className="auth-reset-description">{isCompleted ? '새 비밀번호로 로그인해주세요.' : codeSent ? '이메일로 받은 인증번호와 새 비밀번호를 입력해주세요.' : '인증번호를 받을 이메일 계정을 입력해주세요.'}</p>
         </div>
 
-        <form className="auth-form email-verification-form" onSubmit={handleSubmit}>
+        <AuthForm className="auth-form email-verification-form" onSubmit={handleSubmit}>
           <label className="auth-label">
             이메일
             <input
@@ -200,7 +201,7 @@ export function PasswordResetPage() {
           )}
 
           </div>
-        </form>
+        </AuthForm>
       </article>
     </section>
   )

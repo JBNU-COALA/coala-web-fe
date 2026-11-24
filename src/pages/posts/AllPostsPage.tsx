@@ -5,7 +5,6 @@ import { postCategoryFilters, postCategoryMeta, type PostBoardFilterId } from '.
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
-import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
@@ -17,6 +16,7 @@ import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isCommunityBoard, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 type AllPostsPageProps = {
   onOpenPost: (boardId: number, postId: number) => void
@@ -28,12 +28,6 @@ type EnrichedPost = PostListItem & { board?: BoardData }
 type PostBoardTabId = 'all' | PostBoardFilterId
 type PostListViewMode = 'card' | 'list'
 
-const boardFilterIconById: Record<PostBoardTabId, Parameters<typeof Icon>[0]['name']> = {
-  all: 'layout',
-  notice: 'bell',
-  free: 'message',
-  humor: 'palette',
-}
 
 function getPostImageUrl(post: PostListItem) {
   const contentImageUrl = extractFirstContentImage(post.content)
@@ -82,14 +76,9 @@ function formatPostDate(value: string) {
   })
 }
 
-const boardTabs: FilterTabOption<PostBoardTabId>[] = [
-  { id: 'all', label: '전체', icon: boardFilterIconById.all, tone: 'all' },
-  ...postCategoryFilters.map((filter) => ({
-    id: filter.id,
-    label: filter.label,
-    icon: boardFilterIconById[filter.id],
-    tone: filter.id,
-  })),
+const boardFilterOptions: { value: PostBoardTabId; label: string }[] = [
+  { value: 'all', label: '전체' },
+  ...postCategoryFilters.map((filter) => ({ value: filter.id, label: filter.label })),
 ]
 
 function getPostLikeCount(post: PostListItem) {
@@ -185,17 +174,18 @@ export function AllPostsPage({
   return (
     <section className="coala-content coala-content--posts">
       <div className="board-page">
-        <CommunityBanner title={title} tone="board" meta={`게시글 ${visiblePosts.length}개`} />
+        <CommunityBanner title={title} description="공지부터 자유로운 이야기, 소소한 유머까지 코알라의 일상을 함께 나눠요." tone="board" />
 
-        <ListingControls className="page-container" label="게시판 필터" count={`게시글 ${visiblePosts.length}개`}
-          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}
-          filters={<FilterTabs
-            value={activeBoard}
-            options={boardTabs}
-            onChange={setActiveBoard}
-            ariaLabel="게시판 분류"
-            separateFirst
-          />}>
+        <ListingControls className="page-container" label="게시판 필터"
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
+            <SelectControl
+              className="board-category-field"
+              label="분류"
+              value={activeBoard}
+              options={boardFilterOptions}
+              onChange={setActiveBoard}
+            />
+
             <SearchField
               className="community-list-search"
               value={query}
@@ -242,7 +232,7 @@ export function AllPostsPage({
           ) : null}
           <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
             {isLoading ? (
-              <li className="empty-post-state">게시글을 불러오는 중...</li>
+              <li className="empty-post-state"><LoadingSpinner label="게시글을 불러오는 중..." /></li>
             ) : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></li> : (
               pagination.pageItems.map((post) => {
                 const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'

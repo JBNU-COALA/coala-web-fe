@@ -8,7 +8,8 @@ import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { PageFrame } from '../../shared/ui/PageFrame'
-import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { ArchiveFilters } from './ArchiveFilters'
 import { ListingControls } from '../../shared/ui/ListingControls'
 import { Pagination } from '../../shared/ui/Pagination'
 import { usePagination } from '../../shared/ui/usePagination'
@@ -19,6 +20,7 @@ import {
   weekdayLabels, resolveArchiveCategory, toLocalDateKey, currentMonthKey, getArchiveItemDate,
   formatArchiveDay, formatArchiveMonth, shiftMonth, buildCalendarDays, getMaterialLabel, getArchiveSourceHref,
 } from './archiveModel'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 export function ArchivePage() {
   const location = useLocation()
@@ -138,16 +140,11 @@ export function ArchivePage() {
 
   return (
     <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
-      <ListingControls label="자료 분류 및 검색" count={`자료 ${visibleItems.length}개`}
-        filters={<FilterTabs value={selectedMaterial} options={filterOptions} onChange={setMaterialFilter}
-          ariaLabel="자료 분류" separateFirst />}
-        accessory={activeCategory === 'labs' && <button type="button" className="archive-calendar-toggle"
-          aria-pressed={showCalendar} onClick={() => setShowCalendar((value) => !value)}>
-          <Icon name="calendar" size={16} />캘린더
-        </button>}
-        message={archiveError && <div className="archive-message"><p className="auth-error" role="alert">{archiveError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}>
+      <ListingControls label="자료 분류 및 검색">
           <SearchField className="archive-search" value={query} onChange={setQuery}
             placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />
+          <ArchiveFilters key={activeCategory} options={filterOptions} value={selectedMaterial} onChange={setMaterialFilter}
+            hasCalendar={activeCategory === 'labs'} showCalendar={showCalendar} onCalendarChange={setShowCalendar} />
           <button type="button" className="write-post-button" onClick={startCreate}>
             <Icon name="plus" size={15} />{actionLabel}
           </button>
@@ -156,7 +153,7 @@ export function ArchivePage() {
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">
                 <div className="archive-calendar-head">
                   <div>
-                    <p>Seminar Calendar</p>
+                    <p>자료 캘린더</p>
                     <strong>{formatArchiveMonth(calendarMonth)}</strong>
                     <span>{monthLabItems.length}개 자료 · {monthLabCount || 0}개 연구실</span>
                   </div>
@@ -195,6 +192,7 @@ export function ArchivePage() {
                           type="button"
                           aria-label={`${day.dateKey}, 자료 ${dayItems.length}개`}
                           aria-pressed={isSelected}
+                          aria-current={day.dateKey === toLocalDateKey(new Date()) ? 'date' : undefined}
                           className={[
                             'archive-calendar-day',
                             day.inMonth ? '' : 'archive-calendar-day--muted',
@@ -277,8 +275,9 @@ export function ArchivePage() {
 
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
               <div className="archive-resource-grid">
-                {isLoading ? <p className="archive-empty" role="status">자료를 불러오는 중입니다.</p>
-                  : visibleItems.length === 0 && !archiveError ? <p className="archive-empty">등록된 자료가 없습니다.</p>
+                {isLoading ? <LoadingSpinner label="자료를 불러오는 중입니다." />
+                  : archiveError ? <div className="archive-load-state"><p role="alert">{archiveError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>
+                  : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
                   : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
                     sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}
                     onEdit={() => startEdit(item)} onDelete={() => void handleDelete(item)} />)}

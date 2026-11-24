@@ -15,7 +15,7 @@
 .jungle-hero h1.jungle-accessible-title{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .jungle-intro{position:absolute;inset:0;z-index:4;pointer-events:none;animation:jungle-intro-end 3.4s linear both}
 .jungle-curtain{position:absolute;top:-12%;bottom:-12%;width:76%;filter:drop-shadow(12px 18px 24px #0009)}
-.jungle-curtain svg{width:100%;height:100%;overflow:visible}
+.jungle-curtain>svg:not(.koala-paw){width:100%;height:100%;overflow:visible}
 .jungle-curtain--left{left:-9%;transform-origin:0 70%;animation:jungle-part-left 3.4s cubic-bezier(.22,.75,.2,1) both}
 .jungle-curtain--right{right:-9%;transform-origin:100% 60%;animation:jungle-part-right 3.4s cubic-bezier(.22,.75,.2,1) both}
 .jungle-reveal .jungle-mascot--logo{animation:jungle-logo-arrive 3.4s cubic-bezier(.2,.7,.2,1) both}
@@ -25,8 +25,8 @@
 .jungle-reveal--finished .jungle-intro{display:none}
 .jungle-reveal--finished .jungle-mascot--logo{animation:none;transform:translate(-50%,-50%);opacity:1}
 .jungle-reveal--finished .jungle-eyebrow,.jungle-reveal--finished .jungle-hero-bottom{animation:none;opacity:1}
-@keyframes jungle-part-left{0%{transform:translate(-35%,12%) rotate(-14deg) scale(1.12)}18%,30%{transform:translate(0,0) rotate(0) scale(1.08)}85%,100%{transform:translate(-87%,5%) rotate(-23deg) scale(1.13)}}
-@keyframes jungle-part-right{0%{transform:translate(35%,12%) scaleX(-1) rotate(-14deg) scale(1.12)}21%,32%{transform:translate(0,0) scaleX(-1) rotate(0) scale(1.08)}88%,100%{transform:translate(87%,5%) scaleX(-1) rotate(-23deg) scale(1.13)}}
+@keyframes jungle-part-left{0%,28%{transform:translate(0,0) rotate(0) scale(1.08)}34%{transform:translate(1%,0) rotate(1deg) scale(1.08)}78%{transform:translate(-89%,-2%) rotate(-19deg) scale(1.08)}88%,100%{transform:translate(-86%,0) rotate(-17deg) scale(1.08)}}
+@keyframes jungle-part-right{0%,30%{transform:translate(0,0) scaleX(-1) rotate(0) scale(1.08)}36%{transform:translate(-1%,0) scaleX(-1) rotate(1deg) scale(1.08)}80%{transform:translate(89%,-2%) scaleX(-1) rotate(-19deg) scale(1.08)}90%,100%{transform:translate(86%,0) scaleX(-1) rotate(-17deg) scale(1.08)}}
 @keyframes jungle-logo-arrive{0%,34%{opacity:0;transform:translate(-50%,-43%) scale(.78);filter:blur(12px)}75%,100%{opacity:1;transform:translate(-50%,-50%) scale(1);filter:blur(0)}}
 @keyframes jungle-copy-arrive{0%,65%{opacity:0}100%{opacity:1}}
 @keyframes jungle-intro-end{0%,90%{opacity:1}100%{opacity:0}}
@@ -46,3 +46,19 @@
 /* The opening scene always occupies exactly one viewport. */
 .jungle-site .jungle-hero{height:100vh;height:100svh;min-height:0;max-height:none}
 @supports(height:100dvh){.jungle-site .jungle-hero{height:100dvh}}
+
+/* Palm behind the held leaf; curled fingers in front of its outer edge. */
+.koala-paw{transform-box:view-box;transform-origin:65px 53px;animation:koala-paw-grasp 3.4s ease-in-out both}
+.koala-paw-fingers{transform-box:fill-box;transform-origin:100% 50%;animation:koala-finger-curl 3.4s ease-in-out both}
+@keyframes koala-paw-grasp{0%,8%{opacity:0;transform:translateX(22px) scale(.85)}22%,60%{opacity:1;transform:translateX(0) scale(1)}68%,100%{opacity:0;transform:translateX(0) scale(1)}}
+@keyframes koala-finger-curl{0%,15%{transform:translateX(4px) rotate(-5deg)}28%,100%{transform:translateX(0) rotate(0)}}
+@media(prefers-reduced-motion:reduce){.jungle-reveal .jungle-mascot--logo{animation:none;opacity:1;filter:none}}
+
+/* Tilt once as the foliage clears; keep this independent of the entrance wrapper. */
+.jungle-mascot.jungle-mascot--logo img{transform-origin:50% 70%;animation:jungle-logo-head-tilt 1.65s ease-in-out 2.35s both}
+@keyframes jungle-logo-head-tilt{
+  0%,12%{transform:rotate(0)}
+  38%,58%{transform:rotate(-11deg)}
+  80%{transform:rotate(2deg)}
+  100%{transform:rotate(0)}
+}

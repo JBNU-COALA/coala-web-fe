@@ -7,6 +7,10 @@ import { SearchField } from '../../shared/ui/SearchField'
 import { CommunityBanner } from './CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isAnonymousBoard } from '../../shared/communityBoards'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import { ListingControls } from '../../shared/ui/ListingControls'
+import { SelectControl } from '../../shared/ui/SelectControl'
+import { ViewModeToggle, type ViewMode } from '../../shared/ui/ViewModeToggle'
 
 type QnaBoardPageProps = {
   onOpenPost: (boardId: number, postId: number) => void
@@ -14,8 +18,7 @@ type QnaBoardPageProps = {
 }
 
 const QNA_CAPTION =
-  '개발, 진로, 연구실, 대학원 등 궁금한 점이 있다면 익명게시판에 자유롭게 질문해주세요!\n' +
-  '동아리에는 연구실이나 대학원에 진학한 선배들도 있어 다양한 경험을 바탕으로 답변해드립니다.'
+  '개발, 진로, 연구실, 대학원 등 궁금한 점이 있다면 자유롭게 질문해주세요!'
 
 const avatarTones = ['mint', 'slate', 'sky', 'sand', 'rose'] as const
 
@@ -41,6 +44,8 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
   const [posts, setPosts] = useState<PostListItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
+  const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [likeError, setLikeError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -86,9 +91,9 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
       : posts
 
     return [...searched].sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+      (a, b) => (sortMode === 'popular' ? (b.likeCount ?? 0) - (a.likeCount ?? 0) : 0) || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     )
-  }, [normalizedQuery, posts])
+  }, [normalizedQuery, posts, sortMode])
 
   const togglePostLike = async (post: PostListItem) => {
     if (!isLoggedIn) {
@@ -116,21 +121,17 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
       <div className="board-page">
         <CommunityBanner title="질문게시판" description={QNA_CAPTION} tone="board" />
 
-        <section className="surface-card community-list-controls board-list-controls" aria-label="질문게시판 필터">
-          <div className="community-list-summary">
-            <div className="community-list-heading">
-              <p>익명 질문</p>
-              <strong>게시글 {visiblePosts.length}개</strong>
-            </div>
-          </div>
-
-          <div className="community-list-actions">
+        <ListingControls className="page-container" label="질문게시판 필터"
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
             <SearchField
               className="community-list-search"
               value={query}
               onChange={setQuery}
               placeholder="질문 제목을 검색하세요"
             />
+            <SelectControl label="정렬" value={sortMode} onChange={setSortMode}
+              options={[{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]} />
+            <ViewModeToggle value={viewMode} onChange={setViewMode} />
 
             <button
               type="button"
@@ -140,16 +141,17 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
               onClick={board ? onWritePost : undefined}
             >
               <Icon name="edit" size={15} />
-              질문 올리기
+              글쓰기
             </button>
-          </div>
-          {likeError ? <p className="auth-error board-like-error">{likeError}</p> : null}
-        </section>
+        </ListingControls>
 
-        <article className="surface-card board-shell board-shell--editorial board-shell--list">
-          <ul className="board-post-list board-post-list--editorial board-post-list--list">
+        <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
+          {viewMode === 'list' && <div className="board-table-head" aria-hidden="true">
+            <span>분류</span><span>제목</span><span>작성자</span><span>작성일</span><span>조회</span><span>댓글</span><span>좋아요</span>
+          </div>}
+          <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
             {isLoading ? (
-              <li className="empty-post-state">게시글을 불러오는 중...</li>
+              <li><LoadingSpinner label="게시글을 불러오는 중..." /></li>
             ) : !board ? (
               <li className="empty-post-state">질문게시판이 아직 준비되지 않았습니다.</li>
             ) : (
@@ -157,13 +159,14 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
                 const summary = toPlainContentPreview(post.content)
 
                 return (
-                  <li key={post.postId} className="board-post-row board-post-row--list">
+                  <li key={post.postId} className={`board-post-row board-post-row--${viewMode}`}>
                     <article
-                      className="board-post-card board-post-card--list"
+                      className={`board-post-card board-post-card--${viewMode}`}
                       role="button"
                       tabIndex={0}
                       onClick={() => onOpenPost(post.boardId, post.postId)}
                       onKeyDown={(event) => {
+                        if (event.target !== event.currentTarget) return
                         if (event.key !== 'Enter' && event.key !== ' ') return
                         event.preventDefault()
                         onOpenPost(post.boardId, post.postId)
@@ -187,6 +190,13 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
                         </p>
                       </div>
 
+                      {viewMode === 'list' && <div className="board-table-meta" aria-label="게시글 정보">
+                        <span className="board-table-author">{post.authorName ?? '익명'}</span>
+                        <span>{new Date(post.createdAt).toLocaleDateString('ko-KR')}</span>
+                        <span>{post.viewCount}</span>
+                        <span>{post.commentCount ?? 0}</span>
+                        <span>{post.likeCount ?? 0}</span>
+                      </div>}
                       <div className="board-post-stats">
                         <span className="board-stat">
                           <Icon name="eye" size={14} />

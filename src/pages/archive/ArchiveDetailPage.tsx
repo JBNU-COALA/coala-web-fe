@@ -12,6 +12,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { routes } from '../../shared/routes'
 import { getArchiveSourceHref, getMaterialLabel, resolveArchiveCategory } from './archiveModel'
 import './archive.css'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 export function ArchiveDetailPage() {
   const { itemId } = useParams()
@@ -42,7 +43,7 @@ export function ArchiveDetailPage() {
   return <PageFrame title={category === 'labs' ? '연구실 자료' : '에이전트/스킬'} tone="archive" bodyClassName="archive-content">
     <Link className="archive-back-link" to={routes.archive[category]}><Icon name="chevron-left" size={16} />목록으로 돌아가기</Link>
     {error && <p role="alert" className="auth-error">{error}</p>}
-    {!item && !error && <p role="status">자료를 불러오는 중입니다.</p>}
+    {!item && !error && <LoadingSpinner label="자료를 불러오는 중입니다." />}
     {item && <article className="archive-document">
       <header className="archive-document-header">
         <span className="archive-document-type">{getMaterialLabel(item.materialType)}</span>

@@ -1,0 +1,9 @@
+.scroll-top-button{position:fixed;right:24px;bottom:24px;z-index:50;display:grid;place-items:center;width:48px;height:48px;padding:0;border:0;border-radius:14px;background:#447957;color:#fff;box-shadow:0 8px 22px #25372c33;cursor:pointer;opacity:0;visibility:hidden;transform:translateY(16px) scale(.8);transition:opacity .28s ease,transform .38s cubic-bezier(.34,1.56,.64,1),visibility 0s linear .38s,background-color .2s ease}
+.scroll-top-button[data-visible=true]{opacity:1;visibility:visible;transform:translateY(0) scale(1);transition:opacity .28s ease,transform .38s cubic-bezier(.34,1.56,.64,1),visibility 0s,background-color .2s ease}
+.scroll-top-button[data-visible=false]{transition:opacity .22s ease,transform .26s ease-in,visibility 0s linear .26s}
+.scroll-top-button svg{width:22px;height:22px;transition:transform .2s ease}
+.scroll-top-button:hover{background:#346446}
+.scroll-top-button:hover svg{transform:translateY(-2px)}
+.scroll-top-button:focus-visible{outline:2px solid #47815c;outline-offset:4px}
+@media(max-width:600px){.scroll-top-button{right:16px;bottom:16px;width:44px;height:44px;border-radius:12px}}
+@media(prefers-reduced-motion:reduce){.scroll-top-button,.scroll-top-button[data-visible],.scroll-top-button svg{transition:none}.scroll-top-button{transform:none}}

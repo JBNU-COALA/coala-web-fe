@@ -1,4 +1,8 @@
 export type IconName =
+  | 'github'
+  | 'server'
+  | 'globe'
+  | 'filter'
   | 'bell'
   | 'book'
   | 'calendar'
@@ -36,6 +40,14 @@ type IconProps = {
 
 const iconShape = (name: IconName) => {
   switch (name) {
+    case 'filter':
+      return <><path d="M4 6h16M4 12h16M4 18h16" /><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none" /><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none" /><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none" /></>
+    case 'github':
+      return <path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.2 19.5v-2.3c-2.7.6-3.3-1.2-3.3-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.2 1.1 2.8.8.1-.6.4-1 .7-1.2-2.2-.3-4.5-1.1-4.5-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.9-.3 2.8 1a9.8 9.8 0 0 1 5.1 0c1.9-1.3 2.8-1 2.8-1 .5 1.3.2 2.3.1 2.7 1 1 1 2 1 2.7 0 3.9-2.3 4.7-4.5 5 .4.3.7.9.7 1.8v3.2A10 10 0 0 0 12 2Z" />
+    case 'server':
+      return <><rect x="3" y="3" width="18" height="7" rx="2" /><rect x="3" y="14" width="18" height="7" rx="2" /><path d="M7 6.5h.01M7 17.5h.01M11 6.5h6M11 17.5h6" /></>
+    case 'globe':
+      return <><circle cx="12" cy="12" r="9" /><ellipse cx="12" cy="12" rx="4" ry="9" /><path d="M3 12h18" /></>
     case 'moon':
       return <path d="M18 14.5A6.5 6.5 0 1 1 13.5 6a5 5 0 0 0 4.5 8.5Z" />
     case 'user':

@@ -7,6 +7,7 @@ import { AlumniShowcase } from './AlumniShowcase'
 import { AchievementTimeline } from './AchievementTimeline'
 import { CultureSection } from './CultureSection'
 import { useScrollReveal } from './useScrollReveal'
+import { KoalaPaw } from './KoalaIntro'
 
 function JungleLeaves({ side }: { side: 'left' | 'right' }) {
   return <div className={`jungle-leaves jungle-leaves--${side}`} aria-hidden="true">
@@ -45,7 +46,11 @@ export function LandingPage() {
               <path d="M-80 1100Q360 550 220-120" stroke="#152f1d" strokeWidth="22" fill="none" />
               <path d="M-76 1100Q366 550 225-120" stroke="#5c774a" strokeOpacity=".4" strokeWidth="4" fill="none" />
               {Array.from({ length: 9 }, (_, i) => <g key={i} transform={`translate(${185 + Math.sin(i * .5) * 75} ${i * 128 - 5})`}>
-                <use href={`#frond-${side}`} transform={`rotate(${35 - i * 7}) scale(${1.25 - i * .025})`} />
+                <g transform={`rotate(${35 - i * 7}) scale(${1.25 - i * .025})`}>
+                  {i === 5 && <KoalaPaw layer="back" />}
+                  <use href={`#frond-${side}`} />
+                  {i === 5 && <KoalaPaw layer="front" />}
+                </g>
                 <use href={`#frond-${side}`} transform={`rotate(${170 + i * 5}) scale(.95)`} />
               </g>)}
             </svg>

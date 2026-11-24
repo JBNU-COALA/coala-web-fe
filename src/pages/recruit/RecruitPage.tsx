@@ -8,7 +8,7 @@ import { SectionNav } from '../../shared/ui/SectionNav'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
-import { FilterTabs, type FilterTabOption } from '../../shared/ui/FilterTabs'
+import { ListingControls } from '../../shared/ui/ListingControls'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { routes } from '../../shared/routes'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -26,6 +26,7 @@ import {
 import { useRecruitBookmarks } from './useRecruitBookmarks'
 import { applicationStatusLabel, useRecruitApplications } from './useRecruitApplications'
 import './recruit-workspace.css'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 type RecruitPageProps = {
   onSelectRecruit: (id: string) => void
@@ -46,12 +47,6 @@ const writeCategories = categories.filter(
   (category): category is { id: RecruitCategory; label: string } => category.id !== 'all',
 )
 
-const recruitFilterTabs: FilterTabOption<RecruitCategory | 'all'>[] = [
-  { id: 'all', label: '전체', icon: 'layout', tone: 'all' },
-  { id: 'study', label: '스터디', icon: 'book', tone: 'study' },
-  { id: 'project', label: '프로젝트', icon: 'users', tone: 'project' },
-  { id: 'tutoring', label: '멘토링', icon: 'user', tone: 'tutoring' },
-]
 const recruitCategoryLabel = Object.fromEntries(
   writeCategories.map((category) => [category.id, category.label]),
 ) as Record<RecruitCategory, string>
@@ -279,8 +274,6 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
 
   const normalizedQuery = query.trim().toLowerCase()
   const allRecruitItems = remoteRecruitItems
-  const activeCategoryLabel =
-    categories.find((category) => category.id === activeCategory)?.label ?? '전체'
 
   useEffect(() => {
     let active = true
@@ -383,17 +376,16 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const workspaceTabs: {
     id: Exclude<RecruitMode, 'write'>
     label: string
-    icon: Parameters<typeof Icon>[0]['name']
   }[] = [
-    { id: 'list', label: '모집 공고', icon: 'users' },
-    { id: 'applied', label: '지원 내역', icon: 'file' },
-    { id: 'saved', label: '관심 공고', icon: 'heart' },
-    { id: 'manage', label: isOperator ? '모집 관리' : '내 공고', icon: 'edit' },
+    { id: 'list', label: '모집 공고' },
+    { id: 'applied', label: '지원 내역' },
+    { id: 'saved', label: '관심 공고' },
+    { id: 'manage', label: isOperator ? '모집 관리' : '내 공고' },
   ]
 
   return (
     <section className="coala-content coala-content--recruit">
-      <CommunityBanner title="모집" tone="recruit" meta={listLoading || listError ? undefined : `모집 공고 ${visibleItems.length}개`} />
+      <CommunityBanner title="모집" description="스터디와 프로젝트를 함께할 팀원을 찾고, 관심 있는 모집에 참여해 보세요." tone="recruit" />
 
       <SectionNav label="모집 메뉴" className="page-container" items={workspaceTabs}
         value={workspaceTabs.find((tab) => isTabActive(tab.id))?.id ?? 'list'}
@@ -527,7 +519,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       ) : mode !== 'list' && !isLoggedIn ? (
         <p className="recruit-load-state" role="status">내 모집 내역은 로그인 후 확인할 수 있습니다.</p>
       ) : listLoading || (mode === 'applied' && applications.loading) || (mode === 'saved' && bookmarks.loading) ? (
-        <p className="recruit-load-state" role="status">모집 내역을 불러오는 중입니다.</p>
+        <LoadingSpinner label="모집 내역을 불러오는 중입니다." />
       ) : listError ? (
         <div className="recruit-load-state"><p role="alert">{listError}</p>
           <button type="button" className="ghost-button" onClick={() => { setListError(''); setListLoading(true); setListRevision((value) => value + 1) }}>다시 불러오기</button>
@@ -574,35 +566,17 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         </section>
       ) : (
         <>
-          <section className="surface-card recruit-control-panel" aria-label="모집 공고 필터">
-            <div className="recruit-control-head">
-              <div>
-                <p>{activeCategoryLabel}</p>
-                <strong>모집 {visibleItems.length}개</strong>
-              </div>
+          <ListingControls className="page-container" label="모집 공고 필터">
+              <SelectControl label="분류" value={activeCategory} onChange={setActiveCategory}
+                options={categories.map((category) => ({ value: category.id, label: category.label }))} />
               <SearchField
                 className="community-list-search recruit-search"
                 value={query}
                 onChange={setQuery}
                 placeholder="주제, 기술 스택, 역할 검색"
               />
-            </div>
-
-            <div className="recruit-filter-grid">
-              <div className="recruit-filter-group">
-                <span>분류</span>
-                <FilterTabs
-                  value={activeCategory}
-                  options={recruitFilterTabs}
-                  onChange={setActiveCategory}
-                  ariaLabel="모집 분류"
-                  separateFirst
-                  className="recruit-category-filters"
-                />
-              </div>
 
               <SelectControl
-                className="recruit-filter-group recruit-status-field"
                 label="상태"
                 value={activeFilter}
                 options={filters.map((filter) => ({ value: filter.id, label: filter.id === 'all' ? '전체 상태' : filter.label }))}
@@ -610,7 +584,6 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               />
 
               <SelectControl
-                className="recruit-filter-group recruit-sort-field"
                 label="정렬"
                 value={sortMode}
                 options={[
@@ -619,8 +592,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
                 ]}
                 onChange={setSortMode}
               />
-            </div>
-          </section>
+          </ListingControls>
 
           <RecruitList
             items={visibleItems}

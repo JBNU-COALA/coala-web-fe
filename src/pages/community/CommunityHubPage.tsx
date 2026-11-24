@@ -41,6 +41,7 @@ export function CommunityHubPage({
       <div className="community-hub">
         <CommunityBanner
           title="커뮤니티"
+          description="코알라 멤버들과 이야기 나누고, 정보를 공유하고, 함께할 사람을 찾아보세요."
           tone="board"
           images={[
             {

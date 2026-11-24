@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { recruitsApi, type RecruitApplication } from '../../shared/api/recruits'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 export function RecruitParticipants({
   recruitId,
@@ -60,7 +61,7 @@ export function RecruitParticipants({
       </h3>
       {error && <p role="alert">{error}</p>}
       {loading ? (
-        <p role="status">불러오는 중입니다.</p>
+        <LoadingSpinner size="sm" label="불러오는 중입니다." />
       ) : !items.length ? (
         <p>아직 지원자가 없습니다.</p>
       ) : (

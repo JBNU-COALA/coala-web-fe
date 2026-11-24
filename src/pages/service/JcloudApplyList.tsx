@@ -7,6 +7,8 @@ import {
   type JcloudApplication,
 } from './serviceData'
 import { servicesApi } from '../../shared/api/services'
+import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '../../shared/auth/AuthContext'
 
 const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
   { id: 'all', label: '전체' },
@@ -16,21 +18,35 @@ const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
 ]
 
 export function JcloudApplyList() {
+  const { isLoggedIn } = useAuth()
+  const location = useLocation()
   const [filter, setFilter] = useState<'all' | ApplyStatus>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [applications, setApplications] = useState<JcloudApplication[]>([])
 
   useEffect(() => {
+    if (!isLoggedIn) return
+    let active = true
     servicesApi.getInstanceApplications()
-      .then((items) => setApplications(items as JcloudApplication[]))
-      .catch(() => setApplications([]))
-  }, [])
+      .then((items) => { if (active) setApplications(items as JcloudApplication[]) })
+      .catch(() => { if (active) setApplications([]) })
+    return () => { active = false }
+  }, [isLoggedIn])
 
   const items = filter === 'all'
     ? applications
     : applications.filter((a) => a.status === filter)
 
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id)
+
+  if (!isLoggedIn) return (
+    <div className="jcloud-login-required">
+      <div className="jcloud-success-icon"><Icon name="user" size={28} /></div>
+      <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
+      <p className="jcloud-success-desc">인스턴스 신청 내역은 로그인 후 확인할 수 있습니다.</p>
+      <Link className="jcloud-login-link" to="/login" state={{ from: location }}>로그인하기</Link>
+    </div>
+  )
 
   return (
     <div className="jcloud-list-shell">

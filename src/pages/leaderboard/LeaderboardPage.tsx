@@ -9,6 +9,7 @@ import { SearchField } from '../../shared/ui/SearchField'
 import { ViewModeToggle, type ViewMode } from '../../shared/ui/ViewModeToggle'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 function getPublicUserId(member: ActivityMember, currentUserId?: number) {
   if (member.isMe && currentUserId) return String(currentUserId)
@@ -171,7 +172,7 @@ export function LeaderboardPage() {
               />
             ))}
           </section>
-          {isLoading ? <p className="activity-empty" role="status">유저 목록을 불러오는 중입니다.</p>
+          {isLoading ? <LoadingSpinner label="유저 목록을 불러오는 중입니다." />
             : !loadError && filteredMembers.length === 0 ? <p className="activity-empty">조건에 맞는 유저가 없습니다.</p> : null}
         </div>
       </div>
