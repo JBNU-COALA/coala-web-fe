@@ -576,9 +576,7 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                 <Icon name="copy" size={15} />
                 {copyState === 'copied' ? '복사됨' : copyState === 'error' ? '복사 실패' : '마크다운 복사'}
               </button>
-              <button type="button" className="ghost-button" onClick={() => onClose()}>
-                나가기
-              </button>
+
             </div>
           </header>
 
@@ -714,6 +712,7 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
           </fieldset>
 
           <footer className="velog-writer-footer" aria-live="polite">
+            <button type="button" className="ghost-button writer-cancel-button" disabled={isPublishing} onClick={() => onClose()}>취소</button>
             <div>
               <span className={`pw-counter${contentOverLimit ? ' pw-counter--over' : ''}`}>
                 {contentLength} / {CONTENT_MAX}자

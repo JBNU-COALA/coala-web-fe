@@ -26,6 +26,7 @@ import './pages/home/home.css'
 import './styles/coala-system.css'
 import './styles/page-frame.css'
 import './styles/neutral-forms.css'
+import './styles/content-refinements.css'
 import { LandingPage } from './pages/landing/LandingPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
 import { PublicFooter } from './pages/landing/PublicFooter'
@@ -976,7 +977,7 @@ function AppSession() {
                     aria-expanded={notificationMenuOpen}
                     onClick={handleToggleNotifications}
                   >
-                    <Icon name="bell" size={17} />
+                    <Icon name="bell" size={22} />
                     {unreadNotificationCount > 0 ? (
                       <span className="header-notification-badge">
                         {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}

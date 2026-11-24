@@ -410,23 +410,11 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <h3>공고 작성</h3>
           </header>
 
-          <div className="recruit-write-category-tabs" role="tablist" aria-label="모집 공고 분류">
-            {writeCategories.map((category) => (
-              <button
-                key={category.id}
-                type="button"
-                role="tab"
-                aria-selected={draft.category === category.id}
-                className={
-                  draft.category === category.id
-                    ? 'community-filter-tab is-active'
-                    : 'community-filter-tab'
-                }
-                onClick={() => updateDraft('category', category.id)}
-              >
-                {category.label}
-              </button>
-            ))}
+          <div className="recruit-write-type">
+            <span className="jcloud-label">모집 유형</span>
+            <SelectControl label="모집 유형" value={draft.category}
+              options={writeCategories.map((category) => ({ value: category.id, label: category.label }))}
+              onChange={(value) => updateDraft('category', value)} />
           </div>
 
           <div className="recruit-write-grid">
@@ -513,6 +501,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           </div>
           {draftError ? <p className="auth-error">{draftError}</p> : null}
           <div className="recruit-write-footer">
+            <button type="button" className="ghost-button writer-cancel-button" disabled={creating} onClick={() => { if (window.confirm('작성을 취소하고 목록으로 돌아갈까요?')) navigate(routes.community.recruit) }}>취소</button>
             <button type="submit" className="jcloud-submit-button" disabled={creating}>{creating ? '저장 중...' : '작성 완료'}</button>
           </div>
         </form>

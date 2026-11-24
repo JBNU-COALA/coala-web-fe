@@ -764,3 +764,36 @@ a.study-person-name:hover {
   .study-action { padding-inline: 10px; }
   .study-record-actions > div { gap: 4px; }
 }
+
+/* Match the shared list controls and neutral reading surfaces. */
+.coala-app .study-page { color: #262626; padding-block: 28px 40px; }
+.coala-app .study-page-heading { margin-bottom: 20px; }
+.coala-app .study-page-heading h2 { font-size: 19px; }
+.coala-app .study-primary { min-height: 36px; padding: 0 14px; background: #171717; color: #fff; font-size: 13px; }
+.coala-app .study-primary:hover { background: #333; }
+.coala-app .study-controls { padding: 14px 0; background: #fff; border-color: #e5e5e5; gap: 12px; }
+.coala-app .study-week { gap: 12px; margin-right: auto; }
+.coala-app .study-week strong { font-size: 14px; color: #262626; }
+.coala-app .study-week span { font-size: 11px; color: #8a8a8a; }
+.coala-app .study-week > div { min-width: 160px; gap: 2px; }
+.coala-app .study-icon-button { width: 32px; height: 32px; flex-basis: 32px; border-radius: 6px; border-color: #e5e5e5; color: #525252; }
+.coala-app .study-icon-button:hover { background: #f5f5f5; }
+.coala-app .study-group-filter { gap: 10px; }
+.coala-app .study-text-button { color: #525252; font-size: 13px; }
+.coala-app .study-group-filter select { min-height: 34px; height: 34px; padding: 0 10px; border: 1px solid #d4d4d4; background: #fff; color: #404040; font-size: 12px; }
+.coala-app .study-view-toolbar { padding: 0; }
+.coala-app .study-layout-toggle { padding: 0; border-color: #dedede; overflow: hidden; }
+.coala-app .study-layout-toggle button { width: 32px; height: 32px; border-radius: 0; color: #737373; }
+.coala-app .study-layout-toggle button[aria-pressed=true] { background: #171717; color: #fff; }
+.coala-app .study-layout-toggle svg { width: 15px; height: 15px; }
+.coala-app .study-empty { padding: 48px 16px; color: #8a8a8a; }
+.coala-app .study-empty > svg { width: 28px; height: 28px; }
+.coala-app .study-empty h2 { color: #525252; font-size: 16px; margin-top: 14px; }
+.coala-app .study-empty p { font-size: 13px; }
+.coala-app .study-page :is(button, a, input, select, textarea):focus-visible { outline: 2px solid #737373; outline-offset: 2px; }
+.coala-app .study-page :is(input:not([type=checkbox]):not([type=radio]), textarea) { border-color: #d4d4d4; background: #fff; color: #171717; }
+.coala-app .study-page :is(input:not([type=checkbox]):not([type=radio]), textarea):focus { border-color: #171717; }
+@media (max-width: 640px) {
+  .coala-app .study-week { flex-basis: 100%; justify-content: space-between; }
+  .coala-app .study-group-filter { margin-right: auto; }
+}

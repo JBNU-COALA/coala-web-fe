@@ -1,0 +1,13 @@
+{
+  "generator": "Built-in image_gen",
+  "assets": [
+    {
+      "path": "public/koala-avatar-3d-male.jpg",
+      "prompt": "Use case: stylized-concept. Asset type: square website profile avatar. Create one premium 3D koala male mascot bust, front-facing with gentle friendly smile, huge fluffy round ears, soft silver-gray fur with fine groomed texture, glossy dark oval nose and kind black eyes, wearing a small muted navy bow tie. Professional animated-film quality 3D render, tactile plush fur, rounded sculptural forms, soft studio key light and ambient occlusion. Center face and ears completely within square with 8% safe margin for circular crop, head fills frame, shoulders at bottom. Seamless very light warm gray background. No text, no watermark, no border, no accessories other than bow tie."
+    },
+    {
+      "path": "public/koala-avatar-3d-female.jpg",
+      "prompt": "Use case: stylized-concept. Create matching female variant of the supplied 3D koala avatar for same website. Keep exactly the same premium fluffy silver-gray koala rendering style, warm light gray studio background, front-facing face, friendly smile, glossy dark nose, soft lighting, square framing. Remove navy neck bow tie and put a small elegant dusty rose pink fabric ribbon bow beside the right ear. Subtle feminine eyelashes only, no human hair or makeup. Keep shoulders bare fluffy fur. High-quality 3D animated film mascot. No text, watermark, or border."
+    }
+  ]
+}

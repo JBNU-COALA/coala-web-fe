@@ -11,7 +11,7 @@ type ViewModeToggleProps = {
 
 export function ViewModeToggle({ value, onChange, showLabels = false, className = '' }: ViewModeToggleProps) {
   return (
-    <div className={`view-toggle ${className}`.trim()} role="group" aria-label="보기 방식">
+    <div className={`view-toggle${showLabels ? '' : ' view-toggle--compact'} ${className}`.trim()} role="group" aria-label="보기 방식">
       <button
         type="button"
         className={value === 'card' ? 'is-active' : ''}

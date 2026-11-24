@@ -28,8 +28,7 @@ export function ActivityControls({
   onToday,
 }: ActivityControlsProps) {
   return (
-    <>
-      <div className="study-controls">
+    <div className="study-controls">
         {layout === 'card' ? (
           <div className="study-week">
             <button
@@ -80,7 +79,6 @@ export function ActivityControls({
             ))}
           </select>
         </div>
-      </div>
       <div className="study-view-toolbar">
         <div
             className="study-layout-toggle"
@@ -105,6 +103,6 @@ export function ActivityControls({
             </button>
           </div>
       </div>
-    </>
+    </div>
   )
 }

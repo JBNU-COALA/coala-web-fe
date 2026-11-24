@@ -7,6 +7,7 @@ import { isAdminUser } from '../../shared/auth/adminAccess'
 import { isSameUserId } from '../../shared/auth/userIdentity'
 import { routes } from '../../shared/routes'
 import { PageFrame } from '../../shared/ui/PageFrame'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { Icon } from '../../shared/ui/Icon'
 import { buildUploadedFileContent, emptyDraft, itemToDraft, resolveArchiveCategory, stripFileExtension, toPayload } from './archiveModel'
 import './archive.css'
@@ -157,29 +158,17 @@ export function ArchiveEditorPage() {
                       </label>
                       <label className="jcloud-field">
                         <span className="jcloud-label">자료 유형</span>
-                        <select
-                          className="jcloud-input"
-                          value={draft.materialType}
-                          onChange={(event) => setDraft((current) => ({ ...current, materialType: event.target.value }))}
-                        >
-                          <option value="SEMINAR">세미나</option>
-                          <option value="PAPER">논문</option>
-                          <option value="OTHER">기타</option>
-                        </select>
+                        <SelectControl className="archive-type-select" label="자료 유형" value={draft.materialType}
+                          onChange={(value) => setDraft((current) => ({ ...current, materialType: value }))}
+                          options={[{ value: 'SEMINAR', label: '세미나' }, { value: 'PAPER', label: '논문' }, { value: 'OTHER', label: '기타' }]} />
                       </label>
                     </>
                   ) : (
                     <label className="jcloud-field">
                       <span className="jcloud-label">공유 유형</span>
-                      <select
-                        className="jcloud-input"
-                        value={draft.materialType}
-                        onChange={(event) => setDraft((current) => ({ ...current, materialType: event.target.value }))}
-                      >
-                        <option value="SKILL">스킬</option>
-                        <option value="AGENT">에이전트</option>
-                        <option value="OTHER">기타</option>
-                      </select>
+                      <SelectControl className="archive-type-select" label="공유 유형" value={draft.materialType}
+                          onChange={(value) => setDraft((current) => ({ ...current, materialType: value }))}
+                          options={[{ value: 'SKILL', label: '스킬' }, { value: 'AGENT', label: '에이전트' }, { value: 'OTHER', label: '기타' }]} />
                     </label>
                   )}
                   <label className="jcloud-field archive-form-wide">

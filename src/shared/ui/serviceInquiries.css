@@ -12,7 +12,7 @@
 .service-inquiries-form { padding-block: 20px; margin-bottom: 20px; border-block: 1px solid #e5e5e5; }
 .service-inquiries-form fieldset { display: grid; gap: 16px; min-width: 0; margin: 0; padding: 0; border: 0; }
 .service-inquiries-form label { display: grid; gap: 8px; font-weight: 600; }
-.service-inquiries-form :is(input, textarea) { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px; border: 1px solid #171717; border-radius: 6px; background: #fff; color: #262626; font: inherit; font-weight: 400; line-height: 1.6; }
+.service-inquiries-form :is(input, textarea) { box-sizing: border-box; width: 100%; min-width: 0; padding: 12px; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #262626; font: inherit; font-weight: 400; line-height: 1.6; }
 .service-inquiries-form textarea { resize: vertical; min-height: 140px; }
 .service-inquiries-form button[type=submit] { justify-self: end; }
 .service-inquiries-load-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 12px; }
@@ -42,3 +42,5 @@
 }
 
 .service-inquiries .service-inquiries-refresh { width: 40px; flex: 0 0 40px; padding: 0; color: #525252; background: #fff; }
+
+.service-inquiries-form :is(input, textarea):focus { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }

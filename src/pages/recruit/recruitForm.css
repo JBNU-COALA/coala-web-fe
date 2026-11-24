@@ -42,3 +42,14 @@
   .recruit-role-row, .recruit-role-head { grid-template-columns: minmax(0, 1fr) 90px 32px; gap: 6px; }
   .recruit-role-remove { width: 32px; }
 }
+
+.coala-app :is(.recruit-write-panel, .recruit-edit-form) :is(.jcloud-input, .jcloud-textarea),
+.coala-app .recruit-role-row input { background: #fff; border-color: #d4d4d4; color: #171717; min-height: 38px; padding: 8px 12px; font-size: 14px; }
+.coala-app :is(.recruit-write-panel, .recruit-edit-form) :is(.jcloud-input, .jcloud-textarea):focus,
+.coala-app .recruit-role-row input:focus { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
+.coala-app .recruit-write-type { display: grid; gap: 7px; width: min(220px, 100%); margin-bottom: 22px; }
+.coala-app .recruit-write-type .select-control { min-height: 36px; border-color: #d4d4d4; background: #fff; }
+.coala-app .recruit-write-footer button { min-height: 36px; height: 36px; padding: 0 16px; font-size: 13px; border-radius: 6px; background: #171717; color: #fff; }
+.coala-app .recruit-write-footer button:hover:not(:disabled) { background: #333; }
+.coala-app .recruit-role-add { color: #525252; }
+.coala-app .recruit-role-fields :focus-visible { outline-color: #737373; }

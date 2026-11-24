@@ -265,7 +265,6 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
             <span className={`board-context-pill board-context-pill--${copy.tone} post-cover-pill`}>
               {copy.label}
             </span>
-            <p className="post-cover-subtitle">정보공유</p>
             <h1 className="post-cover-title">{title}</h1>
           </div>
 
@@ -291,8 +290,6 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
 
             <div className="post-meta-stats">
               <span><Icon name="eye" size={15} />{item.viewCount}</span>
-              <span><Icon name="file" size={15} />{item.meta}</span>
-              <span><Icon name="book" size={15} />{item.tag}</span>
               <button
                 type="button"
                 className={item.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}

@@ -549,7 +549,6 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
             <span className={`board-context-pill board-context-pill--${category.tone} post-cover-pill`}>
               {category.label}
             </span>
-            <p className="post-cover-subtitle">{category.label} 게시글</p>
             <h1 className="post-cover-title">{visiblePost.title}</h1>
           </div>
 
