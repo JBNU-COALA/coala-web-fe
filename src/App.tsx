@@ -27,6 +27,9 @@ import {
 import './pages/home/home.css'
 import './styles/coala-system.css'
 import './styles/page-frame.css'
+import { LandingPage } from './pages/landing/LandingPage'
+import { RecruitingPage } from './pages/landing/RecruitingPage'
+import './pages/landing/forest-theme.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AboutPage = lazy(() => import('./pages/about/AboutPage').then((m) => ({ default: m.AboutPage })))
@@ -223,6 +226,9 @@ function formatNotificationTime(value?: string | null) {
 
 function App() {
   const { isLoggedIn, user } = useAuth()
+  const location = useLocation()
+  if (location.pathname === '/') return <LandingPage />
+  if (location.pathname.replace(/\/$/, '') === '/recruiting') return <RecruitingPage />
   return <AppSession key={isLoggedIn ? `user:${user?.id}` : 'guest'} />
 }
 
@@ -609,14 +615,16 @@ function AppSession() {
     <Suspense fallback={<div style={{ padding: '2rem', textAlign: 'center' }}>로딩 중...</div>}>
       <Routes>
         <Route
-          path="/"
+          path="/portal"
           element={
+            <RequireAuth>
             <HomePage
               onOpenAllPosts={() => navigate(routes.community.board)}
               onOpenInfo={() => navigate(routes.community.info)}
               onOpenPost={(boardId, postId) => navigate(routes.community.boardPost(boardId, postId))}
               onOpenInfoArticle={(infoId) => navigate(routes.community.infoPost(infoId))}
             />
+            </RequireAuth>
           }
         />
 
@@ -625,7 +633,7 @@ function AppSession() {
         <Route path="/community/activity/records/new" element={<StudyActivityPage mode="new" />} />
         <Route path="/community/activity/records/:recordId" element={<StudyActivityPage mode="detail" />} />
         <Route path="/community/activity/records/:recordId/editor" element={<StudyActivityPage mode="edit" />} />
-        <Route path="/community" element={<Navigate to="/" replace />} />
+        <Route path="/community" element={<Navigate to="/portal" replace />} />
         <Route
           path="/community/board"
           element={
@@ -829,7 +837,7 @@ function AppSession() {
               user?.verified === false ? (
                 <Navigate to={routes.auth.verifyEmail} replace state={{ email: user.email }} />
               ) : (
-                <Navigate to="/" replace />
+                <Navigate to={(location.state as { from?: { pathname?: string } } | null)?.from?.pathname || '/portal'} replace />
               )
             ) : (
               <AuthPage mode="login" onSwitchMode={() => navigate('/signup')} />

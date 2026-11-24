@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" fill="none" role="img" aria-labelledby="title">
+  <title id="title">Coala</title>
+  <g stroke="#f1f2e9" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M53 23C45 9 27 14 19 30C10 48 15 65 31 64C41 64 49 57 54 50"/>
+    <path d="M84 35C72 27 61 39 62 53C63 68 78 67 85 55C92 42 88 34 81 34"/>
+    <path d="M125 36C113 27 99 38 98 52C97 65 108 67 117 56L126 36L122 56Q121 65 133 59"/>
+    <path d="M142 54C150 40 160 19 155 15C149 10 142 26 141 43C139 60 144 67 158 57"/>
+    <path d="M194 36C182 28 168 38 167 52C166 65 177 67 186 56L195 36L191 55Q191 67 205 57"/>
+  </g>
+</svg>

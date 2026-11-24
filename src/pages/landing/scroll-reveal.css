@@ -1,0 +1,4 @@
+.scroll-reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease var(--reveal-delay,0ms),transform .65s cubic-bezier(.2,.65,.25,1) var(--reveal-delay,0ms)}
+.scroll-reveal.is-revealed,.scroll-reveal:focus-within{opacity:1;transform:translateY(0)}
+@media(prefers-reduced-motion:reduce){.scroll-reveal{opacity:1;transform:none;transition:none}}
+@media print{.scroll-reveal{opacity:1;transform:none}}

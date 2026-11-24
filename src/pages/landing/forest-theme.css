@@ -1,0 +1,121 @@
+/* Shared public-site palette sampled from the jungle hero. */
+.jungle-site,.recruiting-site {
+  --forest-base:#06100b;
+  --forest-section:#0a1710;
+  --forest-surface:#102219;
+  --forest-raised:#152b20;
+  --forest-border:#294333;
+  --forest-text:#f0f2e8;
+  --forest-muted:#a7b6a7;
+  --forest-accent:#bdd59d;
+}
+.jungle-site{--jungle-lime:var(--forest-accent)}
+.jungle-site .jungle-about,.jungle-site .jungle-activities,
+.jungle-site .project-showcase,.jungle-site .culture-section,
+.jungle-site .achievement-section,.jungle-site .alumni-showcase,
+.jungle-site .jungle-join,.jungle-site .jungle-members {
+  background:var(--forest-base);
+  color:var(--forest-text);
+  border-top:1px solid #bdd59d12;
+}
+.jungle-site .jungle-section h2,.jungle-site .showcase-title h2,
+.jungle-site .culture-heading h2,.jungle-site .achievement-heading h2,
+.jungle-site .alumni-showcase h2{color:var(--forest-text)}
+.jungle-site p.section-eyebrow,.jungle-site .project-showcase .showcase-eyebrow,
+.jungle-site .jungle-join p.section-eyebrow,
+.jungle-site .achievement-section .section-eyebrow{color:var(--forest-muted)!important}
+.jungle-site .jungle-join>p:not(.section-eyebrow),
+.jungle-site .jungle-members p:not(.section-eyebrow),
+.jungle-site .jungle-intro-grid p{color:var(--forest-muted)}
+.jungle-site .jungle-wordmark{color:#37553c}
+.jungle-site .jungle-join-rings{opacity:.15}
+.jungle-site .jungle-join .jungle-button{background:var(--forest-accent);color:var(--forest-base)!important}
+.jungle-site .project-showcase .showcase-image{background:var(--forest-surface);border:1px solid var(--forest-border)}
+.jungle-site .project-showcase .showcase-card figcaption h3{color:var(--forest-text)}
+.jungle-site .project-showcase .showcase-card figcaption p{color:var(--forest-muted)}
+.jungle-site .showcase-controls{border-color:var(--forest-border)}
+.jungle-site .showcase-controls button{color:var(--forest-text)}
+.jungle-site .showcase-controls button:not(:disabled):hover{background:var(--forest-raised)}
+.jungle-site .culture-course{background:var(--forest-surface);border-color:var(--forest-border)}
+.jungle-site .culture-badges span{background:#243b29;color:var(--forest-accent)}
+.jungle-site .culture-course h3,.jungle-site .culture-term h4{color:var(--forest-text)}
+.jungle-site .culture-course>p,.jungle-site .culture-course-heading>span,
+.jungle-site .culture-term>p,.jungle-site .culture-term li p{color:var(--forest-muted)}
+.jungle-site .culture-details,.jungle-site .culture-term li{border-color:var(--forest-border)}
+.jungle-site .culture-details summary,.jungle-site .culture-term li>span{color:var(--forest-accent)}
+.jungle-site .achievement-item{background:var(--forest-surface);border-color:var(--forest-border)}
+.jungle-site .achievement-item::before,.jungle-site .achievement-year::before{background:var(--forest-border)}
+.jungle-site .achievement-year:last-child::before{background:linear-gradient(var(--forest-border),transparent)}
+.jungle-site .achievement-year h3,.jungle-site .achievement-legend{color:var(--forest-muted)}
+.jungle-site .achievement-year h3::after{background:var(--forest-base);border-color:#6e886d}
+.jungle-site .achievement-section .is-campus{--award-color:#c3d3aa}
+.jungle-site .achievement-section .is-external{--award-color:#88bca8}
+.jungle-site .alumni-logo{background:var(--forest-surface);border-color:var(--forest-border);box-shadow:none}
+.jungle-site .alumni-logo-art{background:#fff;border-radius:8px;padding:8px}
+.jungle-site .alumni-logo figcaption{color:var(--forest-muted)}
+.jungle-site .public-footer,.recruiting-site .public-footer{background:var(--forest-base);color:var(--forest-muted);border-top:1px solid var(--forest-border)}
+.jungle-site .public-footer-brand img,.recruiting-site .public-footer-brand img,
+.jungle-site .public-footer-channel img,.recruiting-site .public-footer-channel img{filter:none}
+.jungle-site .public-footer-channels button,.jungle-site .public-footer a.public-footer-channel,
+.recruiting-site .public-footer-channels button,.recruiting-site .public-footer a.public-footer-channel{background:var(--forest-raised);color:var(--forest-text)}
+.recruiting-site{background:var(--forest-base);color:var(--forest-text)}
+.recruiting-site .recruiting-brand img{filter:none}
+.recruiting-site .recruiting-header [aria-current]{color:var(--forest-accent)}
+.recruiting-site .recruiting-hero,.recruiting-site .recruiting-process{background:var(--forest-section)}
+.recruiting-site .recruiting-hero-logo{filter:none;opacity:.85}
+.recruiting-site .recruiting-hero p,.recruiting-site .recruiting-heading>a,
+.recruiting-site .recruiting-opening p,.recruiting-site .recruiting-steps p,
+.recruiting-site .recruiting-note,.recruiting-site .recruiting-questions details>p{color:var(--forest-muted)}
+.recruiting-site .recruiting-primary{background:var(--forest-accent);color:var(--forest-base)!important}
+.recruiting-site .recruiting-filters button,.recruiting-site .recruiting-state,
+.recruiting-site .recruiting-state button{background:var(--forest-surface);color:var(--forest-muted);border-color:var(--forest-border)}
+.recruiting-site .recruiting-filters button[aria-pressed=true]{background:var(--forest-accent);color:var(--forest-base)}
+.recruiting-site .recruiting-list,.recruiting-site .recruiting-opening,
+.recruiting-site .recruiting-steps article,.recruiting-site .recruiting-questions details{border-color:var(--forest-border)}
+.recruiting-site .recruiting-opening:hover{background:var(--forest-surface)}
+.recruiting-site .recruiting-opening span,.recruiting-site .recruiting-steps article>span{color:var(--forest-accent)}
+.recruiting-site .recruiting-opening strong{background:var(--forest-raised);color:var(--forest-accent)}
+/* All main-page sections share Activity's 1240px content grid. */
+.jungle-site .jungle-section,
+.jungle-site .project-showcase,
+.jungle-site .culture-section,
+.jungle-site .achievement-section,
+.jungle-site .alumni-showcase {
+  padding-left:max(6%,calc((100% - 1240px)/2));
+  padding-right:max(6%,calc((100% - 1240px)/2));
+}
+.jungle-site .project-showcase .showcase-inner,
+.jungle-site .alumni-showcase .showcase-inner,
+.jungle-site .culture-inner,
+.jungle-site .achievement-inner {
+  width:100%;
+  max-width:none;
+  margin-left:0;
+  margin-right:0;
+}
+.jungle-site .apply-banner{min-height:340px;display:grid;place-items:center;padding:72px 6%;text-align:center;background:linear-gradient(#06100bbd,#06100bd9),url('/coala-card-placeholder.png') center 46%/cover no-repeat}
+.apply-banner-content{max-width:900px}
+.jungle-site .apply-banner h2{margin:0 0 28px;color:#f0f2e8;font-size:30px;line-height:1.5;font-weight:500;letter-spacing:-.8px}
+.jungle-site .apply-banner .jungle-button{padding:15px 26px;border-radius:12px;font-size:16px}
+@media(max-width:600px){.jungle-site .apply-banner{min-height:280px;padding:56px 6%}.jungle-site .apply-banner h2{font-size:24px}}
+.jungle-site .apply-banner{background-image:linear-gradient(#06100b55,#06100b88),url('/coala-coding-banner.png');background-position:center}
+.jungle-site .jungle-header,.recruiting-site .recruiting-header{height:80px;padding-top:12px;padding-bottom:12px}
+.jungle-site .jungle-header .public-header-symbol,.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol{width:38px;height:38px}
+.jungle-site .jungle-header .jungle-logo img.jungle-brand-image,.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol){width:108px;height:36px}
+.jungle-site .jungle-header nav,.recruiting-site .recruiting-header nav{font-size:20px;gap:28px}
+.jungle-site .jungle-header nav a,.recruiting-site .recruiting-header nav a{min-height:44px}
+@media(max-width:600px){.jungle-site .jungle-header,.recruiting-site .recruiting-header{height:68px;padding-top:10px;padding-bottom:10px}.jungle-site .jungle-header .public-header-symbol,.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol{width:30px;height:30px}.jungle-site .jungle-header .jungle-logo img.jungle-brand-image,.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol){width:88px;height:30px}.jungle-site .jungle-header nav,.recruiting-site .recruiting-header nav{font-size:16px;gap:18px}}
+.jungle-site .apply-banner .jungle-button{border-radius:999px;padding:15px 30px}
+.jungle-site .jungle-activities{padding-top:136px;padding-bottom:140px}
+.jungle-site .jungle-activities .jungle-section-heading{gap:40px;margin-bottom:58px;align-items:flex-start}
+.jungle-site .jungle-activities .activity-introduction{max-width:520px;color:var(--forest-muted);font-size:16px;line-height:1.9}
+.jungle-site .jungle-activities .jungle-activity-grid{gap:36px}
+.jungle-site .jungle-activities .jungle-activity{display:flex;flex-direction:column;padding-top:28px;padding-bottom:10px;border-color:var(--forest-border)}
+.jungle-site .jungle-activities .jungle-activity h3{font-size:23px;font-weight:500;margin-bottom:18px}
+.jungle-site .jungle-activities .jungle-activity>span{font-size:16px;line-height:1.9;color:var(--forest-muted);word-break:keep-all;overflow-wrap:anywhere}
+.jungle-site .jungle-activities .jungle-activity b{padding-top:28px;margin-top:auto;color:var(--forest-accent);font-size:14px}
+.jungle-site .alumni-showcase{padding-top:140px;padding-bottom:148px}
+.jungle-site .alumni-heading{margin-bottom:58px}
+.jungle-site .alumni-window{padding-top:30px;padding-bottom:44px}
+@media(max-width:800px){.jungle-site .jungle-activities .jungle-section-heading{flex-direction:column;gap:24px}.jungle-site .jungle-activities .activity-introduction{margin:0}}
+@media(max-width:600px){.jungle-site .jungle-activities{padding-top:88px;padding-bottom:92px}.jungle-site .jungle-activities .jungle-section-heading{margin-bottom:38px}.jungle-site .jungle-activities .jungle-activity-grid{gap:32px}.jungle-site .alumni-showcase{padding-top:100px;padding-bottom:108px}.jungle-site .alumni-heading{margin-bottom:40px}.jungle-site .alumni-window{padding-top:24px;padding-bottom:32px}}

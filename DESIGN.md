@@ -1,7 +1,7 @@
 ---
-version: "0.1.0"
+version: "0.2.0"
 name: "Coala Portal Design System"
-description: "A sober green-gray-black community portal for Coala members, connecting community, recruiting, activity records, shared resources, and instance rental."
+description: "Coala public jungle landing and recruiting website, with a green-gray member portal."
 colors:
   primary: "#1a5d41"
   primary-strong: "#14492f"
@@ -93,7 +93,120 @@ components:
 
 ## Overview
 
-Coala is not a marketing landing page. It is a logged-in operating portal for club members. The UI should feel like a quiet internal service desk: useful at first glance, dense enough for repeated use, and restrained enough that notices, recruiting deadlines, activity status, and instance rental are easy to scan.
+Coala has two distinct surfaces: a public club website at `/` and `/recruiting`, and the existing member dashboard at `/portal`. Public pages follow the approved design below. The remaining portal guidelines apply to the operational pages, not to the public landing or recruiting page.
+
+## Approved Public Website Design (2026-11-24)
+
+### Current public brand palette — supersedes previous section colors
+
+- Unify all public sections around the jungle hero: base `#06100b`, section `#0a1710`, surface `#102219`, raised surface `#152b20`, border `#294333`, warm white text `#f0f2e8`, muted sage text `#a7b6a7`, accent `#bdd59d`.
+- Apply this palette to introduction, activities, projects, Culture, History, alumni, recruiting, member entry and the shared footer. Remove the alternating white, pastel, charcoal-blue and light-green section backgrounds. Preserve the existing composition and sizes.
+- All project image tiles share the same forest surface instead of individually colored backgrounds. Original project artwork and corporate logo colors remain intact. Corporate marks sit on restrained white inset plates for legibility, inside forest-colored cards.
+- History category colors become sage and muted mint, retaining text labels. Footer marks are light, icon circles dark green, and recruiting surfaces follow the same palette.
+- The overrides are centralized in `src/pages/landing/forest-theme.css`, scoped to public pages so the operational member portal is unaffected.
+- Latest content structure: remove the landing's About block and its detail link. Activity is the first section after the hero and the skip-link destination. Keep the standalone `/about` route. Activity now introduces the supplied learning progression with three substantive areas: 수준별 스터디, 팀 프로젝트와 대회, 기술과 경험 공유; descriptions must reflect the provided curriculum/projects rather than generic navigation prompts.
+- Activity copy should read as connected, concrete sentences describing participation: joining an appropriate study level, solving problems together, implementing an idea with a team, presenting or entering competitions, and sharing useful solutions and preparation experiences. Avoid lists of course names and technologies in the overview; leave that detail in Culture.
+- Activity vertical padding is 136px / 140px desktop and 88px / 92px mobile, with a 58px / 38px heading-to-content gap. Increase alumni spacing again to 140px / 148px desktop and 100px / 108px mobile; heading gap 58px / 40px and marquee viewport padding 30px / 44px desktop, 24px / 32px mobile. These override earlier spacing notes; preserve shared horizontal alignment.
+- Main-page alignment now follows Activity: all sections use horizontal padding `max(6%, calc((100% - 1240px) / 2))`. Remove nested 1100px/1320px width constraints from Product, Culture, History and Alumni inner wrappers. Their headings and content align to the same left/right edges as About and Activity at every viewport size. This supersedes the older per-section container widths below.
+- Scroll entrance: use `useScrollReveal` on public landing and recruiting pages. Headings, activity/project/course cards and yearly history groups fade in while moving upward 24px over 650ms, with at most 140ms stagger. Reveal once as each element enters the viewport; never hide it again when scrolling back. Initially visible content is not delayed. Keyboard focus reveals its containing block; reduced motion, unsupported observers and print retain visible content. Disconnect observers on unmount.
+
+### Routes and navigation
+
+- `/`: public club landing. `/recruiting`: public recruiting overview. Accept `/recruiting/` as well.
+- Public headers contain exactly `MAIN` (links to `/`) and `RECRUITING` (links to `/recruiting`), aligned right, with the logo on the left. Mark the current page with `aria-current`.
+- Header branding pairs the original Coala icon on the left with the handwritten wordmark on the right. Icon 44px and wordmark 120 × 40px on desktop, icon 34px and wordmark 96 × 32px on mobile. Use zero CSS gap (the SVGs contain their own side bearings), a 1px upward icon correction, and matching monochrome strokes. Navigation: bold 24px desktop, 18px mobile, with 48px-tall link targets. Align branding and navigation on the same vertical center with line-height 1.
+- Member entry remains in the landing's lower member section and links to `/portal`. Preserve the existing login and email verification guard. Club membership approval is not an existing authorization field; do not claim that this UI implements server-side club-membership approval.
+- Existing `/about` remains the detailed introduction page. Internal recruitment posts remain under `/community/recruit`.
+
+### Logos
+
+- Latest compact public header: 80px desktop / 68px mobile height, 38px / 30px icon, 108 × 36px / 88 × 30px wordmark, 20px / 16px navigation with 44px minimum targets. This supersedes earlier header sizing.
+- Recruitment banner now uses `public/coala-coding-banner.png`, generated with the built-in image tool, rather than the placeholder illustration. It depicts fictional university students collaborating around laptops, not an actual club event. Prompt brief: photorealistic 3:1 candid Korean university coding club scene, hands/laptops/partial torsos around a wooden table, warm light and forest-green tones, calm center for HTML text, no logos or embedded text. Preserve the original generated asset and use a light dark-green overlay in CSS.
+- The banner's `지원하러 가기` button uses a fully rounded pill shape (`border-radius: 999px`, padding `15px 30px`).
+
+- Browser favicon uses the original Coala SVG mark on a rounded forest-green square (`public/favicon.svg`). HTML favicon references use the `coala-logo-20261124` cache version and theme color `#06100b`; do not reference the old cartoon favicon.
+- Latest landing ending: remove the standalone Recruiting and Members sections and their explanatory/login copy. Replace them with a full-width image CTA directly above the footer, dark green overlay, centered `코알라에서 함께 개발해요.` and one `지원하러 가기` button linking to `/recruiting`. Use the existing local `coala-card-placeholder.png` illustration until an actual club photo is provided. Preserve `/portal` and its auth guard; only remove the landing block.
+
+- Public header: `public/coala-wordmark.svg`, a custom rounded, handwritten `Coala` wordmark. Use a thin 5-unit rounded stroke to harmonize with the original icon; omit the separate decorative leaf. It uses vector paths, not a rigid system-font wordmark or a raster image. Use the paired sizes specified above.
+- Hero, footer brand and footer's final channel icon: `public/coala-logo.svg`, the vector reconstruction of the supplied club mark.
+- Keep the supplied JPEG as a source reference only; do not enlarge it in the interface. Preserve the full SVG mark without cropping or blur.
+- Use light artwork against the dark landing and a dark treatment on the white recruiting header and footer.
+
+### Landing and entrance animation
+
+- Dark jungle palette: near-black green background, layered green leaves and stems, subtle light and fireflies. The central subject is the Coala logo.
+- The opening hero fills exactly the browser viewport (`100dvh`, with `100svh`/`100vh` fallbacks), without minimum or maximum height caps, including mobile and tall desktop screens. The About section begins below the fold and is not visible before scrolling.
+- On entrance, foliage moves inward and parts to both sides, revealing the centered logo over approximately 3.4 seconds. Do not loop the entrance.
+- No intro skip button. Do not block scrolling or navigation. With `prefers-reduced-motion`, omit the foliage entrance and show the logo immediately.
+- No `GROW YOUR / OWN JUNGLE`, scroll prompt, decorative English labels, hero bottom captions, or sentimental promotional slogans. The hero consists of the logo and visual animation; keep a concise accessible heading.
+- Below the hero: factual club introduction, activity links, recruiting entry, then member entry. Use short Korean labels such as 동아리 소개, 주요 활동, 모집 안내, 회원 공간.
+- Official brand spelling, the two requested English navigation labels and copyright text are allowed; do not add unrelated English decoration.
+
+### Recruiting page
+
+### Main project and alumni showcases
+
+- Music Town uses `width/height: 100%` and `object-fit: contain` so the full landscape artwork and MUSIC TOWN lettering remain visible; fill the remaining tile area with warm cream `#f7edc7` sampled from the artwork. 가야디 fills its square tile using centered `object-fit: cover`. Preserve aspect ratios. Other project images retain their existing fit behavior.
+- 가야디 uses the original `src/assets/gayadi.png` with its white outer background and a white (`#fff`) tile. Use normal blending with no sky-blue tint. The generated `gayadi-sky.png` is not used.
+- with Festi retains the entire landscape image with `contain`; fill its top/bottom space with matching pale lavender `#eef0ff` rather than forest green.
+
+- Project linking update: image and title links now open the user's supplied destinations in a new tab with `noopener noreferrer` and an accessible new-tab label. Music Town: `https://music-town-official.gayadi.site`; with Festi: `https://github.com/nowimhungry`; 가야디: `https://play.google.com/store/apps/details?id=com.doonow.gayadi&hl=ko`; RePlant: `https://play.google.com/store/apps/details?id=com.anonymous.replantmobileapp&hl=ko`; Trend Core: `https://github.com/NOHHYEONGJUN/shopping-web`; Chickadee: `https://github.com/chickadee-project/chickadee_studio`. This supersedes previous no-link instructions.
+
+Latest scale and animation decisions (supersede the earlier sizing notes below):
+
+- Latest cleanup: remove all decorative `|` bars beside section headings. Project and alumni headings and project card names use weight 500; project descriptions use weight 400. Keep existing font sizes.
+- Remove the alumni pause/resume button. Pause the marquee on hover or keyboard focus in its accessible region, and retain the reduced-motion static layout.
+- Add a `History / 수상 이력` section between projects and alumni. Use a charcoal background, a vertical year line with nodes, and gold 교내 / lavender 교외 labels. Include all 17 user-supplied entries from 2020–2024, preserving their years, results and supplied classifications (with the three Jeonbuk National University capstone awards corrected to 교내 per the user). Use semantic lists and text labels as well as colors; stack the year and records on mobile. Do not invent additional results from the visual reference.
+
+- At 100% browser zoom, use a shared 1100px content width, 30px section headings, 16px English labels, 21px project names and 16px descriptions. Mobile headings are 25px, labels 14px and project names 20px. Avoid the superseded oversized 44px headings and 1320px gallery.
+- Every main section has an English label above its Korean heading: About, Activity, Product, Alumni, Recruiting, Members. These are explicitly requested navigation aids, not decorative slogans.
+- Alumni now includes 큐픽스 (Cupix) and HD현대, nine organizations total. Replace the static grid with a seamless 38-second horizontal marquee using two identical groups; hide the duplicate from assistive technology. Pause on hover or keyboard focus, without a visible pause button. Reduced motion shows a static wrapping grid without the duplicate.
+- Marquee cards are 230 × 180px desktop, 190 × 170px mobile, with 16px organization names. Preserve the original color of each logo and use local assets.
+- Give the alumni marquee extra vertical breathing room: section padding 100px top / 108px bottom, heading gap 44px, and track viewport padding 20px top / 32px bottom. On mobile use section 72px / 80px, heading gap 32px and track 16px / 24px. Preserve the shared horizontal alignment and card sizes.
+
+- Place the project showcase and alumni logo section after activities and before the recruiting entry. Both use a white background and generous spacing, following the supplied three-card reference.
+- Project images come from `src/assets`: Music Town, with Festi, 가야디, RePlant, Trend Core, Chickadee. Place the project name and user-supplied description below each square image, as in the supplied reference. Cards have no destination links. Keep descriptions fully visible and naturally wrapped, without truncation or invented claims.
+- Approved descriptions: Music Town — 공원 버스킹을 즐기고 소통하는 메타버스 웹앱; with Festi — 전북대학교 축제 동행 매칭 서비스; 가야디 — 여행 계획부터 소중한 순간의 기록까지 함께하는 여행 서비스; RePlant — 쉬었음 청년을 위한 성장 앱. 나만의 미션으로 성장하는 캐릭터와 함께하는 심리상담 플랫폼; Trend Core — 쿠버네티스 기반의 고가용성 패션 쇼핑몰 웹 서비스; Chickadee — 공공 웹사이트의 게시글, 댓글과 이미지에서 광고 의심 문구를 찾아 검토하는 오픈소스.
+- Desktop shows three square, softly rounded image tiles in a 1320px-wide content area; at 1100px and below show two, at 600px and below show one with the next partially visible. Preserve full artwork using `object-fit: contain`. Use 24px project names and 18px descriptions on desktop (22px/17px mobile) so the content does not become miniature.
+- Previous/next controls scroll the strip; disable controls at boundaries. Support touch, keyboard focus and reduced motion. Do not autoplay.
+- Project and alumni headings share the same left accent: a 5 × 28px green (`#658358`) vertical bar with 4px rounded corners and a 14px gap before the title.
+- The project heading follows the supplied reference: a muted `Product` label above `함께 만들어낸 결과물`, with the retained left accent on the main title. This user-requested label and title are exceptions to the general rule against decorative English and promotional copy. Make the heading visibly prominent: 44px bold Korean title, 24px label, and 48px navigation buttons; mobile title 32px and label 20px. Allow controls to wrap on narrow screens instead of shrinking the heading. The project title's accent grows to 36px tall (28px mobile).
+- Alumni heading is `선배들의 진로`; use the user's supplied affiliations without invented counts, individual names or employment/graduate-study distinctions. Include CJ올리브네트웍스, 이스타항공, 한국식품연구원, 저축은행중앙회, GIST, UNIST and ENERZAi. Do not label these as sponsors.
+- Local logo assets and their source URLs are documented in `public/alumni/SOURCES.md`.
+- Alumni presentation: a subtle green-gray section background, white rounded cards with restrained borders/shadows, and organization names below logos. Use four centered cards on the first desktop row and three on the second, three columns on tablet and two on mobile. Adjust logo dimensions individually for optical balance, especially FSB, ENERZAi and the padded Eastar artwork. A light hover lift is decorative only; do not imply navigation or add links. Respect reduced motion.
+- Keep project and alumni sections on the same 1320px content grid, with 90px 5% desktop padding and 60px 6% mobile padding. Both main headings use 44px/32px desktop/mobile sizes and matching 36px/28px accent bars. Alumni cards are 220px tall with 18px organization names (185px and 16px on mobile), 28px desktop gaps (18px mobile); change to three columns at 1100px and two at 600px. Do not let the alumni section revert to a smaller heading, narrower container or tiny labels.
+
+### Recruiting layout
+
+### Culture curriculum
+
+- Place `Culture / 코알라의 활동 과정` after projects and before the achievement timeline. Match the supplied reference with a white background and four full-width, lightly bordered rounded cards stacked vertically, not a carousel.
+- Courses: Base (1학년 / 비전공자, 5–6인), Standard (2학년, 3–4인), Core (3학년, 3–4인), Plus (4학년 이상, 인원 미정). Deduplicate the repeated Base and Standard content supplied by the user.
+- Keep audience, group size, goal and weekly meeting/submission format visible. Base, Standard and Core have 3–6월 badges and accessible native `details` for the full 0–8주차 curriculum split into 3–4월 and 5–6월. Plus has no invented schedule or curriculum.
+- Preserve all supplied curriculum topics and operating details, including Base's weekly ten Baekjoon problems, Standard's later-provided learning materials, Core's AWS Academy/Learner Lab and Plus's in-person or remote meetings. The `!image.png` text was a placeholder, not an attached activity image; omit rather than display a broken image.
+- Use the shared 1100px container, 30px/25px heading sizes, 500-weight titles, muted green audience badges and readable slate body copy. No heading bars or decorative emoji. Stack expanded curriculum columns on smaller screens.
+
+### Recruiting content
+
+- Reference: https://yourssu.com/recruiting/ for the separate public recruiting flow. Use generous whitespace, a light green hero, white content, restrained green accents, and clear section hierarchy.
+- Order: recruiting introduction and CTA, open activity listings with category filters, application guidance, expandable frequently asked questions, shared footer.
+- Listings use the existing recruits API (study, project, mentoring), and link to existing details/application routes. These are activity postings; do not invent a club admission schedule, departments, interviews or open positions.
+- Include loading, empty, failure and retry states. Application guidance must reflect the implemented flow; specific requirements remain in each posting.
+
+### Shared public footer — latest approved layout
+
+- Reference: the compact YOURSSU footer screenshot. White background, all content left-aligned in a single vertical stack. Do not use the superseded gray footer with right-aligned icons.
+- Order: club SVG mark; a horizontal row of GitHub, Instagram and Coala icons; clubroom location; copyright.
+- No KakaoTalk icon. Replace the former blog/Medium icon with the actual Coala SVG mark linked to `/`.
+- GitHub and Instagram remain disabled placeholders with accessible 준비 중 labels until official URLs are supplied. Never invent external account URLs.
+- Exact location text: `동아리방 : 공과대학 7호관 지하 7009-1호`.
+- Copyright: `© COALA. All rights reserved.`
+- Make elements comfortably large: desktop brand 96 × 96px, circular icon controls 52 × 52px, channel artwork 28px (Coala mark 36px), address and copyright 17px. Mobile brand 80px and text 15px; retain 52px controls.
+- Pale gray icon circles (`#f5f6f7`) and charcoal artwork/text (`#515965`). Content max-width 1200px, desktop padding 56px 6% 60px, mobile 38px 6% 44px.
+- Center the footer Coala icon with a padding-free flex container; keep its 36px artwork from shrinking. Apply a -1.5px horizontal optical correction for the SVG's asymmetric whitespace.
+- Shared implementation: `src/pages/landing/PublicFooter.tsx` and `public-footer.css`. Apply changes to both landing and recruiting through this shared component.
+
+## Member Portal Guidelines
 
 The current primary product surfaces are:
 
@@ -278,7 +391,7 @@ Do:
 
 Do not:
 
-- Create a marketing landing page as the main experience.
+- Replace the member dashboard at `/portal` with marketing content. Public marketing content belongs at `/` and `/recruiting` as specified above.
 - Replace current Coala design patterns only because an external reference looks newer.
 - Put detailed section menus in a persistent left sidebar when they should visually follow the selected top-level header menu.
 - Invent unsupported instance operational metrics or cloud-console details.
