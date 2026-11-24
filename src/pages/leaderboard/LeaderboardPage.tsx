@@ -10,6 +10,7 @@ import { ViewModeToggle, type ViewMode } from '../../shared/ui/ViewModeToggle'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import './directory.css'
 
 function getPublicUserId(member: ActivityMember, currentUserId?: number) {
   if (member.isMe && currentUserId) return String(currentUserId)

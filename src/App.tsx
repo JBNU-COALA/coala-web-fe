@@ -25,6 +25,7 @@ import {
 import './pages/home/home.css'
 import './styles/coala-system.css'
 import './styles/page-frame.css'
+import './styles/neutral-forms.css'
 import { LandingPage } from './pages/landing/LandingPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
 import { PublicFooter } from './pages/landing/PublicFooter'
@@ -1054,6 +1055,7 @@ function AppSession() {
                     <CharacterAvatar
                       name={user?.name ?? user?.email ?? '사용자'}
                       seed={user?.id ?? user?.email ?? 'user'}
+                      gender={user?.gender}
                       size="xs"
                       className="header-user-avatar"
                     />
@@ -1066,6 +1068,7 @@ function AppSession() {
                         <CharacterAvatar
                           name={user?.name ?? user?.email ?? '사용자'}
                           seed={user?.id ?? user?.email ?? 'user'}
+                          gender={user?.gender}
                           size="sm"
                           className="header-profile-summary-avatar"
                         />
@@ -1075,7 +1078,7 @@ function AppSession() {
                         </div>
                       </div>
                       <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>
-                        <Icon name="user" size={14} />
+                        <Icon name="profile-color" size={20} />
                         마이프로필
                       </button>
                       {isAdmin ? (
@@ -1085,7 +1088,7 @@ function AppSession() {
                         </button>
                       ) : null}
                       <button type="button" className="header-profile-menu-item" onClick={handleLogout}>
-                        <Icon name="chevron-right" size={14} />
+                        <Icon name="logout-color" size={20} />
                         로그아웃하기
                       </button>
                     </div>

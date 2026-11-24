@@ -1,0 +1,39 @@
+.activity-page--directory {
+  --coala-ink: #171717;
+  --coala-text: #404040;
+  --coala-line: #e5e5e5;
+  --coala-green-700: #171717;
+  --coala-green-800: #262626;
+  color: #171717;
+}
+
+.activity-page--directory .activity-recent-members { background: #f5f5f5; }
+.activity-page--directory .activity-directory-card { border-color: #e5e5e5; }
+.activity-page--directory .activity-directory-card:hover {
+  border-color: #a3a3a3;
+  box-shadow: 0 10px 26px #0000000a;
+}
+.activity-page--directory .activity-directory-card:focus-visible {
+  outline: 2px solid #525252;
+  outline-offset: 3px;
+}
+.activity-page--directory .activity-directory-section-head p,
+.activity-page--directory .activity-member-handles,
+.activity-page--directory .activity-empty { color: #737373; }
+.activity-page--directory .activity-member-focus,
+.activity-page--directory .activity-directory-card-footer { color: #525252; }
+.activity-page--directory .activity-profile-meta span,
+.activity-page--directory .activity-repo-list span { background: #f5f5f5; color: #525252; }
+.activity-page--directory .activity-search { border-color: #d4d4d4; color: #737373; }
+.activity-page--directory .activity-search > svg { color: #737373; }
+.activity-page--directory .activity-search input { color: #171717 !important; }
+.activity-page--directory .activity-search input::placeholder { color: #8a8a8a; }
+.activity-page--directory .activity-search:focus-within {
+  border-color: #444 !important;
+  box-shadow: 0 0 0 3px #0000000d !important;
+}
+.activity-page--directory .activity-view-toggle,
+.activity-page--directory .activity-view-toggle button { border-color: #dedede; color: #525252; }
+.activity-page--directory .activity-view-toggle button.is-active { background: #171717; color: #fff; }
+.activity-page--directory .activity-view-toggle button:not(.is-active):hover { background: #f5f5f5; }
+.activity-page--directory .activity-view-toggle button:focus-visible { outline: 2px solid #737373; outline-offset: -3px; }

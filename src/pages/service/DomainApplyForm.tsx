@@ -186,7 +186,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
             </div>
           </div>
           <div className="jcloud-field">
-            <label className="jcloud-label" htmlFor="domain-repository">공개 저장소</label>
+            <label className="jcloud-label repository-field-label" htmlFor="domain-repository"><Icon name="github" size={16} />공개 저장소</label>
             <input
               id="domain-repository"
               type="url"

@@ -19,7 +19,9 @@ export function PageFrame({
 }: PageFrameProps) {
   return (
     <section className={`coala-content page-frame ${className}`}>
-      {tone === 'archive' ? <CommunityBanner title={title} description="함께 배우고 성장하는 데 필요한 자료를 모았어요." /> : <PageHero title={title} tone={tone} headingLevel="h1" />}
+      {tone === 'archive' ? <CommunityBanner title={title} description="함께 배우고 성장하는 데 필요한 자료를 모았어요." />
+        : tone === 'users' ? <CommunityBanner title={title} tone="users" description="함께 만드는 코알라 멤버" />
+          : <PageHero title={title} tone={tone} headingLevel="h1" />}
       <div className={`page-container page-frame-body ${bodyClassName}`}>
         {children}
       </div>

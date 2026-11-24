@@ -108,7 +108,6 @@ export function ArchiveEditorPage() {
                     <p>{editingItemId ? '자료 수정' : '자료 등록'}</p>
                     <strong>{formIsLabs ? '세미나 자료 / 논문' : '에이전트 / 스킬'}</strong>
                   </div>
-                  <button type="button" className="ghost-button" disabled={saving || isUploadingArchiveFile} onClick={closeForm}>취소</button>
                 </div>
 
                 {formIsLabs ? (
@@ -214,7 +213,7 @@ export function ArchiveEditorPage() {
                     />
                   </label>
                   <label className="jcloud-field">
-                    <span className="jcloud-label">{formIsLabs ? '관련 저장소' : 'GitHub 저장소'}</span>
+                    <span className="jcloud-label archive-repository-label"><Icon name="github" size={16} />{formIsLabs ? '관련 저장소' : 'GitHub 저장소'}</span>
                     <input
                       className="jcloud-input"
                       type="url"
@@ -237,6 +236,7 @@ export function ArchiveEditorPage() {
                 </div>
                 {archiveError && <p className="auth-error" role="alert">{archiveError}</p>}
                 <div className="archive-form-actions">
+                  <button type="button" className="ghost-button" disabled={saving || isUploadingArchiveFile} onClick={closeForm}>취소</button>
                   <button type="submit" className="primary-button" disabled={isUploadingArchiveFile || saving}>
                     {saving ? '저장 중' : '저장'}
                   </button>

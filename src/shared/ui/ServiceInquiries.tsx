@@ -107,14 +107,14 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
 
   return <section className="service-inquiries" aria-label={`${serviceNames[kind]} 문의사항`}>
     <header className="service-inquiries-header">
-      <h3>{serviceNames[kind]} 문의사항{items && !loading && !loadError && <small>{items.length}건</small>}</h3>
+      <h3>{serviceNames[kind]} 문의사항</h3>
       <div className="service-inquiries-actions">
-        <button type="button" onClick={reload} disabled={loading || saving}>
-          새로고침
+        <button type="button" className="service-inquiries-refresh" aria-label="새로고침" title="새로고침" onClick={reload} disabled={loading || saving}>
+          <Icon name="refresh" size={18} />
         </button>
         <button type="button" className="service-inquiries-primary" disabled={saving}
           aria-expanded={writing} aria-controls={formId} onClick={() => { setWriting((value) => !value); setMessage('') }}>
-          <Icon name="edit" size={15} />{writing ? '작성 닫기' : '문의 작성'}
+          <Icon name="pencil-color" size={20} />{writing ? '작성 닫기' : '문의 작성'}
         </button>
       </div>
     </header>

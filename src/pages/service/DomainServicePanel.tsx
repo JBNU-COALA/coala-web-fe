@@ -63,7 +63,6 @@ function DomainApplyList() {
             </li>
           ))}
         </ul>
-        <span className="jcloud-list-count">{items.length}건</span>
       </div>
 
       {items.length === 0 ? (

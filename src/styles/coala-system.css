@@ -1674,7 +1674,7 @@ textarea {
   white-space: nowrap;
 }
 
-/* Generated character avatars are shared by the directory and profile pages. */
+/* Koala avatars are shared by the directory and profile pages. */
 .character-avatar {
   position: relative;
   width: 54px;
@@ -1694,22 +1694,13 @@ textarea {
 .character-avatar--xl { width: 132px; height: 132px; }
 
 .character-avatar > img,
-.character-avatar-sprite {
+.character-avatar-art {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   display: block;
   object-fit: cover;
-}
-
-.character-avatar-sprite {
-  inset: -1.5%;
-  width: 103%;
-  height: 103%;
-  background-image: url('/coala-user-avatars.webp');
-  background-repeat: no-repeat;
-  background-size: 300% 200%;
 }
 
 /* User directory */

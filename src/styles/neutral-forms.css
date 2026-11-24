@@ -1,0 +1,44 @@
+/* Shared treatment for archive editors and official service applications. */
+.coala-app :is(.archive-editor, .jcloud-apply-form) :is(.jcloud-input, .jcloud-textarea) {
+  border: 1px solid #171717;
+  background: #fff;
+  color: #171717;
+  border-radius: 8px;
+}
+.coala-app :is(.archive-editor, .jcloud-apply-form) :is(.jcloud-input, .jcloud-textarea):focus {
+  border-color: #171717;
+  background: #fff;
+  box-shadow: 0 0 0 3px #0000000d;
+}
+.coala-app :is(.archive-editor, .jcloud-apply-form) :is(.jcloud-input, .jcloud-textarea)::placeholder { color: #8a8a8a; }
+.coala-app :is(.archive-editor, .jcloud-apply-form) .jcloud-label { color: #404040; }
+.coala-app :is(.archive-editor, .jcloud-apply-form) .repository-field-label { justify-content: flex-start; gap: 6px; }
+.coala-app .archive-editor .archive-repository-label { justify-content: flex-start; gap: 6px; }
+.coala-app .archive-editor .archive-form-head strong { color: #171717; }
+.coala-app .archive-editor .archive-form-head p { color: #737373; }
+.coala-app .archive-editor .archive-upload-zone { border-color: #171717; background: #fff; color: #171717; }
+.coala-app .archive-editor .archive-upload-zone strong { color: #171717; }
+.coala-app .archive-editor .archive-upload-zone small { color: #737373; }
+.coala-app .archive-editor .archive-upload-zone:focus-within { outline: 2px solid #737373; outline-offset: 3px; }
+.coala-app .archive-editor .archive-form-actions { gap: 10px; border-color: #e5e5e5; }
+.coala-app .archive-editor .archive-form-actions button { min-height: 40px; padding-inline: 20px; border: 1px solid #171717; border-radius: 8px; }
+.coala-app .archive-editor .ghost-button { background: #fff; color: #171717; }
+.coala-app .archive-editor .ghost-button:hover { background: #f5f5f5; }
+.coala-app .archive-editor .primary-button { background: #171717; color: #fff; }
+.coala-app .archive-editor .primary-button:hover { background: #333; }
+.coala-app .jcloud-apply-form :is(.jcloud-form-section-title, .jcloud-instance-label, .jcloud-summary-value, .jcloud-terms-box h3) { color: #171717; }
+.coala-app .jcloud-apply-form :is(.jcloud-spec-list li, .jcloud-agree-row, .jcloud-terms-box ul, .jcloud-terms-domain-note) { color: #525252; }
+.coala-app .jcloud-apply-form :is(.jcloud-label-hint, .jcloud-summary-label, .jcloud-instance-desc) { color: #737373; }
+.coala-app .jcloud-apply-form .jcloud-instance-card { border-color: #d4d4d4; background: #fff; }
+.coala-app .jcloud-apply-form .jcloud-instance-card:hover { border-color: #737373; background: #fafafa; }
+.coala-app .jcloud-apply-form .jcloud-instance-card.is-selected { border-color: #171717; background: #f5f5f5; box-shadow: 0 0 0 2px #0000000d; }
+.coala-app .jcloud-apply-form .jcloud-duration-chip { border-color: #d4d4d4; background: #fff; color: #525252; }
+.coala-app .jcloud-apply-form .jcloud-duration-chip:hover:not(:disabled) { border-color: #171717; color: #171717; }
+.coala-app .jcloud-apply-form .jcloud-duration-chip.is-selected { border-color: #171717; background: #171717; color: #fff; }
+.coala-app .jcloud-apply-form .jcloud-duration-chip:disabled { border-color: #e5e5e5; background: #f5f5f5; color: #8a8a8a; }
+.coala-app .jcloud-apply-form :is(.jcloud-form-section--summary, .jcloud-terms-box, .jcloud-open-source-notice) { border-color: #e5e5e5; background: #f5f5f5; color: #525252; }
+.coala-app .jcloud-apply-form .jcloud-open-source-notice :is(p, a) { color: #525252; }
+.coala-app .jcloud-apply-form .jcloud-agree-row input { accent-color: #171717; }
+.coala-app .jcloud-apply-form .jcloud-submit-button { background: #171717; color: #fff; }
+.coala-app .jcloud-apply-form .jcloud-submit-button:hover:not(:disabled) { background: #333; }
+.coala-app .jcloud-apply-form button:focus-visible { outline: 2px solid #737373; outline-offset: 3px; }

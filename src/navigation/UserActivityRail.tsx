@@ -227,6 +227,7 @@ export function UserActivityRail({
           <CharacterAvatar
             name={displayName}
             seed={user?.id ?? user?.email ?? displayName}
+            gender={user?.gender}
             size="lg"
             className="activity-rail-avatar"
           />

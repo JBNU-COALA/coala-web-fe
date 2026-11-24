@@ -495,6 +495,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               <CharacterAvatar
                 name={displayName}
                 seed={effectiveProfileUserId || displayName}
+                gender={isOwnProfile ? user?.gender : undefined}
                 src={displayProfileImage}
                 size="xl"
                 className={`profile-page-avatar profile-page-avatar--${displayAvatarTone}${displayProfileImage ? ' profile-page-avatar--image' : ''}`}
