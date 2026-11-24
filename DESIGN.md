@@ -205,6 +205,7 @@ Latest scale and animation decisions (supersede the earlier sizing notes below):
 - Pale gray icon circles (`#f5f6f7`) and charcoal artwork/text (`#515965`). Content max-width 1200px, desktop padding 56px 6% 60px, mobile 38px 6% 44px.
 - Center the footer Coala icon with a padding-free flex container; keep its 36px artwork from shrinking. Apply a -1.5px horizontal optical correction for the SVG's asymmetric whitespace.
 - Shared implementation: `src/pages/landing/PublicFooter.tsx` and `public-footer.css`. Apply changes to both landing and recruiting through this shared component.
+- The circular Coala channel icon links to `https://coala.jbnu.ac.kr` in the same tab; the footer brand continues to link to the landing page.
 
 ## Member Portal Guidelines
 
