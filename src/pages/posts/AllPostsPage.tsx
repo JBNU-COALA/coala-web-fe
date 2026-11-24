@@ -270,8 +270,7 @@ export function AllPostsPage({
                           <span className={`board-tag board-tag--${categoryMeta.tone}`}>
                             {post.board?.boardName ?? categoryMeta.label}
                           </span>
-                          {category === 'notice' ? <Icon name="bell" size={14} /> : null}
-                          <h3 className="board-post-title">{post.title}</h3>
+                          <h3 className="board-post-title">{category === 'notice' ? <Icon name="bell" size={14} /> : null}{post.title}</h3>
                         </div>
 
                         <p className="board-post-excerpt">
