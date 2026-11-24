@@ -33,7 +33,6 @@ import { PublicFooter } from './pages/landing/PublicFooter'
 import './pages/landing/forest-theme.css'
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
-const AboutPage = lazy(() => import('./pages/about/AboutPage').then((m) => ({ default: m.AboutPage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
 const QnaBoardPage = lazy(() => import('./pages/community/QnaBoardPage').then((m) => ({ default: m.QnaBoardPage })))
 const PostDetailPage = lazy(() => import('./pages/posts/PostDetailPage').then((m) => ({ default: m.PostDetailPage })))
@@ -629,7 +628,7 @@ function AppSession() {
           }
         />
 
-        <Route path="/about" element={<AboutPage />} />
+        <Route path="/about" element={<Navigate to="/portal" replace />} />
         <Route path="/community/activity" element={<StudyActivityPage />} />
         <Route path="/community/activity/records/new" element={<StudyActivityPage mode="new" />} />
         <Route path="/community/activity/records/:recordId" element={<StudyActivityPage mode="detail" />} />
@@ -879,7 +878,7 @@ function AppSession() {
     <div className={isAdminRoute ? 'coala-app coala-app--admin' : 'coala-app'}>
       <header className="coala-header">
         <div className="coala-header-inner">
-          <button type="button" className="coala-brand coala-brand--wordmark" aria-label="코알라 홈" onClick={() => navigate('/')}>
+          <button type="button" className="coala-brand coala-brand--wordmark" aria-label="코알라 커뮤니티 홈" onClick={() => navigate('/portal')}>
             <span className="coala-brand-mark" aria-hidden="true">
               <img src="/coala-logo.svg" alt="" />
             </span>
@@ -1117,17 +1116,10 @@ function AppSession() {
               <>
                 <button
                   type="button"
-                  className="header-action-button"
+                  className="header-action-button header-action-button--primary header-action-button--start"
                   onClick={() => navigate('/login', { state: { from: location } })}
                 >
-                  로그인
-                </button>
-                <button
-                  type="button"
-                  className="header-action-button header-action-button--primary"
-                  onClick={() => navigate('/signup', { state: { from: location } })}
-                >
-                  회원가입
+                  시작하기
                 </button>
               </>
             )}

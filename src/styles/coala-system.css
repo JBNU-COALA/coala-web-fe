@@ -3258,3 +3258,12 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .coala-page-enter { animation: none; }
 }
+
+.header-action-button.header-action-button--start { border-radius: 12px; padding-inline: 18px; }
+
+.header-action-button.header-action-button--start { background: #111; border-color: #111; color: #fff; }
+.header-action-button.header-action-button--start:hover { background: #292929; border-color: #292929; }
+
+@media (min-width: 901px) {
+  .coala-main-nav { gap: clamp(32px, 3.2vw, 52px); }
+}

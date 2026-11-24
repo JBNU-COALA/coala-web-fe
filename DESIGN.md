@@ -455,3 +455,10 @@ Do not:
 - Animate popup opacity and vertical scale over 180–220ms, including dismissal. Retain native keyboard/accessibility/form behavior and standard select fallback in unsupported browsers. Disable transitions for reduced motion.
 - Signup labels show an asterisk only for required fields; omit optional-field labels. Native required semantics remain unchanged.
 - Hide dropdown checkmarks; indicate the selected option through its pale-green background and text styling.
+- Guest member-site header: show a single `시작하기` button linking to login, with 12px rounded corners and 18px horizontal padding. Remove the separate header login button.
+- Footer GitHub links to `https://github.com/JBNU-COALA`; Instagram links to `https://www.instagram.com/coala_jbnu?knvt=dHhlaGhiMjNwdjNs`. Both open in a new tab with noopener/noreferrer.
+- All three channel circles lift 4px with a brighter green background and subtle shadow on hover or keyboard focus, and compress slightly on press. Respect reduced motion.
+- Header `시작하기` button uses a near-black (#111) background and border with white text, retaining its 12px corner radius.
+- Member-site header Coala brand navigates to `/portal` (community home), not the public landing page.
+- Remove the portal header introduction menu and public access to the old `/about` page. Legacy `/about` URLs redirect to `/portal`; the public landing remains unchanged.
+- Desktop portal header navigation uses a responsive 32–52px gap between menu items for more breathing room; mobile navigation spacing remains unchanged.

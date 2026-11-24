@@ -98,7 +98,6 @@ export function getRouteFromPath(pathname: string): AppRoute {
 }
 
 export const headerNavItems: HeaderNavItem[] = [
-  { id: 'about', label: '소개', icon: 'layout' },
   { id: 'community', label: '커뮤니티', icon: 'message' },
   { id: 'services', label: '서비스', icon: 'settings' },
   { id: 'archive', label: '자료실', icon: 'book' },

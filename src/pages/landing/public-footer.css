@@ -30,3 +30,19 @@
 
 .public-footer a.public-footer-brand{margin-bottom:12px}
 .public-footer .public-footer-inner>p{font-size:15px}
+
+.public-footer .public-footer-channels a.public-footer-channel {
+  text-decoration: none;
+  transition: transform 200ms ease, background-color 200ms ease, box-shadow 200ms ease;
+}
+.public-footer .public-footer-channels a.public-footer-channel:hover,
+.public-footer .public-footer-channels a.public-footer-channel:focus-visible {
+  transform: translateY(-4px);
+  background: #284535;
+  box-shadow: 0 6px 16px #0003;
+}
+.public-footer .public-footer-channels a.public-footer-channel:active { transform: translateY(-1px) scale(.96); }
+@media (prefers-reduced-motion: reduce) {
+  .public-footer .public-footer-channels a.public-footer-channel { transition: none; }
+  .public-footer .public-footer-channels a.public-footer-channel:is(:hover,:focus-visible,:active) { transform: none; }
+}

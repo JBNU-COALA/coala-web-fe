@@ -12,7 +12,7 @@ const auth = vi.hoisted(() => ({
   logout: vi.fn(),
 }))
 vi.mock('./shared/auth/AuthContext', () => ({ useAuth: () => auth }))
-vi.mock('./pages/about/AboutPage', () => ({ AboutPage: () => <div>About page</div> }))
+vi.mock('./pages/home/HomePage', () => ({ HomePage: () => <div>Member portal</div> }))
 vi.mock('./shared/api/notifications', () => ({ notificationsApi: {
   getNotifications: vi.fn(), getUnreadCount: vi.fn(), markRead: vi.fn(), markAllRead: vi.fn(),
 } }))
@@ -24,7 +24,7 @@ function deferred<T>() {
 }
 
 const notification: NotificationItem = { id: 1, type: 'COMMENT', title: 'First user notification', message: 'Message', read: false }
-const app = () => <StrictMode><MemoryRouter initialEntries={['/about']}><App /></MemoryRouter></StrictMode>
+const app = () => <StrictMode><MemoryRouter initialEntries={['/portal']}><App /></MemoryRouter></StrictMode>
 
 beforeEach(() => {
   vi.resetAllMocks()
@@ -51,7 +51,7 @@ describe('notification session isolation', () => {
     vi.mocked(notificationsApi.getUnreadCount).mockReturnValue(count.promise)
     vi.mocked(notificationsApi.getNotifications).mockReturnValueOnce(list.promise)
     const view = render(app())
-    await screen.findByText('About page')
+    await screen.findByText('Member portal')
     fireEvent.click(screen.getByRole('button', { name: '알림 0개' }))
     auth.isLoggedIn = false
     view.rerender(app())
