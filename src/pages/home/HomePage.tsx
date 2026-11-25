@@ -55,7 +55,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
       <div className="home-feed-columns home-editorial-container" aria-busy={loading}>
         <section className="home-feed-column" aria-labelledby="home-posts-title">
           <header className="home-editorial-section-head">
-            <h2 id="home-posts-title">게시판</h2>
+            <h2 id="home-posts-title"><span className="home-section-icon" aria-hidden="true">💬</span>게시판</h2>
             <button type="button" onClick={openPosts}>더보기 <Icon name="chevron-right" size={18} /></button>
           </header>
           {loading ? <div className="home-editorial-loading" aria-label="게시글 불러오는 중" /> : <ul className="home-feed-list">
@@ -81,7 +81,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
 
         <section className="home-feed-column" aria-labelledby="home-info-title">
           <header className="home-editorial-section-head">
-            <h2 id="home-info-title">정보공유</h2>
+            <h2 id="home-info-title"><span className="home-section-icon" aria-hidden="true">📚</span>정보공유</h2>
             <button type="button" onClick={openInfo}>더보기 <Icon name="chevron-right" size={18} /></button>
           </header>
           {loading ? <div className="home-editorial-loading" aria-label="정보공유 불러오는 중" /> : <ul className="home-feed-list">
@@ -103,7 +103,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
 
         <section className="home-feed-column home-feed-column--recruit" aria-labelledby="home-recruit-title">
           <header className="home-editorial-section-head">
-            <h2 id="home-recruit-title">멤버 모집</h2>
+            <h2 id="home-recruit-title"><span className="home-section-icon" aria-hidden="true">🤝</span>멤버 모집</h2>
             <button type="button" onClick={() => navigate(routes.community.recruit)}>더보기 <Icon name="chevron-right" size={18} /></button>
           </header>
           {loading ? <div className="home-editorial-loading" aria-label="모집 불러오는 중" /> : <ul className="home-recruit-list">

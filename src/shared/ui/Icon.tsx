@@ -1,4 +1,7 @@
 export type IconName =
+  | 'close'
+  | 'calendar-color'
+  | 'award-color'
   | 'github'
   | 'linkedin'
   | 'refresh'
@@ -53,6 +56,12 @@ type IconProps = {
 
 const iconShape = (name: IconName) => {
   switch (name) {
+    case 'close':
+      return <path d="m6 6 12 12M18 6 6 18" />
+    case 'calendar-color':
+      return <g stroke="none"><rect x="3" y="4" width="18" height="18" rx="3" fill="#e8eef8" /><path d="M6 4h12a3 3 0 0 1 3 3v3H3V7a3 3 0 0 1 3-3Z" fill="#597fce" /><path d="M8 2v4M16 2v4" stroke="#334d83" /><path d="m8 15 3 3 5-6" stroke="#597fce" fill="none" /></g>
+    case 'award-color':
+      return <g stroke="none"><path d="m7 13-2 9 7-3 7 3-2-9" fill="#6d82ce" /><circle cx="12" cy="9" r="7" fill="#efb64c" /><path d="m12 4 1.5 3 3.5.5-2.5 2.5.5 3.5-3-1.5-3 1.5.5-3.5L7 7.5l3.5-.5Z" fill="#fff0bc" /></g>
     case 'siren-color':
       return <><path d="M12 2v2M4 4l2 2M20 4l-2 2M2 11h2M20 11h2" stroke="#e35151" /><path d="M6 18v-6a6 6 0 0 1 12 0v6Z" fill="#ef6262" stroke="none" /><path d="M9 12a3 3 0 0 1 3-3" stroke="#fff" /><rect x="4" y="18" width="16" height="4" rx="1.5" fill="#737373" stroke="none" /></>
     case 'profile-color':
@@ -235,7 +244,7 @@ const iconShape = (name: IconName) => {
     case 'notification':
       return (
         <>
-          <path d="M12 3a6 6 0 0 0-6 6v3.4c0 1.2-.4 2.3-1.2 3.2L3.5 17h17l-1.3-1.4a4.8 4.8 0 0 1-1.2-3.2V9a6 6 0 0 0-6-6Z" fill="currentColor" fillOpacity="0.12" />
+          <path d="M12 3a6 6 0 0 0-6 6v3.4c0 1.2-.4 2.3-1.2 3.2L3.5 17h17l-1.3-1.4a4.8 4.8 0 0 1-1.2-3.2V9a6 6 0 0 0-6-6Z" fill="none" />
           <path d="M9.5 20a2.8 2.8 0 0 0 5 0M12 2v1" />
         </>
       )

@@ -1,0 +1,3 @@
+Technology logos: https://github.com/devicons/devicon
+Downloaded SVG originals from icons/<name>/<name>-original.svg on 2026-11-25.
+Brand artwork remains the property of its respective owners.

@@ -1079,10 +1079,7 @@ function AppSession() {
                         setProfileMenuOpen(false)
                         if (user) navigate(`${routes.users.detail(user.id)}?tab=activity`)
                       }}>내 활동 내역</button>
-                      <button type="button" className="header-profile-menu-item" onClick={() => {
-                        setProfileMenuOpen(false)
-                        if (user) navigate(routes.community.activityUser(String(user.id)))
-                      }}>나의 팀</button>
+
                       {isAdmin ? (
                         <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
                           <Icon name="settings" size={14} />

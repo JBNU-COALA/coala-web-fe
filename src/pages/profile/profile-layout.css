@@ -194,3 +194,53 @@
   .profile-settings .profile-repeat-row--link { grid-template-columns: minmax(0, 1fr); }
 }
 .profile-settings .profile-section-grid--overview > .profile-section-card:nth-child(2) { order: -1; }
+
+/* The avatar itself is the photo picker. */
+.coala-app .profile-settings button.profile-avatar-upload {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  line-height: 0;
+  cursor: pointer;
+  transition: opacity 160ms ease, box-shadow 160ms ease;
+}
+.coala-app .profile-settings button.profile-avatar-upload:hover:not(:disabled) {
+  background: transparent;
+  box-shadow: 0 0 0 3px #ddd;
+}
+.coala-app .profile-settings button.profile-avatar-upload:focus-visible {
+  outline: 2px solid #222;
+  outline-offset: 4px;
+}
+.coala-app .profile-settings button.profile-avatar-upload:disabled {
+  opacity: .55;
+  cursor: wait;
+}
+
+.coala-content--profile { --coala-ink: #222; --coala-line: #e5e5e5; }
+.profile-settings-layout { grid-template-columns: 164px minmax(0, 1fr); gap: 28px; }
+.profile-settings-sidebar { border-right: 1px solid #e5e5e5; padding-right: 16px; }
+.profile-settings-sidebar .section-nav .section-nav-items { gap: 4px; }
+.profile-settings-sidebar .section-nav .section-nav-item { min-height: 38px; padding: 8px 10px; gap: 10px; color: #666; font-size: 13px; border-radius: 8px; }
+.profile-settings-sidebar .section-nav .section-nav-item[aria-current='page'] { background: #222; color: #fff; }
+.profile-settings-sidebar .section-nav .section-nav-item:hover:not([aria-current='page']) { background: #f0f0f0; color: #222; }
+.coala-app .profile-settings-logout { min-height: 38px; margin-top: 12px; padding: 10px; gap: 10px; font-size: 13px; color: #666; }
+.profile-settings .profile-section-title { display: flex; align-items: center; gap: 8px; }
+.coala-content--profile :is(.profile-page-focus, .profile-page-meta > *, .profile-activity-value, .profile-stat-value, .profile-stat-label, .profile-task-links, .profile-task-links a) { color: #525252; }
+.coala-content--profile .profile-page-meta > * { background: #f7f7f7; border-color: #e5e5e5; }
+.coala-content--profile :is(.profile-section-card, .profile-page-hero, .profile-stats-grid, .profile-stat-card) { border-color: #e5e5e5; }
+.coala-app .profile-settings .profile-edit-button { min-width: 34px; min-height: 34px; padding: 8px; background: #f5f5f5; color: #333; border-color: #ddd; }
+.coala-content--profile .profile-task a:hover { color: #171717; }
+.profile-settings :is(button, a, input, textarea, select):focus-visible { outline-color: #333; }
+@media (max-width: 640px) {
+  .profile-settings-layout { grid-template-columns: minmax(0, 1fr); }
+  .profile-settings-sidebar { border-right: 0; border-bottom: 1px solid #e5e5e5; padding: 0 0 12px; }
+}
+.coala-content--profile :is(.profile-bio-text, .profile-activity-label, .profile-empty-text, .profile-award-note, .profile-public-links a, .profile-link-list a, .profile-repo-list > span, .profile-study-title, .profile-study-meta) { color: #666; }
+.coala-content--profile :is(.profile-public-links a, .profile-link-list a, .profile-repo-list > span, .profile-stat-action, .profile-photo-button) { border-color: #ddd; background: #fff; color: #444; }
+.coala-content--profile :is(.profile-study-card, .profile-activity-block, .profile-award-item) { border-color: #e5e5e5; background-color: #fafafa; }

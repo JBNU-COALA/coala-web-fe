@@ -49,3 +49,12 @@
 .service-inquiries-form-actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .service-inquiries-form-actions button { min-height: 34px; padding: 6px 12px; font-size: 13px; }
 @media (max-width: 640px) { .service-inquiries-actions { width: auto; } }
+
+.service-inquiries { animation: inquiry-reveal 220ms ease-out; }
+.service-inquiries-form { padding: 24px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fafafa; animation: inquiry-reveal 240ms ease-out; }
+.service-inquiries-form input { min-height: 42px; }
+.service-inquiries-form textarea { min-height: 140px; }
+.service-inquiries-form-actions { justify-content: flex-end; gap: 8px; }
+@keyframes inquiry-reveal { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 600px) { .service-inquiries-form { padding: 16px; } }
+@media (prefers-reduced-motion: reduce) { .service-inquiries, .service-inquiries-form { animation: none; } }

@@ -106,3 +106,5 @@
   .home-feed-column .home-editorial-section-head { margin-bottom: 8px; }
   .home-feed-row { min-height: 138px; }
 }
+
+.home-section-icon { display: inline-block; margin-right: 9px; font-size: .95em; vertical-align: .02em; filter: drop-shadow(0 2px 2px #00000012); }

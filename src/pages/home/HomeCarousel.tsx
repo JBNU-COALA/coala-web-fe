@@ -7,7 +7,7 @@ import { SafeImage } from '../../shared/ui/SafeImage'
 import './HomeCarousel.css'
 
 const defaultBanners: SiteBanner[] = [
-  { id: -1, eyebrow: 'TOGETHER WE BUILD', title: 'COALA Developer Club', description: '함께 만들고 운영하는 개발 동아리', targetPath: routes.about, actionLabel: '동아리 소개', tone: 'green', imageUrl: '', sortOrder: 0, enabled: true },
+  { id: -1, eyebrow: 'TOGETHER WE BUILD', title: '함께 만드는 개발 동아리', description: '함께 만들고 운영하는 개발 동아리', targetPath: routes.about, actionLabel: '동아리 소개', tone: 'green', imageUrl: '', sortOrder: 0, enabled: true },
   { id: -2, eyebrow: 'COMMUNITY', title: '배우고, 나누고, 함께.', description: '새로운 이야기와 함께할 사람들을 만나보세요.', targetPath: routes.community.board, actionLabel: '커뮤니티', tone: 'blue', imageUrl: '', sortOrder: 1, enabled: true },
   { id: -3, eyebrow: 'MADE BY COALA', title: '아이디어에서 서비스로.', description: '코알라가 만들고 운영하는 서비스를 만나보세요.', targetPath: routes.services.root, actionLabel: '서비스 보기', tone: 'coral', imageUrl: '', sortOrder: 2, enabled: true },
 ]
@@ -54,12 +54,16 @@ export function HomeCarousel() {
   if (banners.length === 0) return null
 
   return (
-    <section className="home-carousel" aria-label="코알라 주요 소식" aria-roledescription="캐러셀"
+    <section className={`home-carousel${!playing || hovered || focused ? ' is-paused' : ''}`} aria-label="코알라 주요 소식" aria-roledescription="캐러셀" tabIndex={0}
       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
       onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => {
         if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
       }}
       onKeyDown={(event) => {
+        if (event.key === ' ' && event.target === event.currentTarget) {
+          event.preventDefault()
+          setPlaying((current) => !current)
+        }
         if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
           event.preventDefault()
           move(event.key === 'ArrowLeft' ? -1 : 1)
@@ -73,13 +77,13 @@ export function HomeCarousel() {
         if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) move(dx < 0 ? 1 : -1)
         touchStart.current = null
       }}>
-      <div className="home-carousel-track" style={{ transform: `translateX(-${activeIndex * 100}%)` }}>
+      <div className="home-carousel-track">
         {banners.map((banner, slideIndex) => {
           const Heading = slideIndex === 0 ? 'h1' : 'h2'
           const target = /^\/(?!\/)/.test(banner.targetPath) && !/[\\\s]/.test(banner.targetPath) ? banner.targetPath : routes.home
           const loading = slideIndex === 0 ? 'eager' : 'lazy'
           return (
-            <div key={banner.id} className={`home-carousel-slide home-carousel-slide--${banner.tone}${banner.imageUrl ? ' home-carousel-slide--media' : ''}`}
+            <div key={banner.id} className={`home-carousel-slide home-carousel-slide--${banner.tone}${slideIndex === activeIndex ? ' is-active' : ''}${banner.imageUrl ? ' home-carousel-slide--media' : ''}`}
               role="group" aria-roledescription="슬라이드" aria-label={`${slideIndex + 1} / ${banners.length}`}
               aria-hidden={slideIndex !== activeIndex} inert={slideIndex !== activeIndex}>
               {banner.imageUrl ? (
@@ -93,13 +97,12 @@ export function HomeCarousel() {
               ) : (
                 <div className="page-container home-carousel-inner">
                   <div className="home-carousel-copy">
-                    {banner.eyebrow ? <p className="home-carousel-eyebrow">{banner.eyebrow}</p> : null}
                     <Heading>{banner.title}</Heading>
                     <p className="home-carousel-description">{banner.description}</p>
                     <Link to={target} className="home-carousel-link">{banner.actionLabel || '자세히 보기'}<Icon name="chevron-right" size={16} /></Link>
                   </div>
                   <div className="home-carousel-art" aria-hidden="true">
-                    <SafeImage src="/coala-mascot-plush.png" alt="" loading={loading}
+                    <SafeImage src={['/portal-koala-welcome.png', '/portal-koala-community.png', '/portal-koala-team.png'][slideIndex % 3]} alt="" loading={loading}
                       fallback={<span className="home-carousel-art-fallback" />} />
                   </div>
                 </div>
@@ -113,14 +116,7 @@ export function HomeCarousel() {
           {banners.map((banner, i) => <button key={banner.id} type="button" aria-label={`${i + 1}. ${banner.title}`}
             aria-current={i === activeIndex ? 'true' : undefined} title={banner.title} onClick={() => setIndex(i)}><span /></button>)}
         </div>
-        <div className="home-carousel-buttons">
-          <span aria-live={playing ? 'off' : 'polite'}>{activeIndex + 1} / {banners.length}</span>
-          <button type="button" title="이전 배너" aria-label="이전 배너" onClick={() => move(-1)}><Icon name="chevron-left" size={18} /></button>
-          <button type="button" title="다음 배너" aria-label="다음 배너" onClick={() => move(1)}><Icon name="chevron-right" size={18} /></button>
-          {!reducedMotion && <button type="button" title={playing ? '자동 넘김 정지' : '자동 넘김 시작'} aria-label={playing ? '자동 넘김 정지' : '자동 넘김 시작'} onClick={() => setPlaying(!playing)}>
-            {playing ? <span className="home-carousel-pause" aria-hidden="true">Ⅱ</span> : <Icon name="play" size={18} />}
-          </button>}
-        </div>
+
       </div>}
     </section>
   )

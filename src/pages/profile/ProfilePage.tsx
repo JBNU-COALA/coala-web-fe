@@ -296,11 +296,11 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
   ])
 
   const tabs: { id: ProfileTab; label: string; icon: IconName }[] = [
-    { id: 'overview', label: isOwnProfile ? '내 계정 관리' : '프로필', icon: 'user' },
-    { id: 'activity', label: '활동 내역', icon: 'calendar' },
-    { id: 'awards', label: '수상 내역', icon: 'chart' },
-    { id: 'posts', label: '작성 내용', icon: 'file' },
-    { id: 'services', label: '서비스', icon: 'network' },
+    { id: 'overview', label: isOwnProfile ? '내 계정 관리' : '프로필', icon: 'profile-color' },
+    { id: 'activity', label: '활동 내역', icon: 'calendar-color' },
+    { id: 'awards', label: '수상 내역', icon: 'award-color' },
+    { id: 'posts', label: '작성 내용', icon: 'file-color' },
+    { id: 'services', label: '서비스', icon: 'server-color' },
   ]
 
   const handlePhotoSelect = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -496,8 +496,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           <aside className="profile-settings-sidebar">
             <SectionNav label="프로필 메뉴" items={tabs} value={tab} onChange={setTab} />
             {isOwnProfile && <>
-              <Link className="profile-settings-team" to={routes.community.activityUser(effectiveProfileUserId)}><Icon name="users" size={20} />나의 팀</Link>
-              <button type="button" className="profile-settings-logout" onClick={async () => { await logout(); navigate('/') }}><Icon name="logout" size={20} />로그아웃</button>
+              <button type="button" className="profile-settings-logout" onClick={async () => { await logout(); navigate('/') }}><Icon name="logout-color" size={20} />로그아웃</button>
             </>}
           </aside>
           <div className="profile-page profile-settings-main">
@@ -505,6 +504,16 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
+              {canEdit ? (
+                <button
+                  type="button"
+                  className="profile-avatar-upload"
+                  aria-label={isUploadingProfilePhoto ? '프로필 사진 업로드 중' : '프로필 사진 변경'}
+                  title="프로필 사진 변경"
+                  aria-busy={isUploadingProfilePhoto}
+                  disabled={isUploadingProfilePhoto || profileSaveState === 'saving'}
+                  onClick={() => photoInputRef.current?.click()}
+                >
               <CharacterAvatar
                 name={displayName}
                 seed={effectiveProfileUserId || displayName}
@@ -513,11 +522,19 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                 size="xl"
                 className={`profile-page-avatar profile-page-avatar--${displayAvatarTone}${displayProfileImage ? ' profile-page-avatar--image' : ''}`}
               />
+                </button>
+              ) : (
+              <CharacterAvatar
+                name={displayName}
+                seed={effectiveProfileUserId || displayName}
+                gender={isOwnProfile ? user?.gender : undefined}
+                src={displayProfileImage}
+                size="xl"
+                className={`profile-page-avatar profile-page-avatar--${displayAvatarTone}${displayProfileImage ? ' profile-page-avatar--image' : ''}`}
+              />
+              )}
               {canEdit ? (
                 <div className="profile-photo-controls">
-                  <button type="button" className="profile-photo-button" disabled={isUploadingProfilePhoto || profileSaveState === 'saving'} onClick={() => photoInputRef.current?.click()}>
-                    {isUploadingProfilePhoto ? '업로드 중' : '사진 변경'}
-                  </button>
                   {displayProfileImage ? (
                     <button type="button" className="profile-photo-button profile-photo-button--muted" disabled={isUploadingProfilePhoto || profileSaveState === 'saving'} onClick={removeProfilePhoto}>
                       삭제
@@ -529,7 +546,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                     accept="image/*"
                     className="profile-photo-input"
                     onChange={handlePhotoSelect}
-                    disabled={isUploadingProfilePhoto}
+                    disabled={isUploadingProfilePhoto || profileSaveState === 'saving'}
                   />
                   {photoError ? <p className="profile-photo-error">{photoError}</p> : null}
                 </div>
@@ -568,11 +585,13 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
             <button
               type="button"
               className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
+              aria-label={editing ? '프로필 저장' : '프로필 편집'}
+              title={editing ? '프로필 저장' : '프로필 편집'}
               onClick={handleEditClick}
               disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
             >
               <Icon name="edit" size={13} />
-              {editing ? (profileSaveState === 'saving' ? '저장 중' : '저장') : '편집'}
+              {editing ? (profileSaveState === 'saving' ? '저장 중' : '저장') : null}
             </button>
             </div>
           ) : null}
@@ -824,7 +843,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               <ProfileActivityList {...overview} items={(overview.data?.items ?? []).filter((item) => item.kind === 'study')} />
             </section>
             <div className="surface-card profile-section-card">
-              <h3 className="profile-section-title">GitHub 현황</h3>
+              <h3 className="profile-section-title"><Icon name="github" size={20} /> GitHub 현황</h3>
               <div className="profile-activity-block">
                 <div className="profile-activity-row">
                   <span className="profile-activity-label">핸들</span>

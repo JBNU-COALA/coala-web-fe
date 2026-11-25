@@ -115,7 +115,7 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
         <button type="button" className="service-inquiries-icon" disabled={saving}
           aria-label={writing ? '작성 닫기' : '문의 작성'} title={writing ? '작성 닫기' : '문의 작성'}
           aria-expanded={writing} aria-controls={formId} onClick={() => { setWriting((value) => !value); setMessage('') }}>
-          <Icon name="pencil-color" size={18} />
+          <Icon name={writing ? 'close' : 'pencil-color'} size={18} />
         </button>
       </div>
     </header>

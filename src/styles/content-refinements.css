@@ -224,3 +224,16 @@
 .coala-app .header-profile-logout { margin-top: 12px; padding-top: 20px; border-top: 1px solid #e1e5e9; }
 /* 원형 아바타 안에 새 캐릭터의 귀까지 보이도록 여백을 둔다. */
 .character-avatar > .character-avatar-art { object-fit: contain; padding: 6%; }
+
+.coala-app .header-profile-popover { width: 186px; padding: 6px; border-radius: 12px; animation: menu-reveal 180ms ease-out; }
+.coala-app .header-profile-menu-item { min-height: 36px; padding: 8px 10px; border-radius: 7px; font-size: 13px; }
+.coala-app .header-profile-menu-item:hover { background: #222; color: #fff; }
+.coala-app .header-profile-logout { margin-top: 4px; padding-top: 8px; }
+.main-nav-mega { animation: menu-reveal 220ms ease-out; }
+@keyframes menu-reveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .main-nav-mega, .coala-app .header-profile-popover { animation: none; } }
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  .coala-header .main-nav-mega { animation: none; transition: opacity 220ms ease, transform 260ms cubic-bezier(.22, 1, .36, 1), visibility 220ms; transform: translateY(-12px); }
+  .coala-header .coala-main-nav:hover .main-nav-mega,
+  .coala-header .coala-main-nav.is-mega-open .main-nav-mega { transform: translateY(0); }
+}

@@ -181,3 +181,28 @@
   align-self: stretch;
   text-align: center;
 }
+
+.coala-content--services .member-service-detail { grid-template-columns: minmax(0, 1fr); border-radius: 14px; background: #fff; }
+.coala-content--services .member-service-detail-media { min-height: 0; height: clamp(200px, 26vw, 320px); background: #f6f6f6; }
+.coala-content--services .member-service-detail-media img { object-fit: contain; }
+.coala-content--services .member-service-detail-media::before { display: none; }
+.coala-content--services .member-service-detail-body { padding: 28px; gap: 24px; }
+.coala-content--services .member-service-detail-header { flex-direction: column; gap: 20px; }
+.coala-content--services .member-service-detail-header > div { justify-items: start; text-align: left; }
+.coala-content--services .member-service-detail-header h3 { color: #171717; font-size: clamp(28px, 3vw, 40px); }
+.coala-content--services .member-service-detail :is(p, li, dd, h4, .member-service-detail-header span) { color: #525252; }
+.coala-content--services .member-service-detail-meta { grid-template-columns: repeat(2, minmax(0, 1fr)); background: #fafafa; border-color: #e5e5e5; }
+.coala-content--services .member-service-detail-meta > div { border: 0; padding: 16px; }
+.coala-content--services .member-service-detail-meta dt { color: #737373; font-weight: 500; }
+.coala-content--services .member-service-detail-meta dd { color: #262626; font-weight: 500; }
+.coala-content--services .member-service-detail-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.coala-content--services .member-service-detail-grid section { border-color: #e5e5e5; }
+.coala-content--services .member-service-detail-actions a { border: 1px solid #ddd; background: #fff; color: #262626; }
+.coala-content--services .member-service-detail-actions a:first-child { background: #171717; color: #fff; border-color: #171717; }
+.coala-content--services .member-service-back-button { border-color: #ddd; color: #525252; }
+.coala-content--services .member-service-detail-tags > span { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; background: #f5f5f5; color: #404040; border-radius: 8px; }
+.coala-content--services .member-service-detail-tags img { flex-shrink: 0; object-fit: contain; }
+@media (max-width: 600px) {
+  .coala-content--services .member-service-detail-body { padding: 18px; }
+  .coala-content--services .member-service-detail-grid, .coala-content--services .member-service-detail-meta { grid-template-columns: minmax(0, 1fr); }
+}

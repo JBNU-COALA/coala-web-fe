@@ -21,7 +21,7 @@ describe('home banner carousel', () => {
     await screen.findByRole('heading', { name: '배너 1' })
     expect(container.querySelectorAll('.home-carousel-slide')).toHaveLength(2)
     expect(screen.queryByRole('heading', { name: '배너 3', hidden: true })).toBeNull()
-    fireEvent.click(screen.getByRole('button', { name: '다음 배너' }))
+    fireEvent.click(screen.getByRole('button', { name: '2. 배너 2' }))
     expect(screen.getByRole('heading', { name: '배너 2' })).toBeTruthy()
     expect(container.querySelectorAll('[inert]')).toHaveLength(1)
   })
@@ -36,7 +36,7 @@ describe('home banner carousel', () => {
     vi.mocked(siteApi.getBanners).mockRejectedValue(new Error('offline'))
     mount()
     await act(async () => {})
-    expect(screen.getByRole('heading', { name: 'COALA Developer Club' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: '함께 만드는 개발 동아리' })).toBeTruthy()
     expect(screen.getByRole('link', { name: '동아리 소개' }).getAttribute('href')).toBe('/about')
   })
 
@@ -59,7 +59,7 @@ describe('home banner carousel', () => {
     expect(screen.getByRole('heading', { name: '배너 2' })).toBeTruthy()
   })
 
-  it('pauses automatic movement on hover and with the stop control', async () => {
+  it('pauses automatic movement on hover and with keyboard pause', async () => {
     vi.useFakeTimers()
     const { container } = mount()
     await act(async () => {})
@@ -70,7 +70,7 @@ describe('home banner carousel', () => {
     fireEvent.mouseLeave(carousel)
     act(() => vi.advanceTimersByTime(6500))
     expect(screen.getByRole('heading', { name: '배너 2' })).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: '자동 넘김 정지' }))
+    fireEvent.keyDown(carousel, { key: ' ' })
     act(() => vi.advanceTimersByTime(6500))
     expect(screen.getByRole('heading', { name: '배너 2' })).toBeTruthy()
   })

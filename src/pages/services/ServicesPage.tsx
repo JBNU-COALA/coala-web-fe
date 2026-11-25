@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { TechLogo } from '../../shared/ui/TechLogo'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
@@ -342,7 +343,7 @@ export function ServicesPage() {
 
   const renderServiceTags = (tags: string[]) => (
     tags.length > 0
-      ? tags.map((tag) => <span key={tag}>{tag}</span>)
+      ? tags.map((tag) => <span key={tag}><TechLogo name={tag} />{tag}</span>)
       : <span className="member-service-tag-empty">태그가 없습니다</span>
   )
 
@@ -406,10 +407,10 @@ export function ServicesPage() {
                   <button key={service.id} type="button" onClick={() => openServiceDetail(service.id)}>
                     <span className="member-service-preview-image">
                       <SafeImage
-                        src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/coala-card-placeholder.png'}
+                        src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/portal-koala-team.png'}
                         alt=""
                         loading="lazy"
-                        fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+                        fallback={<img src="/portal-koala-team.png" alt="" loading="lazy" />}
                       />
                     </span>
                     <span className="member-service-preview-copy">
@@ -458,9 +459,9 @@ export function ServicesPage() {
                   }
                 >
                   <SafeImage
-                    src={selectedService.imageUrl ? toServiceImageUrl(selectedService.imageUrl) : '/coala-card-placeholder.png'}
+                    src={selectedService.imageUrl ? toServiceImageUrl(selectedService.imageUrl) : '/portal-koala-team.png'}
                     alt=""
-                    fallback={<img src="/coala-card-placeholder.png" alt="" />}
+                    fallback={<img src="/portal-koala-team.png" alt="" />}
                   />
                   <span className="member-service-status">{selectedService.status}</span>
                 </div>
@@ -754,10 +755,10 @@ export function ServicesPage() {
                     <>
                       <div className="member-service-media">
                         <SafeImage
-                          src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/coala-card-placeholder.png'}
+                          src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/portal-koala-team.png'}
                           alt=""
                           loading="lazy"
-                          fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
+                          fallback={<img src="/portal-koala-team.png" alt="" loading="lazy" />}
                         />
                       </div>
                       <div className="member-service-card-head">
