@@ -136,12 +136,12 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
           {services.map((service) => (
             <button key={service.id} type="button" className="home-service-item" onClick={() => navigate(routes.services.userDetail(service.id))}>
               <span className="home-service-image">
-                {service.imageUrl ? <SafeImage
-                  src={getServiceThumbnail(service.imageUrl)}
+                <SafeImage
+                  src={service.imageUrl ? getServiceThumbnail(service.imageUrl) : '/portal-koala-team.png'}
                   alt=""
                   loading="lazy"
-                  fallback={<span className="home-service-placeholder" aria-hidden="true"><Icon name="globe" size={32} /></span>}
-                /> : <span className="home-service-placeholder" aria-hidden="true"><Icon name="globe" size={32} /></span>}
+                  fallback={<img src="/portal-koala-team.png" alt="" loading="lazy" />}
+                />
               </span>
               <span className="home-service-copy">
                 <small>{service.status} · {service.owner}</small>

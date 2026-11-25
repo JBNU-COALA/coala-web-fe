@@ -16,10 +16,11 @@ import { resolveApiAssetUrl } from '../../shared/api/client'
 import { postsApi } from '../../shared/api/posts'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
-import { SelectControl } from '../../shared/ui/SelectControl'
+import { SafeImage } from '../../shared/ui/SafeImage'
+import { WriterCategoryPicker } from './WriterCategoryPicker'
 import './postWriter.css'
 import { CommunityBanner } from '../community/CommunityBanner'
-import { copyMarkdown, extractFirstMarkdownImageUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
+import { extractFirstMarkdownImageUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
   getMarkdownLengthWithoutInlineImageData,
@@ -146,7 +147,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
   const [tagsInput, setTagsInput] = useState('')
-  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'error'>('idle')
   const [imageError, setImageError] = useState<string | null>(null)
   const [boards, setBoards] = useState<BoardData[]>([])
   const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null)
@@ -324,11 +324,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
     ],
     [imageUploadCommand],
   )
-
-  const handleCopyMarkdown = async () => {
-    setCopyState(await copyMarkdown(content) ? 'copied' : 'error')
-    setTimeout(() => setCopyState('idle'), 2000)
-  }
 
   const handleInfoImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -561,11 +556,12 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
   }
 
   return (
-    <section className={`coala-content coala-content--post-writer coala-content--velog-writer${writerType === 'community' || writerType === 'qna' ? ' post-writer-has-banner' : ''}`}>
-      {(writerType === 'community' || writerType === 'qna') && <CommunityBanner
-        title={writerType === 'qna' ? '질문게시판' : '게시판'}
-        description={writerType === 'qna' ? '개발, 진로, 연구실, 대학원 등 궁금한 점이 있다면 자유롭게 질문해주세요!' : '코알라 멤버들의 자유로운 소통 공간'}
-      />}
+    <section className="coala-content coala-content--post-writer coala-content--velog-writer post-writer-has-banner">
+      <CommunityBanner
+        title={writerType === 'info' ? '정보공유' : writerType === 'qna' ? '질문게시판' : '게시판'}
+        tone={writerType === 'info' ? 'info' : 'board'}
+        description={writerType === 'info' ? '대회 · 연구실 · 학습 자료까지, 함께 보면 좋은 정보를 공유해요.' : writerType === 'qna' ? '개발, 진로, 연구실, 대학원 등 궁금한 점이 있다면 자유롭게 질문해주세요!' : '코알라 멤버들의 자유로운 소통 공간'}
+      />
       <form className="post-writer-layout post-writer-layout--velog" onSubmit={handlePublish}>
         <article className="post-writer post-writer--velog">
           <header className="velog-writer-topbar">
@@ -574,15 +570,12 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
             </div>
 
             <div className="post-writer-actions velog-writer-actions">
-              <button
-                type="button"
-                className={copyState === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-                onClick={handleCopyMarkdown}
-              >
-                <Icon name="copy" size={15} />
-                {copyState === 'copied' ? '복사됨' : copyState === 'error' ? '복사 실패' : '마크다운 복사'}
-              </button>
-
+              {writerType === 'info' ? <WriterCategoryPicker label="정보공유 분류" value={infoEditFilter ?? 'news'}
+                options={Object.entries(infoFilterLabelById).map(([value, label]) => ({ value, label }))}
+                disabled={isPublishing || isEditLoading} onChange={(value) => setInfoEditFilter(value as InfoFilterId)} />
+                : boards.length > 1 && <WriterCategoryPicker label={`${copy.label} 선택`} value={String(selectedBoardId ?? '')}
+                  options={boards.map((board) => ({ value: String(board.boardId), label: board.boardName }))}
+                  disabled={isPublishing || isEditLoading} onChange={(value) => setSelectedBoardId(Number(value))} />}
             </div>
           </header>
 
@@ -590,22 +583,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
           {loadError && <p className="auth-error" role="alert">{loadError}</p>}
           {boardError && <p className="auth-error" role="alert">{boardError}</p>}
           <fieldset className="post-writer-fields velog-writer-fields" disabled={isPublishing || isEditLoading || Boolean(loadError)} style={{ border: 0, margin: 0, minWidth: 0 }}>
-            {writerType === 'info' && (
-              <label className="auth-label">
-                정보공유 분류
-                <select aria-label="정보공유 분류" className="auth-input" value={infoEditFilter ?? 'news'} onChange={(event) => setInfoEditFilter(event.target.value as InfoFilterId)}>
-                  {Object.entries(infoFilterLabelById).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
-              </label>
-            )}
-            {writerType !== 'info' && boards.length > 1 && (
-              <section className="velog-board-picker" aria-label={`${copy.label} 선택`}>
-                <SelectControl label={`${copy.label} 선택`} value={String(selectedBoardId ?? '')}
-                  options={boards.map((board) => ({ value: String(board.boardId), label: board.boardName }))}
-                  onChange={(value) => setSelectedBoardId(Number(value))} />
-              </section>
-            )}
-
             {publishError && <p className="auth-error">{publishError}</p>}
             {imageError && <p className="auth-error">{imageError}</p>}
 
@@ -646,36 +623,22 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
               </div>
             )}
 
-            {writerType === 'info' ? (
+            {writerType === 'info' && (
               <section className="info-writer-image-field" aria-label="정보공유 대표 이미지">
-                <div className="info-writer-image-copy">
-                  <strong>대표 이미지</strong>
-                  <span>{infoImageUrl ? '목록과 상세 상단에 표시됩니다.' : '이미지를 첨부하면 목록에서 바로 보입니다.'}</span>
-                </div>
-                {infoImageUrl ? (
-                  <div className="info-writer-image-preview">
-                    <img src={resolveApiAssetUrl(infoImageUrl)} alt="" />
-                  </div>
-                ) : null}
-                <div className="info-writer-image-actions">
-                  <label className="ghost-button info-writer-image-button">
-                    <Icon name="image" size={15} />
-                    {isUploadingInfoImage ? '업로드 중...' : infoImageUrl ? '이미지 변경' : '이미지 첨부'}
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp,image/gif"
-                      onChange={handleInfoImageChange}
-                      disabled={isUploadingInfoImage}
-                    />
+                <div className="info-writer-image-copy"><strong>대표 이미지</strong><span>목록과 상세 상단에 표시됩니다.</span></div>
+                <div className="info-writer-image-tiles">
+                  <label className="info-writer-upload-tile">
+                    <Icon name="plus" size={24} />
+                    <span className="sr-only">{isUploadingInfoImage ? '업로드 중...' : infoImageUrl ? '이미지 변경' : '이미지 첨부'}</span>
+                    <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="대표 이미지 첨부" onChange={handleInfoImageChange} disabled={isUploadingInfoImage} />
                   </label>
-                  {infoImageUrl ? (
-                    <button type="button" className="ghost-button" onClick={clearInfoImage} disabled={isUploadingInfoImage}>
-                      제거
-                    </button>
-                  ) : null}
+                  {infoImageUrl && <div className="info-writer-image-preview" key={infoImageUrl}>
+                    <SafeImage src={resolveApiAssetUrl(infoImageUrl)} alt="대표 이미지" fallback={<span className="info-writer-image-unavailable">이미지를 불러올 수 없습니다</span>} />
+                    <button type="button" className="info-writer-image-remove" aria-label="대표 이미지 제거" onClick={clearInfoImage} disabled={isUploadingInfoImage}><Icon name="close" size={12} /></button>
+                  </div>}
                 </div>
               </section>
-            ) : null}
+            )}
 
             <div
               ref={editorRootRef}
@@ -699,19 +662,12 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                   onDragOver: handleEditorDragOver,
                 }}
               />
+              <div className="writer-body-counter" aria-live="polite"><span className={`pw-counter${contentOverLimit ? ' pw-counter--over' : ''}`}>{contentLength} / {CONTENT_MAX}자</span></div>
             </div>
           </fieldset>
 
           <footer className="velog-writer-footer" aria-live="polite">
             <button type="button" className="ghost-button writer-cancel-button" disabled={isPublishing} onClick={() => onClose()}>취소</button>
-            <div>
-              <span className={`pw-counter${contentOverLimit ? ' pw-counter--over' : ''}`}>
-                {contentLength} / {CONTENT_MAX}자
-              </span>
-              <span className="pw-shortcut-hint">
-                <kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Enter</kbd>
-              </span>
-            </div>
             <button type="submit" className="write-post-button velog-publish-button" disabled={isPublishing || isEditLoading || isBoardsLoading || uploadCount > 0 || Boolean(loadError || boardError)}>
               <Icon name="plus" size={16} />
               {isPublishing ? (isEditMode ? '저장 중...' : '발행 중...') : (isEditMode ? '저장하기' : '발행하기')}

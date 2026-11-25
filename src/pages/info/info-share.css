@@ -41,3 +41,17 @@
   .coala-app .coala-content--info .info-post-card.board-post-card--list { padding: 14px 0; gap: 8px 12px; }
   .coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-thumbnail { width: 80px; height: 56px; }
 }
+
+/* Keep the title, summary, and author on the same text column. */
+.coala-app .coala-content--info .info-post-card.board-post-card--list { --info-label-width: 44px; --info-label-gap: 10px; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-main { display: grid; grid-template-columns: var(--info-label-width) minmax(0, 1fr); column-gap: var(--info-label-gap); }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-heading { display: contents; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-heading > .board-tag { box-sizing: border-box; width: var(--info-label-width); min-width: 0; padding-inline: 4px; grid-column: 1; grid-row: 1; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-title { grid-column: 2; grid-row: 1; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-excerpt { grid-column: 2; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { box-sizing: border-box; padding-left: calc(var(--info-label-width) + var(--info-label-gap)); }
+
+.coala-app .coala-content--info .info-board-shell { padding: 0; border: 0; }
+.coala-app .coala-content--info .info-list--editorial.board-post-list--list { margin: 0; padding: 0; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list { padding-inline: 0; }
+.coala-app .coala-content--info .community-list-search { border-color: #d4d4d4; background: #fff; color: #737373; }

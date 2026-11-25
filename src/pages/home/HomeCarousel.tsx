@@ -112,7 +112,11 @@ export function HomeCarousel() {
                 <div className="page-container home-carousel-inner">
                   <div className="home-carousel-copy">
                     <Heading>{banner.title}</Heading>
-                    <p className="home-carousel-description">{banner.description}</p>
+                    <p className="home-carousel-description">
+                      {banner.description.split(/(?<=[.!?])\s+|\n+/).filter(Boolean).map((sentence, index) => (
+                        <span className="home-carousel-description-line" key={index}>{sentence}</span>
+                      ))}
+                    </p>
                     <Link to={target} className="home-carousel-link">{banner.actionLabel || '자세히 보기'}<Icon name="chevron-right" size={16} /></Link>
                   </div>
                   <div className="home-carousel-art" aria-hidden="true">

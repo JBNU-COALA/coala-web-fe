@@ -36,30 +36,30 @@ describe('information article interactions', () => {
     expect(infoApi.getArticle).not.toHaveBeenCalled()
   })
 
-  it('prevents duplicate saves without overwriting unrelated reaction fields', async () => {
-    const pending = deferred<InfoArticle>()
-    vi.mocked(infoApi.bookmarkArticle).mockReturnValue(pending.promise)
+  it('prevents duplicate likes and preserves article content', async () => {
+    const pending = deferred<Awaited<ReturnType<typeof infoApi.likeArticle>>>()
+    vi.mocked(infoApi.likeArticle).mockReturnValue(pending.promise)
     render(<InfoDetailPage {...props} />)
-    const save = await screen.findByRole('button', { name: '저장' })
+    const save = await screen.findByRole('button', { name: '3' })
     fireEvent.click(save)
     fireEvent.click(save)
-    expect(infoApi.bookmarkArticle).toHaveBeenCalledTimes(1)
-    await act(async () => { pending.resolve({ ...article(), bookmarkedByMe: true, bookmarkCount: 1, likeCount: 0, likedByMe: false }); await pending.promise })
-    expect(screen.getByRole('button', { name: '저장됨' }).getAttribute('aria-pressed')).toBe('true')
-    expect(screen.getByRole('button', { name: '3' }).getAttribute('aria-pressed')).toBe('true')
+    expect(infoApi.likeArticle).toHaveBeenCalledTimes(1)
+    await act(async () => { pending.resolve({ liked: false, likeCount: 2 }); await pending.promise })
+    expect(screen.getByRole('button', { name: '2' }).getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByText('Content 1')).toBeDefined()
   })
 
-  it('keeps a late save response on the old detail instance', async () => {
-    const pending = deferred<InfoArticle>()
-    vi.mocked(infoApi.bookmarkArticle).mockReturnValue(pending.promise)
+  it('keeps a late like response on the old detail instance', async () => {
+    const pending = deferred<Awaited<ReturnType<typeof infoApi.likeArticle>>>()
+    vi.mocked(infoApi.likeArticle).mockReturnValue(pending.promise)
     const { rerender } = render(<InfoDetailPage {...props} />)
-    fireEvent.click(await screen.findByRole('button', { name: '저장' }))
+    fireEvent.click(await screen.findByRole('button', { name: '3' }))
     vi.mocked(infoApi.getArticle).mockResolvedValue(article(2))
     rerender(<InfoDetailPage {...props} infoId="2" />)
     await screen.findByRole('heading', { name: 'Article 2' })
-    await act(async () => { pending.resolve({ ...article(), bookmarkedByMe: true }); await pending.promise })
+    await act(async () => { pending.resolve({ liked: false, likeCount: 2 }); await pending.promise })
     expect(screen.queryByRole('heading', { name: 'Article 1' })).toBeNull()
-    expect(screen.getByRole('button', { name: '저장' }).getAttribute('aria-pressed')).toBe('false')
+    expect(screen.getByRole('button', { name: '3' }).getAttribute('aria-pressed')).toBe('true')
   })
 
   it('does not navigate away from another article when an old delete finishes', async () => {

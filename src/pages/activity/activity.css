@@ -975,3 +975,6 @@ a.study-person-name:hover {
 
 .coala-app .study-page .study-editor .attendance-choices .attendance-choice { margin: 0; padding: 0; gap: 0; align-self: center; }
 .coala-app .study-page .study-editor .activity-photo-remove { display: grid; place-items: center; top: 5px; right: 5px; width: 22px; height: 22px; min-width: 22px; min-height: 22px; padding: 0; border: 0; border-radius: 50%; background: #ffffffed; color: #262626; line-height: 1; }
+
+.coala-app .study-page .study-editor :is(input:not([type=checkbox]):not([type=radio]), textarea):is(:focus, :focus-visible) { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
+.coala-app .study-page .study-editor .participant-search input:is(:focus, :focus-visible) { border: 0; outline: none; box-shadow: none; }

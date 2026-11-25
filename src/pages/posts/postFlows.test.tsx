@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { StrictMode, type ComponentProps } from 'react'
-import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type MDEditor from '@uiw/react-md-editor/nohighlight'
 import { moderationApi } from '../../shared/api/moderation'
@@ -181,7 +181,7 @@ describe('writer draft and request boundaries', () => {
       expect(screen.queryByRole('button', { name: /게시판 선택:/ })).toBeNull()
     } else {
       fireEvent.click(await screen.findByRole('button', { name: /게시판 선택: General discussion/ }))
-      expect(screen.getByRole('option', { name: /Announcements/ })).toBeTruthy()
+      expect(within(screen.getByRole('listbox')).getByRole('option', { name: /Announcements/ })).toBeTruthy()
     }
     expect(screen.queryByRole('option', { name: /free resources/ })).toBeNull()
     expect(screen.queryByRole('option', { name: /문의사항/ })).toBeNull()

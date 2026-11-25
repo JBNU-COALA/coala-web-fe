@@ -879,7 +879,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                     {profileMember.githubCommits}개
                   </span>
                 </div>
-                <div className="profile-activity-row">
+                <div className={`profile-activity-row${editing ? ' profile-repositories-edit' : ''}`}>
                   <span className="profile-activity-label">
                     저장소
                     {canEdit && !editing ? (
@@ -895,6 +895,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                           <input
                             className="auth-input"
                             value={repo}
+                            aria-label={`저장소 ${index + 1}`}
                             placeholder="owner/repository"
                             onChange={(event) => updateSharedRepo(index, event.target.value)}
                           />
@@ -907,6 +908,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                         <input
                           className="auth-input"
                           value={newSharedRepo}
+                          aria-label="새 저장소"
                           placeholder="owner/repository"
                           onChange={(event) => setNewSharedRepo(event.target.value)}
                         />

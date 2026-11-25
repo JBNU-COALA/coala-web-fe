@@ -55,6 +55,12 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
   const [message, setMessage] = useState('')
 
   useEffect(() => {
+    if (!message) return
+    const timer = window.setTimeout(() => setMessage(''), 3500)
+    return () => window.clearTimeout(timer)
+  }, [message])
+
+  useEffect(() => {
     mounted.current = true
     return () => { mounted.current = false }
   }, [])
@@ -109,11 +115,11 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
     <header className="service-inquiries-header">
       <h3>{serviceNames[kind]} 문의사항</h3>
       <div className="service-inquiries-actions">
-        <button type="button" className="service-inquiries-icon" aria-label="새로고침" title="새로고침" onClick={reload} disabled={loading || saving}>
+        <button type="button" className="service-inquiries-icon" aria-label="새로고침" data-tooltip="새로고침" onClick={reload} disabled={loading || saving}>
           <Icon name="refresh" size={18} />
         </button>
         <button type="button" className="service-inquiries-icon" disabled={saving}
-          aria-label={writing ? '작성 닫기' : '문의 작성'} title={writing ? '작성 닫기' : '문의 작성'}
+          aria-label={writing ? '작성 닫기' : '문의 작성'} data-tooltip={writing ? '작성 닫기' : '문의 작성'}
           aria-expanded={writing} aria-controls={formId} onClick={() => { setWriting((value) => !value); setMessage('') }}>
           <Icon name={writing ? 'close' : 'pencil-color'} size={18} />
         </button>
@@ -135,7 +141,7 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
         </div>
       </fieldset>
     </form>}
-    {message && <p role="status">{message}</p>}
+    {message && <p className="service-inquiries-feedback" role="status">{message}</p>}
     {loadError && <div className="service-inquiries-load-error">
       <p role="alert">{loadError}</p><button className="retry-button" type="button" onClick={reload} disabled={saving}>다시 불러오기</button>
     </div>}
@@ -151,7 +157,10 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
               <span>{item.author}</span><time>{item.createdAt}</time>
             </div>
             <h4>{item.title}</h4>
-            <p className="service-inquiries-content">{item.content?.trim() ? item.content : item.summary}</p>
+            <div className="service-inquiries-question">
+              <span className="service-inquiries-content-label">문의 내용</span>
+              <p className="service-inquiries-content">{item.content?.trim() ? item.content : item.summary}</p>
+            </div>
             {item.reply?.trim() ? <div className="service-inquiries-reply">
               <div className="service-inquiries-meta"><strong>운영진 답변</strong>
                 {item.answeredAt && <time dateTime={item.answeredAt}>{answerDate(item.answeredAt)}</time>}

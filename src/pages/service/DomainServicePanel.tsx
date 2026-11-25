@@ -67,7 +67,7 @@ function DomainApplyList() {
 
       {items.length === 0 ? (
         <div className="jcloud-list-empty">
-          <Icon name="link" size={28} />
+          <Icon name="link-color" size={28} />
           <p>도메인 신청 내역이 없습니다.</p>
         </div>
       ) : (
@@ -144,13 +144,13 @@ function DomainApplicationItem({
 
           {application.adminNote ? (
             <div className={`jcloud-admin-note jcloud-admin-note--${application.status}`}>
-              <Icon name="message" size={13} />
+              <Icon name="message-color" size={13} />
               <p>{application.adminNote}</p>
             </div>
           ) : null}
 
           <div className="jcloud-mail-notice">
-            <Icon name="message" size={14} />
+            <Icon name="message-color" size={14} />
             <div>
               <strong>처리 결과를 확인해주세요.</strong>
               <p>승인 또는 반려 처리 결과는 신청 내역과 연락 메일을 통해 안내됩니다.</p>

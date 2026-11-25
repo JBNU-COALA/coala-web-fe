@@ -225,7 +225,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
             </button>
         </ListingControls>
 
-        <article className={`surface-card board-shell info-board-shell board-shell--${viewMode}`} aria-label="정보공유 목록">
+        <article className={`surface-card board-shell info-board-shell page-container board-shell--${viewMode}`} aria-label="정보공유 목록">
           <ul className={`board-post-list info-list info-list--editorial board-post-list--${viewMode}`}>
             {pagination.pageItems.map((card) => {
               const [fallbackSourceName, fallbackSourceDate] = card.source.split('|').map((part) => part.trim())

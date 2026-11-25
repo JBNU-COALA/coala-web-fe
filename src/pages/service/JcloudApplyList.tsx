@@ -68,7 +68,7 @@ export function JcloudApplyList() {
 
       {items.length === 0 ? (
         <div className="jcloud-list-empty">
-          <Icon name="file" size={28} />
+          <Icon name="server-color" size={28} />
           <p>신청 내역이 없습니다.</p>
         </div>
       ) : (
@@ -140,13 +140,13 @@ function ApplicationItem({
 
           {app.adminNote ? (
             <div className={`jcloud-admin-note jcloud-admin-note--${app.status}`}>
-              <Icon name="message" size={13} />
+              <Icon name="message-color" size={13} />
               <p>{app.adminNote}</p>
             </div>
           ) : null}
 
           <div className="jcloud-mail-notice">
-            <Icon name="message" size={14} />
+            <Icon name="message-color" size={14} />
             <div>
               <strong>메일을 확인해주세요.</strong>
               <p>

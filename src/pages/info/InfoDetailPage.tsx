@@ -5,7 +5,7 @@ import '@uiw/react-markdown-preview/markdown.css'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
 import { Icon } from '../../shared/ui/Icon'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
-import { copyMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
+import { rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import { extractFirstContentImage } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -68,8 +68,6 @@ export function InfoDetailPage(props: InfoDetailPageProps) {
 
 function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
-  const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
-  const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
   const [infoActionError, setInfoActionError] = useState<string | null>(null)
   const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [item, setItem] = useState<InfoArticle | null>(null)
@@ -143,21 +141,6 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
   const coverImageUrl = resolveApiAssetUrl(item.imageUrl || extractFirstContentImage(markdown) || fallbackAttachmentUrl)
   const canManageInfo = isSameUserId(item.authorId, user?.id) || isAdminUser(user)
 
-  const handleCopyMarkdown = async () => {
-    setMarkdownCopied(await copyMarkdown(markdown) ? 'copied' : 'error')
-    setTimeout(() => setMarkdownCopied('idle'), 2000)
-  }
-
-  const handleCopyShareLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      setShareCopied('copied')
-    } catch {
-      setShareCopied('error')
-    }
-    setTimeout(() => setShareCopied('idle'), 2000)
-  }
-
   const handleToggleInfoLike = async () => {
     if (!item) return
     if (!isLoggedIn) {
@@ -197,19 +180,6 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
     } finally {
       if (isCurrent()) finishMutation()
     }
-  }
-
-  const handleBookmark = async () => {
-    if (!isLoggedIn) { setInfoActionError('정보 저장은 로그인 후 이용할 수 있습니다.'); return }
-    if (!beginMutation()) return
-    const isCurrent = captureRequest()
-    setInfoActionError(null)
-    try {
-      const updated = await infoApi.bookmarkArticle(item.id)
-      if (isCurrent()) setItem((current) => current ? { ...current, bookmarkedByMe: updated.bookmarkedByMe, bookmarkCount: updated.bookmarkCount } : current)
-    }
-    catch { if (isCurrent()) setInfoActionError('정보 저장에 실패했습니다. 다시 시도해 주세요.') }
-    finally { if (isCurrent()) finishMutation() }
   }
 
   return (
@@ -284,39 +254,18 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
             style={{ whiteSpace: 'pre-wrap' }}
           />
         </div>
+        {canManageInfo && (
           <div className="post-header-actions info-detail-footer-actions">
-            <button type="button" className="ghost-button" title={item.bookmarkedByMe ? '저장됨' : '저장'} aria-pressed={Boolean(item.bookmarkedByMe)} disabled={mutationPending} onClick={() => void handleBookmark()}>
-              <Icon name="file-color" size={15} /><span className="sr-only">{item.bookmarkedByMe ? '저장됨' : '저장'}</span>
+            <button type="button" className="ghost-button" disabled={mutationPending} title="수정" onClick={onEdit}>
+              <Icon name="pencil-color" size={15} />
+              <span className="sr-only">수정</span>
             </button>
-            {canManageInfo ? (
-              <>
-                <button type="button" className="ghost-button" disabled={mutationPending} title="수정" onClick={onEdit}>
-                  <Icon name="pencil-color" size={15} />
-                  <span className="sr-only">수정</span>
-                </button>
-                <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={handleDeleteInfo}>
-                  <Icon name="trash-color" size={15} />
-                  <span className="sr-only">삭제</span>
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              title="마크다운 복사" onClick={handleCopyMarkdown}
-            >
-              <Icon name="copy-color" size={15} />
-              <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
-            </button>
-            <button
-              type="button"
-              className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              title="공유 링크" onClick={handleCopyShareLink}
-            >
-              <Icon name={shareCopied === 'copied' ? 'copy-color' : 'link-color'} size={15} />
-              <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
+            <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={handleDeleteInfo}>
+              <Icon name="trash-color" size={15} />
+              <span className="sr-only">삭제</span>
             </button>
           </div>
+        )}
       </article>
     </section>
   )

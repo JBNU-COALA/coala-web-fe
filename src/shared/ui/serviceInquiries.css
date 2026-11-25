@@ -58,3 +58,25 @@
 @keyframes inquiry-reveal { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 600px) { .service-inquiries-form { padding: 16px; } }
 @media (prefers-reduced-motion: reduce) { .service-inquiries, .service-inquiries-form { animation: none; } }
+
+.coala-app .service-inquiries-form-actions { display: flex; justify-content: space-between; width: 100%; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+
+.coala-app .service-inquiries-list h4 { margin: 14px 0 16px; color: #171717; font-size: 18px; line-height: 1.5; font-weight: 700; }
+.coala-app .service-inquiries-question { padding: 14px 16px; border-radius: 8px; background: #fafafa; }
+.coala-app .service-inquiries-content-label { display: block; margin-bottom: 6px; color: #737373; font-size: 11px; font-weight: 500; }
+.coala-app .service-inquiries-content { color: #404040; font-size: 14px; font-weight: 400; line-height: 1.75; }
+.coala-app .service-inquiries-awaiting { margin: 16px 0 0; padding-top: 12px; border-top: 1px solid #ededed; color: #737373; font-size: 12px; font-weight: 400; }
+.coala-app .service-inquiries-reply { border-color: #d4d4d4; }
+.coala-app .service-inquiries-reply strong { color: #262626; }
+.coala-app .service-inquiries-status { color: #525252; background: #f0f0f0; }
+
+.coala-app .service-inquiries-feedback { box-sizing: border-box; margin: 0 0 16px; padding: 12px 16px; border-radius: 8px; background: #f5f5f5; color: #404040; font-size: 13px; line-height: 1.6; overflow: hidden; animation: inquiry-feedback 3500ms ease both; }
+@keyframes inquiry-feedback {
+  0% { opacity: 0; transform: translateY(6px); max-height: 100px; }
+  7%, 90% { opacity: 1; transform: translateY(0); max-height: 100px; margin-bottom: 16px; padding-block: 12px; }
+  100% { opacity: 0; transform: translateY(-4px); max-height: 0; margin-bottom: 0; padding-block: 0; }
+}
+.coala-app .service-inquiries-icon[data-tooltip] { position: relative; }
+.coala-app .service-inquiries-icon[data-tooltip]::after { content: attr(data-tooltip); position: absolute; top: calc(100% + 6px); right: 0; z-index: 10; padding: 6px 10px; border-radius: 6px; background: #262626; color: #f5f5f5; font-size: 11px; font-weight: 400; line-height: 1.5; white-space: nowrap; opacity: 0; visibility: hidden; transform: translateY(-3px); pointer-events: none; transition: opacity 150ms, transform 150ms, visibility 150ms; }
+.coala-app .service-inquiries-icon[data-tooltip]:is(:hover, :focus-visible)::after { opacity: 1; visibility: visible; transform: none; }
+@media (prefers-reduced-motion: reduce) { .coala-app .service-inquiries-feedback { animation: none; } .coala-app .service-inquiries-icon[data-tooltip]::after { transition: none; transform: none; } }

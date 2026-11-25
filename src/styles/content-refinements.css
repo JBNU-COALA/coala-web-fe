@@ -248,3 +248,12 @@
 .coala-app .info-detail-load-state .empty-post-state { margin: 0; padding: 0; color: #171717; font-size: 14px; line-height: 1.7; }
 
 .coala-app .info-detail-page .info-detail-footer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+
+.coala-app .post-detail .post-like-button,
+.coala-app .post-detail .post-like-button:is(:hover, .is-liked) { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0 4px; }
+
+.coala-app .coala-content--recruit .recruit-search { border: 1px solid #d4d4d4; background: #fff; color: #737373; box-shadow: none; }
+.coala-app .coala-content--recruit .recruit-search:hover { border-color: #a3a3a3; }
+.coala-app .coala-content--recruit .recruit-search:focus-within { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
+.coala-app .coala-content--recruit .recruit-search input:is(:focus, :focus-visible) { border: 0; outline: none; box-shadow: none; }
+.coala-app .coala-content--recruit .recruit-search input::placeholder { color: #8a8a8a; }
