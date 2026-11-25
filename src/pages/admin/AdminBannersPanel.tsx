@@ -71,6 +71,7 @@ function BannerEditor({ banner, onSave, onDelete, onBusy }: {
         <Field label="설명"><textarea rows={3} maxLength={2000} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></Field>
         <Field label="이미지 URL"><input maxLength={2000} value={draft.imageUrl} placeholder="https:// 또는 /images/..." onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })} /></Field>
         {!validImage && <p className="admin-error">이미지는 HTTP(S) 주소 또는 사이트 내부 경로를 입력하세요.</p>}
+        <p className="admin-field-hint">이미지를 넣으면 홈 배너가 이미지로만 채워집니다. 문구를 이미지에 포함하고 2400×880(약 2.7:1) 비율을 권장합니다. 비워 두면 제목·설명·버튼이 배너에 표시됩니다.</p>
         <Field label="이동 경로"><input required maxLength={500} value={draft.targetPath} placeholder="/community/activity" onChange={(e) => setDraft({ ...draft, targetPath: e.target.value })} /></Field>
         {!validPath && <p className="admin-error">이동 경로는 /로 시작하는 사이트 내부 주소여야 합니다.</p>}
         <div className="admin-field-row">

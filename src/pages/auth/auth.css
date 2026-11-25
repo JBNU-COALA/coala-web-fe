@@ -77,7 +77,7 @@
 }
 
 .coala-shell--auth:has(.coala-content--login, .coala-content--reset) { display: flex; align-items: center; justify-content: center; }
-.coala-content.coala-content--login { width: min(100%, 460px); padding: 48px 24px; }
+.coala-content.coala-content--login { width: min(100%, 460px); padding: clamp(80px, 10vh, 128px) 24px clamp(96px, 12vh, 152px); }
 .coala-content--login .auth-intro { padding-bottom: 24px; }
 .coala-content--login .auth-title { font-size: 22px; font-weight: 500; color: #111827; }
 .coala-content--login .auth-form { display: flex; flex-direction: column; gap: 20px; }
@@ -93,7 +93,7 @@
 .coala-content--login .auth-submit:hover:not(:disabled) { background: #263244; }
 .coala-content--login .auth-signup-outline { margin-top: -8px; background: #fff; border: 1px solid #111827; color: #111827; }
 .coala-content--login .auth-signup-outline:hover { background: #f6f7f8; }
-@media (max-width: 600px) { .coala-content.coala-content--login { padding: 32px 24px; } }
+@media (max-width: 600px) { .coala-content.coala-content--login { padding: 48px 24px 64px; } }
 
 /* Shared compact account forms. Keep existing signup fields and validation. */
 .coala-content.coala-content--auth:not(.coala-content--login) { width: min(100%, 460px); padding: 56px 24px 80px; }

@@ -77,21 +77,33 @@ export function HomeCarousel() {
         {banners.map((banner, slideIndex) => {
           const Heading = slideIndex === 0 ? 'h1' : 'h2'
           const target = /^\/(?!\/)/.test(banner.targetPath) && !/[\\\s]/.test(banner.targetPath) ? banner.targetPath : routes.home
+          const loading = slideIndex === 0 ? 'eager' : 'lazy'
           return (
-            <div key={banner.id} className={`home-carousel-slide home-carousel-slide--${banner.tone}`}
+            <div key={banner.id} className={`home-carousel-slide home-carousel-slide--${banner.tone}${banner.imageUrl ? ' home-carousel-slide--media' : ''}`}
               role="group" aria-roledescription="슬라이드" aria-label={`${slideIndex + 1} / ${banners.length}`}
               aria-hidden={slideIndex !== activeIndex} inert={slideIndex !== activeIndex}>
-              <div className="page-container home-carousel-inner">
-                <div className="home-carousel-copy">
-                  <Heading>{banner.title}</Heading>
-                  <p className="home-carousel-description">{banner.description}</p>
-                  <Link to={target} className="home-carousel-link">{banner.actionLabel || '자세히 보기'}<Icon name="chevron-right" size={16} /></Link>
+              {banner.imageUrl ? (
+                /* 관리자가 올린 배너는 문구가 이미지에 담겨 있어 화면 전체를 이미지로 채운다. */
+                <Link to={target} className="home-carousel-media">
+                  <SafeImage src={banner.imageUrl} alt="" loading={loading}
+                    fetchPriority={slideIndex === 0 ? 'high' : undefined}
+                    fallback={<span className="home-carousel-media-fallback" aria-hidden="true" />} />
+                  <Heading className="home-carousel-media-label">{banner.title}</Heading>
+                </Link>
+              ) : (
+                <div className="page-container home-carousel-inner">
+                  <div className="home-carousel-copy">
+                    {banner.eyebrow ? <p className="home-carousel-eyebrow">{banner.eyebrow}</p> : null}
+                    <Heading>{banner.title}</Heading>
+                    <p className="home-carousel-description">{banner.description}</p>
+                    <Link to={target} className="home-carousel-link">{banner.actionLabel || '자세히 보기'}<Icon name="chevron-right" size={16} /></Link>
+                  </div>
+                  <div className="home-carousel-art" aria-hidden="true">
+                    <SafeImage src="/coala-developer.png" alt="" loading={loading}
+                      fallback={<span className="home-carousel-art-fallback" />} />
+                  </div>
                 </div>
-                <div className={`home-carousel-art${banner.imageUrl ? ' home-carousel-art--custom' : ''}`} aria-hidden="true">
-                  <SafeImage src={banner.imageUrl || '/coala-card-placeholder.png'} alt="" loading={slideIndex === 0 ? 'eager' : 'lazy'}
-                    fallback={<img src="/coala-card-placeholder.png" alt="" />} />
-                </div>
-              </div>
+              )}
             </div>
           )
         })}

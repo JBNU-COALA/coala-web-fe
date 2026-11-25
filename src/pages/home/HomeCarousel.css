@@ -1,78 +1,229 @@
-.home-carousel { position: relative; overflow: hidden; width: 100%; touch-action: pan-y; background: #123f31; }
+/* 포털 히어로 배너: 화면 폭을 가득 채우는 풀블리드 캐러셀. */
+.home-carousel {
+  --carousel-height: clamp(300px, 30vw, 440px);
+  --carousel-inline: min(1180px, calc(100% - var(--coala-page-inline)));
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  width: 100%;
+  touch-action: pan-y;
+  background: #1f4034;
+}
+/* 컨트롤이 밝은 배너 위에서도 읽히도록 아래쪽에만 그라데이션을 깐다. */
+.home-carousel::after {
+  content: '';
+  position: absolute;
+  z-index: 1;
+  inset: auto 0 0;
+  height: 140px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, #0000, #00000057);
+}
 .home-carousel-track { display: flex; align-items: stretch; transition: transform 420ms cubic-bezier(.2,.7,.2,1); }
-.home-carousel-slide { position: relative; flex: 0 0 100%; min-width: 0; color: #fff; background: #123f31; }
-.home-carousel-slide::before { content: ''; position: absolute; inset: 0; pointer-events: none; background-image: linear-gradient(#ffffff07 1px, transparent 1px), linear-gradient(90deg, #ffffff07 1px, transparent 1px); background-size: 48px 48px; }
-.home-carousel-slide--blue { background: #244b7a; }
-.home-carousel-slide--coral { background: #783e44; }
-.home-carousel-inner { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) 220px; align-items: center; gap: 48px; min-height: 360px; padding-block: 40px 88px; }
-.home-carousel-copy { min-width: 0; }
-.home-carousel-eyebrow { margin: 0 0 18px; color: #fff; opacity: .8; font-size: 12px; font-weight: 600; }
-.home-carousel-copy :is(h1,h2) { margin: 0; max-width: 900px; color: #fff; font-size: 46px; line-height: 1.2; font-weight: 750; letter-spacing: 0; word-break: keep-all; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-.home-carousel-description { margin: 18px 0 24px; font-size: 16px; line-height: 1.65; color: #ffffffde; word-break: keep-all; overflow-wrap: anywhere; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; }
-.home-carousel-link { display: inline-flex; align-items: center; gap: 16px; min-height: 44px; padding: 10px 18px; border-radius: 6px; background: #fff; color: #143a30; text-decoration: none; font-size: 14px; font-weight: 650; }
-.home-carousel-art { align-self: end; width: 220px; height: 210px; }
-.home-carousel-art img { display: block; width: 100%; height: 100%; object-fit: contain; filter: brightness(0) invert(1); opacity: .78; }
-.home-carousel-art--custom img { filter: none; opacity: 1; }
-.home-carousel-controls { position: absolute; bottom: 18px; left: 0; right: 0; display: flex; align-items: center; justify-content: space-between; gap: 16px; color: white; }
-.home-carousel-dots, .home-carousel-buttons { display: flex; align-items: center; }
-.home-carousel-dots { min-width: 0; overflow-x: auto; scrollbar-width: thin; }
-.home-carousel-buttons { flex-shrink: 0; gap: 4px; }
-.home-carousel-buttons > span { min-width: 42px; font-size: 12px; font-variant-numeric: tabular-nums; margin-right: 10px; }
-.home-carousel-controls button { display: inline-grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 50%; color: #fff; background: transparent; cursor: pointer; }
-.home-carousel-controls button:hover { background: #ffffff20; }
-.home-carousel :is(a,button):focus-visible { outline: 2px solid white; outline-offset: 3px; }
-.home-carousel-dots button { flex: 0 0 28px; width: 28px; }
-.home-carousel-dots button span { width: 6px; height: 6px; border-radius: 50%; background: #ffffff60; }
-.home-carousel-dots button[aria-current] span { width: 18px; border-radius: 4px; background: #fff; }
-.home-carousel-pause { font-size: 17px; font-weight: 700; }
-@media (max-width: 760px) {
-  .home-carousel-inner { grid-template-columns: minmax(0,1fr) 108px; gap: 12px; min-height: 330px; padding-block: 32px 84px; }
-  .home-carousel-copy :is(h1,h2) { font-size: 32px; }
-  .home-carousel-description { font-size: 14px; }
-  .home-carousel-art { width: 108px; height: 125px; }
-}
-@media (max-width: 480px) {
-  .home-carousel-inner { grid-template-columns: minmax(0,1fr) 92px; align-content: center; gap: 0 12px; min-height: 370px; padding-block: 30px 70px; }
-  .home-carousel-copy { display: contents; }
-  .home-carousel-eyebrow, .home-carousel-copy :is(h1,h2), .home-carousel-description { grid-column: 1 / -1; }
-  .home-carousel-copy :is(h1,h2) { font-size: 30px; }
-  .home-carousel-description { -webkit-line-clamp: 2; }
-  .home-carousel-art { grid-column: 2; width: 92px; height: 80px; }
-  .home-carousel-link { grid-column: 1; justify-self: start; gap: 8px; overflow-wrap: anywhere; }
-  .home-carousel-link svg { flex-shrink: 0; }
-}
-@media (prefers-reduced-motion: reduce) { .home-carousel-track { transition: none; } }
 
-/* Keep the feature compact, with artwork supporting the headline. */
-.home-carousel { background: #244a3d; }
-.home-carousel-slide { background: #244a3d; }
-.home-carousel-slide--blue { background: #354b62; }
-.home-carousel-slide--coral { background: #665058; }
-.home-carousel-slide::before { display: none; }
-.home-carousel .home-carousel-inner { width: min(1180px, calc(100% - var(--coala-page-inline))); min-height: 280px; grid-template-columns: minmax(0, 1fr) 320px; gap: 64px; padding-block: 32px 64px; }
-.home-carousel-copy :is(h1, h2) { font-size: clamp(27px, 2.8vw, 38px); line-height: 1.3; letter-spacing: -.04em; font-weight: 650; max-width: 660px; }
-.home-carousel-eyebrow { font-size: 10px; letter-spacing: .12em; margin-bottom: 13px; color: #ffffffb3; }
-.home-carousel-description { font-size: 14px; margin: 14px 0 20px; color: #ffffffb3; }
-.home-carousel-link { min-height: 34px; padding: 0 13px; font-size: 12px; gap: 14px; color: #262626; background: #fff; border-radius: 5px; }
-.home-carousel-link:hover { background: #f0f0f0; }
-.home-carousel-art { align-self: center; justify-self: end; width: 320px; height: 184px; border: 0; padding: 0; border-radius: 10px; overflow: hidden; transform: none; }
-.home-carousel-art img { width: 100%; height: 100%; object-fit: cover; filter: none; opacity: 1; }
-.home-carousel-art--custom img { object-fit: contain; }
-.home-carousel .home-carousel-controls { width: min(1180px, calc(100% - var(--coala-page-inline))); bottom: 12px; }
-.home-carousel-controls button { width: 28px; height: 28px; }
-.home-carousel-buttons { gap: 2px; border: 0; background: transparent; padding: 0; }
-.home-carousel-buttons > span { font-size: 10px; margin-right: 8px; min-width: 26px; color: #ffffffa6; }
-.home-carousel-dots button { flex-basis: 22px; width: 22px; }
-.home-carousel-dots button span { width: 4px; height: 4px; }
-.home-carousel-dots button[aria-current] span { width: 14px; }
-@media (max-width: 760px) {
-  .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr) 200px; gap: 24px; min-height: 260px; }
-  .home-carousel-art { width: 200px; height: 150px; }
+.home-carousel-slide {
+  --slide-base: #1f4034;
+  --slide-deep: #122a22;
+  --slide-glow: #3c7a5e;
+  position: relative;
+  flex: 0 0 100%;
+  min-width: 0;
+  min-height: var(--carousel-height);
+  color: #fff;
+  background:
+    radial-gradient(88% 120% at 76% 22%, var(--slide-glow), #0000 60%),
+    linear-gradient(104deg, var(--slide-deep), var(--slide-base) 62%);
 }
-@media (max-width: 540px) {
-  .home-carousel .home-carousel-inner { grid-template-columns: 1fr; min-height: 250px; padding-block: 30px 56px; }
-  .home-carousel-copy { display: block; }
-  .home-carousel-copy :is(h1, h2) { font-size: 28px; }
-  .home-carousel-description { font-size: 13px; }
+.home-carousel-slide--blue { --slide-base: #26405c; --slide-deep: #16263a; --slide-glow: #41699a; }
+.home-carousel-slide--coral { --slide-base: #4f3135; --slide-deep: #2f1d20; --slide-glow: #96605c; }
+
+/* 유칼립투스 잎 모티프 — 코알라 브랜드 결을 배너에도 이어 붙인다. */
+.home-carousel-slide:not(.home-carousel-slide--media)::before,
+.home-carousel-slide:not(.home-carousel-slide--media)::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
+}
+.home-carousel-slide:not(.home-carousel-slide--media)::before {
+  width: 340px;
+  height: 192px;
+  top: -58px;
+  left: 1%;
+  opacity: .2;
+  background: url('/recruiting/leaves.svg') center / contain no-repeat;
+  transform: rotate(-12deg);
+}
+.home-carousel-slide:not(.home-carousel-slide--media)::after {
+  right: -110px;
+  bottom: -150px;
+  width: 420px;
+  height: 420px;
+  border: 1px solid #ffffff1f;
+  border-radius: 50%;
+}
+
+/* 이미지형 슬라이드: 업로드 이미지가 영역을 그대로 채운다. */
+.home-carousel-slide--media { background: var(--slide-deep); }
+.home-carousel-media { position: absolute; inset: 0; display: block; overflow: hidden; }
+.home-carousel-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform 600ms cubic-bezier(.2,.7,.2,1);
+}
+.home-carousel-media:hover img { transform: scale(1.03); }
+.home-carousel-media-fallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background:
+    radial-gradient(88% 120% at 76% 22%, var(--slide-glow), #0000 60%),
+    linear-gradient(104deg, var(--slide-deep), var(--slide-base) 62%);
+}
+.home-carousel-media-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* 문구형 슬라이드: 이미지가 없는 기본 배너를 에디토리얼 레이아웃으로 구성한다. */
+.home-carousel .home-carousel-inner {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 400px);
+  align-items: center;
+  gap: 56px;
+  width: var(--carousel-inline);
+  margin-inline: auto;
+  min-height: var(--carousel-height);
+  padding-block: 44px 78px;
+}
+.home-carousel-copy { min-width: 0; }
+.home-carousel-eyebrow { margin: 0 0 14px; color: #ffffffb3; font-size: 11px; font-weight: 600; letter-spacing: .12em; }
+.home-carousel-copy :is(h1, h2) {
+  margin: 0;
+  max-width: 660px;
+  color: #fff;
+  font-size: clamp(30px, 3.2vw, 44px);
+  line-height: 1.25;
+  letter-spacing: -.04em;
+  font-weight: 700;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.home-carousel-description {
+  margin: 16px 0 26px;
+  max-width: 540px;
+  color: #ffffffbf;
+  font-size: 15px;
+  line-height: 1.7;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+.home-carousel-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 42px;
+  padding: 0 20px;
+  border-radius: 999px;
+  background: #fff;
+  color: #1c2b24;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 650;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+.home-carousel-link:hover { transform: translateY(-2px); box-shadow: 0 10px 24px #00000038; }
+.home-carousel-link svg { flex-shrink: 0; }
+
+.home-carousel-art {
+  justify-self: end;
+  align-self: center;
+  width: min(100%, 400px);
+  height: min(78%, 300px);
+}
+/* 검은 배경의 코알라 일러스트를 screen 합성으로 얹어 배경색과 자연스럽게 섞는다. */
+.home-carousel-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  mix-blend-mode: screen;
+}
+.home-carousel-art-fallback { display: block; }
+
+/* 컨트롤 */
+.home-carousel .home-carousel-controls {
+  position: absolute;
+  z-index: 2;
+  bottom: 16px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: var(--carousel-inline);
+  margin-inline: auto;
+  color: #fff;
+}
+.home-carousel-dots, .home-carousel-buttons { display: flex; align-items: center; }
+.home-carousel-dots { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.home-carousel-dots::-webkit-scrollbar { display: none; }
+.home-carousel-buttons { flex-shrink: 0; gap: 2px; }
+.home-carousel-buttons > span { min-width: 30px; margin-right: 8px; color: #ffffffb8; font-size: 11px; font-variant-numeric: tabular-nums; }
+.home-carousel-controls button {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: #fff;
+  background: transparent;
+  cursor: pointer;
+}
+.home-carousel-controls button:hover { background: #ffffff2e; }
+.home-carousel :is(a, button):focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.home-carousel-dots button { flex: 0 0 24px; width: 24px; }
+.home-carousel-dots button span { width: 5px; height: 5px; border-radius: 50%; background: #ffffff70; transition: width 200ms ease; }
+.home-carousel-dots button[aria-current] span { width: 18px; border-radius: 4px; background: #fff; }
+.home-carousel-pause { font-size: 15px; font-weight: 700; }
+
+@media (max-width: 900px) {
+  .home-carousel { --carousel-height: clamp(260px, 42vw, 360px); }
+  .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 240px); gap: 28px; padding-block: 36px 70px; }
+  .home-carousel-art { width: min(100%, 240px); height: min(72%, 220px); }
+}
+@media (max-width: 560px) {
+  .home-carousel { --carousel-height: 260px; }
+  .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr); padding-block: 30px 64px; }
+  .home-carousel-copy :is(h1, h2) { font-size: 26px; }
+  .home-carousel-description { margin: 12px 0 20px; font-size: 13px; -webkit-line-clamp: 2; }
   .home-carousel-art { display: none; }
+  .home-carousel-slide:not(.home-carousel-slide--media)::before { left: -120px; opacity: .14; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel-track { transition: none; }
+  .home-carousel-media img, .home-carousel-link { transition: none; }
+  .home-carousel-media:hover img { transform: none; }
+  .home-carousel-link:hover { transform: none; }
 }

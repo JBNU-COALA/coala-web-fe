@@ -201,7 +201,7 @@
 .post-report-dialog label { display: block; margin: 20px 0 8px; font-size: 13px; }
 .post-report-dialog textarea { box-sizing: border-box; width: 100%; padding: 10px 12px; resize: vertical; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #262626; font: inherit; font-size: 14px; }
 .post-report-dialog-actions { display: flex; justify-content: space-between; margin-top: 20px; gap: 12px; }
-.post-report-dialog-actions button { padding: 8px 14px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #525252; cursor: pointer; }
+.post-report-dialog-actions button { height: 32px; min-height: 32px; padding: 0 12px; font-family: inherit; font-size: 12px; font-weight: 500; line-height: 1; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #525252; cursor: pointer; }
 .post-report-dialog-actions button[type=submit] { background: #171717; color: #fff; border-color: #171717; }
 .post-report-dialog-actions button:disabled { opacity: .45; cursor: not-allowed; }
 .post-report-dialog :focus-visible { outline: 2px solid #737373; outline-offset: 3px; }
