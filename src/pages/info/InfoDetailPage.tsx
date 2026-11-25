@@ -3,6 +3,7 @@ import { useRequestScope } from '../../useRequestScope'
 import MDEditor from '@uiw/react-md-editor/nohighlight'
 import '@uiw/react-markdown-preview/markdown.css'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { Icon } from '../../shared/ui/Icon'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
@@ -68,6 +69,7 @@ export function InfoDetailPage(props: InfoDetailPageProps) {
 
 function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [infoActionError, setInfoActionError] = useState<string | null>(null)
   const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [item, setItem] = useState<InfoArticle | null>(null)
@@ -166,8 +168,7 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
 
   const handleDeleteInfo = async () => {
     if (!item || mutationLock.current) return
-    const confirmed = window.confirm('정보공유 글을 삭제할까요? 첨부 이미지도 함께 정리됩니다.')
-    if (!confirmed) return
+    setDeleteConfirmOpen(false)
 
     if (!beginMutation()) return
     const isCurrent = captureRequest()
@@ -260,13 +261,16 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
               <Icon name="pencil-color" size={15} />
               <span className="sr-only">수정</span>
             </button>
-            <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={handleDeleteInfo}>
+            <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={() => setDeleteConfirmOpen(true)}>
               <Icon name="trash-color" size={15} />
               <span className="sr-only">삭제</span>
             </button>
           </div>
         )}
       </article>
+      <ConfirmDialog open={deleteConfirmOpen} title="정보공유 글을 삭제할까요?"
+        description="첨부 이미지도 함께 삭제됩니다." confirmLabel="삭제하기" cancelLabel="취소"
+        onConfirm={handleDeleteInfo} onCancel={() => setDeleteConfirmOpen(false)} />
     </section>
   )
 }

@@ -13,6 +13,7 @@ import trendCore from '../../assets/trend_core.jpeg'
 import trendCoreProducts from '../../assets/trend-core-products.png'
 import chickadee from '../../assets/chickadee-app-screen.png'
 import chickadeeAnalysis from '../../assets/chickadee-analysis-screen.png'
+import googlePlayBadge from '../../assets/google-play-badge.png'
 import './showcase.css'
 
 const projectUrls: Record<string, string> = {
@@ -73,12 +74,11 @@ function ChickadeeArtwork() {
 
 function AppScreenArtwork({ name, image, tone }: { name: string; image: string; tone: string }) {
   const isGayadi = name === '가야디'
-  return <div className={`showcase-image app-screen-promo app-screen-promo--${tone}`}>
-    <div className="app-promo-copy">
+  return <div className={`showcase-image app-screen-promo app-screen-promo--${tone} app-brand-promo`}>
+    <div className="app-brand-stack">
       <img className="app-promo-logo" src={isGayadi ? gayadiLogo : replantLogo} alt="" loading="lazy" />
       <span className="app-promo-wordmark"><img src={isGayadi ? gayadiWordmark : replantWordmark} alt={isGayadi ? 'GAYADI' : 'RePlant'} loading="lazy" /></span>
-      <strong>{isGayadi ? <>어디로 갈까?<br />가야디와 떠나요.</> : <>내 속도대로,<br />다시 시작해요.</>}</strong>
-      <p>{isGayadi ? <>여행지 추천부터 일정까지,<br />설레는 여행의 시작을 함께.</> : <>작은 할 일을 기록하며<br />생활의 리듬을 찾아가요.</>}</p>
+      <img className="app-play-badge" src={googlePlayBadge} alt="Google Play에서 다운로드" loading="lazy" />
     </div>
     <div className="app-screen-device">
       <span className="withfesti-phone-buttons" aria-hidden="true" />
@@ -114,7 +114,7 @@ export function ProjectShowcase() {
   }
   return <section className="project-showcase" aria-labelledby="project-showcase-title">
     <div className="showcase-inner"><div className="showcase-heading"><div className="showcase-title"><p className="showcase-eyebrow">Product</p><h2 id="project-showcase-title">함께 만들어낸 결과물</h2></div><div className="showcase-controls"><button type="button" disabled={edges.start} aria-label="이전 프로젝트" onClick={() => move(-1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6" /></svg></button><button type="button" disabled={edges.end} aria-label="다음 프로젝트" onClick={() => move(1)}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6" /></svg></button></div></div>
-      <div className="showcase-track" ref={track} tabIndex={0} role="region" aria-label="프로젝트 모음">{projects.map((project) => <figure key={project.name} className={`showcase-card showcase-card--${project.tone}`}><a className="showcase-project-link" href={projectUrls[project.name]} target="_blank" rel="noopener noreferrer" aria-label={`${project.name} (새 탭에서 열기)`}><>{project.name === 'withfestival' ? <WithFestiArtwork /> : project.name === 'Trend Core' ? <TrendCoreArtwork /> : project.name === 'Chickadee' ? <ChickadeeArtwork /> : project.name === '가야디' || project.name === 'RePlant' ? <AppScreenArtwork name={project.name} image={project.image} tone={project.tone} /> : <div className={`showcase-image${project.poster ? ' showcase-image--poster' : ''}`}><img src={project.image} alt="" loading="lazy" /></div>}</></a><figcaption><h3><a href={projectUrls[project.name]} target="_blank" rel="noopener noreferrer" aria-label={`${project.name} (새 탭에서 열기)`}>{project.name}</a></h3><p>{project.description}</p></figcaption></figure>)}</div>
+      <div className="showcase-track" ref={track} tabIndex={0} role="region" aria-label="프로젝트 모음">{projects.map((project) => <figure key={project.name} className={`showcase-card showcase-card--${project.tone}`}><a className="showcase-project-link" href={projectUrls[project.name]} target="_blank" rel="noopener noreferrer" aria-label={`${project.name} (새 탭에서 열기)`}><>{project.name === 'withfestival' ? <WithFestiArtwork /> : project.name === 'Trend Core' ? <TrendCoreArtwork /> : project.name === 'Chickadee' ? <ChickadeeArtwork /> : project.name === '가야디' || project.name === 'RePlant' ? <AppScreenArtwork name={project.name} image={project.image} tone={project.tone} /> : <div className={`showcase-image${project.poster ? ' showcase-image--poster' : ''}`}><img src={project.image} alt="" loading="lazy" /></div>}</></a>{project.name !== '가야디' && project.name !== 'RePlant' && <figcaption><h3><a href={projectUrls[project.name]} target="_blank" rel="noopener noreferrer" aria-label={`${project.name} (새 탭에서 열기)`}>{project.name}</a></h3><p>{project.description}</p></figcaption>}</figure>)}</div>
     </div>
   </section>
 }

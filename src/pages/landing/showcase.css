@@ -154,3 +154,9 @@
 .project-showcase :is(.withfesti-phone-screen, .app-screen-display) { border-radius: 4.5cqw; }
 
 .project-showcase .showcase-card--mint .showcase-image img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.project-showcase .showcase-image.app-brand-promo { display: grid; place-items: center; }
+.app-brand-stack { position: absolute; left: 6%; top: 10%; bottom: 10%; width: 46%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4cqw; }
+.project-showcase .showcase-image.app-brand-promo .app-promo-logo { width: 20cqw; height: 20cqw; border-radius: 4cqw; }
+.app-brand-stack .app-promo-wordmark { width: 38cqw; margin: 0; }
+.project-showcase .showcase-image.app-brand-promo .app-play-badge { width: 36cqw; height: auto; object-fit: contain; margin-top: 3cqw; }

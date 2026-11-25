@@ -629,7 +629,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                 <div className="info-writer-image-tiles">
                   <label className="info-writer-upload-tile">
                     <Icon name="plus" size={24} />
-                    <span className="sr-only">{isUploadingInfoImage ? '업로드 중...' : infoImageUrl ? '이미지 변경' : '이미지 첨부'}</span>
                     <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="대표 이미지 첨부" onChange={handleInfoImageChange} disabled={isUploadingInfoImage} />
                   </label>
                   {infoImageUrl && <div className="info-writer-image-preview" key={infoImageUrl}>

@@ -17,6 +17,8 @@ function deferred<T>() {
 }
 
 beforeEach(() => {
+  HTMLDialogElement.prototype.showModal = vi.fn(function (this: HTMLDialogElement) { this.setAttribute('open', '') })
+  HTMLDialogElement.prototype.close = vi.fn(function (this: HTMLDialogElement) { this.removeAttribute('open') })
   vi.clearAllMocks()
   vi.mocked(infoApi.getArticle).mockResolvedValue(article())
 })
@@ -64,10 +66,11 @@ describe('information article interactions', () => {
 
   it('does not navigate away from another article when an old delete finishes', async () => {
     const pending = deferred<Awaited<ReturnType<typeof infoApi.deleteArticle>>>()
-    vi.spyOn(window, 'confirm').mockReturnValue(true)
     vi.mocked(infoApi.deleteArticle).mockReturnValue(pending.promise)
     const { rerender } = render(<InfoDetailPage {...props} />)
     fireEvent.click(await screen.findByRole('button', { name: '삭제' }))
+    expect(infoApi.deleteArticle).not.toHaveBeenCalled()
+    fireEvent.click(screen.getByRole('button', { name: '삭제하기' }))
     vi.mocked(infoApi.getArticle).mockResolvedValue(article(2))
     rerender(<InfoDetailPage {...props} infoId="2" />)
     await screen.findByRole('heading', { name: 'Article 2' })
