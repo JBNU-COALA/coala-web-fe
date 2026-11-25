@@ -1,3 +1,5 @@
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
+import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TechLogo } from '../../shared/ui/TechLogo'
@@ -109,13 +111,14 @@ export function ServicesPage() {
   const navigate = useNavigate()
   const { serviceId } = useParams<{ serviceId?: string }>()
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatusFilter>('all')
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [query, setQuery] = useState('')
   const [viewMode, setViewMode] = useState<UserServiceViewMode>('card')
   const [currentPage, setCurrentPage] = useState(1)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
+  const [retireTarget, setRetireTarget] = useState<MemberService | null>(null)
+  const [retiring, setRetiring] = useState(false)
   const [serviceError, setServiceError] = useState<string | null>(null)
   const [listError, setListError] = useState<string | null>(null)
   const [listLoading, setListLoading] = useState(true)
@@ -144,24 +147,18 @@ export function ServicesPage() {
     : null
   const selectedServiceDetail = selectedService
   const showServiceForm = showAddForm || editingServiceId !== null
-
-  const serviceTags = useMemo(
-    () => Array.from(new Set(memberServices.flatMap((service) => service.tags))),
-    [memberServices],
-  )
-  const visibleTagOptions = serviceTags.slice(0, 5)
+  const formRef = usePageTransition<HTMLFormElement>(String(showServiceForm))
 
   const visibleServices = useMemo(() => {
     return memberServices.filter((service) => {
       if (selectedStatus !== 'all' && service.status !== selectedStatus) return false
-      if (selectedTags.length > 0 && !selectedTags.some((tag) => service.tags.includes(tag))) return false
       if (!normalizedQuery) return true
 
       return `${service.title} ${service.owner} ${service.summary} ${service.tags.join(' ')}`
         .toLowerCase()
         .includes(normalizedQuery)
     })
-  }, [memberServices, normalizedQuery, selectedStatus, selectedTags])
+  }, [memberServices, normalizedQuery, selectedStatus])
   const totalUserServicePages = Math.max(1, Math.ceil(visibleServices.length / USER_SERVICE_PAGE_SIZE))
   const safeCurrentPage = Math.min(currentPage, totalUserServicePages)
   const paginatedServices = visibleServices.slice(
@@ -181,15 +178,6 @@ export function ServicesPage() {
       .finally(() => { if (active) setListLoading(false) })
     return () => { active = false }
   }, [listRevision])
-
-  const toggleSelectedTag = (tag: string) => {
-    setCurrentPage(1)
-    setSelectedTags((current) =>
-      current.includes(tag)
-        ? current.filter((item) => item !== tag)
-        : [...current, tag],
-    )
-  }
 
   const openServiceDetail = (id: string) => {
     navigate(routes.services.userDetail(id))
@@ -254,8 +242,9 @@ export function ServicesPage() {
   }
 
   const handleRetireService = async (service: MemberService) => {
-    const confirmed = window.confirm(`${service.title} 서비스를 운영 중지할까요?`)
-    if (!confirmed) return
+    if (retiring) return
+    setRetireTarget(null)
+    setRetiring(true)
 
     try {
       await servicesApi.retireMemberService(service.id)
@@ -270,6 +259,8 @@ export function ServicesPage() {
       setServiceError(null)
     } catch {
       setServiceError('서비스 운영 중지 권한이 없거나 처리에 실패했습니다.')
+    } finally {
+      setRetiring(false)
     }
   }
 
@@ -386,7 +377,7 @@ export function ServicesPage() {
               <div className="official-service-preview-grid">
                 <button type="button" onClick={() => navigate(routes.services.officialInstance)}>
                   <Icon name="server-color" size={28} />
-                  <span><strong>인스턴스 대여</strong><small>프로젝트를 배포할 서버를 신청합니다.</small></span>
+                  <span><strong>JCloud 인스턴스 대여</strong><small>JCloud에서 프로젝트를 배포할 서버를 신청합니다.</small></span>
                   <Icon name="chevron-right" size={17} />
                 </button>
                 <button type="button" onClick={() => navigate(routes.services.officialDomain)}>
@@ -432,7 +423,7 @@ export function ServicesPage() {
                 onClick={() => navigate(routes.services.officialInstance)}
               >
                 <Icon name="server-color" size={22} />
-                <span>인스턴스 대여</span>
+                <span>JCloud 인스턴스 대여</span>
               </button>
               <button
                 type="button"
@@ -489,6 +480,7 @@ export function ServicesPage() {
                     {selectedServiceDetail?.description ?? selectedService.summary}
                   </p>
 
+                  {serviceError && <p className="auth-error" role="alert">{serviceError}</p>}
                   <div className="member-service-detail-actions">
                     <a href={toExternalUrl(selectedService.url)} target="_blank" rel="noreferrer">
                       <Icon name="globe-color" size={15} />
@@ -513,9 +505,10 @@ export function ServicesPage() {
                         <button
                           type="button"
                           className="member-service-detail-button"
-                          onClick={() => handleRetireService(selectedService)}
+                          disabled={retiring}
+                          onClick={() => setRetireTarget(selectedService)}
                         >
-                          <Icon name="file-color" size={15} />
+                          <Icon name="stop-color" size={15} />
                           운영 중지
                         </button>
                       </>
@@ -584,13 +577,7 @@ export function ServicesPage() {
               </section>
         ) : (
           <>
-            <ListingControls className="page-container" label="유저 서비스 필터"
-              accessory={visibleTagOptions.length > 0 ? <div className="member-service-tag-cloud" aria-label="유저 서비스 태그">
-                {visibleTagOptions.map((tag) => <button key={tag} type="button"
-                  className={selectedTags.includes(tag) ? 'member-service-tag-chip is-active' : 'member-service-tag-chip'}
-                  aria-pressed={selectedTags.includes(tag)} onClick={() => toggleSelectedTag(tag)}>#{tag}</button>)}
-                {selectedTags.length > 0 && <button type="button" className="member-service-tag-reset" onClick={() => { setSelectedTags([]); setCurrentPage(1) }}>초기화</button>}
-              </div> : null}>
+            <ListingControls className="page-container" label="유저 서비스 필터">
               <SelectControl value={selectedStatus}
                 options={serviceStatusTabs.map((tab) => ({ value: tab.id, label: tab.label }))}
                 onChange={(status) => { setSelectedStatus(status); setCurrentPage(1) }} label="운영 상태" />
@@ -602,7 +589,7 @@ export function ServicesPage() {
             {serviceError ? <p className="auth-error">{serviceError}</p> : null}
 
             {showServiceForm ? (
-              <form className="surface-card member-service-form" onSubmit={handleSaveService}>
+              <form ref={formRef} className="surface-card member-service-form" onSubmit={handleSaveService}>
                 <div className="member-service-form-head">
                   <div>
                     <h3>{editingServiceId ? '유저 서비스 수정' : '유저 서비스 추가'}</h3>
@@ -610,13 +597,7 @@ export function ServicesPage() {
                       서비스 정보와 대표 이미지를 등록하세요.
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    className="ghost-button"
-                    onClick={closeServiceForm}
-                  >
-                    닫기
-                  </button>
+
                 </div>
                 <div className="member-service-form-grid">
                   <label className="jcloud-field">
@@ -640,7 +621,7 @@ export function ServicesPage() {
                     />
                   </label>
                   <label className="jcloud-field">
-                    <span className="jcloud-label">GitHub 링크</span>
+                    <span className="jcloud-label member-service-github-label"><Icon name="github" size={16} />GitHub 링크</span>
                     <input
                       className="jcloud-input"
                       placeholder="https://github.com/..."
@@ -734,6 +715,7 @@ export function ServicesPage() {
                   </label>
                 </div>
                 <div className="recruit-write-footer">
+                  <button type="button" className="ghost-button" onClick={closeServiceForm}>닫기</button>
                   <button type="submit" className="jcloud-submit-button">
                     {editingServiceId ? '저장하기' : '추가하기'}
                   </button>
@@ -869,6 +851,11 @@ export function ServicesPage() {
           </>
         )}
       </div>
+      <ConfirmDialog open={retireTarget !== null} title="서비스 운영을 중지할까요?"
+        description={`${retireTarget?.title ?? ''} 서비스를 운영 중지합니다.`}
+        confirmLabel="운영 중지" cancelLabel="취소"
+        onCancel={() => setRetireTarget(null)}
+        onConfirm={() => { if (retireTarget) void handleRetireService(retireTarget) }} />
     </section>
   )
 }

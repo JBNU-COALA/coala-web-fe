@@ -1,0 +1,5 @@
+.jcloud-provider-heading { display: flex; align-items: center; flex-wrap: wrap; gap: 16px 24px; padding: 20px 0; margin-bottom: 12px; color: #171717; }
+.jcloud-provider-heading > img { display: block; width: 150px; max-width: 100%; height: auto; object-fit: contain; }
+.jcloud-provider-heading h2 { margin: 0; font-size: 16px; font-weight: 600; line-height: 1.5; }
+.jcloud-provider-heading p { margin: 4px 0 0; color: #737373; font-size: 13px; line-height: 1.6; }
+@media (max-width: 600px) { .jcloud-provider-heading { gap: 12px; } .jcloud-provider-heading > img { width: 125px; } .jcloud-provider-heading > div { flex-basis: 100%; } }

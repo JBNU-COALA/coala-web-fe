@@ -243,3 +243,7 @@
 .coala-app .coala-content--services .member-service-detail-actions .member-service-detail-button:hover { border-color: #a3a3a3; background: #f5f5f5; color: #171717; }
 .coala-app .coala-content--services .member-service-back-button,
 .coala-app .coala-content--services .member-service-back-button:hover { border: 0; background: transparent; box-shadow: none; color: #525252; padding-inline: 0; }
+
+.coala-content--services .member-service-form .member-service-github-label { justify-content: flex-start; gap: 6px; }
+.coala-app .coala-content--services .member-service-form .recruit-write-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+.coala-app .coala-content--services .member-service-form .recruit-write-footer > button { margin: 0; }

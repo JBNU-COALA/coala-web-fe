@@ -1,4 +1,5 @@
 export type IconName =
+  | 'stop-color'
   | 'close'
   | 'calendar-color'
   | 'award-color'
@@ -74,6 +75,8 @@ const iconShape = (name: IconName) => {
       return <g stroke="none"><rect x="3" y="2" width="12" height="20" rx="2" fill="#eab875" /><path d="m3 2 8 3v17H3Z" fill="#c58b4f" /><circle cx="8" cy="12" r="1" fill="#fff" /><path d="m17 6 6 6-6 6v-4h-4v-4h4Z" fill="#d76b57" /></g>
     case 'refresh':
       return <path fill="currentColor" stroke="none" d="M19.1 4.9A10 10 0 1 0 22 12h-3a7 7 0 1 1-2-4.9L13 11h9V2Z" />
+    case 'stop-color':
+      return <g stroke="none"><circle cx="12" cy="12" r="10" fill="#df7777" /><rect x="8" y="8" width="8" height="8" rx="1" fill="#fff" /></g>
     case 'pencil-color':
       return <g stroke="none"><path fill="#fbbf24" d="m4 15 10-10 5 5L9 20l-6 1Z" /><path fill="#f59e0b" d="m6.5 17.5 10-10L19 10 9 20Z" /><path fill="#fda4af" d="m14 5 2-2a2 2 0 0 1 3 0l2 2a2 2 0 0 1 0 3l-2 2Z" /><path fill="#e5e7eb" d="m13 6 2-2 5 5-2 2Z" /><path fill="#f5deb3" d="m4 15 5 5-6 1Z" /><path fill="#374151" d="m3.5 18 2.5 2.5-3 .5Z" /></g>
     case 'filter':
