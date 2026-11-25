@@ -199,9 +199,12 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
 
         <div className={coverImageUrl ? 'post-cover post-cover--info post-cover--has-media' : 'post-cover post-cover--info'}>
           <div className="post-cover-text">
+            <div className="post-category-meta-row">
             <span className={`board-context-pill board-context-pill--${copy.tone} post-cover-pill`}>
               #{copy.label}
             </span>
+              <span className="post-meta-updated">최종 수정: {formatDate(source.date)}</span>
+            </div>
             <h1 className="post-cover-title">{title}</h1>
           </div>
 
@@ -246,7 +249,6 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
             {tags.filter((tag) => tag !== copy.label).map((tag) => (
               <span key={tag} className="post-tag">#{tag}</span>
             ))}
-            <span className="post-meta-updated">최종 수정: {formatDate(source.date)}</span>
           </div>
 
           <MDEditor.Markdown

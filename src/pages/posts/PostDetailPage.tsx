@@ -567,9 +567,12 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
 
         <div className="post-cover">
           <div className="post-cover-text">
+            <div className="post-category-meta-row">
             <span className={`board-context-pill board-context-pill--${category.tone} post-cover-pill`}>
               #{category.label}
             </span>
+              <span className="post-meta-updated">최종 수정: {formatDate(visiblePost.updatedAt)}</span>
+            </div>
             <h1 className="post-cover-title">{visiblePost.title}</h1>
           </div>
 
@@ -605,9 +608,6 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
         </div>
 
         <div className="post-body">
-          <div className="post-tags">
-            <span className="post-meta-updated">최종 수정: {formatDate(visiblePost.updatedAt)}</span>
-          </div>
 
           {isHtmlContent ? (
             <div

@@ -257,3 +257,7 @@
 .coala-app .coala-content--recruit .recruit-search:focus-within { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
 .coala-app .coala-content--recruit .recruit-search input:is(:focus, :focus-visible) { border: 0; outline: none; box-shadow: none; }
 .coala-app .coala-content--recruit .recruit-search input::placeholder { color: #8a8a8a; }
+
+.coala-app .post-detail .post-category-meta-row { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px 16px; width: 100%; }
+.coala-app .post-detail .post-category-meta-row .post-cover-pill { align-self: center; flex-shrink: 0; }
+.coala-app .post-detail .post-category-meta-row .post-meta-updated { margin: 0 0 0 auto; text-align: right; font-size: 12px; color: #8a8a8a; }
