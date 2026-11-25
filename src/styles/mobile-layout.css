@@ -104,3 +104,10 @@
   .coala-app .coala-content.coala-content .view-toggle.view-toggle--compact { height: 44px; min-height: 44px; }
   .coala-app.coala-app .coala-content .view-toggle.view-toggle--compact button { height: 42px; min-height: 42px; width: 40px; flex-basis: 40px; }
 }
+
+/* Keep navigation and the section banner together at every viewport size. */
+.coala-app > .coala-header { position: sticky; top: 0; flex-shrink: 0; z-index: 100; }
+.coala-app.coala-app .community-banner { top: var(--coala-sticky-header-height, 72px); }
+@media (max-width: 900px) {
+  .coala-app .header-notification-popover, .coala-app .header-profile-popover { top: calc(var(--coala-sticky-header-height, 100px) + 8px); max-height: calc(100dvh - var(--coala-sticky-header-height, 100px) - 32px); }
+}

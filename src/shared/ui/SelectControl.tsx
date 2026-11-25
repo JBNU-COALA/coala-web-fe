@@ -12,6 +12,7 @@ type SelectControlProps<T extends string> = {
   options: SelectControlOption<T>[]
   onChange: (value: T) => void
   label: string
+  disabled?: boolean
   className?: string
 }
 
@@ -21,6 +22,7 @@ export function SelectControl<T extends string>({
   onChange,
   label,
   className = '',
+  disabled = false,
 }: SelectControlProps<T>) {
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -53,11 +55,11 @@ export function SelectControl<T extends string>({
   return (
     <div ref={rootRef} className={`select-control custom-select ${className}`.trim()}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
-      <select className="select-control-native" aria-label={label} value={value}
+      <select disabled={disabled} className="select-control-native" aria-label={label} value={value}
         onChange={(event) => { onChange(event.target.value as T); setOpen(false) }}>
         {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
-      <button ref={triggerRef} type="button" className="select-control-trigger"
+      <button ref={triggerRef} disabled={disabled} type="button" className="select-control-trigger"
         aria-label={`${label}: ${options[selectedIndex]?.label ?? ''}`}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
         onClick={() => open ? setOpen(false) : show()}

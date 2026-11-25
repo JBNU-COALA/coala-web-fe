@@ -246,7 +246,17 @@ function PublicPageTransition({ pathname }: { pathname: string }) {
 }
 
 function AppSession() {
+  const headerRef = useRef<HTMLElement>(null)
   const location = useLocation()
+  useLayoutEffect(() => {
+    const header = headerRef.current
+    if (!header) return
+    const update = () => header.parentElement?.style.setProperty('--coala-sticky-header-height', `${header.getBoundingClientRect().height}px`)
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(header)
+    return () => observer.disconnect()
+  }, [location.pathname])
   const mainRef = usePageTransition<HTMLElement>(location.pathname)
   const navigate = useNavigate()
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
@@ -827,7 +837,7 @@ function AppSession() {
 
   return (
     <div className={isAdminRoute ? 'coala-app coala-app--admin' : 'coala-app'}>
-      <header className="coala-header">
+      <header ref={headerRef} className="coala-header">
         <div className="coala-header-inner">
           <button type="button" className="coala-brand coala-brand--wordmark" aria-label="코알라 커뮤니티 홈" onClick={() => navigate('/portal')}>
             <span className="coala-brand-mark" aria-hidden="true">

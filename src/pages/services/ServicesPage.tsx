@@ -658,15 +658,16 @@ export function ServicesPage() {
                       required
                     />
                   </label>
-                  <label className="jcloud-field member-service-form-wide">
+                  <div className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">이미지</span>
                     <div className="member-service-image-upload">
-                      <label className="ghost-button member-service-image-upload-button">
-                        <Icon name="image" size={15} />
-                        {isUploadingServiceImage ? '업로드 중...' : '이미지 첨부'}
+                      <label className="member-service-image-upload-button">
+                        <Icon name="plus" size={24} />
+                        {isUploadingServiceImage && <span>업로드 중...</span>}
                         <input
                           type="file"
                           accept="image/*"
+                          aria-label="이미지 첨부"
                           onChange={handleServiceImageSelect}
                           disabled={isUploadingServiceImage}
                         />
@@ -681,17 +682,18 @@ export function ServicesPage() {
                       )}
                     </div>
                     {serviceImageError ? <p className="auth-error">{serviceImageError}</p> : null}
-                  </label>
-                  <label className="jcloud-field member-service-form-wide">
+                  </div>
+                  <div className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">추가 이미지 ({addDraft.additionalImageUrls.length}/5)</span>
                     <div className="member-service-image-upload">
-                      <label className="ghost-button member-service-image-upload-button">
-                        <Icon name="plus" size={15} />
-                        {isUploadingServiceImage ? '업로드 중...' : '추가 이미지 첨부'}
+                      <label className="member-service-image-upload-button">
+                        <Icon name="plus" size={24} />
+                        {isUploadingServiceImage && <span>업로드 중...</span>}
                         <input
                           type="file"
                           accept="image/*"
                           multiple
+                          aria-label="추가 이미지 첨부"
                           onChange={handleAdditionalServiceImageSelect}
                           disabled={isUploadingServiceImage || addDraft.additionalImageUrls.length >= 5}
                         />
@@ -718,7 +720,7 @@ export function ServicesPage() {
                         <span className="member-service-image-empty">추가 이미지가 없습니다</span>
                       )}
                     </div>
-                  </label>
+                  </div>
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">소개</span>
                     <textarea

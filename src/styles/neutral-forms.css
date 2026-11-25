@@ -50,3 +50,11 @@
 .coala-app .archive-editor .archive-type-select { position: relative; display: block; width: 100%; border: 1px solid #d4d4d4; border-radius: 8px; background: #fff; padding: 0; }
 .coala-app .archive-editor .archive-type-select:focus-within { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
 .coala-app .archive-editor .archive-type-select .select-control-trigger { min-height: 40px; padding: 0 16px; font-size: 14px; font-weight: 400; }
+
+/* Editor controls share a full-size field height; toolbar filters stay compact. */
+.coala-app .archive-editor .jcloud-input { box-sizing: border-box; height: 44px; min-height: 44px; }
+.coala-app .archive-editor .archive-type-select.custom-select { box-sizing: border-box; height: 44px !important; min-height: 44px !important; border-radius: 8px; }
+.coala-app .archive-editor .archive-type-select.archive-type-select.custom-select > :is(.select-control-trigger, .select-control-native) { box-sizing: border-box; height: 42px !important; min-height: 42px !important; padding: 0 12px !important; font-size: 13.5px !important; font-weight: 400; }
+@media (max-width: 700px) {
+  .coala-app .archive-editor .archive-type-select.archive-type-select.custom-select > .select-control-native { font-size: 16px !important; }
+}

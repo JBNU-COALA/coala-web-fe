@@ -917,3 +917,49 @@ a.study-person-name:hover {
 .coala-app .study-page .study-editor .participant-search input { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; }
 .coala-app.coala-app .study-calendar .study-calendar-days button { border-radius: 0 !important; }
 .coala-app .study-record-actions .study-action { border: 0 !important; background: transparent !important; box-shadow: none !important; }
+
+/* Shared row baselines and spacing for attendance details and editing. */
+.coala-app .study-detail-photos .activity-photos { margin: 0; }
+.coala-app .study-detail-attendance { padding: 0; border: 0; border-radius: 0; }
+.coala-app .study-detail-photos .activity-photos > header,
+.coala-app .study-detail-attendance .study-form-section { min-height: 24px; margin: 0 0 12px; }
+.coala-app .study-detail-photos .activity-photo-grid { margin-top: 0; }
+.coala-app .study-detail-attendance .study-attendance-list { border: 1px solid #e5e5e5; border-radius: 8px; padding: 0 14px; }
+.coala-app .study-detail-attendance .study-attendance-list li:last-child { border-bottom: 0; }
+.coala-app .study-record-actions .study-action { width: 30px; height: 30px; min-height: 30px; font-size: 15px; line-height: 1; }
+.coala-app .study-record-actions > div { gap: 4px; }
+.coala-app .study-editor > fieldset { display: flex; flex-direction: column; gap: 24px; }
+.coala-app .study-page .study-editor :is(fieldset > label, .study-editor-fields > label, .study-editor-field) { display: flex; flex-direction: column; margin: 0; gap: 8px; font-size: 13px; line-height: 20px; font-weight: 600; color: #333; }
+.coala-app .study-page .study-editor :is(.study-editor-fields, .participant-picker, .activity-photos, .study-editor-attendance) { margin: 0; }
+.coala-app .study-page .study-editor .participant-picker > label { margin: 0 0 8px; line-height: 20px; }
+.coala-app .study-editor .activity-photos > header { min-height: 20px; margin-bottom: 8px; }
+.coala-app .study-editor .activity-photos h3 { font-size: 13px; line-height: 20px; }
+.coala-app .study-editor .activity-photo-grid { margin: 0; }
+.coala-app .study-editor .study-form-section { margin: 0 0 12px; }
+.coala-app .study-editor .study-unchecked { margin: 8px 0 0; font-size: 12px; }
+.coala-app .study-editor .study-editor-group.select-control { width: 100%; height: 44px !important; min-height: 44px !important; box-sizing: border-box; }
+.coala-app .study-editor .study-editor-group.select-control > .select-control-trigger { height: 42px !important; min-height: 42px !important; font-size: 14px !important; font-weight: 400; }
+.coala-app .study-editor .study-editor-group.select-control > .select-control-native { height: 42px !important; min-height: 42px !important; }
+.coala-app .study-editor .activity-photo-add-tile { background: transparent; }
+.coala-app .study-editor .activity-photo-add-tile > button { display: grid; place-items: center; width: 100%; height: 100%; border: 1px dashed #ccc; border-radius: 10px; background: #fafafa; color: #666; transition: background 160ms, border-color 160ms; }
+.coala-app .study-editor .activity-photo-add-tile > button:hover:not(:disabled) { background: #f2f2f2; border-color: #888; }
+.coala-app .study-editor .activity-photo-add-tile > button:disabled { opacity: .4; cursor: not-allowed; }
+.coala-app .study-editor .attendance-choices { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 5px; padding: 0; background: transparent; }
+.coala-app .study-editor .attendance-choice { margin: 0; }
+.coala-app .study-editor .attendance-choice span { min-height: 32px; border: 1px solid #ddd; border-radius: 8px; background: #fff; color: #666; font-size: 12px; transition: background-color 150ms, color 150ms; }
+.coala-app .study-editor .attendance-choice input:checked + span { background: #eee; border-color: #aaa; color: #222; box-shadow: none; font-weight: 600; }
+.coala-app .study-editor .study-attendance-list li.is-removable { grid-template-columns: 32px minmax(0,1fr) 228px 28px; min-height: 52px; padding: 10px 0; align-items: center; }
+.coala-app .study-editor .participant-remove { width: 28px; height: 32px; min-height: 32px; font-size: 18px; }
+.study-results-transition, .participant-results, .study-editor-attendance, .study-editor .study-attendance-list li { animation: attendance-enter 180ms ease-out both; }
+@keyframes attendance-enter { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 700px) {
+  .coala-app .study-editor .study-attendance-list li.is-removable { grid-template-columns: 32px minmax(0,1fr) 28px; }
+  .coala-app .study-editor .attendance-choices { grid-column: 1 / -1; grid-row: 2; }
+  .coala-app .study-editor .participant-remove { grid-column: 3; grid-row: 1; }
+  .coala-app .study-editor .attendance-choice span { min-height: 40px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .study-results-transition, .participant-results, .study-editor-attendance, .study-editor .study-attendance-list li { animation: none; }
+}
+
+.coala-app .study-editor .study-editor-fields { gap: 24px 16px; }

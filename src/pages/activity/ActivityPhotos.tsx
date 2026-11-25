@@ -59,16 +59,19 @@ export function ActivityPhotos({ photos, onChange, onBusy }: {
   if (!onChange && !photos.length) return null
   return <section className="activity-photos" aria-label="활동 인증 사진">
     <header><h3>인증 사진 <small>{photos.length}/5</small></h3>
-      {onChange && <button type="button" className="study-text-button" disabled={busy || photos.length >= 5}
-        onClick={() => input.current?.click()}><Icon name="image" size={17} />{busy ? '업로드 중...' : '사진 추가'}</button>}
     </header>
     {onChange && <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple
       hidden aria-label="인증 사진 업로드" onChange={(event) => void upload(event.target.files)} />}
-    {photos.length > 0 && <ul className="activity-photo-grid">{photos.map((photo, index) => <li key={photo.attachmentId}>
+    {(photos.length > 0 || onChange) && <ul className="activity-photo-grid">{photos.map((photo, index) => <li key={photo.attachmentId}>
       <ActivityPhotoPreview photo={photo} link />
       {onChange && <button type="button" disabled={busy} className="activity-photo-remove" aria-label={`사진 ${index + 1} 삭제`}
         title="사진 삭제" onClick={() => onChange(photos.filter((item) => item.attachmentId !== photo.attachmentId))}>×</button>}
-    </li>)}</ul>}
+    </li>)}{onChange && <li className="activity-photo-add-tile">
+      <button type="button" disabled={busy || photos.length >= 5} aria-label={busy ? '사진 업로드 중' : '사진 추가'}
+        title={photos.length >= 5 ? '사진은 최대 5장까지 추가할 수 있습니다' : '사진 추가'} onClick={() => input.current?.click()}>
+        <Icon name="plus" size={22} />
+      </button>
+    </li>}</ul>}
     {error && <p role="alert" className="study-error">{error}</p>}
   </section>
 }

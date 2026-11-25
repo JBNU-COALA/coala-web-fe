@@ -14921,8 +14921,8 @@
 }
 
 .search-field:focus-within {
-  border-color: rgba(17, 94, 62, 0.52) !important;
-  box-shadow: 0 0 0 3px rgba(17, 94, 62, 0.12) !important;
+  border-color: #111 !important;
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08) !important;
 }
 
 .search-field input:focus,

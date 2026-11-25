@@ -317,6 +317,7 @@ function ActivityContent({
               </h2>
             </>
           )}
+          <div key={layout === 'calendar' ? selectedDate : start} className="study-results-transition">
           {records.length === 0 ? (
             <div className="study-empty">
               <Icon name="calendar" size={28} />
@@ -339,6 +340,7 @@ function ActivityContent({
                 recruitId={data.groups.find((group) => group.id === entry.groupId)?.recruitId} />)}
             </ol>
           )}
+          </div>
           </div>
         </>
       )}

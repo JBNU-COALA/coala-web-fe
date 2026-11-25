@@ -1,3 +1,4 @@
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { ParticipantPicker } from './ParticipantPicker'
 import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState, type FormEvent } from 'react'
@@ -144,14 +145,18 @@ export function RecordEditor({
                 onChange={(event) => setDate(event.target.value)}
               />
             </label>
-            <label>
-              연결할 조 (선택)
-              <select
+            <div className="study-editor-field">
+              <span>연결할 조 (선택)</span>
+              <SelectControl label="연결할 조 (선택)" className="study-editor-group"
+                options={[{ value: '', label: '연결 안 함' },
+                  ...(record?.groupId && !data.groups.some((group) => group.id === record.groupId) ? [{ value: record.groupId, label: '기존 연결 유지' }] : []),
+                  ...data.groups.map((group) => ({ value: group.id, label: group.name }))]}
+
                 value={groupId}
                 disabled={!!record?.groupId}
-                onChange={(event) => {
+                onChange={(value) => {
                   const next = data.groups.find(
-                    (group) => group.id === event.target.value
+                    (group) => group.id === value
                   )
                   const merged = [...attendance]
                   for (const member of next?.members ?? []) {
@@ -165,23 +170,13 @@ export function RecordEditor({
                   setGroupId(next?.id ?? '')
                   setAttendance(merged)
                 }}
-              >
-                <option value="">연결 안 함</option>
-                {record?.groupId && !data.groups.some((group) => group.id === record.groupId) && (
-                  <option value={record.groupId}>기존 연결 유지</option>
-                )}
-                {data.groups.map((group) => (
-                  <option key={group.id} value={group.id}>
-                    {group.name}
-                  </option>
-                ))}
-              </select>
-            </label>
+              />
+            </div>
           </div>
           <ParticipantPicker selected={attendance} onAdd={(member) => setAttendance((current) =>
             current.length >= 200 || current.some((entry) => entry.userId === member.userId)
               ? current : [...current, { ...member, status: 'unknown' }])} />
-          {attendance.length > 0 && <>
+          {attendance.length > 0 && <section className="study-editor-attendance">
           <div className="study-form-section">
             <h2>
               출석 <small>{attendance.length}명</small>
@@ -205,7 +200,7 @@ export function RecordEditor({
               ? `미확인 ${attendanceCounts(attendance).unknown}명`
               : '모든 출석 상태를 확인했습니다.'}
           </p>
-          </>}
+          </section>}
           <label>
             오늘 어떤 활동을 했나요?
             <textarea

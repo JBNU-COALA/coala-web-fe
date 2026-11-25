@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import type { StudyRecord } from '../../shared/activity'
@@ -11,9 +12,11 @@ export function ActivityRecordActions({ record, search, back }: {
 }) {
   const navigate = useNavigate()
   const [deleting, setDeleting] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [error, setError] = useState('')
   const remove = async () => {
-    if (deleting || !window.confirm('이 출석 기록과 인증 사진을 삭제할까요?')) return
+    if (deleting) return
+    setConfirmOpen(false)
     setDeleting(true)
     setError('')
     try {
@@ -29,10 +32,12 @@ export function ActivityRecordActions({ record, search, back }: {
       <Link className="study-action" aria-label="수정" title="수정" to={routes.community.activityRecordEditor(record.id) + search}>
         <span aria-hidden="true">✏️</span>
       </Link>
-      <button type="button" className="study-action study-action--danger" aria-label={deleting ? '삭제 중' : '삭제'} title="삭제" disabled={deleting} onClick={() => void remove()}>
+      <button type="button" className="study-action study-action--danger" aria-label={deleting ? '삭제 중' : '삭제'} title="삭제" disabled={deleting} onClick={() => setConfirmOpen(true)}>
         <span aria-hidden="true">🗑️</span>
       </button>
     </div>
+    <ConfirmDialog open={confirmOpen} title="출석 기록 삭제" description="이 출석 기록과 인증 사진을 삭제할까요?"
+      confirmLabel="삭제" cancelLabel="취소" onConfirm={() => void remove()} onCancel={() => setConfirmOpen(false)} />
     {error && <p className="study-error" role="alert">{error}</p>}
   </div>
 }
