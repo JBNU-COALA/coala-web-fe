@@ -965,3 +965,10 @@ a.study-person-name:hover {
 .coala-app .study-editor .study-editor-fields { gap: 24px 16px; }
 
 .coala-app .study-user-filter > a { color: #171717; }
+
+.coala-app .study-editor-footer { display: flex; justify-content: flex-end; width: 100%; padding-top: 20px; border-top: 1px solid #e5e5e5; }
+.coala-app .study-editor-footer .study-submit { margin: 0; }
+.coala-app .study-editor .attendance-choice { display: block; gap: 0; align-self: center; line-height: 1; }
+.coala-app .study-editor .attendance-choices { align-items: center; align-self: center; margin: 0; }
+.coala-app .study-editor .participant-remove { display: grid; place-items: center; align-self: center; width: 28px; height: 32px; min-height: 32px; margin: 0; padding: 0; border: 0; background: transparent; }
+.coala-app .study-editor .participant-remove:hover { background: #f5f5f5; }

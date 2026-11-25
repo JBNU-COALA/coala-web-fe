@@ -1,3 +1,4 @@
+import { Icon } from '../../shared/ui/Icon'
 import { useId } from 'react'
 import {
   attendanceLabels,
@@ -67,7 +68,7 @@ export function AttendanceList({
             </span>
           )}
           {onRemove && <button type="button" className="participant-remove" title="참여자 제외"
-            aria-label={`${member.name} 참여자 제외`} onClick={() => onRemove(member.userId)}>×</button>}
+            aria-label={`${member.name} 참여자 제외`} onClick={() => onRemove(member.userId)}><Icon name="trash-color" size={16} /></button>}
         </li>
       ))}
     </ul>

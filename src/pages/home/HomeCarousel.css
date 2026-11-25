@@ -283,9 +283,9 @@
   .home-carousel-copy :is(h1, h2) { font-size: 25px; }
 }
 
-/* Keep service introductions light and avoid a short orphaned final line. */
-.coala-app .home-carousel-copy :is(h1, h2) { max-width: none; font-size: clamp(24px, 2.1vw, 32px); font-weight: 600; line-height: 1.45; letter-spacing: -.035em; word-break: keep-all; text-wrap: balance; }
-.coala-app .home-carousel-slide--coral .home-carousel-copy :is(h1, h2) { font-weight: 600; }
+/* Give banner headlines a heavy display weight while keeping balanced wrapping. */
+.coala-app .home-carousel-copy :is(h1, h2) { max-width: none; font-size: clamp(26px, 2.5vw, 38px); font-weight: 900; line-height: 1.45; letter-spacing: -.035em; word-break: keep-all; text-wrap: balance; }
+
 @media (min-width: 901px) { .coala-app .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 320px); } }
 @media (max-width: 560px) { .coala-app .home-carousel-copy :is(h1, h2) { font-size: 23px; } }
 

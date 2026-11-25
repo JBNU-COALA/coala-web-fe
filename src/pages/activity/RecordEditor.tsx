@@ -6,7 +6,6 @@ import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import {
   activityToday,
-  attendanceCounts,
   parseDate,
   type ActivityData,
   type StudyRecord,
@@ -195,11 +194,7 @@ export function RecordEditor({
           </div>
           <AttendanceList entries={attendance} onChange={setAttendance}
             onRemove={(userId) => setAttendance((current) => current.filter((entry) => entry.userId !== userId))} />
-          <p className="study-unchecked" role="status">
-            {attendanceCounts(attendance).unknown
-              ? `미확인 ${attendanceCounts(attendance).unknown}명`
-              : '모든 출석 상태를 확인했습니다.'}
-          </p>
+
           </section>}
           <label>
             오늘 어떤 활동을 했나요?
@@ -219,9 +214,11 @@ export function RecordEditor({
               {error}
             </p>
           )}
+          <div className="study-editor-footer">
           <button className="study-primary study-submit" type="submit" disabled={uploading}>
             {saving ? '저장 중...' : '저장'}
           </button>
+          </div>
         </fieldset>
       </form>
     </div>

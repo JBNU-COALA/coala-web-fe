@@ -119,8 +119,10 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
               <span>정보공유로 돌아가기</span>
             </button>
           </header>
+          <div className="info-detail-load-state">
           <p className="empty-post-state" role={loadError || invalidId ? 'alert' : 'status'}>{invalidId ? '올바르지 않은 게시글 주소입니다.' : loadError ? '정보공유 글을 불러오지 못했습니다. 삭제되었거나 접근 권한이 없는 글일 수 있습니다.' : '정보공유 글을 불러오는 중입니다.'}</p>
           {loadError && !invalidId && <button type="button" className="ghost-button retry-button" onClick={() => { setLoadError(false); setLoadRevision((value) => value + 1) }}>다시 불러오기</button>}
+          </div>
         </article>
       </section>
     )

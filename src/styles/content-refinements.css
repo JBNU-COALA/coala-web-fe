@@ -243,3 +243,6 @@
 .coala-app .recruit-empty-icon--color { background: #f8f9fc; font-size: 28px; line-height: 1; }
 
 .post-report-dialog textarea:focus { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
+
+.coala-app .info-detail-load-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 220px; padding: 32px 16px; text-align: center; }
+.coala-app .info-detail-load-state .empty-post-state { margin: 0; padding: 0; color: #171717; font-size: 14px; line-height: 1.7; }

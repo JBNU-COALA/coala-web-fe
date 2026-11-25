@@ -95,3 +95,6 @@
 .coala-app .coala-content.coala-content :is(.velog-publish-button, .study-submit) { display: inline-flex; align-items: center; justify-content: center; width: auto; min-width: 0; height: 34px; min-height: 34px; padding: 0 14px; border-radius: 10px; font-size: 12px; font-weight: 600; line-height: 1.2; }
 .coala-app .coala-content .study-editor .study-submit { align-self: flex-end; float: none; margin: 0; }
 @media (max-width: 700px) { .coala-app .coala-content.coala-content :is(.velog-publish-button, .study-submit) { height: 44px; min-height: 44px; } }
+
+/* Every editor separates its fields from the final cancel/save actions. */
+.coala-app :is(.velog-writer-footer, .recruit-write-footer, .archive-form-actions, .recruit-application-footer, .study-editor-footer) { border-top: 1px solid #e5e5e5; padding-top: 20px; margin-top: 24px; }

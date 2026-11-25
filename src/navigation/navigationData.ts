@@ -116,11 +116,12 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
   services: [
     { id: 'services-coas', label: 'COAS', icon: 'layout', path: routes.services.root },
     {
-      id: 'services-official',
-      label: '공식서비스',
-      icon: 'settings',
-      path: routes.services.official,
+      id: 'services-instance',
+      label: '인스턴스 신청',
+      icon: 'server',
+      path: routes.services.officialInstance,
     },
+    { id: 'services-domain', label: '도메인 신청', icon: 'globe', path: routes.services.officialDomain },
     { id: 'services-user', label: '유저 서비스', icon: 'link', path: routes.services.user },
   ],
   archive: [

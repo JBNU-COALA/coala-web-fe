@@ -134,13 +134,13 @@ export function ServicesPage() {
     activeTab === 'coas'
       ? 'COAS'
       : activeTab === 'official'
-        ? '공식서비스'
+        ? (officialMode === 'instance' ? 'JCloud 인스턴스 신청' : '도메인 신청')
         : '유저 서비스'
   const activeBannerDescription =
     activeTab === 'coas'
       ? '코알라와 함께 만들어가는 오픈소스 프로젝트를 소개해요.'
       : activeTab === 'official'
-        ? '동아리에서 운영하는 공식 서비스를 신청하고 이용해 보세요.'
+        ? (officialMode === 'instance' ? 'JCloud에서 제공하는 인스턴스를 신청하고 이용하세요.' : '프로젝트에 사용할 코알라 도메인을 신청하세요.')
         : '코알라 멤버들이 직접 만든 서비스를 둘러보세요.'
   const selectedService = activeTab === 'user' && serviceId
     ? memberServices.find((service) => service.id === serviceId)
@@ -416,24 +416,6 @@ export function ServicesPage() {
           </div>
         ) : activeTab === 'official' ? (
           <div className="official-service-panel">
-            <div className="service-menu-tabs surface-card" aria-label="공식서비스 메뉴">
-              <button
-                type="button"
-                className={officialMode === 'instance' ? 'service-menu-tab is-active' : 'service-menu-tab'}
-                onClick={() => navigate(routes.services.officialInstance)}
-              >
-                <Icon name="server-color" size={22} />
-                <span>JCloud 인스턴스 대여</span>
-              </button>
-              <button
-                type="button"
-                className={officialMode === 'domain' ? 'service-menu-tab is-active' : 'service-menu-tab'}
-                onClick={() => navigate(routes.services.officialDomain)}
-              >
-                <Icon name="globe-color" size={22} />
-                <span>도메인 신청</span>
-              </button>
-            </div>
             {officialMode === 'instance' ? (
               <ServicePage embedded />
             ) : (
@@ -653,14 +635,9 @@ export function ServicesPage() {
                           disabled={isUploadingServiceImage}
                         />
                       </label>
-                      {addDraft.imageUrl ? (
-                        <span
-                          className="member-service-image-preview"
-                          style={{ backgroundImage: `url(${toServiceImageUrl(addDraft.imageUrl)})` }}
-                        />
-                      ) : (
-                        <span className="member-service-image-empty">첨부된 이미지가 없습니다</span>
-                      )}
+                      {addDraft.imageUrl && <SafeImage key={addDraft.imageUrl}
+                        className="member-service-image-preview" src={toServiceImageUrl(addDraft.imageUrl)} alt="대표 이미지 미리보기" />}
+
                     </div>
                     {serviceImageError ? <p className="auth-error">{serviceImageError}</p> : null}
                   </div>
@@ -685,21 +662,19 @@ export function ServicesPage() {
                             <span
                               key={imageUrl}
                               className="member-service-extra-preview"
-                              style={{ backgroundImage: `url(${toServiceImageUrl(imageUrl)})` }}
                             >
+                              <SafeImage src={toServiceImageUrl(imageUrl)} alt="추가 이미지 미리보기" />
                               <button
                                 type="button"
                                 aria-label="추가 이미지 제거"
                                 onClick={() => removeAdditionalServiceImage(imageUrl)}
                               >
-                                x
+                                <Icon name="close" size={14} />
                               </button>
                             </span>
                           ))}
                         </div>
-                      ) : (
-                        <span className="member-service-image-empty">추가 이미지가 없습니다</span>
-                      )}
+                      ) : null}
                     </div>
                   </div>
                   <label className="jcloud-field member-service-form-wide">
@@ -723,6 +698,7 @@ export function ServicesPage() {
               </form>
             ) : null}
 
+            {!showServiceForm && <>
             <ul className={viewMode === 'card' ? 'member-service-grid' : 'member-service-list'}>
               {paginatedServices.map((service) => (
                 <li
@@ -751,19 +727,7 @@ export function ServicesPage() {
                       <div className="member-service-card-head">
                         <h3>{service.title}</h3>
                         <span className="member-service-status">{service.status}</span>
-                        {service.canEdit ? (
-                          <button
-                            type="button"
-                            className="member-service-edit-button"
-                            aria-label={`${service.title} 수정`}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              startEditService(service)
-                            }}
-                          >
-                            <Icon name="edit" size={14} />
-                          </button>
-                        ) : null}
+
                       </div>
                       <p>{service.summary}</p>
                       <footer className="member-service-card-footer">
@@ -786,20 +750,7 @@ export function ServicesPage() {
                       <div className="member-service-list-side">
                         <span>{service.owner}</span>
                         <strong>{service.url}</strong>
-                        {service.canEdit ? (
-                          <button
-                            type="button"
-                            className="member-service-edit-button"
-                            aria-label={`${service.title} 수정`}
-                            onClick={(event) => {
-                              event.stopPropagation()
-                              startEditService(service)
-                            }}
-                          >
-                            <Icon name="edit" size={14} />
-                            수정
-                          </button>
-                        ) : null}
+
                         <span className="member-service-open-hint">안내 보기</span>
                       </div>
                     </>
@@ -848,6 +799,7 @@ export function ServicesPage() {
                 </button>
               </nav>
             ) : null}
+            </>}
           </>
         )}
       </div>

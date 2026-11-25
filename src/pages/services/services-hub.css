@@ -247,3 +247,23 @@
 .coala-content--services .member-service-form .member-service-github-label { justify-content: flex-start; gap: 6px; }
 .coala-app .coala-content--services .member-service-form .recruit-write-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
 .coala-app .coala-content--services .member-service-form .recruit-write-footer > button { margin: 0; }
+
+/* Neutral card states, including legacy hover and keyboard-focus styles. */
+.coala-app .coala-content--services :is(.member-service-card, .member-service-list-item) { border-color: #e5e5e5; }
+.coala-app .coala-content--services :is(.member-service-card, .member-service-list-item):is(:hover, .is-selected) { border-color: #737373; box-shadow: 0 10px 24px #0000000d; }
+.coala-app .coala-content--services :is(.member-service-card, .member-service-list-item):focus-visible { outline: 2px solid #525252; outline-offset: 3px; box-shadow: 0 0 0 3px #0000000d; }
+.coala-app .coala-content--services .member-service-edit-button { border-color: #d4d4d4; background: #fff; color: #404040; }
+.coala-app .coala-content--services .member-service-edit-button:hover { border-color: #737373; background: #f5f5f5; color: #171717; }
+.coala-app .coala-content--services .member-service-edit-button:focus-visible { outline: 2px solid #525252; outline-offset: 2px; box-shadow: none; }
+
+.coala-app .coala-content--services .member-service-form .recruit-write-footer { justify-content: space-between; }
+.coala-content--services .member-service-image-preview,
+.coala-content--services .member-service-extra-preview { display: block; box-sizing: border-box; width: 88px; height: 88px; flex: 0 0 88px; border: 0; border-radius: 12px; object-fit: cover; background: transparent; animation: service-preview-in 200ms ease-out; }
+.coala-content--services .member-service-extra-preview { position: relative; overflow: hidden; }
+.coala-content--services .member-service-extra-preview > img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.coala-content--services .member-service-extra-preview > button { display: grid; place-items: center; position: absolute; top: 5px; right: 5px; width: 24px; height: 24px; min-height: 24px; padding: 0; border: 0; border-radius: 50%; background: #171717cc; color: #fff; opacity: 0; transition: opacity 150ms ease; }
+.coala-content--services .member-service-extra-preview:hover > button,
+.coala-content--services .member-service-extra-preview:focus-within > button { opacity: 1; }
+@media (hover: none) { .coala-content--services .member-service-extra-preview > button { opacity: 1; } }
+@keyframes service-preview-in { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .coala-content--services :is(.member-service-image-preview, .member-service-extra-preview) { animation: none; } }
