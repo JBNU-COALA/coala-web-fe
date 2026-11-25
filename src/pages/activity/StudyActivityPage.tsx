@@ -290,13 +290,7 @@ function ActivityContent({
           )}
           {data.groupsError && <p className="study-error" role="alert">{data.groupsError}</p>}
           <ActivityControls groups={data.groups} start={start} end={end} selectedGroup={selectedGroup}
-            layout={layout} onFilter={updateFilter} onToday={() => {
-              const next = new URLSearchParams(params)
-              next.delete('view')
-              next.set('week', mondayOf(activityToday()))
-              next.set('day', activityToday())
-              setParams(next)
-            }} />
+            layout={layout} onFilter={updateFilter} />
           <div className={`study-view-transition study-view-transition--${layout}`}>
           {layout === 'calendar' && (
             <>

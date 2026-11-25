@@ -9,7 +9,6 @@ type ActivityControlsProps = {
   selectedGroup: string
   layout: 'card' | 'calendar'
   onFilter: (name: string, value: string) => void
-  onToday: () => void
 }
 
 const formattedDate = (value: string) =>
@@ -26,7 +25,6 @@ export function ActivityControls({
   selectedGroup,
   layout,
   onFilter,
-  onToday,
 }: ActivityControlsProps) {
   return (
     <div className="study-controls">
@@ -61,9 +59,6 @@ export function ActivityControls({
           </div>
         ) : null}
         <div className="study-group-filter">
-          <button className="study-text-button" onClick={onToday}>
-            오늘
-          </button>
           <SelectControl
             label="활동 조"
             className="study-group-select"

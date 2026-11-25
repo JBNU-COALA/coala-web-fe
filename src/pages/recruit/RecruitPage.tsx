@@ -1,3 +1,4 @@
+import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { RecruitRoleFields } from './RecruitRoleFields'
 import { buildRecruitPayload, type RecruitDraft } from './recruitDraft'
@@ -255,6 +256,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       ? requestedView
       : 'list'
   const mode: RecruitMode = initialMode === 'write' ? 'write' : initialListMode
+  const panelRef = usePageTransition<HTMLDivElement>(mode)
   const [activeCategory, setActiveCategory] = useState<RecruitCategory | 'all'>('all')
   const [activeFilter, setActiveFilter] = useState<RecruitFilterId>('all')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
@@ -395,6 +397,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           공고 등록
         </button>
       )} />}
+      <div ref={panelRef}>
       {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
       {(bookmarks.error || applications.error) && <div className="recruit-load-state">
         <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button retry-button" onClick={() => {
@@ -606,6 +609,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           />
         </>
       )}
+      </div>
       <ConfirmDialog open={cancelOpen} title="작성을 취소할까요?"
         description="작성 중인 내용은 저장되지 않습니다. 목록으로 돌아갈까요?"
         confirmLabel="작성 취소" cancelLabel="계속 작성"

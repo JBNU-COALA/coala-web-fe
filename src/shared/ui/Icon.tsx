@@ -28,6 +28,7 @@ export type IconName =
   | 'chevron-right'
   | 'copy'
   | 'edit'
+  | 'eye-color'
   | 'eye'
   | 'file'
   | 'heart'
@@ -278,6 +279,8 @@ const iconShape = (name: IconName) => {
           <path d="m13 6 5 5M3 16l5 5" />
         </>
       )
+    case 'eye-color':
+      return <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" fill="#dbeafe" stroke="#5b83be" /><circle cx="12" cy="12" r="3" fill="#466fa9" stroke="none" /><circle cx="13" cy="11" r="1" fill="#fff" stroke="none" /></>
     case 'eye':
       return (
         <>

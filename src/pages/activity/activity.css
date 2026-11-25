@@ -963,3 +963,5 @@ a.study-person-name:hover {
 }
 
 .coala-app .study-editor .study-editor-fields { gap: 24px 16px; }
+
+.coala-app .study-user-filter > a { color: #171717; }

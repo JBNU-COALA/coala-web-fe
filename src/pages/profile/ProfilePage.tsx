@@ -8,6 +8,7 @@ import { resolveApiAssetUrl } from '../../shared/api/client'
 import { usersApi, type ActivityMember, type AvatarTone, type UserAward, type UserProfileLink } from '../../shared/api/users'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { Icon, type IconName } from '../../shared/ui/Icon'
+import { SelectControl } from '../../shared/ui/SelectControl'
 import { StudyConnections } from '../../shared/ui/StudyConnections'
 import './profile-layout.css'
 import { PageFrame } from '../../shared/ui/PageFrame'
@@ -985,15 +986,13 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       </label>
                       <label className="profile-edit-field">
                         <span>분류</span>
-                        <select
-                          className="auth-input"
+                        <SelectControl
+                          className="profile-award-select"
+                          label="수상 분류"
                           value={award.category}
-                          onChange={(event) => updateAwardDraft(index, 'category', event.target.value as UserAward['category'])}
-                        >
-                          {Object.entries(awardCategoryLabel).map(([value, label]) => (
-                            <option key={value} value={value}>{label}</option>
-                          ))}
-                        </select>
+                          onChange={(value) => updateAwardDraft(index, 'category', value)}
+                          options={Object.entries(awardCategoryLabel).map(([value, label]) => ({ value: value as UserAward['category'], label }))}
+                        />
                       </label>
                       <label className="profile-edit-field">
                         <span>확인 링크</span>
@@ -1022,7 +1021,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
             ) : awardNote && !awardNote.trim().startsWith('[') ? (
               <p className="profile-bio-text profile-award-note">{awardNote}</p>
             ) : null}
-            {profileAwards.length === 0 && (!editing || awardDrafts.length === 0) ? (
+            {editing ? (awardDrafts.length === 0 && <p className="profile-empty-text">등록된 수상 내역이 없습니다.</p>) : profileAwards.length === 0 ? (
               <p className="profile-empty-text">등록된 수상 내역이 없습니다.</p>
             ) : (
               <ul className="profile-award-list">
@@ -1036,7 +1035,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <p className="profile-award-description">{award.description}</p>
                     </div>
                     <div className="profile-award-meta">
-                      <strong>{award.rank}</strong>
+                      {award.rank && <strong>{award.rank}</strong>}
                       <span>{award.organizer}</span>
                       <span>{formatAwardDate(award.awardedAt)}</span>
                       {award.credentialUrl ? (

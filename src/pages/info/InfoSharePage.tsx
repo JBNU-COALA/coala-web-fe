@@ -91,7 +91,6 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
   const [activeFilter, setActiveFilter] = useState<InfoTabId>('all')
   const [query, setQuery] = useState('')
   const [resources, setResources] = useState<InfoArticle[]>([])
-  const [copiedResourceId, setCopiedResourceId] = useState<number | null>(null)
   const [viewMode, setViewMode] = useState<InfoListViewMode>('list')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [likeError, setLikeError] = useState<string | null>(null)
@@ -144,34 +143,6 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
     })
   }, [activeFilter, normalizedQuery, resources, sortMode])
   const pagination = usePagination(visibleResources, `${activeFilter}:${normalizedQuery}:${sortMode}`)
-
-  const toggleSavedResource = async (resourceId: number) => {
-    if (!isLoggedIn) {
-      setLikeError('정보 저장은 로그인 후 이용할 수 있습니다.')
-      return
-    }
-    if (!beginMutation(resourceId)) return
-    const isCurrent = captureRequest()
-    setLikeError(null)
-    try {
-      const updated = await infoApi.bookmarkArticle(resourceId)
-      if (isCurrent()) setResources((current) => current.map((item) => item.id === resourceId
-        ? { ...item, bookmarkedByMe: updated.bookmarkedByMe, bookmarkCount: updated.bookmarkCount } : item))
-    } catch {
-      if (isCurrent()) setLikeError('정보 저장에 실패했습니다. 다시 시도해 주세요.')
-      return
-    } finally { if (isCurrent()) finishMutation(resourceId) }
-  }
-
-  const copyResourceTitle = async (resourceId: number, title: string) => {
-    try {
-      await navigator.clipboard.writeText(title)
-      setCopiedResourceId(resourceId)
-      setTimeout(() => setCopiedResourceId(null), 1600)
-    } catch {
-      setCopiedResourceId(null)
-    }
-  }
 
   const toggleInfoLike = async (article: InfoArticle) => {
     if (!isLoggedIn) {
@@ -277,7 +248,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         </div>
 
                         <p className="board-post-excerpt">
-                          {summary.slice(0, 120)}
+                          {summary.length > 120 ? `${summary.slice(0, 120).trimEnd()}…` : summary}
                         </p>
 
                         <p className="board-post-meta">
@@ -304,11 +275,11 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
 
                     <div className="board-post-stats info-post-stats">
                       <span className="board-stat">
-                        <Icon name="eye" size={14} />
+                        <Icon name="eye-color" size={14} />
                         <span>{card.viewCount}</span>
                       </span>
                       <span className="board-stat">
-                        <Icon name="file" size={14} />
+                        <Icon name="file-color" size={14} />
                         <span>{card.meta}</span>
                       </span>
                       <div className="info-list-actions">
@@ -324,30 +295,6 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         >
                           <Icon name="heart" size={14} />
                           <span>{getInfoLikeCount(card)}</span>
-                        </button>
-                        <button
-                          type="button"
-                          className={
-                            card.bookmarkedByMe
-                              ? 'info-list-action info-list-action--active'
-                              : 'info-list-action'
-                          }
-                          aria-label="정보 저장"
-                          disabled={pendingIds.has(card.id)}
-                          aria-pressed={Boolean(card.bookmarkedByMe)}
-                          onClick={() => {
-                            void toggleSavedResource(card.id)
-                          }}
-                        >
-                          <Icon name="book" size={14} />
-                        </button>
-                        <button
-                          type="button"
-                          className="info-list-action"
-                          aria-label="정보 제목 복사"
-                          onClick={() => copyResourceTitle(card.id, card.title)}
-                        >
-                          <Icon name={copiedResourceId === card.id ? 'copy' : 'link'} size={14} />
                         </button>
                       </div>
                     </div>
