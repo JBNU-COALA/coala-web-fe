@@ -481,7 +481,7 @@ export function ServicesPage() {
                     <div>
                       <p className="services-hub-eyebrow">유저 서비스</p>
                       <h3>{selectedService.title}</h3>
-                      <span>{selectedService.owner}</span>
+                      {selectedService.owner && selectedService.owner !== '코알라' && <span>{selectedService.owner}</span>}
                     </div>
                   </header>
 
@@ -491,7 +491,7 @@ export function ServicesPage() {
 
                   <div className="member-service-detail-actions">
                     <a href={toExternalUrl(selectedService.url)} target="_blank" rel="noreferrer">
-                      <Icon name="link" size={15} />
+                      <Icon name="globe-color" size={15} />
                       서비스 열기
                     </a>
                     {selectedService.githubUrl ? (
@@ -507,7 +507,7 @@ export function ServicesPage() {
                           className="member-service-detail-button"
                           onClick={() => startEditService(selectedService)}
                         >
-                          <Icon name="edit" size={15} />
+                          <Icon name="pencil-color" size={15} />
                           수정
                         </button>
                         <button
@@ -515,7 +515,7 @@ export function ServicesPage() {
                           className="member-service-detail-button"
                           onClick={() => handleRetireService(selectedService)}
                         >
-                          <Icon name="file" size={15} />
+                          <Icon name="file-color" size={15} />
                           운영 중지
                         </button>
                       </>
