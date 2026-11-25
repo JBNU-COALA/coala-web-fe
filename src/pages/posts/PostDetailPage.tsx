@@ -10,7 +10,7 @@ import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { useAuth } from '../../shared/auth/AuthContext'
 import type { UserData } from '../../shared/api/auth'
 import { isSameUserId } from '../../shared/auth/userIdentity'
-import { copyMarkdown, htmlToReadableMarkdown, rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay, type MarkdownCopyState } from '../../shared/markdown'
+import { rewriteMarkdownImageUrls, normalizeMarkdownAttachmentUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import { parsePostRouteKey, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useRequestScope } from '../../useRequestScope'
@@ -127,8 +127,6 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
   const [likeMessage, setLikeMessage] = useState<string | null>(null)
   const [isSubmittingComment, setIsSubmittingComment] = useState(false)
   const [submittingReplyId, setSubmittingReplyId] = useState<number | null>(null)
-  const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
-  const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
 
   const parsed = parsePostRouteKey(postId)!
   const { boardId, postId: realPostId } = parsed
@@ -149,16 +147,6 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
       })
       .finally(() => { if (isCurrent()) setIsLoading(false) })
   }, [boardId, captureScope, realPostId])
-
-  const handleCopyShareLink = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href)
-      setShareCopied('copied')
-    } catch {
-      setShareCopied('error')
-    }
-    setTimeout(() => setShareCopied('idle'), 2000)
-  }
 
   const handleSubmitComment = async (e: FormEvent) => {
     e.preventDefault()
@@ -411,15 +399,7 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
   )
   const safeContent = sanitizePostContent(renderedContent)
   const isHtmlContent = isHtmlPostContent(visiblePost.content)
-  const sourceMarkdown = isHtmlContent
-    ? htmlToReadableMarkdown(visiblePost.content)
-    : prepareMarkdownForDisplay(visiblePost.content)
   const totalCommentCount = countCommentTree(comments)
-
-  const handleCopyMarkdown = async () => {
-    setMarkdownCopied(await copyMarkdown(sourceMarkdown) ? 'copied' : 'error')
-    setTimeout(() => setMarkdownCopied('idle'), 2000)
-  }
 
   const renderComment = (comment: CommentItem, isReply = false) => {
     const canManageComment = Boolean(isSameUserId(comment.userId, user?.id) && comment.status !== 'DELETED' && comment.status !== 'ADMIN_DELETED')
@@ -579,28 +559,6 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
                 </button>
               </>
             ) : null}
-            {isLoggedIn && !canManagePost ? (
-              <button type="button" className="ghost-button" title="신고" onClick={() => handleReport('POST', visiblePost.postId)}>
-                <Icon name="siren-color" size={15} />
-                <span className="sr-only">신고</span>
-              </button>
-            ) : null}
-            <button
-              type="button"
-              className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              title="마크다운 복사" onClick={handleCopyMarkdown}
-            >
-              <Icon name="copy-color" size={15} />
-              <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
-            </button>
-            <button
-              type="button"
-              className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              title="공유하기" onClick={handleCopyShareLink}
-            >
-              <Icon name={shareCopied === 'copied' ? 'copy-color' : 'link-color'} size={15} />
-              <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유하기'}</span>
-            </button>
           </div>
         </header>
         {postActionError ? <p className="auth-error">{postActionError}</p> : null}
