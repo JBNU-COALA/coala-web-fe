@@ -60,7 +60,7 @@ function StudyConnectionsContent({
   return (
     <section className="study-connections" aria-label="모집과 활동">
       <header>
-        <h3>
+        <h3><Icon name="calendar-color" size={20} />
           {recruitId
             ? '조별 활동'
             : ownProfile

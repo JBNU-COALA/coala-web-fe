@@ -200,9 +200,20 @@
 .coala-content--services .member-service-detail-actions a { border: 1px solid #ddd; background: #fff; color: #262626; }
 .coala-content--services .member-service-detail-actions a:first-child { background: #171717; color: #fff; border-color: #171717; }
 .coala-content--services .member-service-back-button { border-color: #ddd; color: #525252; }
-.coala-content--services .member-service-detail-tags > span { display: inline-flex; align-items: center; gap: 7px; padding: 7px 10px; background: #f5f5f5; color: #404040; border-radius: 8px; }
+.coala-content--services :is(.member-service-detail-tags, .member-service-tags) > span { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; background: #fff; color: #171717; border: 1px solid #171717; border-radius: 999px; }
 .coala-content--services .member-service-detail-tags img { flex-shrink: 0; object-fit: contain; }
 @media (max-width: 600px) {
   .coala-content--services .member-service-detail-body { padding: 18px; }
   .coala-content--services .member-service-detail-grid, .coala-content--services .member-service-detail-meta { grid-template-columns: minmax(0, 1fr); }
 }
+
+.coala-content--services .member-service-card { min-height: 0; align-content: start; gap: 8px; padding: 14px; }
+.coala-content--services .member-service-card--with-media { padding-top: 0; }
+.coala-content--services .member-service-media { height: 110px; margin: 0 -14px 4px; }
+.coala-content--services .member-service-card h3 { font-size: 17px; color: #222; }
+.coala-content--services .member-service-card p { font-size: 13px; color: #737373; }
+.coala-content--services .member-service-card-footer { padding-top: 10px; border-color: #e5e5e5; font-size: 12px; color: #737373; }
+.coala-content--services .member-service-card-footer > div { flex: 1; overflow: hidden; }
+.coala-content--services .member-service-card-footer strong { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; font-weight: 400; color: #737373; }
+.coala-content--services .member-service-open-hint { background: #f5f5f5; color: #222; font-size: 12px; }
+.coala-content--services .coas-actions button { background: #fff; color: #222; border: 1px solid #ddd; }

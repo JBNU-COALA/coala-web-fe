@@ -129,3 +129,9 @@
     width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap));
   }
 }
+
+/* Filled lists use the available width; empty states keep the centered column. */
+@media (min-width: 901px) {
+  .coala-section-layout .coala-section-main:has(.community-board-post, .info-post-row) { grid-column: 2 / -1; }
+  .coala-section-layout .coala-section-main:has(.community-board-post, .info-post-row) .community-banner { width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap)); }
+}

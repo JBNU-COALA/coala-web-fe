@@ -21,10 +21,10 @@
 .coala-content--profile .profile-page-role { color: #52665a; }
 .coala-content--profile .study-connections {
   margin: 0;
-  padding: 24px;
+  padding: 24px 0;
   border: 0;
   border-bottom: 1px solid var(--coala-line);
-  background: var(--coala-surface);
+  background: transparent;
 }
 .coala-content--profile .study-connections h3 { font-size: 18px; }
 .coala-content--profile .profile-stats-grid {
@@ -127,7 +127,7 @@
   .coala-content--profile .profile-stat-card:nth-child(3n) { border-right: 0; }
   .coala-content--profile .profile-stat-value { font-size: 22px; }
   .coala-content--profile .profile-section-grid { grid-template-columns: minmax(0, 1fr); }
-  .coala-content--profile .study-connections { padding: 20px 16px; }
+  .coala-content--profile .study-connections { padding: 20px 0; }
   .coala-content--profile .profile-task { padding-inline: 10px; }
   .coala-content--profile .profile-task-primary { gap: 6px; }
   .coala-content--profile .profile-task-primary > span { font-size: 13px; }
@@ -244,3 +244,22 @@
 .coala-content--profile :is(.profile-bio-text, .profile-activity-label, .profile-empty-text, .profile-award-note, .profile-public-links a, .profile-link-list a, .profile-repo-list > span, .profile-study-title, .profile-study-meta) { color: #666; }
 .coala-content--profile :is(.profile-public-links a, .profile-link-list a, .profile-repo-list > span, .profile-stat-action, .profile-photo-button) { border-color: #ddd; background: #fff; color: #444; }
 .coala-content--profile :is(.profile-study-card, .profile-activity-block, .profile-award-item) { border-color: #e5e5e5; background-color: #fafafa; }
+
+.coala-content--profile .study-connections h3 { display: flex; align-items: center; gap: 8px; color: #222; font-size: 17px; }
+.coala-content--profile .study-connections header { margin-bottom: 12px; }
+.coala-content--profile .study-connections p { margin: 0 0 12px; }
+.coala-content--profile .profile-activity-block { background: transparent; }
+.coala-content--profile .profile-activity-row { border-color: #e5e5e5; }
+.coala-content--profile .profile-section-card { padding-top: 24px; }
+.coala-content--profile .profile-section-title-row { align-items: center; }
+.coala-content--profile .profile-section-title-row .profile-section-title { margin-bottom: 0; }
+.coala-content--profile .profile-section-title-row { margin-bottom: 20px; }
+.coala-content--profile .profile-section-title-row > a { color: #222; }
+.coala-content--profile .profile-page-avatar { background: #fff !important; border-color: #e5e5e5; }
+.coala-app .profile-settings .profile-edit-button:not(.profile-edit-button--active) { background: transparent; border: 0; box-shadow: none; }
+.coala-content--profile .profile-inline-add-button { background: #fff; border-color: #ddd; color: #222; }
+.coala-content--profile .profile-page-meta > * { font-size: 11px; min-height: 32px; display: inline-flex; align-items: center; }
+.coala-content--profile .profile-page-hero { position: relative; padding-top: 34px; }
+.coala-content--profile .profile-joined-top { position: absolute; top: 0; right: 0; margin: 0; color: #888; font-size: 12px; }
+.coala-content--profile .profile-handle-service { display: flex; align-items: center; gap: 7px; }
+.coala-content--profile .profile-handle-service img { object-fit: contain; }

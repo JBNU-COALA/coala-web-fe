@@ -125,7 +125,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
       <section className="home-services home-editorial-container" aria-labelledby="home-services-title">
         <header className="home-editorial-section-head">
           <div>
-            <h2 id="home-services-title">코알라가 만든 서비스</h2>
+            <h2 id="home-services-title"><span className="home-section-icon" aria-hidden="true">🐨</span>코알라가 만든 서비스</h2>
           </div>
           <button type="button" onClick={() => navigate(routes.services.user)}>
             서비스 전체 보기

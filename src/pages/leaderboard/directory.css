@@ -41,3 +41,6 @@
 .activity-page--directory .activity-view-toggle button.is-active { background: #171717; color: #fff; }
 .activity-page--directory .activity-view-toggle button:not(.is-active):hover { background: #f5f5f5; }
 .activity-page--directory .activity-view-toggle button:focus-visible { outline: 2px solid #737373; outline-offset: -3px; }
+
+.coala-app .activity-page--directory .activity-search { height: 32px; min-height: 32px; max-width: 360px; padding: 0 10px; border-color: #ddd; border-radius: 8px; }
+.coala-app .activity-page--directory .activity-search input { height: 30px; min-height: 0; padding: 0; font-size: 12px; }

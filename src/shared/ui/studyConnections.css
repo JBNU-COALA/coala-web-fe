@@ -2,7 +2,7 @@
   min-width: 0;
   margin: 24px 0;
   padding: 22px 0;
-  border-block: 1px solid #dfe6e3;
+  border-block: 1px solid #e5e5e5;
 }
 .study-connections header {
   display: flex;
@@ -14,15 +14,15 @@
 .study-connections h3 {
   margin: 0;
   font-size: 17px;
-  color: #21392c;
+  color: #222;
 }
 .study-connections small,
 .study-connections p {
-  color: #687b70;
+  color: #737373;
   font-size: 12px;
 }
 .study-connections a {
-  color: #176345;
+  color: #222;
   text-decoration: none;
   font-size: 13px;
   min-height: 44px;
@@ -43,7 +43,7 @@
   flex-wrap: wrap;
   justify-content: space-between;
   gap: 0 16px;
-  border-bottom: 1px solid #edf1ee;
+  border-bottom: 1px solid #eee;
 }
 .study-connection-row > a:first-child {
   min-width: 0;
@@ -52,13 +52,13 @@
 .study-connection-row svg { flex-shrink: 0; }
 .study-connection-row small { white-space: nowrap; }
 .study-connection-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.study-connection-error button { min-height: 44px; padding: 6px 12px; border: 1px solid #dce4e0; border-radius: 6px; background: white; color: #334155; font: inherit; cursor: pointer; }
+.study-connection-error button { min-height: 44px; padding: 6px 12px; border: 1px solid #ddd; border-radius: 6px; background: white; color: #333; font: inherit; cursor: pointer; }
 .study-group-create button:disabled { opacity: .55; cursor: not-allowed; }
 .study-connection-row span {
   overflow-wrap: anywhere;
 }
 .study-connection-source {
-  color: #697b71 !important;
+  color: #737373 !important;
 }
 .study-connection-all {
   margin-top: 10px;
@@ -79,7 +79,7 @@
   width: 100%;
   min-height: 44px;
   padding: 10px 12px;
-  border: 1px solid #dce4e0;
+  border: 1px solid #ddd;
   border-radius: 6px;
   font: inherit;
   background: white;
@@ -88,12 +88,12 @@
   min-height: 44px;
   border: 0;
   border-radius: 6px;
-  background: #08734e;
+  background: #222;
   color: white;
   font: inherit;
 }
 .study-participants {
-  border-top: 1px solid #e1e7e4;
+  border-top: 1px solid #e5e5e5;
   padding-top: 24px;
   min-width: 0;
 }
@@ -102,12 +102,12 @@
 }
 .study-participants h3 small {
   font-size: 13px;
-  color: #67756e;
+  color: #737373;
   font-weight: 400;
   margin-left: 8px;
 }
 .study-participants details {
-  border-bottom: 1px solid #e1e7e4;
+  border-bottom: 1px solid #e5e5e5;
   padding: 12px 0;
 }
 .study-participants summary {
@@ -124,7 +124,7 @@
 }
 .study-participants summary small {
   display: block;
-  color: #67756e;
+  color: #737373;
 }
 .study-participants summary strong {
   font-size: 12px;

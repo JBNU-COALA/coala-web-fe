@@ -502,6 +502,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           <div className="profile-page profile-settings-main">
             <h2 className="profile-settings-section-title">{tab === 'overview' ? (editing ? '프로필 편집' : '프로필 정보') : tabs.find((item) => item.id === tab)?.label}</h2>
         <div className="profile-page-hero surface-card">
+          {joinedAt ? <p className="profile-joined-top">{joinedAt} 가입 · 동아리 코알라</p> : null}
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
               {canEdit ? (
@@ -566,7 +567,6 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                   <span>{profileGithubLabel}</span>
                 )}
               </div>
-              {joinedAt ? <p className="profile-page-joined">{joinedAt} 가입 · 동아리 코알라</p> : null}
               {profileLinks.length > 0 ? (
                 <div className="profile-public-links">
                   {profileLinks.map((link) => (
@@ -590,7 +590,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               onClick={handleEditClick}
               disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
             >
-              <Icon name="edit" size={13} />
+              <Icon name="pencil-color" size={20} />
               {editing ? (profileSaveState === 'saving' ? '저장 중' : '저장') : null}
             </button>
             </div>
@@ -653,7 +653,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service">소속 / 연구실</span>
+                      <span className="profile-handle-service"><img src="/jbnu-symbol.svg" alt="" width={60} height={18} />소속 / 연구실</span>
                       <span className="profile-handle-value">
                         {firstNonBlank(user?.department, '소속 미입력')} · {firstNonBlank(user?.lab, '연구실 미입력')}
                       </span>
@@ -676,7 +676,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="network" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service">GitHub</span>
+                      <span className="profile-handle-service"><Icon name="github" size={16} />GitHub</span>
                       {profileGithubUrl ? (
                         <a className="profile-handle-value profile-handle-link" href={profileGithubUrl} target="_blank" rel="noreferrer">
                           {profileGithubLabel}
@@ -703,7 +703,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="network" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service">GitHub</span>
+                      <span className="profile-handle-service"><Icon name="github" size={16} />GitHub</span>
                       {profileGithubUrl ? (
                         <a className="profile-handle-value profile-handle-link" href={profileGithubUrl} target="_blank" rel="noreferrer">
                           {profileGithubLabel}
@@ -718,7 +718,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service">소속</span>
+                      <span className="profile-handle-service"><img src="/jbnu-symbol.svg" alt="" width={60} height={18} />소속</span>
                       <span className="profile-handle-value">{profileMember.lab}</span>
                     </span>
                   </li>
@@ -932,7 +932,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
         {tab === 'awards' ? (
           <div className="surface-card profile-section-card">
             <div className="profile-section-title-row">
-              <h3 className="profile-section-title">수상 내역 ({profileAwards.length})</h3>
+              <h3 className="profile-section-title"><Icon name="award-color" size={20} />수상 내역</h3>
               {canEdit ? (
                 <button type="button" className="profile-inline-add-button" onClick={startAddAward} aria-label="수상 내역 추가">
                   <Icon name="plus" size={13} />
@@ -1052,12 +1052,12 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
 
         {tab === 'posts' ? (
           <div className="surface-card profile-section-card">
-            <h3 className="profile-section-title">작성 내용{overview.data ? ` (${authoredContents.length})` : ''}</h3>
+            <h3 className="profile-section-title"><Icon name="file-color" size={20} />작성 내용</h3>
             <ProfileActivityList {...overview} items={authoredContents} emptyText="작성한 내용이 없습니다." />
           </div>
         ) : null}
         {tab === 'services' && <section className="profile-section-card profile-services">
-          <div className="profile-section-title-row"><h3 className="profile-section-title">서비스{isOwnProfile ? ' · 신청 내역' : ''}</h3>
+          <div className="profile-section-title-row"><h3 className="profile-section-title"><Icon name="server-color" size={20} />서비스{isOwnProfile ? ' · 신청 내역' : ''}</h3>
             <Link to={routes.services.user}>서비스 둘러보기<Icon name="chevron-right" size={14} /></Link>
           </div>
           <ProfileActivityList {...overview} items={(overview.data?.items ?? []).filter((item) => ['service', 'instance', 'domain'].includes(item.kind))}
