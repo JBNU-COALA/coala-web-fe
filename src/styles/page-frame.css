@@ -137,6 +137,6 @@
 }
 
 @media (min-width: 901px) {
-  .coala-section-layout .coala-section-main:has(.study-frame--list .study-feed--card > li) { grid-column: 2 / -1; }
-  .coala-section-layout .coala-section-main:has(.study-frame--list .study-feed--card > li) .community-banner { width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap)); }
+  .coala-section-layout .coala-section-main:has(.study-frame--list .study-view-transition--card .study-feed--card > li) { grid-column: 2 / -1; }
+  .coala-section-layout .coala-section-main:has(.study-frame--list .study-view-transition--card .study-feed--card > li) .community-banner { width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap)); }
 }
