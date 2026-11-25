@@ -200,7 +200,9 @@
 .coala-content--services .member-service-detail-actions a { border: 1px solid #ddd; background: #fff; color: #262626; }
 .coala-content--services .member-service-detail-actions a:first-child { background: #171717; color: #fff; border-color: #171717; }
 .coala-content--services .member-service-back-button { border-color: #ddd; color: #525252; }
-.coala-content--services :is(.member-service-detail-tags, .member-service-tags) > span { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; background: #fff; color: #171717; border: 1px solid #171717; border-radius: 999px; }
+.coala-content--services :is(.member-service-detail-tags, .member-service-tags) { display: flex; flex-wrap: wrap; gap: 6px; }
+.coala-content--services :is(.member-service-detail-tags, .member-service-tags) > span { display: inline-flex; align-items: center; flex-shrink: 0; min-height: 24px; box-sizing: border-box; gap: 4px; padding: 3px 8px; font-size: 11px; font-weight: 600; line-height: 16px; white-space: nowrap; background: #fff; color: #171717; border: 1px solid #d4d4d4; border-radius: 999px; }
+.coala-content--services :is(.member-service-detail-tags, .member-service-tags) > span img { width: 14px; height: 14px; object-fit: contain; }
 .coala-content--services .member-service-detail-tags img { flex-shrink: 0; object-fit: contain; }
 @media (max-width: 600px) {
   .coala-content--services .member-service-detail-body { padding: 18px; }
@@ -267,3 +269,12 @@
 @media (hover: none) { .coala-content--services .member-service-extra-preview > button { opacity: 1; } }
 @keyframes service-preview-in { from { opacity: 0; transform: translateY(6px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .coala-content--services :is(.member-service-image-preview, .member-service-extra-preview) { animation: none; } }
+
+.coas-hub .official-service-preview-grid > .official-service-preview--jcloud { grid-template-columns: 80px minmax(0, 1fr) 18px; }
+.coas-hub .official-service-preview-logo { display: block; width: 80px; height: auto; object-fit: contain; }
+
+.coala-content--services .member-service-title-row { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.coala-content--services .member-service-title-row h3 { margin: 0; overflow-wrap: anywhere; }
+.coala-app .coala-content--services .member-service-title-edit { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 28px; width: 28px; height: 28px; min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; cursor: pointer; }
+.coala-app .coala-content--services .member-service-title-edit:hover { background: transparent; opacity: .7; }
+.coala-app .coala-content--services .member-service-title-edit:focus-visible { outline: 2px solid #171717; outline-offset: 2px; }

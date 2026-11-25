@@ -295,10 +295,6 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         <Icon name="eye-color" size={14} />
                         <span>{card.viewCount}</span>
                       </span>
-                      <span className="board-stat info-footer-category">
-                        <Icon name="file-color" size={14} />
-                        <span>{card.meta}</span>
-                      </span>
                       <div className="info-list-actions">
                         <button
                           type="button"
@@ -314,6 +310,10 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                           <span>{getInfoLikeCount(card)}</span>
                         </button>
                       </div>
+                      <span className="board-stat info-footer-category">
+                        <Icon name="file-color" size={14} />
+                        <span>{card.meta}</span>
+                      </span>
                     </div>
                     </div>
                   </div>

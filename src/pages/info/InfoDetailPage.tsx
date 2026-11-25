@@ -66,7 +66,7 @@ export function InfoDetailPage(props: InfoDetailPageProps) {
   return <InfoDetailContent key={props.infoId} {...props} />
 }
 
-function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPageProps) {
+function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
   const [markdownCopied, setMarkdownCopied] = useState<MarkdownCopyState>('idle')
   const [shareCopied, setShareCopied] = useState<'idle' | 'copied' | 'error'>('idle')
@@ -221,43 +221,7 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
             <span>정보공유로 돌아가기</span>
           </button>
 
-          <div className="post-header-actions">
-            <button type="button" className="ghost-button" title={item.bookmarkedByMe ? '저장됨' : '저장'} aria-pressed={Boolean(item.bookmarkedByMe)} disabled={mutationPending} onClick={() => void handleBookmark()}>
-              <Icon name="book" size={15} /><span className="sr-only">{item.bookmarkedByMe ? '저장됨' : '저장'}</span>
-            </button>
-            <button type="button" className="ghost-button" title="정보 글쓰기" onClick={onWrite}>
-              <Icon name="edit" size={15} />
-              <span className="sr-only">정보 글쓰기</span>
-            </button>
-            {canManageInfo ? (
-              <>
-                <button type="button" className="ghost-button" disabled={mutationPending} title="수정" onClick={onEdit}>
-                  <Icon name="edit" size={15} />
-                  <span className="sr-only">수정</span>
-                </button>
-                <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={handleDeleteInfo}>
-                  <Icon name="file" size={15} />
-                  <span className="sr-only">삭제</span>
-                </button>
-              </>
-            ) : null}
-            <button
-              type="button"
-              className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              title="마크다운 복사" onClick={handleCopyMarkdown}
-            >
-              <Icon name="copy" size={15} />
-              <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
-            </button>
-            <button
-              type="button"
-              className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
-              title="공유 링크" onClick={handleCopyShareLink}
-            >
-              <Icon name={shareCopied === 'copied' ? 'copy' : 'link'} size={15} />
-              <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
-            </button>
-          </div>
+
         </header>
         {infoActionError ? <p className="auth-error">{infoActionError}</p> : null}
         {likeMessage ? <p className="auth-error">{likeMessage}</p> : null}
@@ -291,7 +255,7 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
             </div>
 
             <div className="post-meta-stats">
-              <span><Icon name="eye" size={15} />{item.viewCount}</span>
+              <span><Icon name="eye-color" size={15} />{item.viewCount}</span>
               <button
                 type="button"
                 className={item.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}
@@ -299,7 +263,7 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
                 disabled={mutationPending}
                 onClick={handleToggleInfoLike}
               >
-                <Icon name="heart" size={15} />
+                <Icon name="heart-color" size={15} />
                 <span>{item.likeCount ?? 0}</span>
               </button>
             </div>
@@ -320,6 +284,39 @@ function InfoDetailContent({ infoId, onBack, onWrite, onEdit }: InfoDetailPagePr
             style={{ whiteSpace: 'pre-wrap' }}
           />
         </div>
+          <div className="post-header-actions info-detail-footer-actions">
+            <button type="button" className="ghost-button" title={item.bookmarkedByMe ? '저장됨' : '저장'} aria-pressed={Boolean(item.bookmarkedByMe)} disabled={mutationPending} onClick={() => void handleBookmark()}>
+              <Icon name="file-color" size={15} /><span className="sr-only">{item.bookmarkedByMe ? '저장됨' : '저장'}</span>
+            </button>
+            {canManageInfo ? (
+              <>
+                <button type="button" className="ghost-button" disabled={mutationPending} title="수정" onClick={onEdit}>
+                  <Icon name="pencil-color" size={15} />
+                  <span className="sr-only">수정</span>
+                </button>
+                <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={handleDeleteInfo}>
+                  <Icon name="trash-color" size={15} />
+                  <span className="sr-only">삭제</span>
+                </button>
+              </>
+            ) : null}
+            <button
+              type="button"
+              className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
+              title="마크다운 복사" onClick={handleCopyMarkdown}
+            >
+              <Icon name="copy-color" size={15} />
+              <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
+            </button>
+            <button
+              type="button"
+              className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
+              title="공유 링크" onClick={handleCopyShareLink}
+            >
+              <Icon name={shareCopied === 'copied' ? 'copy-color' : 'link-color'} size={15} />
+              <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유 링크'}</span>
+            </button>
+          </div>
       </article>
     </section>
   )

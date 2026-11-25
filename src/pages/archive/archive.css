@@ -148,3 +148,7 @@
 .archive-content .archive-empty { font-family: var(--font-sans); font-weight: 400; color: #737373; }
 .archive-editor .archive-type-select { width: 100%; }
 .coala-app .archive-editor .archive-type-select.custom-select > .select-control-trigger { min-height: 40px !important; height: 40px !important; padding: 0 12px !important; font-size: 14px !important; }
+
+.archive-filter-popover { transform-origin: top right; animation: archive-filter-enter 180ms ease-out; }
+@keyframes archive-filter-enter { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .archive-filter-popover { animation: none; } }

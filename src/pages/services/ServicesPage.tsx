@@ -375,8 +375,8 @@ export function ServicesPage() {
                 <button type="button" onClick={() => navigate(routes.services.official)}>전체 보기</button>
               </header>
               <div className="official-service-preview-grid">
-                <button type="button" onClick={() => navigate(routes.services.officialInstance)}>
-                  <Icon name="server-color" size={28} />
+                <button type="button" className="official-service-preview--jcloud" onClick={() => navigate(routes.services.officialInstance)}>
+                  <img className="official-service-preview-logo" src="/jcloud-logo.png" alt="JCloud" width={880} height={167} />
                   <span><strong>JCloud 인스턴스 대여</strong><small>JCloud에서 프로젝트를 배포할 서버를 신청합니다.</small></span>
                   <Icon name="chevron-right" size={17} />
                 </button>
@@ -453,7 +453,14 @@ export function ServicesPage() {
 
                     <div>
                       <p className="services-hub-eyebrow">유저 서비스</p>
-                      <h3>{selectedService.title}</h3>
+                      <div className="member-service-title-row">
+                        <h3>{selectedService.title}</h3>
+                        {selectedService.canEdit && (
+                          <button type="button" className="member-service-title-edit" aria-label="서비스 수정" title="서비스 수정" onClick={() => startEditService(selectedService)}>
+                            <Icon name="pencil-color" size={16} />
+                          </button>
+                        )}
+                      </div>
                       {selectedService.owner && selectedService.owner !== '코알라' && <span>{selectedService.owner}</span>}
                     </div>
                   </header>
@@ -476,14 +483,6 @@ export function ServicesPage() {
                     ) : null}
                     {selectedService.canEdit ? (
                       <>
-                        <button
-                          type="button"
-                          className="member-service-detail-button"
-                          onClick={() => startEditService(selectedService)}
-                        >
-                          <Icon name="pencil-color" size={15} />
-                          수정
-                        </button>
                         <button
                           type="button"
                           className="member-service-detail-button"

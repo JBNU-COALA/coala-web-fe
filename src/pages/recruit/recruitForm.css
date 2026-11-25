@@ -66,3 +66,11 @@
 .coala-app .recruit-write-panel { animation: recruit-write-enter 220ms ease-out; }
 @keyframes recruit-write-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .coala-app .recruit-write-panel { animation: none; } }
+
+/* Use the title field's 38px height for every single-line form control. */
+.coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) :is(input.jcloud-input, .recruit-role-row input, .select-control.custom-select) { box-sizing: border-box; height: 38px !important; min-height: 38px !important; border: 1px solid #d4d4d4; border-radius: 6px; font-size: 14px; }
+.coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) :is(input.jcloud-input, .recruit-role-row input) { padding: 8px 12px; line-height: 20px; }
+.coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) .select-control.custom-select > :is(.select-control-trigger, .select-control-native) { box-sizing: border-box; height: 36px !important; min-height: 36px !important; padding: 0 12px !important; font-size: 14px !important; line-height: 20px; font-weight: 400; }
+.coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) .recruit-role-count input { padding-right: 34px; }
+.coala-app .recruit-role-count > span { top: 50%; transform: translateY(-50%); }
+.coala-app .recruit-role-remove { height: 38px; min-height: 38px; }

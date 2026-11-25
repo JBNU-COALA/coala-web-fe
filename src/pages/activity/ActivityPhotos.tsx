@@ -65,7 +65,7 @@ export function ActivityPhotos({ photos, onChange, onBusy }: {
     {(photos.length > 0 || onChange) && <ul className="activity-photo-grid">{photos.map((photo, index) => <li key={photo.attachmentId}>
       <ActivityPhotoPreview photo={photo} link />
       {onChange && <button type="button" disabled={busy} className="activity-photo-remove" aria-label={`사진 ${index + 1} 삭제`}
-        title="사진 삭제" onClick={() => onChange(photos.filter((item) => item.attachmentId !== photo.attachmentId))}>×</button>}
+        title="사진 삭제" onClick={() => onChange(photos.filter((item) => item.attachmentId !== photo.attachmentId))}><Icon name="close" size={12} /></button>}
     </li>)}{onChange && <li className="activity-photo-add-tile">
       <button type="button" disabled={busy || photos.length >= 5} aria-label={busy ? '사진 업로드 중' : '사진 추가'}
         title={photos.length >= 5 ? '사진은 최대 5장까지 추가할 수 있습니다' : '사진 추가'} onClick={() => input.current?.click()}>

@@ -106,6 +106,10 @@ export const headerNavItems: HeaderNavItem[] = [
 ]
 
 export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>> = {
+  about: [
+    { id: 'about-root', label: '소개 바로가기', icon: 'layout', path: routes.about },
+    { id: 'about-recruiting', label: '리크루팅', icon: 'users', path: '/recruiting' },
+  ],
   community: [
     { id: 'community-board', label: '게시판', icon: 'message', path: routes.community.board },
     { id: 'community-qna', label: '질문게시판', icon: 'help-circle', path: routes.community.qna },

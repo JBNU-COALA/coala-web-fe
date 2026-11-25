@@ -1,4 +1,6 @@
 export type IconName =
+  | 'copy-color'
+  | 'link-color'
   | 'trash-color'
   | 'stop-color'
   | 'close'
@@ -60,6 +62,10 @@ type IconProps = {
 
 const iconShape = (name: IconName) => {
   switch (name) {
+    case 'copy-color':
+      return <g stroke="none"><rect x="3" y="3" width="13" height="16" rx="2" fill="#b4c7ed" /><rect x="8" y="7" width="13" height="16" rx="2" fill="#5f85cc" /><path d="M11 12h7M11 16h7M11 19h4" stroke="#fff" strokeWidth="1.5" /></g>
+    case 'link-color':
+      return <g fill="none" strokeWidth="2.5"><path d="m10 14 4-4" stroke="#a88adb" /><path d="m8 16-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0" stroke="#6d86cc" /><path d="m16 8 1-1a4 4 0 0 1 6 6l-4 4a4 4 0 0 1-6 0" stroke="#9b75c9" transform="translate(-1 -1)" /></g>
     case 'close':
       return <path d="m6 6 12 12M18 6 6 18" />
     case 'calendar-color':

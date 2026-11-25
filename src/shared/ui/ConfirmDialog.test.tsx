@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { ConfirmDialog } from './ConfirmDialog'
 
@@ -7,7 +7,7 @@ beforeEach(() => {
   HTMLDialogElement.prototype.close = function () { this.open = false }
 })
 afterEach(cleanup)
-it('keeps dismissing separate from discarding and closes when requested', () => {
+it('keeps dismissing separate from discarding and closes when requested', async () => {
   const onConfirm = vi.fn()
   const onCancel = vi.fn()
   const props = { open: true, title: '작성을 취소할까요?', description: '작성 내용은 저장되지 않습니다.', confirmLabel: '작성 취소', cancelLabel: '계속 작성', onConfirm, onCancel }
@@ -22,5 +22,7 @@ it('keeps dismissing separate from discarding and closes when requested', () => 
   fireEvent.click(screen.getByRole('button', { name: '작성 취소' }))
   expect(onConfirm).toHaveBeenCalledTimes(1)
   rerender(<ConfirmDialog {...props} open={false} />)
-  expect((dialog as HTMLDialogElement).open).toBe(false)
+  expect((dialog as HTMLDialogElement).open).toBe(true)
+  expect(dialog.dataset.closing).toBe('true')
+  await waitFor(() => expect((dialog as HTMLDialogElement).open).toBe(false))
 })

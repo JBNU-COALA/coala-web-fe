@@ -97,7 +97,7 @@ export function PostDetailPage(props: PostDetailPageProps) {
   return <PostDetailSession key={`${props.postId}:${isLoggedIn ? user?.id : 'guest'}`} {...props} />
 }
 
-function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPageProps) {
+function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
   const { isLoggedIn, user } = useAuth()
   const captureScope = useRequestScope()
   const pendingActions = useRef(new Set<string>())
@@ -567,18 +567,14 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
           </button>
 
           <div className="post-header-actions">
-            <button type="button" className="ghost-button" title="글쓰기" onClick={onWrite}>
-              <Icon name="edit" size={15} />
-              <span className="sr-only">글쓰기</span>
-            </button>
             {canManagePost ? (
               <>
                 <button type="button" className="ghost-button" title="수정" onClick={onEdit}>
-                  <Icon name="edit" size={15} />
+                  <Icon name="pencil-color" size={15} />
                   <span className="sr-only">수정</span>
                 </button>
                 <button type="button" className="ghost-button" title="삭제" onClick={handleDeletePost}>
-                  <Icon name="file" size={15} />
+                  <Icon name="trash-color" size={15} />
                   <span className="sr-only">삭제</span>
                 </button>
               </>
@@ -594,7 +590,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
               className={markdownCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
               title="마크다운 복사" onClick={handleCopyMarkdown}
             >
-              <Icon name="copy" size={15} />
+              <Icon name="copy-color" size={15} />
               <span className="sr-only">{markdownCopied === 'copied' ? '복사 완료' : markdownCopied === 'error' ? '복사 실패' : '마크다운 복사'}</span>
             </button>
             <button
@@ -602,7 +598,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
               className={shareCopied === 'copied' ? 'ghost-button ghost-button--success' : 'ghost-button'}
               title="공유하기" onClick={handleCopyShareLink}
             >
-              <Icon name={shareCopied === 'copied' ? 'copy' : 'link'} size={15} />
+              <Icon name={shareCopied === 'copied' ? 'copy-color' : 'link-color'} size={15} />
               <span className="sr-only">{shareCopied === 'copied' ? '복사 완료' : '공유하기'}</span>
             </button>
           </div>
@@ -634,8 +630,8 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
             </div>
 
             <div className="post-meta-stats">
-              <span><Icon name="eye" size={15} />{visiblePost.viewCount}</span>
-              <span><Icon name="message" size={15} />{totalCommentCount}</span>
+              <span><Icon name="eye-color" size={15} />{visiblePost.viewCount}</span>
+              <span><Icon name="message-color" size={15} />{totalCommentCount}</span>
               <button
                 type="button"
                 className={visiblePost.likedByMe ? 'post-like-button is-liked' : 'post-like-button'}
@@ -643,7 +639,7 @@ function PostDetailSession({ postId, onBack, onWrite, onEdit }: PostDetailPagePr
                 aria-pressed={Boolean(visiblePost.likedByMe)}
                 onClick={handleTogglePostLike}
               >
-                <Icon name="heart" size={15} />
+                <Icon name="heart-color" size={15} />
                 <span>{visiblePost.likeCount ?? 0}</span>
               </button>
             </div>

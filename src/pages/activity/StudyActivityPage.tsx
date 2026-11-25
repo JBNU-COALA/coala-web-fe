@@ -314,7 +314,7 @@ function ActivityContent({
           <div key={layout === 'calendar' ? selectedDate : start} className="study-results-transition">
           {records.length === 0 ? (
             <div className="study-empty">
-              <Icon name="calendar" size={28} />
+              <Icon name="calendar-color" size={28} />
               <h2>선택한 기간에 출석 기록이 없습니다.</h2>
               <p>다른 날짜의 기록을 확인해 보세요.</p>
               {manageableGroups.length > 0 && (

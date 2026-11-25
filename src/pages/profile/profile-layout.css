@@ -333,3 +333,11 @@
 @media (min-width: 641px) and (max-width: 900px) {
   .profile-settings > .page-container { grid-template-columns: 150px minmax(0, 1fr); column-gap: 32px; }
 }
+
+.profile-save-message--success { animation: profile-save-feedback 3500ms ease both; }
+@keyframes profile-save-feedback {
+  0% { opacity: 0; transform: translateY(6px); }
+  7%, 90% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: reduce) { .profile-save-message--success { animation: none; } }

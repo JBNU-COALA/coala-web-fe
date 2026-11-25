@@ -306,3 +306,8 @@
   .home-carousel-dots button[aria-current] span { animation: none; }
   .home-carousel-dots button:hover span, .home-carousel-dots button:active { transform: none; }
 }
+
+.home-carousel-dots { overflow: visible; }
+.home-carousel-tooltip { position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 3; max-width: min(320px, calc(100vw - 48px)); padding: 8px 12px; border: 1px solid #404040; border-radius: 8px; background: #262626; color: #fff; box-shadow: 0 4px 12px #0000001a; font-size: 12px; font-weight: 500; line-height: 1.5; text-align: left; word-break: keep-all; opacity: 0; visibility: hidden; transform: translateY(4px); pointer-events: none; transition: opacity 160ms ease, transform 160ms ease, visibility 160ms; }
+.home-carousel-dots button:is(:hover, :focus-visible) .home-carousel-tooltip { opacity: 1; visibility: visible; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .home-carousel-tooltip { transition: none; transform: none; } }

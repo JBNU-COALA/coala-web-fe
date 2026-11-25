@@ -128,7 +128,7 @@ export function HomeCarousel() {
       {banners.length > 1 && <div className="home-carousel-controls page-container">
         <div className="home-carousel-dots" aria-label="배너 선택">
           {banners.map((banner, i) => <button key={banner.id} type="button" aria-label={`${i + 1}. ${banner.title}`}
-            aria-current={i === activeIndex ? 'true' : undefined} title={banner.title} onClick={() => setIndex(i)}><span /></button>)}
+            aria-current={i === activeIndex ? 'true' : undefined} onClick={() => setIndex(i)}><span /><small className="home-carousel-tooltip" aria-hidden="true">{banner.title}</small></button>)}
         </div>
 
       </div>}

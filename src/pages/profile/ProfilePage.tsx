@@ -7,6 +7,7 @@ import { attachmentsApi } from '../../shared/api/attachments'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { usersApi, type ActivityMember, type AvatarTone, type UserAward, type UserProfileLink } from '../../shared/api/users'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { StudyConnections } from '../../shared/ui/StudyConnections'
@@ -178,6 +179,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
   const [customizationDraft, setCustomizationDraft] = useState<ProfileCustomizationDraft>(defaultCustomizationDraft)
   const [newProfileLink, setNewProfileLink] = useState<UserProfileLink>({ label: '', url: '' })
   const [profileSaveError, setProfileSaveError] = useState('')
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false)
   const [profileSaveState, setProfileSaveState] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle')
   const [profilePhoto, setProfilePhoto] = useState<string | null>(null)
   const [photoError, setPhotoError] = useState<string | null>(null)
@@ -346,6 +348,12 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
     setPhotoError(null)
   }
 
+  useEffect(() => {
+    if (profileSaveState !== 'saved') return
+    const timer = window.setTimeout(() => setProfileSaveState('idle'), 3500)
+    return () => window.clearTimeout(timer)
+  }, [profileSaveState])
+
   const saveProfile = async () => {
     if (!canEdit || profileSaveState === 'saving' || isUploadingProfilePhoto) return
     setProfileSaveError('')
@@ -401,7 +409,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
       setProfileSaveState('idle')
       return
     }
-    void saveProfile()
+    setSaveConfirmOpen(true)
   }
 
   const updateCustomizationDraft = <K extends keyof ProfileCustomizationDraft>(
@@ -600,7 +608,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
 
         </div>
         {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error" role="alert">{profileSaveError}</p> : null}
-        {profileSaveState === 'saved' ? <p className="profile-save-message" role="status">프로필을 저장했습니다.</p> : null}
+        {profileSaveState === 'saved' ? <p className="profile-save-message profile-save-message--success" role="status">프로필을 저장했습니다.</p> : null}
 
         <div ref={tabContentRef} className="profile-tab-content">
         {tab === 'overview' ? (
@@ -1071,6 +1079,11 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           </div>
         </div>
       </div>
+      <ConfirmDialog open={saveConfirmOpen} title="프로필 편집을 완료할까요?"
+        description="확인을 누르면 변경한 내용이 프로필에 반영됩니다."
+        confirmLabel="확인" cancelLabel="계속 편집"
+        onCancel={() => setSaveConfirmOpen(false)}
+        onConfirm={() => { setSaveConfirmOpen(false); void saveProfile() }} />
     </section>
   )
 }

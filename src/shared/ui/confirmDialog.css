@@ -11,3 +11,7 @@
 @keyframes confirm-enter { from { opacity: 0; transform: translateY(8px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes confirm-backdrop { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .confirm-dialog[open], .confirm-dialog::backdrop { animation: none; } }
+.confirm-dialog[open][data-closing] { animation: confirm-exit 180ms ease-in forwards; }
+.confirm-dialog[data-closing]::backdrop { animation: confirm-backdrop 180ms ease-in reverse forwards; }
+@keyframes confirm-exit { to { opacity: 0; transform: translateY(8px) scale(.98); } }
+@media (prefers-reduced-motion: reduce) { .confirm-dialog[open][data-closing], .confirm-dialog[data-closing]::backdrop { animation: none; } }
