@@ -1,0 +1,106 @@
+/* Mobile community and account layout. Keep intrinsic content inside its column. */
+@media (max-width: 900px) {
+  .coala-app .coala-sidebar-nav { overscroll-behavior-x: contain; }
+  .coala-app .coala-sidebar-link { flex: 0 0 auto; min-height: 44px; }
+  .coala-app .header-notification-popover,
+  .coala-app .header-profile-popover { position: fixed; top: calc(var(--coala-header-height, 64px) + 8px); right: 12px; width: min(340px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: calc(100dvh - var(--coala-header-height, 64px) - 32px); overflow-y: auto; box-sizing: border-box; overscroll-behavior: contain; }
+}
+@media (max-width: 700px) {
+  .coala-app .coala-section-main { width: 100%; min-width: 0; }
+  .coala-app .community-banner { width: 100%; margin-inline: 0; }
+  .coala-app :is(.community-board-main, .profile-tab-content, .study-page, .info-shell, .recruit-write-panel, .velog-writer-article) { min-width: 0; max-width: 100%; }
+  .coala-app .community-board-toolbar { flex-wrap: wrap; gap: 8px; }
+  .coala-app .community-board-actions { min-width: 0; flex-wrap: wrap; margin-left: auto; }
+  .coala-app .community-board-actions button { min-height: 44px; }
+  .coala-app .community-board-post-heading strong { font-size: 16px; }
+  .coala-app .community-board-post-meta { gap: 6px 10px; }
+  .coala-app .community-board-post-meta time { margin-left: 0; }
+  .coala-app .community-board-filters { box-sizing: border-box; }
+  .coala-app.coala-app .community-board-filters button { min-height: 36px; }
+  .coala-app .listing-controls-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+  .coala-app .listing-controls-actions > .search-field { flex: 1 0 100%; order: -1; width: 100%; height: 44px; min-height: 44px; box-sizing: border-box; }
+  .coala-app .listing-controls-actions > .select-control { flex: 1 1 100px; min-width: 0; max-width: 100%; }
+  .coala-app .listing-controls-actions > :is(.write-post-button, .view-toggle) { height: 44px; min-height: 44px; }
+  .coala-app .listing-controls-actions > .view-toggle button { height: 42px; min-height: 42px; width: 38px; }
+  .coala-app .coala-content--info .listing-controls-actions > :is(.search-field, .select-control, .view-toggle, .write-post-button) { height: 44px; min-height: 44px; }
+  .coala-app .coala-content--info .listing-controls-actions .view-toggle button { height: 42px; min-height: 42px; }
+  .coala-app .listing-controls-actions .search-field input { height: 40px; min-height: 0; font-size: 16px; }
+  .coala-app .coala-content--info .listing-controls-actions .search-field input { font-size: 16px; }
+  .coala-app .section-nav { max-width: 100%; }
+  .coala-app .section-nav-items { max-width: 100%; }
+  .coala-app .section-nav-action { flex-wrap: wrap; }
+
+  .coala-app .study-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .coala-app .study-week { flex: 1 0 100%; width: 100%; justify-content: space-between; gap: 8px; }
+  .coala-app .study-week > div { min-width: 0; }
+  .coala-app .study-group-filter { flex: 1 1 160px; min-width: 0; margin: 0; }
+  .coala-app .study-group-filter .study-group-select { flex: 1; width: 0; min-width: 0; }
+  .coala-app .study-view-toolbar { flex: 0 0 auto; width: auto; }
+  .coala-app .study-layout-toggle button { height: 42px; width: 40px; }
+  .coala-app .study-icon-button { height: 40px; width: 40px; flex-basis: 40px; }
+  .coala-app .study-feed--card { grid-template-columns: minmax(0, 1fr); }
+  .coala-app .study-card-people { flex-wrap: wrap; }
+  .coala-app .study-page .record-editor-page { width: 100%; }
+  .coala-app .study-page .study-editor-fields { grid-template-columns: minmax(0, 1fr); }
+  .coala-app .study-calendar-days > button { min-width: 0; }
+  .coala-app .study-calendar-legend { flex-wrap: wrap; }
+
+  .coala-app .recruit-write-panel, .coala-app .recruit-edit-form { width: calc(100% - 32px); }
+  .coala-app .recruit-write-grid { grid-template-columns: minmax(0, 1fr); }
+  .coala-app .recruit-role-row, .coala-app .recruit-role-head { grid-template-columns: minmax(0, 1fr) 74px 32px; }
+  .coala-app .recruit-write-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; }
+  .coala-app .recruit-write-footer button { min-height: 44px; height: auto; }
+  .coala-app .velog-writer-footer { display: flex; flex-wrap: wrap; gap: 10px; padding: 12px 16px; }
+  .coala-app .velog-writer-footer > div { flex: 1; min-width: 0; justify-content: flex-end; }
+  .coala-app .velog-writer-footer .pw-shortcut-hint { display: none; }
+  .coala-app .velog-writer-footer .velog-publish-button { min-height: 44px; }
+  .coala-app .w-md-editor-toolbar { height: auto !important; display: flex; flex-wrap: wrap; }
+  .coala-app .w-md-editor-toolbar ul { display: flex; flex-wrap: wrap; max-width: 100%; }
+  .coala-app .w-md-editor-toolbar li > button { min-height: 32px; }
+
+  .coala-app .coala-content--profile .profile-settings-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 20px; }
+  .coala-app .profile-settings-sidebar { position: static; min-width: 0; padding: 0 0 12px; border-right: 0; border-bottom: 1px solid #e5e5e5; }
+  .coala-app .profile-settings-sidebar .section-nav .section-nav-items { flex-direction: row; flex-wrap: nowrap; overflow-x: auto; width: 100%; gap: 6px; }
+  .coala-app .profile-settings-sidebar .section-nav .section-nav-item { flex: 0 0 auto; width: auto; min-height: 44px; padding: 8px 10px; font-size: 12px; gap: 6px; }
+  .coala-app .coala-content--profile .profile-page-hero-main { display: flex; align-items: flex-start; gap: 16px; }
+  .coala-app .coala-content--profile .profile-photo-panel { width: 72px; flex: 0 0 72px; }
+  .coala-app .coala-content--profile .profile-page-avatar { width: 72px; height: 72px; min-width: 72px; }
+  .coala-app .coala-content--profile .profile-page-identity { flex: 1; min-width: 0; }
+  .coala-app .coala-content--profile .profile-identity-heading { flex-direction: column; align-items: flex-start; gap: 6px; }
+  .coala-app .coala-content--profile .profile-page-name { font-size: 20px; }
+  .coala-app .coala-content--profile .profile-page-meta { flex-wrap: wrap; }
+  .coala-app .coala-content--profile .profile-page-meta > * { max-width: 100%; white-space: normal; overflow-wrap: anywhere; padding: 4px 8px; }
+  .coala-app .coala-content--profile .profile-editor-heading .profile-edit-actions button { width: 44px; height: 44px; min-height: 44px; }
+  .coala-app .profile-settings :is(.profile-handles-list, .member-fields, .profile-award-edit-grid, .profile-section-grid) { grid-template-columns: minmax(0, 1fr); }
+  .coala-app .profile-settings .profile-repeat-row--link { grid-template-columns: minmax(0, 1fr); }
+  .coala-app .profile-settings .profile-repeat-row { min-width: 0; }
+  .coala-app .coala-content--profile .profile-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 0; }
+  .coala-app .coala-content--profile .profile-stat-card { padding: 8px 12px; border-right: 1px solid #e5e5e5; }
+  .coala-app .coala-content--profile .profile-stat-card:nth-child(2n) { border-right: 0; }
+  .coala-app .coala-content--profile .profile-stat-card-head { flex-wrap: wrap; margin: 0; }
+  .coala-app .coala-content--profile .profile-award-item { flex-direction: column; align-items: stretch; gap: 12px; }
+  .coala-app .coala-content--profile .profile-award-meta { text-align: left; }
+  .coala-app .profile-settings .profile-handle-value { white-space: normal; overflow-wrap: anywhere; }
+  .coala-app .profile-settings .profile-settings-logout { width: auto; margin: 8px 0 0; }
+  .coala-app :is(.profile-settings, .recruit-write-panel, .study-editor) :is(input:not([type=checkbox]):not([type=radio]), textarea, select) { box-sizing: border-box; min-width: 0; max-width: 100%; font-size: 16px !important; }
+  .coala-app :is(.profile-settings, .recruit-write-panel, .study-editor) select:not([multiple]):not([size]) { height: 44px !important; min-height: 44px !important; }
+}
+@media (max-width: 380px) {
+  .coala-app .coala-content--profile .profile-tasks { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .coala-app .coala-content--profile .profile-task { padding: 0; border-right: 0; }
+  .coala-app .listing-controls-actions > .write-post-button { margin-left: auto; }
+}
+
+@media (max-width: 700px) {
+  .coala-app .public-footer-channel[data-tooltip]::after { display: none; }
+  .coala-app .coala-content.coala-content .listing-controls-actions > .write-post-button { height: 44px; min-height: 44px; }
+  .coala-app .coala-content .archive-filters { flex-basis: 44px; }
+  .coala-app .coala-content .archive-filters > summary { box-sizing: border-box; width: 44px; height: 44px; }
+  .coala-app .coala-content .archive-filter-popover { left: 0; right: auto; top: 52px; box-sizing: border-box; max-width: calc(100vw - 24px); }
+  .coala-app .coala-content .study-editor select:not([multiple]):not([size]) { height: 44px !important; min-height: 44px !important; font-size: 16px !important; }
+}
+
+@media (max-width: 700px) {
+  .coala-app .coala-content.coala-content .view-toggle.view-toggle--compact { height: 44px; min-height: 44px; }
+  .coala-app.coala-app .coala-content .view-toggle.view-toggle--compact button { height: 42px; min-height: 42px; width: 40px; flex-basis: 40px; }
+}

@@ -229,3 +229,6 @@
 .coala-content--services .member-service-card-footer { border: 0; padding-top: 2px; }
 .coala-content--services .member-service-detail-media .member-service-status { background: #222; color: #fff; border: 1px solid #fff; box-shadow: 0 2px 8px #0002; }
 .coala-content--services .member-service-back-button { justify-self: start; margin-bottom: 16px; }
+
+/* Status messages span the available area rather than capped card tracks. */
+.coala-content--services :is(.member-service-grid, .member-service-list):has(> .empty-post-state) { grid-template-columns: minmax(0, 1fr); }

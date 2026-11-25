@@ -53,6 +53,10 @@ export function SelectControl<T extends string>({
   return (
     <div ref={rootRef} className={`select-control custom-select ${className}`.trim()}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
+      <select className="select-control-native" aria-label={label} value={value}
+        onChange={(event) => { onChange(event.target.value as T); setOpen(false) }}>
+        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+      </select>
       <button ref={triggerRef} type="button" className="select-control-trigger"
         aria-label={`${label}: ${options[selectedIndex]?.label ?? ''}`}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}

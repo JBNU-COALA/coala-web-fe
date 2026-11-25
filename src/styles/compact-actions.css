@@ -75,3 +75,18 @@
   border-radius: 0;
 }
 .coala-app .view-toggle.view-toggle--compact button svg { width: 16px; height: 16px; }
+
+/* Search and filter controls share the adjacent registration button height. */
+@media (min-width: 701px) {
+  .coala-app .coala-content .listing-controls-actions > .search-field { box-sizing: border-box; height: 32px; min-height: 32px; padding-block: 0; }
+  .coala-app .coala-content .listing-controls-actions > .search-field input { height: 30px; min-height: 0; padding-block: 0; font-size: 13px; }
+  .coala-app .coala-content .listing-controls-actions > .search-field > svg { width: 16px; height: 16px; }
+  .coala-app .coala-content .archive-filters { flex-basis: 32px; }
+  .coala-app .coala-content .archive-filters > summary { box-sizing: border-box; width: 32px; height: 32px; min-height: 32px; }
+  .coala-app .coala-content .archive-filter-popover { top: 40px; }
+}
+
+@media (min-width: 701px) {
+  .coala-app .coala-content .listing-controls-actions > .select-control.custom-select { height: 32px !important; min-height: 32px !important; }
+  .coala-app .coala-content .listing-controls-actions > .select-control.custom-select > .select-control-trigger { height: 30px !important; min-height: 30px !important; }
+}

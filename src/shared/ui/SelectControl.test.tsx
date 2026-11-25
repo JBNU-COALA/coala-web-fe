@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { SelectControl } from './SelectControl'
 
@@ -6,6 +6,15 @@ beforeAll(() => { Element.prototype.scrollIntoView = vi.fn() })
 const options = [{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]
 
 describe('SelectControl', () => {
+  it('uses the same value and callback in the native mobile picker', () => {
+    const onChange = vi.fn()
+    render(<SelectControl label="정렬" value="latest" options={options} onChange={onChange} />)
+    const select = screen.getByRole('combobox', { name: '정렬' }) as HTMLSelectElement
+    expect(select.value).toBe('latest')
+    fireEvent.change(select, { target: { value: 'popular' } })
+    expect(onChange).toHaveBeenCalledWith('popular')
+  })
+
   it('selects with arrow keys and Enter, then restores trigger focus', () => {
     const onChange = vi.fn()
     render(<SelectControl label="정렬" value="latest" options={options} onChange={onChange} />)
@@ -25,7 +34,7 @@ describe('SelectControl', () => {
     render(<SelectControl label="정렬" value="latest" options={options} onChange={onChange} />)
     const trigger = screen.getByRole('button')
     fireEvent.click(trigger)
-    expect(screen.getByRole('option', { name: '최신순' }).getAttribute('aria-selected')).toBe('true')
+    expect(within(screen.getByRole('listbox')).getByRole('option', { name: '최신순' }).getAttribute('aria-selected')).toBe('true')
     fireEvent.keyDown(screen.getByRole('listbox'), { key: 'Escape' })
     expect(screen.queryByRole('listbox')).toBeNull()
     fireEvent.click(trigger)
@@ -38,7 +47,7 @@ describe('SelectControl', () => {
     const onChange = vi.fn()
     render(<SelectControl label="정렬" value="latest" options={options} onChange={onChange} />)
     fireEvent.click(screen.getByRole('button'))
-    fireEvent.click(screen.getByRole('option', { name: '인기순' }))
+    fireEvent.click(within(screen.getByRole('listbox')).getByRole('option', { name: '인기순' }))
     expect(onChange).toHaveBeenCalledWith('popular')
     expect(screen.queryByRole('listbox')).toBeNull()
   })

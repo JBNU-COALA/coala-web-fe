@@ -239,3 +239,5 @@
 }
 
 .coala-app .character-avatar { background: #fff; border-color: #e5e5e5; }
+
+.coala-app .recruit-empty-icon--color { background: #f8f9fc; font-size: 28px; line-height: 1; }

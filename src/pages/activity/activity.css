@@ -853,3 +853,67 @@ a.study-person-name:hover {
 /* Keep attendance headings consistent with compact section titles. */
 .coala-app .record-editor-page .study-page-heading h1 { font-size: 20px; line-height: 1.4; font-weight: 650; }
 .coala-app .study-page--list .study-page-heading h2 { font-size: 18px; line-height: 1.4; font-weight: 650; }
+
+/* A quiet calendar grid with clear date and activity states. */
+.coala-app .study-calendar { border-color: #e5e7eb; box-shadow: 0 4px 20px #18213606; }
+.coala-app .study-calendar header { padding: 14px 18px; border-bottom: 0; }
+.coala-app .study-calendar-legend { padding: 4px 18px 14px; gap: 8px 14px; }
+.coala-app .study-calendar-weekdays { background: #f8fafc; padding-block: 10px; border-color: #edf0f3; }
+.coala-app .study-calendar-weekdays span:nth-child(6) { color: #5980bb; }
+.coala-app .study-calendar-weekdays span:nth-child(7) { color: #cb7070; }
+.coala-app .study-calendar-days { background: #edf0f3; }
+.coala-app.coala-app .study-calendar .study-calendar-days button { border-radius: 0; min-height: 72px; padding: 8px; transition: background-color 160ms ease; }
+.coala-app .study-calendar-days button.is-outside { background: #fcfcfd; color: #bcc1c9; }
+.coala-app .study-calendar-days button.is-selected { background: #eef4ff; }
+.coala-app .study-calendar-days button:hover { background: #f2f6fc; }
+.coala-app .study-calendar-days button > span:first-child { width: 28px; height: 28px; font-size: 13px; font-weight: 500; }
+.coala-app .study-calendar-days button.is-selected > span:first-child { background: #3565bd; color: white; box-shadow: none; }
+.coala-app .study-calendar-days button[aria-current=date]:not(.is-selected) > span:first-child { color: #3565bd; background: #edf3ff; box-shadow: inset 0 0 0 1px #90afe8; }
+.coala-app .study-calendar-dots { gap: 4px; padding-left: 7px; }
+.coala-app .study-calendar-dots i { width: 6px; height: 6px; }
+@media (max-width: 700px) {
+  .coala-app.coala-app .study-calendar .study-calendar-days button { min-height: 58px; padding: 4px 2px; }
+  .coala-app .study-calendar header { padding: 12px; }
+  .coala-app .study-calendar h2 { font-size: 16px; }
+  .coala-app .study-calendar-legend { padding-inline: 12px; font-size: 11px; }
+}
+@media (prefers-reduced-motion: reduce) { .coala-app.coala-app .study-calendar .study-calendar-days button { transition: none; } }
+
+/* Compact record detail: photos and participants, followed by a distinct body. */
+.coala-app .study-detail-heading { padding-bottom: 18px; }
+.coala-app .study-detail-heading h1 { margin: 12px 0 0; font-size: clamp(20px, 2vw, 26px); line-height: 1.4; font-weight: 650; color: #222; }
+.coala-app .study-detail-meta { justify-content: space-between; margin-top: 10px; color: #737373; font-size: 12px; }
+.coala-app .study-detail-layout { grid-template-columns: minmax(0, 1fr) 240px; gap: 24px; padding-top: 24px; align-items: start; }
+.coala-app .study-detail-layout:not(:has(.study-detail-photos)), .coala-app .study-detail-layout--standalone { grid-template-columns: minmax(0, 1fr); }
+.coala-app .study-detail-attendance { padding: 16px; border: 1px solid #e5e5e5; border-radius: 10px; }
+.coala-app .study-detail-attendance .study-form-section { margin: 0 0 10px; }
+.coala-app .study-detail-attendance h2, .coala-app .study-detail-photos h3, .coala-app .study-detail-body > h2 { margin: 0; color: #262626; font-size: 15px; font-weight: 600; }
+.coala-app .study-detail-attendance h2 small { color: #737373; font-size: 12px; font-weight: 400; }
+.coala-app .study-detail-attendance .study-attendance-list li { min-height: 48px; padding: 10px 0; gap: 10px; }
+.coala-app .study-detail-attendance .study-attendance-list .character-avatar { width: 28px; height: 28px; min-width: 28px; }
+.coala-app .study-detail-attendance :is(.study-person-name, .study-status) { color: #525252 !important; font-size: 12px; font-weight: 500; }
+.coala-app .study-detail-photos .activity-photo-grid { grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); }
+.coala-app .study-detail-photos .activity-photo-grid li { height: 240px; aspect-ratio: auto; background: #f7f7f7; }
+.coala-app .study-detail-photos .activity-photo-grid img { object-fit: contain; }
+.coala-app .study-detail-body { margin-top: 24px; padding: 22px 0; border-top: 1px solid #e5e5e5; }
+.coala-app .study-detail-body > h2 { margin-bottom: 16px; }
+.coala-app .study-detail-body .wmde-markdown { font-size: 14px; color: #404040; line-height: 1.8; }
+.coala-app .study-detail-body .wmde-markdown :is(h1,h2,h3) { font-size: 18px; color: #262626; }
+.coala-app .study-record-actions .study-action { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; min-height: 36px; padding: 0; border: 0; background: transparent; box-shadow: none; font-size: 19px; }
+.coala-app .study-record-actions .study-action:hover { background: transparent; transform: translateY(-1px); }
+.coala-app .study-page .study-editor label { margin-bottom: 18px; gap: 8px; color: #333; font-size: 13px; }
+.coala-app .study-page .study-editor-fields { gap: 16px; }
+.coala-app .study-page .study-editor select:not([multiple]):not([size]) { box-sizing: border-box; height: 44px !important; min-height: 44px !important; font-size: 14px !important; }
+.coala-app .study-page .study-editor .participant-search { height: 44px; min-height: 44px; box-sizing: border-box; padding: 0 12px; gap: 10px; background: #fff; border: 1px solid #d4d4d4; }
+.coala-app .study-page .study-editor .participant-search input { height: 42px; min-height: 0; padding: 0; border: 0; border-radius: 0; background: transparent; box-shadow: none; outline: none; }
+.coala-app .study-page .study-editor .participant-search:focus-within { outline: 2px solid #aaa; outline-offset: 2px; }
+@media (max-width: 700px) {
+  .coala-app .study-detail-layout { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .coala-app .study-detail-photos .activity-photo-grid li { height: 200px; }
+  .coala-app .study-page .study-editor select:not([multiple]):not([size]) { font-size: 16px !important; }
+}
+
+/* Override generic field and button skins inside composed controls. */
+.coala-app .study-page .study-editor .participant-search input { border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; }
+.coala-app.coala-app .study-calendar .study-calendar-days button { border-radius: 0 !important; }
+.coala-app .study-record-actions .study-action { border: 0 !important; background: transparent !important; box-shadow: none !important; }

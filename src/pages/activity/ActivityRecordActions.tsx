@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import type { StudyRecord } from '../../shared/activity'
 import { deleteActivityRecord } from '../../shared/activityRepository'
 import { routes } from '../../shared/routes'
-import { Icon } from '../../shared/ui/Icon'
 
 export function ActivityRecordActions({ record, search, back }: {
   record: StudyRecord
@@ -27,11 +26,11 @@ export function ActivityRecordActions({ record, search, back }: {
   }
   return <div className="study-record-actions">
     <div role="group" aria-label="출석 기록 관리">
-      <Link className="study-action" to={routes.community.activityRecordEditor(record.id) + search}>
-        <Icon name="edit" size={16} />수정
+      <Link className="study-action" aria-label="수정" title="수정" to={routes.community.activityRecordEditor(record.id) + search}>
+        <span aria-hidden="true">✏️</span>
       </Link>
-      <button type="button" className="study-action study-action--danger" disabled={deleting} onClick={() => void remove()}>
-        {deleting ? '삭제 중...' : '삭제'}
+      <button type="button" className="study-action study-action--danger" aria-label={deleting ? '삭제 중' : '삭제'} title="삭제" disabled={deleting} onClick={() => void remove()}>
+        <span aria-hidden="true">🗑️</span>
       </button>
     </div>
     {error && <p className="study-error" role="alert">{error}</p>}

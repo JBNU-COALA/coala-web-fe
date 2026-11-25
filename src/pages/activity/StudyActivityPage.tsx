@@ -20,7 +20,7 @@ import {
   saveActivityRecord
 } from '../../shared/activityRepository'
 import { RequireAuth } from '../../shared/auth/RequireAuth'
-import { AttendanceList, AttendanceSummary } from './AttendanceList'
+import { AttendanceList } from './AttendanceList'
 import { ActivityCalendar } from './ActivityCalendar'
 import { RecordEditor } from './RecordEditor'
 import { prepareMarkdownForDisplay, rewriteMarkdownImageUrls } from '../../shared/markdown'
@@ -236,10 +236,9 @@ function ActivityContent({
               </div>
             </header>
             <div className={`study-detail-layout${record.attendance.length ? '' : ' study-detail-layout--standalone'}`}>
-              <article className="study-body" data-color-mode="light">
+              {(record.photos?.length ?? 0) > 0 && <div className="study-detail-photos">
                 <ActivityPhotos photos={record.photos ?? []} />
-                <MDEditor.Markdown source={rewriteMarkdownImageUrls(prepareMarkdownForDisplay(record.content), resolveApiAssetUrl)} skipHtml />
-              </article>
+              </div>}
               {record.attendance.length > 0 && <section
                 className="study-detail-attendance"
                 aria-label="출석 명단"
@@ -249,10 +248,13 @@ function ActivityContent({
                     출석 <small>{record.attendance.length}명</small>
                   </h2>
                 </div>
-                <AttendanceSummary entries={record.attendance} />
                 <AttendanceList entries={record.attendance} />
               </section>}
             </div>
+            <article className="study-body study-detail-body" data-color-mode="light">
+              <h2>활동 내용</h2>
+              <MDEditor.Markdown source={rewriteMarkdownImageUrls(prepareMarkdownForDisplay(record.content), resolveApiAssetUrl)} skipHtml />
+            </article>
           </>
         )
       ) : (

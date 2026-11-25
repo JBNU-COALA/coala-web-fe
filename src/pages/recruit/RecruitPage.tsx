@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { SectionNav } from '../../shared/ui/SectionNav'
-import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { ListingControls } from '../../shared/ui/ListingControls'
@@ -80,7 +79,7 @@ type RecruitListProps = {
   variant: RecruitListVariant
   emptyText: string
   emptyDescription?: string
-  emptyIcon?: Parameters<typeof Icon>[0]['name']
+  emptyIcon?: 'search' | 'file' | 'heart' | 'users'
   emptyActionLabel?: string
   onEmptyAction?: () => void
   appliedIds: Set<string>
@@ -233,7 +232,7 @@ function RecruitList({
 
       {items.length === 0 ? (
         <li className="recruit-card-empty">
-          <span className="recruit-empty-icon"><Icon name={emptyIcon} size={22} /></span>
+          <span className="recruit-empty-icon recruit-empty-icon--color" aria-hidden="true">{{ search: '🔎', file: '📨', heart: '💝', users: '👥' }[emptyIcon]}</span>
           <strong>{emptyText}</strong>
           {emptyDescription ? <p>{emptyDescription}</p> : null}
           {emptyActionLabel && onEmptyAction ? (

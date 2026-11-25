@@ -28,6 +28,7 @@ import './styles/page-frame.css'
 import './styles/neutral-forms.css'
 import './styles/content-refinements.css'
 import './styles/compact-actions.css'
+import './styles/mobile-layout.css'
 import { LandingPage } from './pages/landing/LandingPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
 import { PublicFooter } from './pages/landing/PublicFooter'
@@ -472,6 +473,7 @@ function AppSession() {
   }
 
   const handleToggleNotifications = () => {
+    setMobileNavOpen(false)
     setProfileMenuOpen(false)
     setNotificationMenuOpen(!notificationMenuOpen)
     if (!notificationMenuOpen && !markingRead.current) void loadNotifications()
@@ -969,7 +971,8 @@ function AppSession() {
               type="button"
               className="mobile-menu-toggle"
               aria-label="메뉴 열기"
-              onClick={() => setMobileNavOpen((value) => !value)}
+              aria-expanded={mobileNavOpen}
+              onClick={() => { setProfileMenuOpen(false); setNotificationMenuOpen(false); setMobileNavOpen((value) => !value) }}
             >
               <Icon name={mobileNavOpen ? 'chevron-down' : 'layout'} size={16} />
             </button>
@@ -1061,6 +1064,7 @@ function AppSession() {
                     aria-expanded={profileMenuOpen}
                     aria-controls={profileMenuOpen ? 'header-profile-popover' : undefined}
                     onClick={() => {
+                      setMobileNavOpen(false)
                       setNotificationMenuOpen(false)
                       setProfileMenuOpen((value) => !value)
                     }}
