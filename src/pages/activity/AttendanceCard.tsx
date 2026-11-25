@@ -5,7 +5,6 @@ import { routes } from '../../shared/routes'
 import { toPlainContentPreview } from '../../shared/contentPreview'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { Icon } from '../../shared/ui/Icon'
-import { AttendanceSummary } from './AttendanceList'
 import { ActivityPhotoPreview } from './ActivityPhotos'
 
 export function AttendanceCard({ record, groupName, search, recruitId }: {
@@ -37,7 +36,6 @@ export function AttendanceCard({ record, groupName, search, recruitId }: {
           {record.attendance.length > 3 && <span>외 {record.attendance.length - 3}명</span>}
           {!record.attendance.length && <span>등록된 참여자 없음</span>}
         </div>
-        <AttendanceSummary entries={record.attendance} />
       </div>
       {recruitId && <Link className="study-source-link" to={routes.community.recruitNotice(recruitId)}>
         모집 공고<Icon name="chevron-right" size={14} />

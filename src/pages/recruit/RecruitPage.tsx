@@ -2,7 +2,7 @@ import { RecruitRoleFields } from './RecruitRoleFields'
 import { buildRecruitPayload, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { SectionNav } from '../../shared/ui/SectionNav'
 import { Icon } from '../../shared/ui/Icon'
@@ -394,7 +394,6 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           공고 등록
         </button>
       )} />
-      {user && <div className="recruit-profile-return"><Link to={routes.users.detail(user.id)}><Icon name="user" size={15} />내 프로필</Link></div>}
       {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
       {(bookmarks.error || applications.error) && <div className="recruit-load-state">
         <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button retry-button" onClick={() => {
@@ -489,8 +488,8 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
             <label className="jcloud-field recruit-write-wide">
               <span className="jcloud-label">진행 프로세스 (선택)</span>
               <textarea
-                className="jcloud-textarea"
-                rows={2}
+                className="jcloud-textarea recruit-process-input"
+                rows={5}
                 aria-label="진행 프로세스 (선택)"
                 value={draft.processList}
                 onChange={(event) => updateDraft('processList', event.target.value)}

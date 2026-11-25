@@ -53,3 +53,8 @@
 .coala-app .recruit-write-footer button:hover:not(:disabled) { background: #333; }
 .coala-app .recruit-role-add { color: #525252; }
 .coala-app .recruit-role-fields :focus-visible { outline-color: #737373; }
+
+.coala-app .coala-content .recruit-write-panel { margin-top: 20px; }
+.coala-app .recruit-write-type { width: min(380px, 100%); }
+.coala-app .recruit-write-type .select-control.custom-select > .select-control-trigger { height: 42px !important; min-height: 42px !important; padding: 0 12px !important; font-size: 15px !important; font-weight: 400; }
+.coala-app .coala-content .recruit-write-panel .recruit-process-input { min-height: 150px; }

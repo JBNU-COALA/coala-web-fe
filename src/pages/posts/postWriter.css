@@ -49,3 +49,6 @@
 
 .coala-app .post-writer--velog .post-writer-taglist { padding-inline: 28px; }
 .coala-app .velog-editor-wrap .w-md-editor-toolbar ul { margin: 0; padding: 0; }
+
+.coala-app .coala-content--velog-writer.post-writer-has-banner { padding: 0 0 48px; background: #fff; }
+.coala-app .post-writer-has-banner .post-writer-layout--velog { margin: 24px auto 0; width: calc(100% - 32px); }

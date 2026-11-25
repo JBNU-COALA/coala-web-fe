@@ -500,9 +500,8 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
             </>}
           </aside>
           <div className="profile-page profile-settings-main">
-            <h2 className="profile-settings-section-title">{tab === 'overview' ? (editing ? '프로필 편집' : '프로필 정보') : tabs.find((item) => item.id === tab)?.label}</h2>
+            {editing && <h2 className="profile-settings-section-title">프로필 편집</h2>}
         <div className="profile-page-hero surface-card">
-          {joinedAt ? <p className="profile-joined-top">{joinedAt} 가입 · 동아리 코알라</p> : null}
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
               {canEdit ? (
@@ -554,7 +553,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               ) : null}
             </div>
             <div className="profile-page-identity">
-              <h2 className="profile-page-name">{displayName}</h2>
+              <div className="profile-identity-heading"><h2 className="profile-page-name">{displayName}</h2>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입 · 동아리 코알라</p> : null}</div>
               <p className="profile-page-role">{displayRole}</p>
               {profileMember.focus ? <p className="profile-page-focus">{profileMember.focus}</p> : null}
               <div className="profile-page-meta">
@@ -653,7 +652,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service"><img src="/jbnu-symbol.svg" alt="" width={60} height={18} />소속 / 연구실</span>
+                      <span className="profile-handle-service"><img src="/jbnu-emblem.svg" alt="" width={18} height={26} />소속 / 연구실</span>
                       <span className="profile-handle-value">
                         {firstNonBlank(user?.department, '소속 미입력')} · {firstNonBlank(user?.lab, '연구실 미입력')}
                       </span>
@@ -718,7 +717,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service"><img src="/jbnu-symbol.svg" alt="" width={60} height={18} />소속</span>
+                      <span className="profile-handle-service"><img src="/jbnu-emblem.svg" alt="" width={18} height={26} />소속</span>
                       <span className="profile-handle-value">{profileMember.lab}</span>
                     </span>
                   </li>

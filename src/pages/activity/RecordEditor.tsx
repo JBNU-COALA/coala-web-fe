@@ -105,7 +105,7 @@ export function RecordEditor({
   }
 
   return (
-    <>
+    <div className="record-editor-page">
       <Link
         className="study-back"
         to={back}
@@ -229,6 +229,6 @@ export function RecordEditor({
           </button>
         </fieldset>
       </form>
-    </>
+    </div>
   )
 }

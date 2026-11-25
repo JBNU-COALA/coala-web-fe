@@ -1,3 +1,4 @@
+import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
@@ -162,9 +163,7 @@ function ActivityContent({
           }
         </div>
       ) : !data ? (
-        <p className="study-empty" role="status">
-          출석 기록을 불러오는 중입니다.
-        </p>
+        <div className="study-loading"><LoadingSpinner label="출석 기록을 불러오는 중입니다." /></div>
       ) : mode === 'new' ? (
         <>
           {data.groupsError ? <p className="study-error" role="alert">{data.groupsError}
@@ -300,6 +299,7 @@ function ActivityContent({
           {layout === 'calendar' && (
             <>
               <ActivityCalendar
+                groups={data.groups}
                 date={selectedDate}
                 records={filteredRecords}
                 onSelect={(day) => {

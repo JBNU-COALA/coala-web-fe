@@ -4,6 +4,7 @@ import {
   mondayOf,
   parseDate,
   shiftDate,
+  type StudyGroup,
   type StudyRecord
 } from '../../shared/activity'
 import { Icon } from '../../shared/ui/Icon'
@@ -11,12 +12,23 @@ import { Icon } from '../../shared/ui/Icon'
 export function ActivityCalendar({
   date,
   records,
+  groups = [],
   onSelect
 }: {
   date: string
   records: StudyRecord[]
+  groups?: StudyGroup[]
   onSelect: (date: string) => void
 }) {
+  const groupIds = [...new Set([...groups.map((group) => group.id), ...records.flatMap((record) => record.groupId ? [record.groupId] : [])])].sort()
+  const palette = ['#2563eb', '#e07a15', '#8b5cf6', '#0d9488', '#db2777', '#65a30d', '#0891b2', '#dc2626']
+  const colorFor = (id: string | null) => {
+    if (!id) return '#737373'
+    const index = groupIds.indexOf(id)
+    return palette[index] ?? `hsl(${(index * 137.508) % 360} 65% 42%)`
+  }
+  const nameFor = (id: string | null) => groups.find((group) => group.id === id)?.name ?? (id ? '연결된 조' : '개별 활동')
+  const visibleGroups = groupIds.filter((id) => records.some((record) => record.groupId === id))
   const selected = parseDate(date) ?? new Date()
   const monthStart = dateKey(
     new Date(selected.getFullYear(), selected.getMonth(), 1, 12)
@@ -55,6 +67,10 @@ export function ActivityCalendar({
           <Icon name="chevron-right" size={18} />
         </button>
       </header>
+      <div className="study-calendar-legend" aria-label="팀별 활동 색상">
+        {visibleGroups.map((id) => <span key={id}><i style={{ backgroundColor: colorFor(id) }} />{nameFor(id)}</span>)}
+        {records.some((record) => !record.groupId) && <span><i style={{ backgroundColor: colorFor(null) }} />개별 활동</span>}
+      </div>
       <div className="study-calendar-weekdays" aria-hidden="true">
         {['월', '화', '수', '목', '금', '토', '일'].map((day) => (
           <span key={day}>{day}</span>
@@ -67,7 +83,7 @@ export function ActivityCalendar({
             <button
               key={day}
               className={`${day < monthStart || day > monthEnd ? 'is-outside' : ''} ${day === date ? 'is-selected' : ''}`}
-              aria-label={`${day}, 활동 ${events.length}건`}
+              aria-label={`${day}, 활동 ${events.length}건${events.length ? `, ${events.map((event) => `${nameFor(event.groupId)}: ${event.title}`).join(", ")}` : ""}`}
               aria-pressed={day === date}
               aria-current={day === activityToday() ? 'date' : undefined}
               onClick={() => onSelect(day)}
@@ -77,7 +93,8 @@ export function ActivityCalendar({
                 {events.slice(0, 3).map((record) => (
                   <i
                     key={record.id}
-                    className={`study-dot--${record.groupId}`}
+                    style={{ backgroundColor: colorFor(record.groupId) }}
+                    title={`${nameFor(record.groupId)} · ${record.title}`}
                   />
                 ))}
               </span>

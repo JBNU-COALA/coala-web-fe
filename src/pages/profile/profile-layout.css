@@ -263,3 +263,17 @@
 .coala-content--profile .profile-joined-top { position: absolute; top: 0; right: 0; margin: 0; color: #888; font-size: 12px; }
 .coala-content--profile .profile-handle-service { display: flex; align-items: center; gap: 7px; }
 .coala-content--profile .profile-handle-service img { object-fit: contain; }
+
+.coala-content--profile .profile-settings-title { font-size: 24px; margin-bottom: 28px; }
+.coala-content--profile .profile-page-name { font-size: 22px; }
+.coala-content--profile :is(.profile-page-role, .profile-page-focus) { font-size: 13px; line-height: 1.6; }
+.coala-content--profile :is(.profile-section-title, .profile-settings-section-title, .study-connections h3) { font-size: 16px; }
+.coala-content--profile .profile-content-title { font-size: 14px; }
+.coala-content--profile .profile-stat-value { font-size: 20px; }
+.coala-content--profile :is(.profile-handle-service, .profile-handle-value) { font-size: 13px; }
+
+.coala-content--profile .profile-page { padding-top: 16px; }
+.coala-content--profile .profile-page-hero { padding-top: 0; border-bottom: 1px solid #e5e5e5; }
+.coala-content--profile .profile-identity-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
+.coala-content--profile .profile-joined-top { position: static; margin: 0; font-size: 11px; }
+.coala-content--profile .profile-page-identity { min-width: 0; }

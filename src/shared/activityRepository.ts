@@ -105,3 +105,10 @@ export async function deleteActivityRecord(record: StudyRecord) {
     params: { version: record.version }
   })
 }
+
+export async function loadRecentAttendanceRecords(signal?: AbortSignal): Promise<StudyRecord[]> {
+  const today = activityToday()
+  return (await client.get<StudyRecord[]>('/api/study/records', {
+    params: { from: shiftDate(today, -29), to: today }, signal,
+  })).data
+}

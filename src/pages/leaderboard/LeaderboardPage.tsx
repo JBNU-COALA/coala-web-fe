@@ -1,3 +1,4 @@
+import { loadRecentAttendanceRecords } from '../../shared/activityRepository'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -79,6 +80,23 @@ export function LeaderboardPage() {
   const [loadRevision, setLoadRevision] = useState(0)
   const [members, setMembers] = useState<ActivityMember[]>([])
 
+  const [attendanceCounts, setAttendanceCounts] = useState<Record<string, number>>({})
+  const [attendanceState, setAttendanceState] = useState<'loading' | 'ready' | 'error'>('loading')
+  useEffect(() => {
+    const controller = new AbortController()
+    loadRecentAttendanceRecords(controller.signal).then((records) => {
+      if (controller.signal.aborted) return
+      const counts: Record<string, number> = {}
+      for (const record of records) {
+        const attended = new Set(record.attendance.filter((entry) => entry.status === 'present').map((entry) => String(entry.userId)))
+        for (const id of attended) counts[id] = (counts[id] ?? 0) + 1
+      }
+      setAttendanceCounts(counts)
+      setAttendanceState('ready')
+    }).catch(() => { if (!controller.signal.aborted) setAttendanceState('error') })
+    return () => controller.abort()
+  }, [loadRevision, user?.id])
+
   const normalizedQuery = query.trim().toLowerCase()
   const gradeOptions = ['all', ...Array.from(new Set(members.map((member) => member.grade)))]
   const labOptions = ['all', ...Array.from(new Set(members.map((member) => member.lab)))]
@@ -106,6 +124,11 @@ export function LeaderboardPage() {
         .includes(normalizedQuery)
     })
   }, [gradeFilter, labFilter, members, normalizedQuery])
+
+  const attendanceLeaders = [...filteredMembers]
+    .filter((member) => (attendanceCounts[getPublicUserId(member, user?.id)] ?? 0) > 0)
+    .sort((a, b) => (attendanceCounts[getPublicUserId(b, user?.id)] ?? 0) - (attendanceCounts[getPublicUserId(a, user?.id)] ?? 0) || a.name.localeCompare(b.name, 'ko'))
+    .slice(0, 3)
 
   return (
     <section className="coala-content coala-content--activity">
@@ -140,13 +163,16 @@ export function LeaderboardPage() {
           </section>
 
           {!isLoading && !loadError && filteredMembers.length > 0 ? (
-            <section className="activity-recent-members" aria-label="최근 활동 유저">
+            <section className="activity-recent-members" aria-label="출석 우수 멤버">
               <header className="activity-directory-section-head">
-                <div><h2>최근 활동한 멤버</h2><p>최근에 활동한 코알라 멤버입니다.</p></div>
+                <div><h2><span aria-hidden="true">👑</span> 출석 우수 멤버</h2><p>최근 30일간 출석 기록이 많은 멤버입니다.</p></div>
                 <a href="#all-members">전체 보기 <Icon name="chevron-right" size={14} /></a>
               </header>
+              {attendanceState === 'loading' ? <LoadingSpinner label="출석 현황을 불러오는 중입니다." />
+                : attendanceState === 'error' ? <p className="activity-empty">출석 현황을 불러오지 못했습니다.</p>
+                  : attendanceLeaders.length === 0 ? <p className="activity-empty">최근 30일간 확인된 출석 기록이 없습니다.</p> : null}
               <div className={`activity-directory-grid activity-directory-grid--${viewMode}`}>
-                {filteredMembers.slice(0, 3).map((member) => (
+                {attendanceLeaders.map((member) => (
                   <MemberCard
                     key={`recent-${member.id}`}
                     member={member}
@@ -158,7 +184,7 @@ export function LeaderboardPage() {
           ) : null}
 
           <header id="all-members" className="activity-directory-section-head activity-directory-section-head--all">
-            <div><h2>전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
+            <div><h2><Icon name="profile-color" size={23} /> 전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
             <strong className="activity-member-count">{isLoading || loadError ? '멤버' : `멤버 ${filteredMembers.length}명`}</strong>
           </header>
           <section className={`activity-directory-grid activity-directory-grid--${viewMode}`} aria-label="전체 유저 목록">

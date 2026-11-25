@@ -18,6 +18,7 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { Icon } from '../../shared/ui/Icon'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import './postWriter.css'
+import { CommunityBanner } from '../community/CommunityBanner'
 import { copyMarkdown, extractFirstMarkdownImageUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import {
   createMarkdownImageCommand,
@@ -560,7 +561,11 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
   }
 
   return (
-    <section className="coala-content coala-content--post-writer coala-content--velog-writer">
+    <section className={`coala-content coala-content--post-writer coala-content--velog-writer${writerType === 'community' || writerType === 'qna' ? ' post-writer-has-banner' : ''}`}>
+      {(writerType === 'community' || writerType === 'qna') && <CommunityBanner
+        title={writerType === 'qna' ? '질문게시판' : '게시판'}
+        description={writerType === 'qna' ? '개발, 진로, 연구실, 대학원 등 궁금한 점이 있다면 자유롭게 질문해주세요!' : '코알라 멤버들의 자유로운 소통 공간'}
+      />}
       <form className="post-writer-layout post-writer-layout--velog" onSubmit={handlePublish}>
         <article className="post-writer post-writer--velog">
           <header className="velog-writer-topbar">
