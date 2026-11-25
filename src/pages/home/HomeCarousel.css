@@ -288,3 +288,21 @@
 .coala-app .home-carousel-slide--coral .home-carousel-copy :is(h1, h2) { font-weight: 600; }
 @media (min-width: 901px) { .coala-app .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr) minmax(0, 320px); } }
 @media (max-width: 560px) { .coala-app .home-carousel-copy :is(h1, h2) { font-size: 23px; } }
+
+/* Keep the controls anchored while the active marker gently expands and breathes. */
+.home-carousel-dots button { transition: background-color 180ms ease, transform 180ms ease; }
+.home-carousel-dots button span {
+  transition: width 360ms cubic-bezier(.22, 1, .36, 1), background-color 240ms ease, transform 240ms ease;
+}
+.home-carousel-dots button[aria-current] span { animation: carousel-marker-pulse 2.8s ease-in-out infinite; }
+.home-carousel-dots button:hover span { transform: scale(1.15); }
+.home-carousel-dots button:active { transform: scale(.92); }
+@keyframes carousel-marker-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 #173b3900; }
+  50% { box-shadow: 0 0 0 3px #173b3914; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-carousel-dots button, .home-carousel-dots button span { transition: none; }
+  .home-carousel-dots button[aria-current] span { animation: none; }
+  .home-carousel-dots button:hover span, .home-carousel-dots button:active { transform: none; }
+}
