@@ -237,3 +237,5 @@
   .coala-header .coala-main-nav:hover .main-nav-mega,
   .coala-header .coala-main-nav.is-mega-open .main-nav-mega { transform: translateY(0); }
 }
+
+.coala-app .character-avatar { background: #fff; border-color: #e5e5e5; }

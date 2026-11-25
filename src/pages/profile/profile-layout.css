@@ -277,3 +277,17 @@
 .coala-content--profile .profile-identity-heading { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 8px 20px; }
 .coala-content--profile .profile-joined-top { position: static; margin: 0; font-size: 11px; }
 .coala-content--profile .profile-page-identity { min-width: 0; }
+
+.coala-content--profile .profile-editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.coala-content--profile .profile-editor-heading:empty { display: none; }
+.coala-content--profile .profile-editor-heading .profile-settings-section-title { margin: 0; }
+.coala-content--profile .profile-editor-heading .profile-edit-actions { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+.coala-app.coala-app .profile-editor-heading .profile-edit-actions button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; min-height: 34px; padding: 0; border: 0; background: transparent; color: #444; box-shadow: none; }
+.coala-app.coala-app .profile-editor-heading .profile-edit-actions button:hover { background: #f5f5f5; }
+.coala-content--profile .profile-settings-main.is-editing .profile-section-grid { animation: profile-edit-enter 220ms ease-out; }
+@keyframes profile-edit-enter { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .coala-content--profile .profile-settings-main.is-editing .profile-section-grid { animation: none; } }
+
+.coala-content--profile .profile-handle-service > :is(img, svg) { width: 18px; height: 18px; flex: 0 0 18px; object-fit: contain; }
+
+.coala-content--profile .profile-empty-text { display: block; width: 100%; box-sizing: border-box; text-align: center; padding: 28px 12px; margin: 0; font-size: 13px; color: #737373; }

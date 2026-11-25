@@ -1,3 +1,4 @@
+import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -157,6 +158,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
   const requestedTab = params.get('tab')
   const tab: ProfileTab = requestedTab === 'activity' || requestedTab === 'awards' || requestedTab === 'posts' || requestedTab === 'services'
     ? requestedTab : 'overview'
+  const tabContentRef = usePageTransition<HTMLDivElement>(tab)
   const setTab = (value: ProfileTab) => {
     const next = new URLSearchParams(params)
     if (value === 'overview') next.delete('tab')
@@ -458,10 +460,6 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
     )
   }
 
-  const addAwardDraft = () => {
-    setAwardDrafts((current) => [...current, createBlankAward()])
-  }
-
   const removeAwardDraft = (index: number) => {
     setAwardDrafts((current) => current.filter((_award, awardIndex) => awardIndex !== index))
   }
@@ -499,8 +497,26 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               <button type="button" className="profile-settings-logout" onClick={async () => { await logout(); navigate('/') }}><Icon name="logout-color" size={20} />로그아웃</button>
             </>}
           </aside>
-          <div className="profile-page profile-settings-main">
-            {editing && <h2 className="profile-settings-section-title">프로필 편집</h2>}
+          <div className={`profile-page profile-settings-main${editing ? ' is-editing' : ''}`}>
+            <div className="profile-editor-heading">{editing && <h2 className="profile-settings-section-title">프로필 편집</h2>}
+          {canEdit ? (
+            <div className="profile-edit-actions">
+            {editing && <button type="button" className="profile-cancel-icon" aria-label="프로필 편집 취소" title="프로필 편집 취소" disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
+              onClick={() => { setEditing(false); setProfileSaveState('idle'); setPhotoError(null) }}><Icon name="close" size={20} /></button>}
+            <button
+              type="button"
+              className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
+              aria-label={editing ? '프로필 저장' : '프로필 편집'}
+              title={editing ? '프로필 저장' : '프로필 편집'}
+              onClick={handleEditClick}
+              disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
+            >
+              <Icon name="pencil-color" size={20} />
+
+            </button>
+            </div>
+          ) : null}
+</div>
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
@@ -577,27 +593,12 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               ) : null}
             </div>
           </div>
-          {canEdit ? (
-            <div className="profile-edit-actions">
-            {editing && <button type="button" className="ghost-button" disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
-              onClick={() => { setEditing(false); setProfileSaveState('idle'); setPhotoError(null) }}>취소</button>}
-            <button
-              type="button"
-              className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
-              aria-label={editing ? '프로필 저장' : '프로필 편집'}
-              title={editing ? '프로필 저장' : '프로필 편집'}
-              onClick={handleEditClick}
-              disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
-            >
-              <Icon name="pencil-color" size={20} />
-              {editing ? (profileSaveState === 'saving' ? '저장 중' : '저장') : null}
-            </button>
-            </div>
-          ) : null}
+
         </div>
         {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error" role="alert">{profileSaveError}</p> : null}
         {profileSaveState === 'saved' ? <p className="profile-save-message" role="status">프로필을 저장했습니다.</p> : null}
 
+        <div ref={tabContentRef} className="profile-tab-content">
         {tab === 'overview' ? (
           <>
           <div className="profile-section-grid profile-section-grid--overview">
@@ -652,7 +653,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service"><img src="/jbnu-emblem.svg" alt="" width={18} height={26} />소속 / 연구실</span>
+                      <span className="profile-handle-service"><img src="/jbnu-emblem.svg" alt="" width={18} height={18} />소속 / 연구실</span>
                       <span className="profile-handle-value">
                         {firstNonBlank(user?.department, '소속 미입력')} · {firstNonBlank(user?.lab, '연구실 미입력')}
                       </span>
@@ -686,11 +687,17 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                     </span>
                   </li>
                   <li className="profile-handle-item">
+                    <span className="profile-handle-body">
+                      <span className="profile-handle-service"><img src="/baekjoon-favicon.ico" width={18} height={18} alt="" />백준 ID</span>
+                      <span className="profile-handle-value">{user?.baekjoonId || '등록 안 함'}</span>
+                    </span>
+                  </li>
+                  <li className="profile-handle-item">
                     <span className="profile-handle-icon profile-handle-icon--github">
                       <Icon name="link" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service">LinkedIn</span>
+                      <span className="profile-handle-service"><Icon name="linkedin" size={18} />LinkedIn</span>
                       <span className="profile-handle-value">{user?.linkedinUrl ?? '등록 안 함'}</span>
                     </span>
                   </li>
@@ -717,7 +724,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                       <Icon name="users" size={14} />
                     </span>
                     <span className="profile-handle-body">
-                      <span className="profile-handle-service"><img src="/jbnu-emblem.svg" alt="" width={18} height={26} />소속</span>
+                      <span className="profile-handle-service"><img src="/jbnu-emblem.svg" alt="" width={18} height={18} />소속</span>
                       <span className="profile-handle-value">{profileMember.lab}</span>
                     </span>
                   </li>
@@ -1011,15 +1018,11 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                     </button>
                   </div>
                 ))}
-                <button type="button" className="ghost-button profile-add-row-button" onClick={addAwardDraft}>
-                  <Icon name="plus" size={14} />
-                  수상내역 추가
-                </button>
               </div>
             ) : awardNote && !awardNote.trim().startsWith('[') ? (
               <p className="profile-bio-text profile-award-note">{awardNote}</p>
             ) : null}
-            {profileAwards.length === 0 ? (
+            {profileAwards.length === 0 && (!editing || awardDrafts.length === 0) ? (
               <p className="profile-empty-text">등록된 수상 내역이 없습니다.</p>
             ) : (
               <ul className="profile-award-list">
@@ -1062,6 +1065,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           <ProfileActivityList {...overview} items={(overview.data?.items ?? []).filter((item) => ['service', 'instance', 'domain'].includes(item.kind))}
             emptyText="등록된 서비스 내역이 없습니다." />
         </section>}
+        </div>
           </div>
         </div>
       </div>

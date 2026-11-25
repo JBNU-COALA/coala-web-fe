@@ -849,3 +849,7 @@ a.study-person-name:hover {
 .study-calendar-legend:empty { display: none; }
 .study-calendar-legend > span { display: inline-flex; align-items: center; gap: 6px; }
 .study-calendar-legend i { display: block; width: 8px; height: 8px; border-radius: 50%; }
+
+/* Keep attendance headings consistent with compact section titles. */
+.coala-app .record-editor-page .study-page-heading h1 { font-size: 20px; line-height: 1.4; font-weight: 650; }
+.coala-app .study-page--list .study-page-heading h2 { font-size: 18px; line-height: 1.4; font-weight: 650; }

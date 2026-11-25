@@ -1,4 +1,4 @@
-import { lazy, Suspense, type FocusEvent, useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, type FocusEvent, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
   getRouteFromPath,
@@ -231,6 +231,9 @@ function formatNotificationTime(value?: string | null) {
 function App() {
   const { isLoggedIn, user } = useAuth()
   const location = useLocation()
+  useLayoutEffect(() => {
+    if (!location.hash) window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
+  }, [location.pathname, location.hash])
   const publicPath = location.pathname === '/' ? '/' : (/^\/recruiting(?:\/[^/]+)?\/?$/.test(location.pathname) ? location.pathname : null)
   if (publicPath) return <PublicPageTransition pathname={publicPath} />
   return <AppSession key={isLoggedIn ? `user:${user?.id}` : 'guest'} />

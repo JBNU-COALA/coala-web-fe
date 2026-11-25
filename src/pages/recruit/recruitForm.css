@@ -58,3 +58,11 @@
 .coala-app .recruit-write-type { width: min(380px, 100%); }
 .coala-app .recruit-write-type .select-control.custom-select > .select-control-trigger { height: 42px !important; min-height: 42px !important; padding: 0 12px !important; font-size: 15px !important; font-weight: 400; }
 .coala-app .coala-content .recruit-write-panel .recruit-process-input { min-height: 150px; }
+
+.coala-app .recruit-write-type { width: 100%; }
+.coala-app .recruit-write-panel .recruit-write-type .select-control { box-sizing: border-box; width: 100%; min-height: 44px; height: 44px; border-radius: 6px; }
+.coala-app .recruit-write-panel .recruit-write-type .select-control.custom-select > .select-control-trigger { height: 42px !important; min-height: 42px !important; }
+
+.coala-app .recruit-write-panel { animation: recruit-write-enter 220ms ease-out; }
+@keyframes recruit-write-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .coala-app .recruit-write-panel { animation: none; } }

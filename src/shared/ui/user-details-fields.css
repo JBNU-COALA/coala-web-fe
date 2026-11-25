@@ -5,3 +5,7 @@
 .member-field input[readonly] { background: #f3f5f7; color: #677580; }
 .member-field :is(input, select):focus-visible { outline: 2px solid #16825e; outline-offset: 2px; }
 @media (max-width: 480px) { .member-fields { grid-template-columns: minmax(0, 1fr); gap: 12px; } }
+
+.member-fields-title { padding: 0; margin-bottom: 18px; font-size: 14px; font-weight: 600; color: #333; }
+.member-field-label { display: flex; align-items: center; gap: 7px; }
+.member-field-label img { object-fit: contain; }

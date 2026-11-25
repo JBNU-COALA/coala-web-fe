@@ -15,6 +15,7 @@ import { CommunityBanner } from '../community/CommunityBanner'
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthContext'
+import './info-share.css'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
 type InfoSharePageProps = {

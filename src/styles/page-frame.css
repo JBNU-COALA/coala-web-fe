@@ -130,10 +130,10 @@
   }
 }
 
-/* Filled lists use the available width; empty states keep the centered column. */
+/* Boards with a tag sidebar stay wide, including loading and empty states. */
 @media (min-width: 901px) {
-  .coala-section-layout .coala-section-main:has(.community-board-post, .info-post-row) { grid-column: 2 / -1; }
-  .coala-section-layout .coala-section-main:has(.community-board-post, .info-post-row) .community-banner { width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap)); }
+  .coala-section-layout .coala-section-main:has(.community-board-layout, .info-post-row) { grid-column: 2 / -1; }
+  .coala-section-layout .coala-section-main:has(.community-board-layout, .info-post-row) .community-banner { width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap)); }
 }
 
 @media (min-width: 901px) {

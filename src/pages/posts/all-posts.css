@@ -74,3 +74,8 @@
 .community-board-filters button:hover { background: #ededed; }
 .community-board .listing-pagination button[aria-current='page'] { background: #222; border-color: #222; color: #fff; }
 @media(max-width:700px) { .community-board-actions .community-board-write { padding-inline: 12px; font-size: 13px; } }
+
+.coala-app .community-board-filters { padding: 16px; }
+.coala-app .community-board-filters h2 { margin-bottom: 12px; font-size: 13px; color: #737373; }
+.coala-app .community-board-filters > div { gap: 7px; }
+.coala-app.coala-app .community-board-filters button { min-height: 28px; padding: 4px 9px; font-size: 12px; line-height: 18px; border-radius: 999px; }

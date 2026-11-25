@@ -1,5 +1,6 @@
 import type { UserDetailsDraft } from '../api/userDetails'
 import './user-details-fields.css'
+import { Icon } from './Icon'
 
 export function UserDetailsFields({ value, onChange, email, disabled = false }: {
   value: UserDetailsDraft
@@ -9,10 +10,10 @@ export function UserDetailsFields({ value, onChange, email, disabled = false }: 
 }) {
   const set = (key: keyof UserDetailsDraft, next: string) => onChange({ ...value, [key]: next })
   const input = (key: keyof UserDetailsDraft, label: string, maxLength: number, required = false, type = 'text') =>
-    <label className="member-field"><span>{label}</span><input type={type} value={value[key]}
+    <label className="member-field"><span className="member-field-label">{key === 'githubId' ? <Icon name="github" size={17} /> : key === 'linkedinUrl' ? <Icon name="linkedin" size={17} /> : key === 'baekjoonId' ? <img src="/baekjoon-favicon.ico" width={17} height={17} alt="" /> : null}{label}</span><input type={type} value={value[key]}
       maxLength={maxLength} required={required} onChange={(event) => set(key, event.target.value)} /></label>
   return <fieldset className="member-fields" disabled={disabled}>
-    <legend className="sr-only">회원정보</legend>
+    <legend className="member-fields-title">회원정보</legend>
     <label className="member-field member-field--wide"><span>계정 이메일</span>
       <input type="email" value={email} readOnly aria-readonly="true" /></label>
     {input('name', '이름', 50, true)}

@@ -1,3 +1,4 @@
+import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { RecruitRoleFields } from './RecruitRoleFields'
 import { buildRecruitPayload, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
@@ -265,6 +266,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
   const savedIds = bookmarks.savedIds
   const [draft, setDraft] = useState<RecruitDraft>(defaultRecruitDraft)
   const [creating, setCreating] = useState(false)
+  const [cancelOpen, setCancelOpen] = useState(false)
   const [draftError, setDraftError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const [remoteRecruitItems, setRemoteRecruitItems] = useState<RecruitItem[]>([])
@@ -387,13 +389,13 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     <section className="coala-content coala-content--recruit">
       <CommunityBanner title="모집" description="스터디와 프로젝트를 함께할 팀원을 찾고, 관심 있는 모집에 참여해 보세요." tone="recruit" />
 
-      <SectionNav label="모집 메뉴" className="page-container" items={workspaceTabs}
+      {mode !== 'write' && <SectionNav label="모집 메뉴" className="page-container" items={workspaceTabs}
         value={workspaceTabs.find((tab) => isTabActive(tab.id))?.id ?? 'list'}
         onChange={changeMode} action={(
         <button type="button" className="recruit-create-button" onClick={() => changeMode('write')}>
           공고 등록
         </button>
-      )} />
+      )} />}
       {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
       {(bookmarks.error || applications.error) && <div className="recruit-load-state">
         <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button retry-button" onClick={() => {
@@ -499,7 +501,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           </div>
           {draftError ? <p className="auth-error">{draftError}</p> : null}
           <div className="recruit-write-footer">
-            <button type="button" className="ghost-button writer-cancel-button" disabled={creating} onClick={() => { if (window.confirm('작성을 취소하고 목록으로 돌아갈까요?')) navigate(routes.community.recruit) }}>취소</button>
+            <button type="button" className="ghost-button writer-cancel-button" disabled={creating} onClick={() => setCancelOpen(true)}>취소</button>
             <button type="submit" className="jcloud-submit-button" disabled={creating}>{creating ? '저장 중...' : '작성 완료'}</button>
           </div>
         </form>
@@ -605,6 +607,11 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           />
         </>
       )}
+      <ConfirmDialog open={cancelOpen} title="작성을 취소할까요?"
+        description="작성 중인 내용은 저장되지 않습니다. 목록으로 돌아갈까요?"
+        confirmLabel="작성 취소" cancelLabel="계속 작성"
+        onCancel={() => setCancelOpen(false)}
+        onConfirm={() => { setCancelOpen(false); setDraft(defaultRecruitDraft); navigate(routes.community.recruit) }} />
     </section>
   )
 }
