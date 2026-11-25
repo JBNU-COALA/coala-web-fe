@@ -316,3 +316,8 @@
   .coala-content--profile .profile-award-edit-item .auth-input,
   .coala-app .coala-content--profile .profile-award-select.custom-select > .select-control-native { font-size: 16px !important; }
 }
+
+.coala-content--profile .profile-save-message { position: relative; margin: 16px 0 24px; padding: 10px 12px; border-radius: 6px; background: #f5f5f5; color: #404040; font-size: 13px; font-weight: 400; line-height: 1.6; }
+.coala-content--profile .profile-basic-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.coala-app.coala-app .profile-basic-heading .profile-edit-actions button { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; min-height: 34px; padding: 0; border: 0; background: transparent; color: #444; box-shadow: none; }
+.coala-app.coala-app .profile-basic-heading .profile-edit-actions button:hover { background: #f5f5f5; }

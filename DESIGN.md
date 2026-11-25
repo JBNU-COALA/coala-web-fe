@@ -1,22 +1,22 @@
 ---
 version: "0.2.0"
 name: "Coala Portal Design System"
-description: "Coala public jungle landing and recruiting website, with a green-gray member portal."
+description: "Coala public jungle landing and recruiting website, with a neutral black-and-gray member portal."
 colors:
-  primary: "#1a5d41"
-  primary-strong: "#14492f"
-  accent: "#4caf82"
-  page: "#f2f5f3"
+  primary: "#171717"
+  primary-strong: "#262626"
+  accent: "#525252"
+  page: "#ffffff"
   surface: "#ffffff"
-  surface-raised: "#f8fbfa"
-  surface-muted: "#eef3f0"
-  text: "#1a2520"
-  text-secondary: "#3a4d44"
-  text-muted: "#5f7167"
-  text-inverse: "#effcf4"
-  border: "#d8e1dd"
-  border-strong: "#b7c4be"
-  success: "#2e7d4f"
+  surface-raised: "#fafafa"
+  surface-muted: "#f5f5f5"
+  text: "#171717"
+  text-secondary: "#404040"
+  text-muted: "#737373"
+  text-inverse: "#ffffff"
+  border: "#e5e5e5"
+  border-strong: "#d4d4d4"
+  success: "#404040"
   warning: "#c87a00"
   danger: "#c0392b"
   info: "#1f5fa8"
@@ -222,12 +222,12 @@ The current primary product surfaces are:
 
 ## Colors
 
-- Use green for primary actions, active navigation, service availability, and selected state.
-- Use gray and green-gray for structure: page backgrounds, borders, secondary surfaces, metadata, and quiet labels.
-- Use black-green text for hierarchy. Avoid pure black except where inherited browser rendering makes it unavoidable.
-- Keep the current minor accent colors as supporting tones only: sky for information/resource variants, sand/amber for highlights or top picks, rose/red for warnings, and mint for positive/resource states.
-- Do not introduce dominant purple, blue, orange, beige, or decorative gradient palettes. Secondary colors may appear only as semantic badges, resource variants, ranking states, or small data accents.
-- Dark green panels are allowed for first-screen hero or key service emphasis, but they must contain functional status, navigation, or summary content.
+- Member portal UI uses black and neutral gray, never green or green-tinted gray: primary text/actions `#171717`, secondary text `#525252`, metadata `#737373`, borders `#d4d4d4` / `#e5e5e5`, surfaces white / `#fafafa` / `#f5f5f5`.
+- Apply this to links, buttons, active/selected states, focus rings, inputs, dropdowns, badges, and success feedback. Saving successfully must not turn the message green. Use a neutral focus ring such as `0 0 0 3px #0000000d`.
+- Explicitly requested colored icons may retain their illustration colors. Errors may use semantic red with explanatory text; do not rely on color alone.
+- Existing public landing illustrations, brand artwork and banner palettes are separate exceptions. They do not justify green UI controls in community, services, archives or profile screens.
+- Feedback stays in normal document flow with positive spacing; never use negative margins that collide with section borders. Profile editing actions belong at the far right of the basic-information heading row.
+- These portal rules supersede older green palette examples elsewhere in this document.
 
 ## Typography
 

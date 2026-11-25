@@ -480,6 +480,25 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
     setAwardDrafts((current) => [...current, createBlankAward()])
   }
 
+  const profileEditActions = (canEdit ? (
+            <div className="profile-edit-actions">
+            {editing && <button type="button" className="profile-cancel-icon" aria-label="프로필 편집 취소" title="프로필 편집 취소" disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
+              onClick={() => { setEditing(false); setProfileSaveState('idle'); setPhotoError(null) }}><Icon name="close" size={20} /></button>}
+            <button
+              type="button"
+              className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
+              aria-label={editing ? '프로필 저장' : '프로필 편집'}
+              title={editing ? '프로필 저장' : '프로필 편집'}
+              onClick={handleEditClick}
+              disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
+            >
+              <Icon name="pencil-color" size={20} />
+
+            </button>
+            </div>
+          ) : null);
+
+
   if (profileMember === emptyProfileMember) return (
     <PageFrame title="프로필" tone="users">
       <p role={profileError ? 'alert' : 'status'}>{profileError || '프로필을 불러오는 중입니다.'}</p>
@@ -500,23 +519,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           </aside>
           <div className={`profile-page profile-settings-main${editing ? ' is-editing' : ''}`}>
             <div className="profile-editor-heading">{editing && <h2 className="profile-settings-section-title">프로필 편집</h2>}
-          {canEdit ? (
-            <div className="profile-edit-actions">
-            {editing && <button type="button" className="profile-cancel-icon" aria-label="프로필 편집 취소" title="프로필 편집 취소" disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
-              onClick={() => { setEditing(false); setProfileSaveState('idle'); setPhotoError(null) }}><Icon name="close" size={20} /></button>}
-            <button
-              type="button"
-              className={editing ? 'profile-edit-button profile-edit-button--active' : 'profile-edit-button'}
-              aria-label={editing ? '프로필 저장' : '프로필 편집'}
-              title={editing ? '프로필 저장' : '프로필 편집'}
-              onClick={handleEditClick}
-              disabled={profileSaveState === 'saving' || isUploadingProfilePhoto}
-            >
-              <Icon name="pencil-color" size={20} />
-
-            </button>
-            </div>
-          ) : null}
+          {tab !== 'overview' && profileEditActions}
 </div>
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
@@ -618,13 +621,13 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
             </div>
 
             <div className="surface-card profile-section-card">
-              <h3 className="profile-section-title">기본 정보</h3>
+              <div className="profile-section-title-row profile-basic-heading"><h3 className="profile-section-title">기본 정보</h3>{profileEditActions}</div>
               {editing ? (
                 <UserDetailsFields value={accountDraft} onChange={setAccountDraft}
                   email={user?.email ?? ''} disabled={profileSaveState === 'saving'} />
               ) : canEdit ? (
                 <ul className="profile-handles-list">
-                  {[['닉네임', user?.nickname], ['생년월일', user?.birthDate], ['학년', user?.grade ? `${user.grade}학년` : ''], ['백준 ID', user?.baekjoonId]].map(([label, value]) => (
+                  {[['닉네임', user?.nickname], ['생년월일', user?.birthDate], ['학년', user?.grade ? `${user.grade}학년` : '']].map(([label, value]) => (
                     <li className="profile-handle-item" key={label}>
                       <span className="profile-handle-icon"><Icon name="user" size={14} /></span>
                       <span className="profile-handle-body"><span className="profile-handle-service">{label}</span>

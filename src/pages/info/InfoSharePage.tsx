@@ -18,6 +18,21 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import './info-share.css'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 
+// Break previews at word boundaries instead of cutting a Korean word in half.
+function previewLines(content: string) {
+  const text = toPlainContentPreview(content).trim()
+  const lines: string[] = []
+  let remaining = text
+  for (let i = 0; i < 2 && remaining; i += 1) {
+    if (remaining.length <= 60) { lines.push(remaining); break }
+    const boundary = remaining.lastIndexOf(' ', 60)
+    const end = boundary >= 30 ? boundary : 60
+    lines.push(remaining.slice(0, end).trimEnd() + (i === 1 ? '…' : ''))
+    remaining = remaining.slice(end).trimStart()
+  }
+  return lines
+}
+
 type InfoSharePageProps = {
   onWriteInfo?: () => void
   onOpenInfo?: (postId: number) => void
@@ -216,7 +231,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               const [fallbackSourceName, fallbackSourceDate] = card.source.split('|').map((part) => part.trim())
               const sourceName = card.authorName || card.sourceName || fallbackSourceName
               const sourceDate = card.sourceDate || fallbackSourceDate
-              const summary = toPlainContentPreview(card.content)
+              const summary = previewLines(card.content)
               const imageUrl = getInfoImageUrl(card)
               const categoryLabel = infoLabelByFilter[card.filter]
 
@@ -248,9 +263,18 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                         </div>
 
                         <p className="board-post-excerpt">
-                          {summary.length > 120 ? `${summary.slice(0, 120).trimEnd()}…` : summary}
+                          {summary.map((line, index) => <span className="info-preview-line" key={index}>{line}</span>)}
                         </p>
 
+
+                      </div>
+                    </button>
+
+	                    {viewMode === 'list' && imageUrl ? (
+	                      <InfoListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
+	                    ) : null}
+
+                    <div className="info-post-footer">
                         <p className="board-post-meta">
                           <CharacterAvatar
                             name={sourceName || '코알라'}
@@ -266,19 +290,12 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                             </>
                           ) : null}
                         </p>
-                      </div>
-                    </button>
-
-	                    {viewMode === 'list' && imageUrl ? (
-	                      <InfoListThumbnail imageUrl={imageUrl} viewMode={viewMode} />
-	                    ) : null}
-
                     <div className="board-post-stats info-post-stats">
                       <span className="board-stat">
                         <Icon name="eye-color" size={14} />
                         <span>{card.viewCount}</span>
                       </span>
-                      <span className="board-stat">
+                      <span className="board-stat info-footer-category">
                         <Icon name="file-color" size={14} />
                         <span>{card.meta}</span>
                       </span>
@@ -293,10 +310,11 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
                             void toggleInfoLike(card)
                           }}
                         >
-                          <Icon name="heart" size={14} />
+                          <Icon name="heart-color" size={14} />
                           <span>{getInfoLikeCount(card)}</span>
                         </button>
                       </div>
+                    </div>
                     </div>
                   </div>
                 </li>

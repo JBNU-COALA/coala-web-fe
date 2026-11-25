@@ -79,3 +79,10 @@
 .coala-app .community-board-filters h2 { margin-bottom: 12px; font-size: 13px; color: #737373; }
 .coala-app .community-board-filters > div { gap: 7px; }
 .coala-app.coala-app .community-board-filters button { min-height: 28px; padding: 4px 9px; font-size: 12px; line-height: 18px; border-radius: 999px; }
+
+.community-board-search-reveal { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows 240ms ease, opacity 180ms ease, visibility 0s linear 240ms; }
+.community-board-search-reveal.is-open { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition: grid-template-rows 240ms ease, opacity 180ms ease, visibility 0s; }
+.community-board-search-clip { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .community-board-search-reveal, .community-board-search-reveal.is-open { transition: none; }
+}

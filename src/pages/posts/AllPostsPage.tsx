@@ -156,9 +156,13 @@ export function AllPostsPage({
                   onClick={canWriteCurrentBoard ? onWritePost : undefined}><svg className="community-board-pencil" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(40 12 12)"><path d="M9 6h6v12H9z" fill="#f5bc45" /><path d="M12 6h3v12h-3z" fill="#e49b29" /><path d="M9 18l3 5 3-5z" fill="#ead2aa" /><path d="M10.8 21l1.2 2 1.2-2z" fill="#343434" /><path d="M9 3a3 3 0 0 1 6 0v2H9z" fill="#ef929e" /><path d="M9 5h6v2H9z" fill="#d8d8d8" /></g></svg>게시글 작성하기</button>
               </div>
             </div>
-            {searchOpen && <div id="community-board-search" className="community-board-search">
-              <SearchField value={query} onChange={setQuery} placeholder="제목, 내용, 작성자로 검색" />
-            </div>}
+            <div id="community-board-search" className={`community-board-search-reveal${searchOpen ? ' is-open' : ''}`} inert={!searchOpen} aria-hidden={!searchOpen}>
+              <div className="community-board-search-clip">
+                <div className="community-board-search">
+                  <SearchField value={query} onChange={setQuery} placeholder="제목, 내용, 작성자로 검색" />
+                </div>
+              </div>
+            </div>
             {!searchOpen && query && <button type="button" className="community-board-query" onClick={() => { setQuery(''); setSearchOpen(true) }}>검색: {query} · 지우기</button>}
             {likeError && <p className="auth-error" role="alert">{likeError}</p>}
             <ul className="community-board-posts" aria-busy={isLoading}>
