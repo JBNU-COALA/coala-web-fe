@@ -20,6 +20,9 @@ export function AttendanceCard({ record, groupName, search, recruitId }: {
           <ActivityPhotoPreview photo={record.photos[0]} />
           <span><Icon name="image" size={14} />{record.photos.length}</span>
         </div>}
+        {!record.photos?.length && <div className="study-card-photo">
+          <img src="/coala-card-placeholder.png" alt="" loading="lazy" />
+        </div>}
         <div className="study-card-context">
           <span className="study-group">{groupName}</span>
           <time dateTime={record.date}>{parseDate(record.date)?.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric', weekday: 'short' })}</time>
