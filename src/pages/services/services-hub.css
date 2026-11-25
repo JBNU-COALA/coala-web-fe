@@ -221,9 +221,12 @@
 .coala-content--services .coas-actions button { background: #fff; color: #222; border: 1px solid #ddd; }
 
 /* Compact project covers keep supporting details on the detail page. */
-.coala-content--services .member-service-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 290px)); align-items: start; }
-.coala-content--services .member-service-card { border-radius: 20px; padding: 0 16px 14px; gap: 10px; overflow: hidden; }
-.coala-content--services .member-service-media { height: 150px; margin: 0 -16px 4px; }
+.coala-content--services .member-service-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 240px)); align-items: start; }
+.coala-content--services .member-service-card { border-radius: 12px; padding: 0 12px 12px; gap: 8px; overflow: hidden; }
+.coala-content--services .member-service-media { height: auto; aspect-ratio: 3 / 2; margin: 0 -12px 2px; background: #f5f5f5; }
+.coala-content--services .member-service-media img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.coala-content--services .member-service-card h3 { font-size: 15px; }
+.coala-content--services .member-service-card p { margin: 0; font-size: 12px; line-height: 1.5; }
 .coala-content--services .member-service-card-head { gap: 8px; }
 .coala-content--services .member-service-card-head h3 { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .coala-content--services .member-service-card-head .member-service-status { flex-shrink: 0; font-size: 10px; padding: 4px 7px; }
