@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isSameUserId } from '../../shared/auth/userIdentity'
 import { attachmentsApi } from '../../shared/api/attachments'
@@ -150,7 +150,8 @@ export function ProfilePage({ profileUserId }: ProfilePageProps) {
 }
 
 function ProfileContent({ profileUserId }: ProfilePageProps) {
-  const { isLoggedIn, user, updateUser } = useAuth()
+  const { isLoggedIn, user, updateUser, logout } = useAuth()
+  const navigate = useNavigate()
   const photoInputRef = useRef<HTMLInputElement | null>(null)
   const [params, setParams] = useSearchParams()
   const requestedTab = params.get('tab')
@@ -295,7 +296,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
   ])
 
   const tabs: { id: ProfileTab; label: string; icon: IconName }[] = [
-    { id: 'overview', label: '개요', icon: 'user' },
+    { id: 'overview', label: isOwnProfile ? '내 계정 관리' : '프로필', icon: 'user' },
     { id: 'activity', label: '활동 내역', icon: 'calendar' },
     { id: 'awards', label: '수상 내역', icon: 'chart' },
     { id: 'posts', label: '작성 내용', icon: 'file' },
@@ -483,12 +484,24 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
   if (profileMember === emptyProfileMember) return (
     <PageFrame title="프로필" tone="users">
       <p role={profileError ? 'alert' : 'status'}>{profileError || '프로필을 불러오는 중입니다.'}</p>
-      {profileError && <button type="button" className="ghost-button" onClick={() => { setProfileError(''); setProfileRevision((value) => value + 1) }}>다시 불러오기</button>}
+      {profileError && <button type="button" className="ghost-button retry-button" onClick={() => { setProfileError(''); setProfileRevision((value) => value + 1) }}>다시 불러오기</button>}
     </PageFrame>
   )
 
   return (
-    <PageFrame title={isOwnProfile ? '마이페이지' : '프로필'} tone="users" className="coala-content--profile" bodyClassName="profile-page">
+    <section className="coala-content coala-content--profile profile-settings">
+      <div className="page-container">
+        <h1 className="profile-settings-title">{isOwnProfile ? '마이페이지' : '프로필'}</h1>
+        <div className="profile-settings-layout">
+          <aside className="profile-settings-sidebar">
+            <SectionNav label="프로필 메뉴" items={tabs} value={tab} onChange={setTab} />
+            {isOwnProfile && <>
+              <Link className="profile-settings-team" to={routes.community.activityUser(effectiveProfileUserId)}><Icon name="users" size={20} />나의 팀</Link>
+              <button type="button" className="profile-settings-logout" onClick={async () => { await logout(); navigate('/') }}><Icon name="logout" size={20} />로그아웃</button>
+            </>}
+          </aside>
+          <div className="profile-page profile-settings-main">
+            <h2 className="profile-settings-section-title">{tab === 'overview' ? (editing ? '프로필 편집' : '프로필 정보') : tabs.find((item) => item.id === tab)?.label}</h2>
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
             <div className="profile-photo-panel">
@@ -567,19 +580,8 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
         {profileSaveState === 'error' ? <p className="profile-save-message profile-save-message--error" role="alert">{profileSaveError}</p> : null}
         {profileSaveState === 'saved' ? <p className="profile-save-message" role="status">프로필을 저장했습니다.</p> : null}
 
-        <ProfileTasks userId={effectiveProfileUserId} ownProfile={isOwnProfile} overview={overview.data} />
-        {overview.error && <div className="profile-overview-error"><p role="alert">{overview.error}</p>
-          <button type="button" className="ghost-button" onClick={overview.retry}>다시 불러오기</button></div>}
-
-        <SectionNav label="프로필 메뉴" items={tabs} value={tab} onChange={setTab} />
-
         {tab === 'overview' ? (
           <>
-          <ProfileStats points={profileMember.totalPoints} commits={profileMember.githubCommits}
-            repositories={profileMember.sharedRepos.length} awards={profileAwards.length}
-            posts={overview.data ? authoredContents.length : undefined}
-            onAddRepository={canEdit ? startAddSharedRepo : undefined} onAddAward={canEdit ? startAddAward : undefined} />
-          <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
           <div className="profile-section-grid profile-section-grid--overview">
             <div className="surface-card profile-section-card">
               <h3 className="profile-section-title">소개</h3>
@@ -714,7 +716,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               )}
             </div>
             <div className="surface-card profile-section-card profile-custom-card">
-              <h3 className="profile-section-title">커스터마이징</h3>
+              <h3 className="profile-section-title">프로필 꾸미기 · 소셜 링크</h3>
               {editing ? (
                 <div className="profile-custom-editor">
                   <label className="profile-edit-field profile-edit-field--wide">
@@ -807,6 +809,15 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
 
         {tab === 'activity' ? (
           <div className="profile-section-grid profile-section-grid--single">
+            <ProfileTasks userId={effectiveProfileUserId} ownProfile={isOwnProfile} overview={overview.data} />
+            {overview.error && <div className="profile-overview-error"><p role="alert">{overview.error}</p>
+          <button type="button" className="ghost-button retry-button" onClick={overview.retry}>다시 불러오기</button></div>}
+
+            <ProfileStats points={profileMember.totalPoints} commits={profileMember.githubCommits}
+            repositories={profileMember.sharedRepos.length} awards={profileAwards.length}
+            posts={overview.data ? authoredContents.length : undefined}
+            onAddRepository={canEdit ? startAddSharedRepo : undefined} onAddAward={canEdit ? startAddAward : undefined} />
+
             <StudyConnections userId={effectiveProfileUserId} ownProfile={isOwnProfile} />
             <section className="profile-section-card">
               <h3 className="profile-section-title">활동 · 출석 기록</h3>
@@ -1033,6 +1044,9 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           <ProfileActivityList {...overview} items={(overview.data?.items ?? []).filter((item) => ['service', 'instance', 'domain'].includes(item.kind))}
             emptyText="등록된 서비스 내역이 없습니다." />
         </section>}
-    </PageFrame>
+          </div>
+        </div>
+      </div>
+    </section>
   )
 }

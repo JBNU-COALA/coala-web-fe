@@ -18,4 +18,4 @@
 .coala-app .select-control.custom-select { min-height: 30px !important; height: 30px !important; padding: 0 !important; border-radius: 5px; }
 .coala-app .select-control.custom-select > .select-control-trigger { min-height: 28px !important; height: 28px !important; padding: 0 10px !important; font-size: 12px !important; gap: 10px; }
 .coala-app .select-control.custom-select:focus-within { outline: none; border-color: #171717; box-shadow: none; }
-.coala-app select:not([multiple]):not([size]) { height: 30px !important; min-height: 30px !important; padding-top: 0 !important; padding-bottom: 0 !important; font-size: 12px !important; }
+.coala-app select:not([multiple]):not([size]):not(.auth-input) { height: 30px !important; min-height: 30px !important; padding-top: 0 !important; padding-bottom: 0 !important; font-size: 12px !important; }

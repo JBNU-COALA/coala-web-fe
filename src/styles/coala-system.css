@@ -3351,8 +3351,8 @@ textarea {
 .coala-header .main-nav-mega-column.is-active .main-nav-mega-title { border-bottom-color: #111; color: #111; }
 .coala-header .main-nav-mega-link,
 .coala-header .main-nav-mega-link--child { color: #6b6b6b; }
-.coala-header .main-nav-mega-link:hover,
-.coala-header .main-nav-mega-link.is-active { background: #f3f3f3; color: #111; }
+.coala-header .main-nav-mega-link:hover { background: #f3f3f3; color: #111; }
+.coala-header .main-nav-mega-link.is-active { background: #222; color: #fff; }
 
 /* 게시판 목록: 컨트롤과 같은 폭, 넉넉한 빈 상태, 다시 불러오기 버튼은 문구 아래 */
 .coala-content--posts .board-shell--editorial { padding: 0 0 18px; }
@@ -3447,7 +3447,7 @@ textarea {
 /* 세부 메뉴: 왼쪽 사이드바 */
 .coala-section-layout {
   display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
+  grid-template-columns: 220px minmax(0, 1fr);
   column-gap: 24px;
   align-items: start;
   width: min(1800px, calc(100% - 64px));
@@ -3459,6 +3459,9 @@ textarea {
   padding: 24px 0;
 }
 .coala-sidebar-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   margin: 0 0 8px;
   padding: 0 10px;
   color: #111;
@@ -3466,6 +3469,16 @@ textarea {
   font-weight: 700;
 }
 .coala-sidebar-nav { display: flex; flex-direction: column; gap: 2px; }
+.coala-sidebar-art {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  font: 24px/1 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif;
+  filter: drop-shadow(0 2px 2px #00000015);
+}
 .coala-sidebar-link {
   display: block;
   width: 100%;
@@ -3481,7 +3494,7 @@ textarea {
   cursor: pointer;
 }
 .coala-sidebar-link:hover { background: #f3f3f3; color: #111; }
-.coala-sidebar-link.is-active { background: #f3f3f3; color: #111; font-weight: 700; }
+.coala-sidebar-link.is-active { background: #222; color: #fff; font-weight: 700; }
 .coala-sidebar-link:focus-visible { outline: 2px solid #737373; outline-offset: 2px; }
 .coala-sidebar-link:focus:not(:focus-visible) { outline: none; box-shadow: none; }
 .coala-content--recruit .recruit-create-button,
@@ -3496,7 +3509,7 @@ textarea {
 .coala-section-main .page-container { width: 100%; }
 @media (min-width: 901px) {
   .coala-section-layout:has(.community-banner) {
-    --section-sidebar-width: 160px;
+    --section-sidebar-width: 220px;
     --section-column-gap: 32px;
     grid-template-columns: var(--section-sidebar-width) minmax(0, 1fr);
     column-gap: var(--section-column-gap);
@@ -3536,3 +3549,12 @@ textarea {
   .coala-sidebar-nav { flex-direction: row; overflow-x: auto; gap: 4px; }
   .coala-sidebar-link { width: auto; white-space: nowrap; }
 }
+
+/* Compact, rounded publishing actions. */
+.coala-content--recruit .recruit-create-button { min-width: 0; width: auto; min-height: 34px; height: 34px; padding: 0 16px; border-radius: 999px; font-size: 13px; line-height: 1; font-weight: 600; }
+.coala-content .write-post-button { min-height: 36px; padding: 8px 15px; border-radius: 999px; font-size: 13px; font-weight: 600; gap: 7px; }
+.coala-content .write-post-button svg { flex-shrink: 0; }
+
+.main-nav-mega-title { display: flex; align-items: center; gap: 10px; }
+.main-nav-mega-art { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; font-size: 28px; line-height: 1; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; filter: drop-shadow(0 3px 2px #00000015); }
+@media(min-width:901px) and (max-width:1150px) { .coala-section-layout { grid-template-columns: 190px minmax(0, 1fr); } .coala-section-layout:has(.community-banner) { --section-sidebar-width: 190px; } }

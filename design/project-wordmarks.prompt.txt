@@ -1,0 +1,3 @@
+Built-in image_gen; transparent_background=true.
+GAYADI: Extract black bubbly GAYADI letters; remove sky, clouds and partial subtitle. Preserve exact spelling and letter shapes. Transparent alpha, horizontal composition, small even padding.
+RePlant: Extract dark brown pixel-serif RePlant wordmark with green vines, pink flowers and pixel mascots. Remove sky, sun, clouds and landscape. Preserve spelling and pixel art style. Transparent alpha, horizontal composition, small even padding.

@@ -70,7 +70,7 @@ function StudyConnectionsContent({
         {!loading && !error && <small>{groups.length}개</small>}
       </header>
       {error && <div className="study-connection-error"><p role="alert">{error}</p>
-        <button type="button" onClick={() => { setError(''); setLoading(true); setRevision((value) => value + 1) }}>다시 불러오기</button>
+        <button className="retry-button" type="button" onClick={() => { setError(''); setLoading(true); setRevision((value) => value + 1) }}>다시 불러오기</button>
       </div>}
       {loading && <LoadingSpinner label="활동을 불러오는 중입니다." />}
       {groups.map((group) => (

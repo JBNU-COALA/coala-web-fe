@@ -5,18 +5,17 @@ import { postCategoryFilters, postCategoryMeta, type PostBoardFilterId } from '.
 import { extractFirstContentImage, toPlainContentPreview } from '../../shared/contentPreview'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
-import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { SelectControl } from '../../shared/ui/SelectControl'
-import { ListingControls } from '../../shared/ui/ListingControls'
 import { Pagination } from '../../shared/ui/Pagination'
 import { usePagination } from '../../shared/ui/usePagination'
-import { CommunityBanner } from '../community/CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isCommunityBoard, resolveCommunityBoardFilter } from '../../shared/communityBoards'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import { CommunityBanner } from '../community/CommunityBanner'
+import './all-posts.css'
 
 type AllPostsPageProps = {
   onOpenPost: (boardId: number, postId: number) => void
@@ -26,7 +25,6 @@ type AllPostsPageProps = {
 
 type EnrichedPost = PostListItem & { board?: BoardData }
 type PostBoardTabId = 'all' | PostBoardFilterId
-type PostListViewMode = 'card' | 'list'
 
 
 function getPostImageUrl(post: PostListItem) {
@@ -35,42 +33,10 @@ function getPostImageUrl(post: PostListItem) {
   return imageUrl ? resolveApiAssetUrl(imageUrl) : null
 }
 
-function formatPostDateTime(value: string) {
-  const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return value
-  return parsed.toLocaleString('ko-KR', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
-function PostListThumbnail({
-  imageUrl,
-  viewMode,
-}: {
-  imageUrl: string
-  viewMode: PostListViewMode
-}) {
-  return (
-    <div className={`board-post-thumbnail board-post-thumbnail--${viewMode}`}>
-      <SafeImage
-        src={imageUrl}
-        alt=""
-        loading="lazy"
-        fallback={<img src="/coala-card-placeholder.png" alt="" loading="lazy" />}
-      />
-    </div>
-  )
-}
-
 function formatPostDate(value: string) {
   const parsed = new Date(value)
   if (Number.isNaN(parsed.getTime())) return value
   return parsed.toLocaleDateString('ko-KR', {
-    year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   })
@@ -96,7 +62,7 @@ export function AllPostsPage({
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
-  const [viewMode, setViewMode] = useState<PostListViewMode>('list')
+  const [searchOpen, setSearchOpen] = useState(false)
   const [likeError, setLikeError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loadRevision, setLoadRevision] = useState(0)
@@ -173,168 +139,66 @@ export function AllPostsPage({
 
   return (
     <section className="coala-content coala-content--posts">
-      <div className="board-page">
-        <CommunityBanner title={title} description="공지부터 자유로운 이야기, 소소한 유머까지 코알라의 일상을 함께 나눠요." tone="board" />
-
-        <ListingControls className="page-container" label="게시판 필터"
-          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
-            <SelectControl
-              className="board-category-field"
-              label="분류"
-              value={activeBoard}
-              options={boardFilterOptions}
-              onChange={setActiveBoard}
-            />
-
-            <SearchField
-              className="community-list-search"
-              value={query}
-              onChange={setQuery}
-              placeholder="게시글 제목을 검색하세요"
-            />
-
-            <SelectControl
-              className="board-sort-field"
-              label="정렬"
-              value={sortMode}
-              options={[
-                { value: 'latest', label: '최신순' },
-                { value: 'popular', label: '인기순' },
-              ]}
-              onChange={setSortMode}
-            />
-
-            <ViewModeToggle value={viewMode} onChange={setViewMode} />
-
-            <button
-              type="button"
-              className="write-post-button write-post-button--board"
-              disabled={!canWriteCurrentBoard}
-              title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
-              onClick={canWriteCurrentBoard ? onWritePost : undefined}
-            >
-              <Icon name="edit" size={15} />
-              글쓰기
-            </button>
-        </ListingControls>
-
-        <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
-          {viewMode === 'list' ? (
-            <div className="board-table-head" aria-hidden="true">
-              <span>분류</span>
-              <span>제목</span>
-              <span>작성자</span>
-              <span>작성일</span>
-              <span>조회</span>
-              <span>댓글</span>
-              <span>좋아요</span>
+      <CommunityBanner title={title} description="코알라 멤버들의 자유로운 소통 공간" />
+      <div className="community-board page-container">
+        <div className="community-board-layout">
+          <div className="community-board-main">
+            <div className="community-board-toolbar">
+              <SelectControl label="정렬" value={sortMode} options={[
+                { value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' },
+              ]} onChange={setSortMode} />
+              <div className="community-board-actions">
+                <button type="button" className="community-board-search-toggle" aria-label="게시글 검색" aria-expanded={searchOpen} aria-controls="community-board-search" onClick={() => setSearchOpen((open) => !open)}>
+                  <Icon name="search" size={21} />
+                </button>
+                <button type="button" className="community-board-write" disabled={!canWriteCurrentBoard}
+                  title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
+                  onClick={canWriteCurrentBoard ? onWritePost : undefined}><svg className="community-board-pencil" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(40 12 12)"><path d="M9 6h6v12H9z" fill="#f5bc45" /><path d="M12 6h3v12h-3z" fill="#e49b29" /><path d="M9 18l3 5 3-5z" fill="#ead2aa" /><path d="M10.8 21l1.2 2 1.2-2z" fill="#343434" /><path d="M9 3a3 3 0 0 1 6 0v2H9z" fill="#ef929e" /><path d="M9 5h6v2H9z" fill="#d8d8d8" /></g></svg>게시글 작성하기</button>
+              </div>
             </div>
-          ) : null}
-          <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
-            {isLoading ? (
-              <li className="empty-post-state"><LoadingSpinner label="게시글을 불러오는 중..." /></li>
-            ) : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></li> : (
-              pagination.pageItems.map((post) => {
-                const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
-                const categoryMeta = postCategoryMeta[category]
-                const compositeId = `${post.boardId}-${post.postId}`
-                const imageUrl = getPostImageUrl(post)
-                const cardImageUrl = imageUrl ?? '/coala-card-placeholder.png'
-                const summary = toPlainContentPreview(post.content)
-                const authorName = post.authorName ?? `사용자 ${post.userId}`
-
-	                return (
-	                  <li key={compositeId} className={`board-post-row board-post-row--${viewMode}`}>
-	                    <article
-	                      className={[
-	                        'board-post-card',
-	                        `board-post-card--${viewMode}`,
-	                        viewMode === 'card' ? 'board-post-card--has-image' : '',
-	                      ].filter(Boolean).join(' ')}
-                        role="button"
-                        tabIndex={0}
-	                      onClick={() => onOpenPost(post.boardId, post.postId)}
-                        onKeyDown={(event) => {
-                          if (event.target !== event.currentTarget) return
-                          if (event.key !== 'Enter' && event.key !== ' ') return
-                          event.preventDefault()
-                          onOpenPost(post.boardId, post.postId)
-                        }}
-	                    >
-	                      {viewMode === 'card' ? (
-	                        <PostListThumbnail imageUrl={cardImageUrl} viewMode={viewMode} />
-	                      ) : null}
-
-	                      <div className="board-post-main">
-                        <div className="board-post-heading">
-                          <span className={`board-tag board-tag--${categoryMeta.tone}`}>
-                            {post.board?.boardName ?? categoryMeta.label}
+            {searchOpen && <div id="community-board-search" className="community-board-search">
+              <SearchField value={query} onChange={setQuery} placeholder="제목, 내용, 작성자로 검색" />
+            </div>}
+            {!searchOpen && query && <button type="button" className="community-board-query" onClick={() => { setQuery(''); setSearchOpen(true) }}>검색: {query} · 지우기</button>}
+            {likeError && <p className="auth-error" role="alert">{likeError}</p>}
+            <ul className="community-board-posts" aria-busy={isLoading}>
+              {isLoading ? <li className="community-board-empty"><LoadingSpinner label="게시글을 불러오는 중..." /></li>
+                : loadError ? <li className="community-board-empty"><p role="alert">{loadError}</p><button type="button" className="community-board-retry retry-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></li>
+                : pagination.pageItems.map((post) => {
+                  const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
+                  const imageUrl = getPostImageUrl(post)
+                  const authorName = post.anonymous ? '익명' : post.authorName || '코알라 멤버'
+                  return <li key={`${post.boardId}-${post.postId}`} className="community-board-post">
+                    <article>
+                      <button type="button" className="community-board-post-link" onClick={() => onOpenPost(post.boardId, post.postId)}>
+                        <span className="community-board-post-copy">
+                          <span className="community-board-post-heading">
+                            <span className="community-board-tag">#{postCategoryMeta[category].label}</span>
+                            <strong>{post.title}</strong>
                           </span>
-                          <h3 className="board-post-title">{category === 'notice' ? <Icon name="bell" size={14} /> : null}{post.title}</h3>
-                        </div>
-
-                        <p className="board-post-excerpt">
-                          {summary.slice(0, 120)}
-                        </p>
-
-                        <p className="board-post-meta">
-                          <CharacterAvatar name={authorName} seed={post.userId} size="xs" className="board-avatar" />
-                          <span>{authorName}</span>
-                          <span className="dot-divider" />
-                          <span>{formatPostDateTime(post.createdAt)}</span>
-                        </p>
-                      </div>
-
-
-                      {viewMode === 'list' ? (
-                        <div className="board-table-meta" aria-label="게시글 정보">
-                          <span className="board-table-author">
-                            <CharacterAvatar name={authorName} seed={post.userId} size="xs" className="board-avatar" />
-                            {authorName}
-                          </span>
-                          <span>{formatPostDate(post.createdAt)}</span>
-                          <span>{post.viewCount}</span>
-                          <span>{post.commentCount ?? 0}</span>
-                          <span>{getPostLikeCount(post)}</span>
-                        </div>
-                      ) : null}
-
-                      <div className="board-post-stats">
-                        <span className="board-stat">
-                          <Icon name="eye" size={14} />
-                          <span>{post.viewCount}</span>
+                          <span className="community-board-excerpt">{toPlainContentPreview(post.content)}</span>
                         </span>
-                        <span className="board-stat">
-                          <Icon name="message" size={14} />
-                          <span>{post.commentCount ?? 0}</span>
-                        </span>
-                        <button
-                          type="button"
-                          className={post.likedByMe ? 'board-like-button is-liked' : 'board-like-button'}
-                          aria-pressed={Boolean(post.likedByMe)}
-                          aria-label={`${post.title} 좋아요`}
-                          onClick={(event) => {
-                            event.stopPropagation()
-                            void togglePostLike(post)
-                          }}
-                        >
-                          <Icon name="heart" size={14} />
-                          <span>{getPostLikeCount(post)}</span>
-                        </button>
+                        {imageUrl && <SafeImage className="community-board-thumbnail" src={imageUrl} alt="" loading="lazy" />}
+                      </button>
+                      <div className="community-board-post-meta">
+                        <span className="community-board-author"><CharacterAvatar name={authorName} seed={post.anonymous ? 'anonymous' : post.userId} size="xs" /><span>{authorName}</span></span>
+                        <span className="community-board-stat" aria-label={`조회 ${post.viewCount}`}><Icon name="eye" size={17} />{post.viewCount}</span>
+                        <button type="button" className={`community-board-like${post.likedByMe ? ' is-liked' : ''}`} aria-pressed={Boolean(post.likedByMe)} aria-label={`${post.title} 좋아요`} onClick={() => void togglePostLike(post)}><Icon name="heart" size={17} />{getPostLikeCount(post)}</button>
+                        <span className="community-board-stat" aria-label={`댓글 ${post.commentCount ?? 0}`}><Icon name="message" size={17} />{post.commentCount ?? 0}</span>
+                        <time dateTime={post.createdAt}>{formatPostDate(post.createdAt)}</time>
                       </div>
                     </article>
                   </li>
-                )
-              })
-            )}
-
-            {!isLoading && !loadError && visiblePosts.length === 0 && (
-              <li className="empty-post-state">조건에 맞는 게시글이 없습니다.</li>
-            )}
-          </ul>
-          <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
-
-        </article>
+                })}
+              {!isLoading && !loadError && visiblePosts.length === 0 && <li className="community-board-empty">조건에 맞는 게시글이 없습니다.</li>}
+            </ul>
+            <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
+          </div>
+          <aside className="community-board-filters" aria-labelledby="community-board-filters-title">
+            <h2 id="community-board-filters-title">태그로 찾기</h2>
+            <div>{boardFilterOptions.map((option) => <button key={option.value} type="button" aria-pressed={activeBoard === option.value} onClick={() => setActiveBoard(option.value)}>#{option.label}</button>)}</div>
+          </aside>
+        </div>
       </div>
     </section>
   )

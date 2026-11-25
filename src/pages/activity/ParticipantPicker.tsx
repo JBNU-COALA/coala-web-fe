@@ -40,7 +40,7 @@ export function ParticipantPicker({ selected, onAdd }: {
     </div>
     {open && <div id={id + '-results'} className="participant-results" aria-label="참여자 검색 결과">
       {!current ? <p role="status">검색 중...</p>
-        : current.error ? <p role="alert">{current.error}<button type="button" className="study-text-button"
+        : current.error ? <p role="alert">{current.error}<button type="button" className="study-text-button retry-button"
           onClick={() => { setResult(null); setRetry((value) => value + 1) }}>다시 시도</button></p>
         : !current.members.length ? <p role="status">검색 결과가 없습니다.</p>
         : <ul>{current.members.map((member) => {

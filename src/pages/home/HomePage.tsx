@@ -5,7 +5,6 @@ import { Icon } from '../../shared/ui/Icon'
 import { SafeImage } from '../../shared/ui/SafeImage'
 import {
   formatHomeDate,
-  getInfoThumbnail,
   getPostThumbnail,
   getServiceThumbnail,
   infoCategoryLabel,
@@ -31,8 +30,6 @@ const recruitStatusLabel: Record<RecruitStatus, string> = {
 export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArticle }: HomePageProps) {
   const navigate = useNavigate()
   const { articles, posts, recruits, services, loading, errors } = useHomeFeed()
-  const storyArticles = articles.slice(0, 4)
-  const leadArticle = storyArticles[0]
 
   const openInfo = () => {
     if (onOpenInfo) onOpenInfo()
@@ -55,99 +52,75 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
     <section className="coala-content coala-content--portal home-editorial">
       <HomeCarousel />
 
-      <section className="home-stories home-editorial-container" aria-labelledby="home-stories-title">
-        <header className="home-editorial-section-head">
-          <div>
-            <h2 id="home-stories-title">새로운 소식</h2>
-          </div>
-          <button type="button" onClick={openInfo}>
-            전체 보기
-            <Icon name="chevron-right" size={16} />
-          </button>
-        </header>
+      <div className="home-feed-columns home-editorial-container" aria-busy={loading}>
+        <section className="home-feed-column" aria-labelledby="home-posts-title">
+          <header className="home-editorial-section-head">
+            <h2 id="home-posts-title">게시판</h2>
+            <button type="button" onClick={openPosts}>더보기 <Icon name="chevron-right" size={18} /></button>
+          </header>
+          {loading ? <div className="home-editorial-loading" aria-label="게시글 불러오는 중" /> : <ul className="home-feed-list">
+            {posts.slice(0, 4).map((post) => (
+              <li key={`${post.boardId}-${post.postId}`}>
+                <button type="button" className="home-feed-row" onClick={() => openPost(post.boardId, post.postId)}>
+                  <span className="home-feed-body">
+                    <span className="home-feed-copy"><strong>{post.title}</strong><span>{preview(post.content)}</span></span>
+                    {getPostThumbnail(post) !== '/coala-card-placeholder.png' && <SafeImage className="home-feed-thumb" src={getPostThumbnail(post)} alt="" loading="lazy" />}
+                  </span>
+                  <span className="home-feed-meta">
+                    <span className="home-feed-tag">{post.boardName || '게시판'}</span>
+                    <span aria-label={`조회 ${post.viewCount}`}><Icon name="eye" size={16} />{post.viewCount}</span>
+                    <span aria-label={`댓글 ${post.commentCount ?? 0}`}><Icon name="message" size={16} />{post.commentCount ?? 0}</span>
+                    <time dateTime={post.createdAt}>{formatHomeDate(post.createdAt)}</time>
+                  </span>
+                </button>
+              </li>
+            ))}
+            {posts.length === 0 && <li className="home-editorial-empty">{errors.posts ? '게시글을 불러오지 못했습니다.' : '게시글이 없습니다.'}</li>}
+          </ul>}
+        </section>
 
-        {loading ? (
-          <div className="home-editorial-loading" aria-label="홈 콘텐츠 불러오는 중" />
-        ) : leadArticle ? (
-          <div className="home-story-grid">
-            {storyArticles.map((article) => {
-              const thumbnail = getInfoThumbnail(article)
-              const placeholder = <span className={`home-story-placeholder home-story-placeholder--${article.filter}`} aria-hidden="true">
-                <Icon name={article.filter === 'contest' ? 'chart' : article.filter === 'lab' ? 'book' : article.filter === 'resource' ? 'file' : 'message'} size={28} />
-                <span>{infoCategoryLabel[article.filter]}</span>
-              </span>
-              return <button key={article.id} type="button" className="home-story-card" onClick={() => openArticle(article.id)}>
-                <span className="home-story-card-image">
-                  {thumbnail === '/coala-card-placeholder.png' ? placeholder : <SafeImage src={thumbnail} alt="" loading="lazy" fallback={placeholder} />}
-                </span>
-                <span className="home-story-card-copy">
-                  <span className={`home-editorial-category home-editorial-category--${article.filter}`}>{infoCategoryLabel[article.filter]}</span>
-                  <strong>{article.title}</strong>
-                  <span className="home-story-excerpt">{preview(article.content, 100)}</span>
-                  <small>{formatHomeDate(article.createdAt ?? article.sourceDate)}<Icon name="chevron-right" size={14} /></small>
-                </span>
-              </button>
-            })}
-          </div>
-        ) : (
-          <p className="home-editorial-empty">{errors.articles ? '정보공유를 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.' : '새로운 이야기를 준비하고 있습니다.'}</p>
-        )}
-      </section>
+        <section className="home-feed-column" aria-labelledby="home-info-title">
+          <header className="home-editorial-section-head">
+            <h2 id="home-info-title">정보공유</h2>
+            <button type="button" onClick={openInfo}>더보기 <Icon name="chevron-right" size={18} /></button>
+          </header>
+          {loading ? <div className="home-editorial-loading" aria-label="정보공유 불러오는 중" /> : <ul className="home-feed-list">
+            {articles.slice(0, 4).map((article) => (
+              <li key={article.id}>
+                <button type="button" className="home-feed-row" onClick={() => openArticle(article.id)}>
+                  <span className="home-feed-body"><span className="home-feed-copy"><strong>{article.title}</strong><span>{preview(article.content)}</span></span></span>
+                  <span className="home-feed-meta">
+                    <span className="home-feed-tag">{infoCategoryLabel[article.filter]}</span>
+                    <span aria-label={`조회 ${article.viewCount}`}><Icon name="eye" size={16} />{article.viewCount}</span>
+                    <time dateTime={article.createdAt ?? article.sourceDate}>{formatHomeDate(article.createdAt ?? article.sourceDate)}</time>
+                  </span>
+                </button>
+              </li>
+            ))}
+            {articles.length === 0 && <li className="home-editorial-empty">{errors.articles ? '정보공유를 불러오지 못했습니다.' : '새로운 이야기를 준비하고 있습니다.'}</li>}
+          </ul>}
+        </section>
 
-      <section className="home-community-band">
-        <div className="home-editorial-container home-community-layout">
-          <section className="home-popular" aria-labelledby="home-popular-title">
-            <header className="home-editorial-section-head home-editorial-section-head--compact">
-              <div>
-                <h2 id="home-popular-title">지금 많이 읽는 글</h2>
-              </div>
-              <button type="button" onClick={openPosts}>게시판 보기</button>
-            </header>
-            <ol className="home-popular-list">
-              {posts.map((post, index) => (
-                <li key={`${post.boardId}-${post.postId}`}>
-                  <button type="button" onClick={() => openPost(post.boardId, post.postId)}>
-                    <b>{String(index + 1).padStart(2, '0')}</b>
-                    <span>
-                      <small>{post.boardName ?? '게시판'}</small>
-                      <strong>{post.title}</strong>
-                      <em>{post.authorName || '코알라 멤버'} · 댓글 {post.commentCount ?? 0}</em>
-                    </span>
-                    {getPostThumbnail(post) !== '/coala-card-placeholder.png' && <span className="home-popular-thumb">
-                      <SafeImage src={getPostThumbnail(post)} alt="" loading="lazy" />
-                    </span>}
-                  </button>
-                </li>
-              ))}
-              {!loading && posts.length === 0 && <li className="home-editorial-empty">{errors.posts ? '게시글을 불러오지 못했습니다.' : '게시글이 없습니다.'}</li>}
-            </ol>
-          </section>
-
-          <section className="home-recruit" aria-labelledby="home-recruit-title">
-            <header className="home-editorial-section-head home-editorial-section-head--compact">
-              <div>
-                <h2 id="home-recruit-title">함께할 멤버 모집</h2>
-              </div>
-              <button type="button" onClick={() => navigate(routes.community.recruit)}>모집 보기</button>
-            </header>
-            <ul className="home-recruit-list">
-              {recruits.map((recruit) => (
-                <li key={recruit.id}>
-                  <button type="button" onClick={() => navigate(routes.community.recruitNotice(recruit.id))}>
-                    <span className={`home-recruit-status home-recruit-status--${recruit.status}`}>
-                      {recruitStatusLabel[recruit.status]}
-                    </span>
-                    <strong>{recruit.title}</strong>
-                    <span>{recruit.shortDesc}</span>
-                    <small>{recruit.currentMembers}/{recruit.maxMembers}명 · {recruit.meetingType}</small>
-                  </button>
-                </li>
-              ))}
-              {!loading && recruits.length === 0 && <li className="home-editorial-empty">{errors.recruits ? '모집을 불러오지 못했습니다.' : '진행 중인 모집이 없습니다.'}</li>}
-            </ul>
-          </section>
-        </div>
-      </section>
+        <section className="home-feed-column home-feed-column--recruit" aria-labelledby="home-recruit-title">
+          <header className="home-editorial-section-head">
+            <h2 id="home-recruit-title">멤버 모집</h2>
+            <button type="button" onClick={() => navigate(routes.community.recruit)}>더보기 <Icon name="chevron-right" size={18} /></button>
+          </header>
+          {loading ? <div className="home-editorial-loading" aria-label="모집 불러오는 중" /> : <ul className="home-recruit-list">
+            {recruits.map((recruit) => (
+              <li key={recruit.id}>
+                <button type="button" onClick={() => navigate(routes.community.recruitNotice(recruit.id))}>
+                  <span className={`home-recruit-status home-recruit-status--${recruit.status}`}>{recruitStatusLabel[recruit.status]}</span>
+                  <strong>{recruit.title}</strong>
+                  <span>{recruit.shortDesc}</span>
+                  <small>{recruit.currentMembers}/{recruit.maxMembers}명 · {recruit.meetingType}</small>
+                </button>
+              </li>
+            ))}
+            {recruits.length === 0 && <li className="home-editorial-empty">{errors.recruits ? '모집을 불러오지 못했습니다.' : '진행 중인 모집이 없습니다.'}</li>}
+          </ul>}
+        </section>
+      </div>
 
       <section className="home-services home-editorial-container" aria-labelledby="home-services-title">
         <header className="home-editorial-section-head">

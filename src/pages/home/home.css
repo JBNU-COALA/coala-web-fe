@@ -6491,7 +6491,7 @@
   font-weight: 600;
   color: #3d6b55;
   line-height: 1.7;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 /* Podium */
@@ -6587,7 +6587,7 @@
   margin: 0;
   color: #789087;
   font-size: 11.5px;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .podium-points {
@@ -6595,7 +6595,7 @@
   font-size: 16px;
   font-weight: 800;
   color: #1f5f43;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .podium-breakdown {
@@ -6604,7 +6604,7 @@
   gap: 5px;
   font-size: 11px;
   color: #7a9284;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .podium-breakdown-dot {
@@ -6779,7 +6779,7 @@
   font-size: 13px;
   font-weight: 700;
   color: #8a9e95;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
   width: 26px;
   text-align: center;
 }
@@ -6840,7 +6840,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-cell--tier {
@@ -6852,7 +6852,7 @@
 .activity-solved-count {
   font-size: 11.5px;
   color: #8fa89f;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-cell--commits {
@@ -6879,7 +6879,7 @@
   font-size: 14px;
   font-weight: 700;
   color: #3b6f94;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-commits-label {
@@ -6896,7 +6896,7 @@
   font-size: 15px;
   font-weight: 800;
   color: #1f5f43;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-points-label {
@@ -6986,7 +6986,7 @@
   font-size: 11.5px;
   font-weight: 700;
   color: #4a6358;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-formula-divider {
@@ -7273,7 +7273,7 @@
   background: #edf3ef;
   border-radius: 6px;
   padding: 2px 5px;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
   font-size: 0.9em;
 }
 
@@ -7315,7 +7315,7 @@
   padding: 16px;
   border-radius: 12px;
   overflow-x: auto;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
   font-size: 13px;
   position: relative;
 }
@@ -7633,7 +7633,7 @@
   border-radius: 4px;
   padding: 2px 5px;
   font-size: 0.875em;
-  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .pw-editor-area pre {
@@ -7642,7 +7642,7 @@
   padding: 16px;
   border-radius: 10px;
   overflow-x: auto;
-  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-family: var(--font-sans);
   font-size: 13px;
   line-height: 1.65;
 }
@@ -7697,7 +7697,7 @@
   border: 1px solid #d4ddd8;
   border-radius: 4px;
   padding: 1px 5px;
-  font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+  font-family: var(--font-sans);
   font-size: 11px;
   color: #2d4338;
   margin: 0 1px;
@@ -8391,7 +8391,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #1f5f43;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .profile-stat-value--tier {
@@ -8563,7 +8563,7 @@
   font-size: 13.5px;
   font-weight: 600;
   color: #1c3028;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 /* Activity block */
@@ -8597,7 +8597,7 @@
 }
 
 .profile-activity-value--mono {
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .profile-activity-value--github {
@@ -9454,7 +9454,7 @@
   font-size: 13px;
   font-weight: 800;
   color: #1e3d31;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-sans);
 }
 
 .jcloud-instance-desc {
@@ -9837,7 +9837,7 @@
   font-size: 13px;
   font-weight: 800;
   color: #1e3d31;
-  font-family: 'Courier New', monospace;
+  font-family: var(--font-sans);
 }
 
 .jcloud-apply-duration {
@@ -10522,7 +10522,7 @@
 
 .activity-dev-stat strong {
   color: #ffffff;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
   font-size: 20px;
 }
 
@@ -10717,7 +10717,7 @@
   background: #edf5f1;
   color: #315f49;
   padding: 3px 7px;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
   font-size: 10.5px;
   font-weight: 800;
 }
@@ -10761,7 +10761,7 @@
   margin-top: 3px;
   color: #6f8379;
   font-size: 13px;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
   text-decoration: none;
 }
 
@@ -10795,7 +10795,7 @@
 .activity-repo-list span {
   background: #18241f;
   color: #e8fff2;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-profile-link {
@@ -10910,7 +10910,7 @@
   background: #e8f3ed;
   color: #1f5f43;
   padding: 4px 8px;
-  font-family: 'SF Mono', 'Fira Mono', 'Consolas', monospace;
+  font-family: var(--font-sans);
 }
 
 .activity-log-list {
@@ -15091,7 +15091,7 @@
 .profile-section-card,
 .profile-handle-value,
 .profile-activity-value {
-  font-family: 'NanumBarunGothic', 'Nanum Gothic', 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  font-family: var(--font-sans);
 }
 
 .profile-handle-link,

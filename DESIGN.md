@@ -22,31 +22,31 @@ colors:
   info: "#1f5fa8"
 typography:
   display:
-    fontFamily: "Manrope, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontFamily: "Pretendard Variable, Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "38px"
     fontWeight: 800
     lineHeight: 1.16
     letterSpacing: "0"
   page-title:
-    fontFamily: "Manrope, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontFamily: "Pretendard Variable, Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "32px"
     fontWeight: 800
     lineHeight: 1.15
     letterSpacing: "0"
   section-title:
-    fontFamily: "Manrope, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontFamily: "Pretendard Variable, Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "17px"
     fontWeight: 800
     lineHeight: 1.3
     letterSpacing: "0"
   body:
-    fontFamily: "Manrope, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontFamily: "Pretendard Variable, Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "14px"
     fontWeight: 500
     lineHeight: 1.55
     letterSpacing: "0"
   caption:
-    fontFamily: "Manrope, Noto Sans KR, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
+    fontFamily: "Pretendard Variable, Pretendard, Apple SD Gothic Neo, Malgun Gothic, sans-serif"
     fontSize: "12px"
     fontWeight: 700
     lineHeight: 1.4

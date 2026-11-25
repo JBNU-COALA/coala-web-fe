@@ -30,7 +30,7 @@ const history = [
   ] },
   { year: '2025', entries: [
     { scope: 'external', name: '한국컴퓨터종합학술대회(KCC 2025)', result: '학부 논문 우수상' },
-    { scope: 'external', name: 'Kuberstronaut', result: '취득' },
+    { scope: 'external', name: 'Kubestronaut', result: '취득' },
   ] },
 ] as const
 
@@ -40,7 +40,7 @@ export function AchievementTimeline() {
       <header className="achievement-heading"><div><p className="section-eyebrow">History</p><h2 id="achievement-title">수상 및 자격 취득 이력</h2></div><div className="achievement-legend"><span className="is-campus">교내</span><span className="is-external">교외</span></div></header>
       <ol className="achievement-timeline">{history.map(({ year, entries }) => <li className="achievement-year" key={year}>
         <h3><time dateTime={year}>{year}</time></h3>
-        <ul>{entries.map((entry) => <li className={`achievement-item is-${entry.scope}`} key={`${entry.name}-${entry.result}`}><span className="achievement-scope">{entry.scope === 'campus' ? '교내' : '교외'}</span><span className="achievement-name">{entry.name}</span><strong>{entry.result}</strong></li>)}</ul>
+        <ul>{entries.map((entry) => <li className={`achievement-item is-${entry.scope}`} key={`${entry.name}-${entry.result}`}><span className="achievement-scope">{entry.scope === 'campus' ? '교내' : '교외'}</span><span className="achievement-name">{entry.name === 'Kubestronaut' && <img className="achievement-cert-logo" src="/kubestronaut.svg" alt="" loading="lazy" />}{entry.name}</span><strong>{entry.result}</strong></li>)}</ul>
       </li>)}</ol>
     </div>
   </section>

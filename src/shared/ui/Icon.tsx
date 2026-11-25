@@ -1,10 +1,12 @@
 export type IconName =
   | 'github'
+  | 'linkedin'
   | 'refresh'
   | 'pencil-color'
   | 'siren-color'
   | 'profile-color'
   | 'logout-color'
+  | 'logout'
   | 'server'
   | 'server-color'
   | 'globe-color'
@@ -55,6 +57,8 @@ const iconShape = (name: IconName) => {
       return <><path d="M12 2v2M4 4l2 2M20 4l-2 2M2 11h2M20 11h2" stroke="#e35151" /><path d="M6 18v-6a6 6 0 0 1 12 0v6Z" fill="#ef6262" stroke="none" /><path d="M9 12a3 3 0 0 1 3-3" stroke="#fff" /><rect x="4" y="18" width="16" height="4" rx="1.5" fill="#737373" stroke="none" /></>
     case 'profile-color':
       return <g stroke="none"><circle cx="12" cy="7.5" r="4.5" fill="#f2b98d" /><path d="M3 22v-3a9 9 0 0 1 18 0v3Z" fill="#4f78c4" /><path d="M7.5 6.5a4.5 4.5 0 0 1 9 0c-3 0-4-2-4-2s-1 2-5 2Z" fill="#59453b" /></g>
+    case 'logout':
+      return <><path d="M10 4H4v16h6M9 12h12m-4-4 4 4-4 4" /></>
     case 'logout-color':
       return <g stroke="none"><rect x="3" y="2" width="12" height="20" rx="2" fill="#eab875" /><path d="m3 2 8 3v17H3Z" fill="#c58b4f" /><circle cx="8" cy="12" r="1" fill="#fff" /><path d="m17 6 6 6-6 6v-4h-4v-4h4Z" fill="#d76b57" /></g>
     case 'refresh':
@@ -63,6 +67,8 @@ const iconShape = (name: IconName) => {
       return <g stroke="none"><path fill="#fbbf24" d="m4 15 10-10 5 5L9 20l-6 1Z" /><path fill="#f59e0b" d="m6.5 17.5 10-10L19 10 9 20Z" /><path fill="#fda4af" d="m14 5 2-2a2 2 0 0 1 3 0l2 2a2 2 0 0 1 0 3l-2 2Z" /><path fill="#e5e7eb" d="m13 6 2-2 5 5-2 2Z" /><path fill="#f5deb3" d="m4 15 5 5-6 1Z" /><path fill="#374151" d="m3.5 18 2.5 2.5-3 .5Z" /></g>
     case 'filter':
       return <><path d="M4 6h16M4 12h16M4 18h16" /><circle cx="8" cy="6" r="2" fill="currentColor" stroke="none" /><circle cx="16" cy="12" r="2" fill="currentColor" stroke="none" /><circle cx="10" cy="18" r="2" fill="currentColor" stroke="none" /></>
+    case 'linkedin':
+      return <g stroke="none"><rect x="2" y="2" width="20" height="20" rx="2" fill="#0a66c2" /><path fill="#fff" d="M6 10h3v9H6zm1.5-5a1.7 1.7 0 1 0 0 3.4 1.7 1.7 0 0 0 0-3.4ZM11 10h2.8v1.2c.6-1 1.4-1.5 2.6-1.5 2.8 0 3.6 1.7 3.6 4V19h-3v-4.7c0-1.2-.2-2.2-1.5-2.2s-1.5 1-1.5 2.2V19h-3Z" /></g>
     case 'github':
       return <path fill="currentColor" stroke="none" d="M12 2a10 10 0 0 0-3.2 19.5v-2.3c-2.7.6-3.3-1.2-3.3-1.2-.5-1.2-1.1-1.5-1.1-1.5-.9-.6.1-.6.1-.6 1 0 1.5 1 1.5 1 .9 1.5 2.2 1.1 2.8.8.1-.6.4-1 .7-1.2-2.2-.3-4.5-1.1-4.5-5a3.9 3.9 0 0 1 1-2.7 3.6 3.6 0 0 1 .1-2.7s.9-.3 2.8 1a9.8 9.8 0 0 1 5.1 0c1.9-1.3 2.8-1 2.8-1 .5 1.3.2 2.3.1 2.7 1 1 1 2 1 2.7 0 3.9-2.3 4.7-4.5 5 .4.3.7.9.7 1.8v3.2A10 10 0 0 0 12 2Z" />
     case 'apply-color':
@@ -259,8 +265,8 @@ const iconShape = (name: IconName) => {
     case 'edit':
       return (
         <>
-          <path d="M4.5 18.5V21h2.5l10-10-2.5-2.5z" />
-          <path d="M13.8 5.8 16.2 3.4a1.7 1.7 0 0 1 2.4 0l2 2a1.7 1.7 0 0 1 0 2.4l-2.4 2.4Z" />
+          <path d="m16 3 5 5L8 21H3v-5L16 3Z" />
+          <path d="m13 6 5 5M3 16l5 5" />
         </>
       )
     case 'eye':

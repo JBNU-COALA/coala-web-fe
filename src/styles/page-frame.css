@@ -71,3 +71,61 @@
   .page-hero--large .page-hero-inner { grid-template-columns: minmax(0, 1fr) 80px; }
   .page-hero--large .page-hero-art { height: 130px; }
 }
+
+/* Give internal pages a generous main reading area beside the navigation. */
+@media (min-width: 901px) {
+  .coala-section-layout,
+  .coala-section-layout:has(.community-banner) {
+    position: relative;
+    --section-sidebar-width: 220px;
+    width: min(1800px, calc(100% - 64px));
+    --section-column-gap: 40px;
+    grid-template-columns: var(--section-sidebar-width) minmax(0, 1fr) var(--section-sidebar-width);
+    column-gap: var(--section-column-gap);
+  }
+  .coala-section-layout .coala-section-main { grid-column: 2; }
+  .coala-section-layout .community-banner {
+    width: calc(100% + 2 * (var(--section-sidebar-width) + var(--section-column-gap)));
+    margin-left: calc(-1 * (var(--section-sidebar-width) + var(--section-column-gap)));
+  }
+  .coala-section-main > .coala-content {
+    min-height: max(640px, calc(100svh - var(--coala-header-height, 80px)));
+    padding-bottom: 48px;
+  }
+  .coala-section-main .community-board {
+    padding-top: 48px;
+    padding-bottom: 88px;
+  }
+  .coala-section-main .community-board-layout {
+    grid-template-columns: minmax(0, 1fr) 230px;
+    gap: 32px;
+  }
+  .coala-section-main .page-frame-body { padding-block: 48px 80px; }
+  .coala-section-layout::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: calc(var(--section-sidebar-width) + var(--section-column-gap) / 2);
+    width: 1px;
+    background: #e5e5e5;
+    pointer-events: none;
+    z-index: 0;
+  }
+}
+@media (min-width: 901px) and (max-width: 1150px) {
+  .coala-section-layout,
+  .coala-section-layout:has(.community-banner) { --section-sidebar-width: 190px; --section-column-gap: 28px; }
+  .coala-section-main .community-board-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+}
+@media (max-width: 900px) {
+  .coala-section-main > .coala-content { min-height: 65svh; padding-bottom: 32px; }
+}
+
+/* Editorial introductions use the full space beside the sidebar. */
+@media (min-width: 901px) {
+  .coala-section-layout .coala-section-main:has(.coas-hub) { grid-column: 2 / -1; }
+  .coala-section-layout .coala-section-main:has(.coas-hub) .community-banner {
+    width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap));
+  }
+}

@@ -1,0 +1,4 @@
+Generator: built-in image_gen
+Asset: public/coala-mascot-plush.png
+
+Use case: stylized-concept. Asset type: transparent mascot for a university developer club homepage hero. Create one adorable full-body koala character in a premium tactile 3D plush/clay toy style, like the rounded handmade animal mascots in the user's reference. Soft gray body, large fluffy round ears with warm cream inner ears, cream belly, glossy small black eyes, big charcoal oval koala nose, subtle happy smile. Sitting and gently waving one paw, approachable and curious. Beautiful fine velvety fur and softly sculpted shapes, studio softbox lighting, subtle contact shadow only. Front three-quarter view, entire character visible centered with minimal padding. True transparent background. No lettering, no logo, no trophy, no hackathon or sports elements, no other characters.

@@ -1,0 +1,5 @@
+Generator: built-in image_gen (edit)
+Reference: public/koala-paw-grip.png
+Asset: public/koala-paw-fist.png
+
+Edit the supplied koala paw into ONLY a compact closed gripping fist. Preserve silver-gray fine plush fur, dim soft forest lighting and short dark claws. REMOVE THE ENTIRE WRIST AND FOREARM on the right; the right silhouette must terminate immediately in a rounded knuckle/palm contour, no stump, no elongated appendage, no fade. Fingers curled tightly together toward the left, thumb tucked below. The visible part is just the little furry fist of a koala hidden BEHIND a leaf reaching around its edge; no open reaching hand. Compact vertical oval silhouette, height slightly greater than width. Entire fist centered on true transparent background, small margin, no leaf or objects, no text, no checkerboard. This is for compositing over the edge of foliage: only knuckles, curled digits and tiny claw tips are visible, absolutely zero arm or wrist.

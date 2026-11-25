@@ -391,14 +391,13 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         value={workspaceTabs.find((tab) => isTabActive(tab.id))?.id ?? 'list'}
         onChange={changeMode} action={(
         <button type="button" className="recruit-create-button" onClick={() => changeMode('write')}>
-          <Icon name="plus" size={16} />
           공고 등록
         </button>
       )} />
       {user && <div className="recruit-profile-return"><Link to={routes.users.detail(user.id)}><Icon name="user" size={15} />내 프로필</Link></div>}
       {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
       {(bookmarks.error || applications.error) && <div className="recruit-load-state">
-        <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button" onClick={() => {
+        <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button retry-button" onClick={() => {
           if (bookmarks.error) bookmarks.retry()
           if (applications.error) applications.retry()
         }}>다시 불러오기</button>
@@ -511,7 +510,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         <LoadingSpinner label="모집 내역을 불러오는 중입니다." />
       ) : listError ? (
         <div className="recruit-load-state"><p role="alert">{listError}</p>
-          <button type="button" className="ghost-button" onClick={() => { setListError(''); setListLoading(true); setListRevision((value) => value + 1) }}>다시 불러오기</button>
+          <button type="button" className="ghost-button retry-button" onClick={() => { setListError(''); setListLoading(true); setListRevision((value) => value + 1) }}>다시 불러오기</button>
         </div>
       ) : (mode === 'applied' && applications.error) || (mode === 'saved' && bookmarks.error) ? null : mode === 'applied' || mode === 'saved' ? (
         <section className="recruit-dashboard-panel">

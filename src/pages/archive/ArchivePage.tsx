@@ -276,7 +276,7 @@ export function ArchivePage() {
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
               <div className="archive-resource-grid">
                 {isLoading ? <LoadingSpinner label="자료를 불러오는 중입니다." />
-                  : archiveError ? <div className="archive-load-state"><p role="alert">{archiveError}</p><button className="ghost-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>
+                  : archiveError ? <div className="archive-load-state"><p role="alert">{archiveError}</p><button className="ghost-button retry-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
                   : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
                     sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}

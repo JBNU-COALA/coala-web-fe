@@ -22,7 +22,7 @@ function getVariant(seed: string | number) {
 
 function CharacterFallback({ seed, gender }: Pick<CharacterAvatarProps, 'gender'> & { seed: string | number }) {
   const female = (gender === 'MALE' || gender === 'FEMALE' ? gender : getVariant(seed)) === 'FEMALE'
-  return <img className="character-avatar-art" src={`/koala-avatar-3d-${female ? 'female' : 'male'}.jpg`} alt="" decoding="async" />
+  return <img className="character-avatar-art" src={`/koala-avatar-plush-${female ? 'female' : 'male'}.png`} alt="" decoding="async" />
 }
 
 export function CharacterAvatar({

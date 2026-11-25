@@ -1,0 +1,14 @@
+{
+  "generator": "Built-in image_gen",
+  "reference": "public/coala-mascot-plush.png",
+  "assets": [
+    {
+      "path": "public/koala-avatar-plush-male.png",
+      "prompt": "Use case: identity-preserve. Create one square profile avatar based on the supplied koala mascot reference. Preserve its exact plush gray fur, large round cream-inner ears, big charcoal oval nose, glossy black eyes, cream muzzle, subtle rosy cheeks and friendly smile, premium tactile 3D stuffed-toy rendering and soft studio lighting. Head and upper chest portrait facing front, centered symmetrical framing, ears fully inside canvas with 8% margin, face large and readable at 32px, no hands or props. True transparent background, no checkerboard pixels, no text or logos. Male version: a tiny soft swept-up gray fur tuft and a simple muted sage-green crewneck top visible only at the bottom. Keep it recognizably the very same koala, not human."
+    },
+    {
+      "path": "public/koala-avatar-plush-female.png",
+      "prompt": "Use case: identity-preserve. Create one square profile avatar based on the supplied koala mascot reference. Preserve its exact plush gray fur, large round cream-inner ears, big charcoal oval nose, glossy black eyes, cream muzzle, subtle rosy cheeks and friendly smile, premium tactile 3D stuffed-toy rendering and soft studio lighting. Head and upper chest portrait facing front, centered symmetrical framing, ears fully inside canvas with 8% margin, face large and readable at 32px, no hands or props. True transparent background, no checkerboard pixels, no text or logos. Female version: a small muted sage-green fabric bow beside one ear and a simple cream crewneck top visible only at the bottom. Keep it recognizably the very same koala, not human. No makeup or exaggerated eyelashes."
+    }
+  ]
+}

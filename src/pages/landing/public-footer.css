@@ -1,4 +1,4 @@
-.public-footer{background:#fff;color:#515965;padding:48px 6% 54px;font-family:'Manrope','Noto Sans KR',sans-serif;text-align:left}
+.public-footer{background:#fff;color:#515965;padding:48px 6% 54px;font-family: var(--font-sans);text-align:left}
 .public-footer-inner{max-width:1200px;margin:0 auto}
 .public-footer a.public-footer-brand{display:block;width:fit-content;margin-bottom:4px;text-decoration:none}
 .public-footer-brand img{display:block;width:64px;height:64px;filter:brightness(0) saturate(100%) invert(33%)}
@@ -52,3 +52,17 @@
 .public-footer .public-footer-channel[data-tooltip]:is(:hover,:focus-visible)::after{opacity:1;transform:translate(-50%,0)}
 .coala-app > .public-footer .public-footer-channel[data-tooltip]::after{background:#f0f2e8;color:#152b20}
 @media (prefers-reduced-motion: reduce){.public-footer .public-footer-channel[data-tooltip]::after{transition:none}}
+
+.public-footer.public-footer { background: #111; color: #bbb; border-color: #333; }
+.public-footer.public-footer :is(.public-footer-brand img, .public-footer-channel img) { filter: brightness(0) invert(1); }
+.public-footer.public-footer .public-footer-channels :is(button, a.public-footer-channel) { background: #fff; color: #111; }
+.public-footer.public-footer .public-footer-channels .public-footer-channel img { filter: brightness(0); }
+.public-footer.public-footer .public-footer-channels :is(button, a.public-footer-channel):hover { background: #ddd; color: #111; }
+.public-footer.public-footer .public-footer-channel[data-tooltip]::after { background: #fff; color: #111; border-radius: 8px; }
+
+/* Neutral footer text on every public page. */
+:is(.jungle-site, .recruiting-site, .coala-app) .public-footer.public-footer { background: #111; border-color: #333; }
+:is(.jungle-site, .recruiting-site, .coala-app) .public-footer.public-footer .public-footer-inner > :is(p, small) { color: #fff; }
+/* Match the document canvas to the footer during end-of-page scrolling. */
+html:has(.jungle-site), html:has(.recruiting-site), html:has(.coala-app > .public-footer) { background: #111; overscroll-behavior-y: none; }
+body:has(.jungle-site), body:has(.recruiting-site), body:has(.coala-app > .public-footer) { background: #111; overscroll-behavior-y: none; }

@@ -1,0 +1,7 @@
+withfestival wordmark: public/withfestival-wordmark.svg (editable SVG text, blue #192d91)
+Name follows the supplied app screen's “with Festival”; pending clarification of the typed “withfesitval”.
+App screen and icon: user-provided images, preserved in src/assets/withfesti-app-screen.png and withfesti-app-logo.png.
+University symbol: src/assets/jbnu-symbol.jpg, official unmodified modern symbol.
+Source page: https://www.jbnu.ac.kr/web/intro/university/sub05.do
+Source asset: https://www.jbnu.ac.kr/resources/user/web/img/sub/modern_symbol_01.jpg
+Trend Core product screen: user-provided image, src/assets/trend-core-products.png, displayed below the original project image.

@@ -27,11 +27,14 @@ import './styles/coala-system.css'
 import './styles/page-frame.css'
 import './styles/neutral-forms.css'
 import './styles/content-refinements.css'
+import './styles/compact-actions.css'
 import { LandingPage } from './pages/landing/LandingPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
 import { PublicFooter } from './pages/landing/PublicFooter'
 import './pages/landing/forest-theme.css'
 import { LoadingSpinner } from './shared/ui/LoadingSpinner'
+
+const sectionIcons: Partial<Record<AppRoute, string>> = { about: '👋', community: '💬', services: '🧩', archive: '📚', game: '👥' }
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
@@ -934,7 +937,7 @@ function AppSession() {
                     : [{ id: `${item.id}-root`, label: `${item.label} 바로가기`, icon: item.icon, path: routePathById[item.id as AppRoute], depth: 0 }]
                   return (
                     <div key={item.id} className={activeRoute === item.id ? 'main-nav-mega-column is-active' : 'main-nav-mega-column'}>
-                      <p className="main-nav-mega-title">{item.label}</p>
+                      <p className="main-nav-mega-title"><span className="main-nav-mega-art" aria-hidden="true">{sectionIcons[item.id]}</span>{item.label}</p>
                       <div className="main-nav-mega-links" role="group" aria-label={`${item.label} 메뉴`}>
                         {links.map((link) => (
                           <button
@@ -1043,11 +1046,17 @@ function AppSession() {
                     </div>
                   ) : null}
                 </div>
-                <div className="header-profile-menu">
+                <div className="header-profile-menu" onKeyDown={(event) => {
+                  if (event.key === 'Escape') {
+                    setProfileMenuOpen(false)
+                    event.currentTarget.querySelector<HTMLButtonElement>('.header-user-button')?.focus()
+                  }
+                }}>
                   <button
                     type="button"
                     className={`header-user-button${profileMenuOpen ? ' is-open' : ''}`}
                     aria-expanded={profileMenuOpen}
+                    aria-controls={profileMenuOpen ? 'header-profile-popover' : undefined}
                     onClick={() => {
                       setNotificationMenuOpen(false)
                       setProfileMenuOpen((value) => !value)
@@ -1061,36 +1070,27 @@ function AppSession() {
                       className="header-user-avatar"
                     />
                     <span className="header-user-name">{user?.name ?? user?.email}</span>
-                    <Icon name={profileMenuOpen ? 'chevron-down' : 'chevron-right'} size={13} />
+                    <Icon name="chevron-down" size={18} />
                   </button>
                   {profileMenuOpen ? (
-                    <div className="header-profile-popover">
-                      <div className="header-profile-summary">
-                        <CharacterAvatar
-                          name={user?.name ?? user?.email ?? '사용자'}
-                          seed={user?.id ?? user?.email ?? 'user'}
-                          gender={user?.gender}
-                          size="sm"
-                          className="header-profile-summary-avatar"
-                        />
-                        <div>
-                          <strong>{user?.name ?? user?.email}</strong>
-                          <span>{user?.lab ?? user?.department ?? user?.email}</span>
-                        </div>
-                      </div>
-                      <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>
-                        <Icon name="profile-color" size={20} />
-                        마이프로필
-                      </button>
+                    <div id="header-profile-popover" className="header-profile-popover">
+                      <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>내 계정 관리</button>
+                      <button type="button" className="header-profile-menu-item" onClick={() => {
+                        setProfileMenuOpen(false)
+                        if (user) navigate(`${routes.users.detail(user.id)}?tab=activity`)
+                      }}>내 활동 내역</button>
+                      <button type="button" className="header-profile-menu-item" onClick={() => {
+                        setProfileMenuOpen(false)
+                        if (user) navigate(routes.community.activityUser(String(user.id)))
+                      }}>나의 팀</button>
                       {isAdmin ? (
                         <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
                           <Icon name="settings" size={14} />
                           관리자 대시보드
                         </button>
                       ) : null}
-                      <button type="button" className="header-profile-menu-item" onClick={handleLogout}>
-                        <Icon name="logout-color" size={20} />
-                        로그아웃하기
+                      <button type="button" className="header-profile-menu-item header-profile-logout" onClick={handleLogout}>
+                        로그아웃
                       </button>
                     </div>
                   ) : null}
@@ -1118,7 +1118,7 @@ function AppSession() {
         {sidebarItems.length > 0 ? (
           <div className="coala-section-layout">
             <aside className="coala-sidebar" aria-label={`${sidebarTitle} 메뉴`}>
-              <p className="coala-sidebar-title">{sidebarTitle}</p>
+              <p className="coala-sidebar-title"><span className="coala-sidebar-art" aria-hidden="true">{sidebarSection && sectionIcons[sidebarSection.id]}</span>{sidebarTitle}</p>
               <nav className="coala-sidebar-nav">
                 {sidebarItems.map((item) => (
                   <button

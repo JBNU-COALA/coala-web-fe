@@ -205,7 +205,7 @@ function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) 
           <strong role={loadError || applications.error ? 'alert' : 'status'}>
             {loadError || applications.error || (loading || applications.loading || item ? '지원서를 불러오는 중입니다.' : '지원할 모집 공고를 찾을 수 없습니다.')}
           </strong>
-          {(loadError || applications.error) && <button type="button" className="ghost-button" onClick={() => {
+          {(loadError || applications.error) && <button type="button" className="ghost-button retry-button" onClick={() => {
             if (loadError) { setLoadError(''); setLoading(true); setRevision((value) => value + 1) }
             if (applications.error) applications.retry()
           }}>다시 불러오기</button>}

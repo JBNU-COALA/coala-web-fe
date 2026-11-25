@@ -1,3 +1,4 @@
+import './public-header.css'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './landing.css'
@@ -47,9 +48,8 @@ export function LandingPage() {
               <path d="M-76 1100Q366 550 225-120" stroke="#5c774a" strokeOpacity=".4" strokeWidth="4" fill="none" />
               {Array.from({ length: 9 }, (_, i) => <g key={i} transform={`translate(${185 + Math.sin(i * .5) * 75} ${i * 128 - 5})`}>
                 <g transform={`rotate(${35 - i * 7}) scale(${1.25 - i * .025})`}>
-                  {i === 5 && <KoalaPaw layer="back" />}
                   <use href={`#frond-${side}`} />
-                  {i === 5 && <KoalaPaw layer="front" />}
+                  {i === 5 && <KoalaPaw />}
                 </g>
                 <use href={`#frond-${side}`} transform={`rotate(${170 + i * 5}) scale(.95)`} />
               </g>)}

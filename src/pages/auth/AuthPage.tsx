@@ -1,5 +1,6 @@
 import './auth.css'
 import { AuthForm } from './AuthForm'
+import { Icon } from '../../shared/ui/Icon'
 import { useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -254,7 +255,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </label>
 
               <label className="auth-label">
-                <span>GitHub 아이디 {!isLogin && <span aria-hidden="true">*</span>}</span>
+                <span className="auth-brand-label"><Icon name="github" size={18} />GitHub 아이디 {!isLogin && <span aria-hidden="true">*</span>}</span>
                 <input
                   className="auth-input"
                   type="text"
@@ -272,7 +273,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
               </label>
 
               <label className="auth-label">
-                LinkedIn 프로필 URL
+                <span className="auth-brand-label"><Icon name="linkedin" size={18} />LinkedIn 프로필 URL</span>
                 <input
                   className="auth-input"
                   type="url"

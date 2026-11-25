@@ -41,7 +41,7 @@ export function JcloudApplyList() {
 
   if (!isLoggedIn) return (
     <div className="jcloud-login-required">
-      <div className="jcloud-success-icon"><Icon name="user" size={28} /></div>
+      <div className="jcloud-success-icon"><img className="login-koala" src="/coala-mascot-plush.png" alt="" /></div>
       <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
       <p className="jcloud-success-desc">인스턴스 신청 내역은 로그인 후 확인할 수 있습니다.</p>
       <Link className="jcloud-login-link" to="/login" state={{ from: location }}>로그인하기</Link>

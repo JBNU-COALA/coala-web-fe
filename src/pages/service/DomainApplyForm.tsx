@@ -76,7 +76,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
     return (
       <div className="jcloud-submit-success">
         <div className="jcloud-success-icon">
-          <Icon name="user" size={28} />
+          <img className="login-koala" src="/coala-mascot-plush.png" alt="" />
         </div>
         <h3 className="jcloud-success-title">도메인 신청이 접수되었습니다.</h3>
         <p className="jcloud-success-desc">
@@ -90,7 +90,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
     return (
       <div className="jcloud-login-required">
         <div className="jcloud-success-icon">
-          <Icon name="link" size={28} />
+          <img className="login-koala" src="/coala-mascot-plush.png" alt="" />
         </div>
         <h3 className="jcloud-success-title">로그인 후 신청할 수 있습니다.</h3>
         <p className="jcloud-success-desc">

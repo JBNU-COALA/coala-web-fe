@@ -185,3 +185,43 @@
 .auth-validation-tip { position: fixed; z-index: 1000; padding: 12px 14px; border: 1px solid #404040; border-radius: 8px; background: #262626; color: #fff; box-shadow: 0 6px 20px #0000001a; font-size: 13px; line-height: 1.5; pointer-events: none; }
 .auth-validation-tip::before { content: ''; position: absolute; top: -5px; left: 18px; width: 8px; height: 8px; background: #262626; border-top: 1px solid #404040; border-left: 1px solid #404040; transform: rotate(45deg); }
 .coala-content--auth .auth-input[aria-invalid=true] { border-color: #111; outline-color: #737373; }
+
+.auth-validation-tip { padding: 9px 12px; font-size: 12px; border-radius: 8px; animation: auth-tip-in 160ms ease-out both; }
+.auth-validation-tip.is-closing { animation: auth-tip-out 160ms ease-in both; }
+@keyframes auth-tip-in { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes auth-tip-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-4px); } }
+@media(prefers-reduced-motion:reduce) { .auth-validation-tip, .auth-validation-tip.is-closing { animation-duration: 1ms; } }
+
+/* Keep signup fields and their helper copy consistent. */
+.coala-app .coala-content.coala-content--auth :is(input, select).auth-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  height: 40px;
+  min-height: 40px;
+  padding-block: 0;
+  padding-inline: 12px;
+  color: #171717;
+}
+.coala-app .coala-content--auth .auth-helper { color: #737373; }
+.coala-app .coala-content--auth :is(.auth-switch, .auth-helper a) { color: #333; }
+.coala-app .coala-content--auth :is(.auth-switch, .auth-helper a):hover { color: #111; }
+.auth-brand-label { display: inline-flex; align-items: center; gap: 7px; color: #171717; }
+.auth-brand-label svg { flex-shrink: 0; }
+
+/* Shared vertical frame for login, signup and password recovery. */
+.coala-app:has(.coala-shell--auth) { min-height: 100svh; }
+.coala-app .coala-shell.coala-shell--auth {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 0 auto;
+  min-height: max(640px, calc(100svh - var(--coala-header-height, 72px) - 200px));
+}
+.coala-app .coala-shell--auth > .coala-content.coala-content--auth {
+  padding-block: 48px 64px;
+}
+.coala-app:has(.coala-shell--auth) > .public-footer { flex-shrink: 0; }
+@media (max-width: 600px) {
+  .coala-app .coala-shell--auth > .coala-content.coala-content--auth { padding-block: 32px 48px; }
+}

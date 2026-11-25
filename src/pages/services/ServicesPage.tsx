@@ -134,7 +134,7 @@ export function ServicesPage() {
         : '유저 서비스'
   const activeBannerDescription =
     activeTab === 'coas'
-      ? '코알라가 함께 만들어가는 오픈소스 프로젝트를 소개해요.'
+      ? '코알라와 함께 만들어가는 오픈소스 프로젝트를 소개해요.'
       : activeTab === 'official'
         ? '동아리에서 운영하는 공식 서비스를 신청하고 이용해 보세요.'
         : '코알라 멤버들이 직접 만든 서비스를 둘러보세요.'
@@ -372,15 +372,8 @@ export function ServicesPage() {
                   <img src="/coala-logo.svg" alt="" />
                   <div><strong>COAS<span>.</span></strong><p>Coala Open Source Project</p></div>
                 </div>
-                <svg className="coas-project-branches" viewBox="0 0 460 100" fill="none" aria-hidden="true">
-                  <path d="M-10 72H470" stroke="#454545" strokeWidth="2" />
-                  <path d="M85 72C115 72 112 24 145 24H280C313 24 311 72 342 72" stroke="#d3b885" strokeWidth="2" />
-                  <path d="M195 72C223 72 222 46 249 46H470" stroke="#858585" strokeWidth="2" />
-                  <g fill="#202020" stroke="#aaa" strokeWidth="2"><circle cx="36" cy="72" r="5" /><circle cx="85" cy="72" r="5" /><circle cx="195" cy="72" r="5" /><circle cx="342" cy="72" r="5" /><circle cx="411" cy="72" r="5" /></g>
-                  <g fill="#d3b885"><circle cx="155" cy="24" r="5" /><circle cx="265" cy="24" r="5" /></g>
-                  <circle cx="295" cy="46" r="4" fill="#aaa" />
-                </svg>
-                <div className="coas-project-bottomline"><span>코드를 나누고, 함께 만듭니다.</span><span aria-hidden="true">&lt;/&gt;</span></div>
+
+                <div className="coas-project-bottomline"><span aria-hidden="true">&lt;/&gt;</span></div>
               </div>
             </section>
 
@@ -830,7 +823,7 @@ export function ServicesPage() {
                 </li>
               ))}
               {listLoading ? <li className="empty-post-state"><LoadingSpinner label="서비스를 불러오는 중입니다." /></li> : listError ? (
-                <li className="empty-post-state"><p role="alert">{listError}</p><button type="button" className="ghost-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
+                <li className="empty-post-state"><p role="alert">{listError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
               ) : paginatedServices.length === 0 ? (
                 <li className="empty-post-state">조건에 맞는 서비스가 없습니다.</li>
               ) : null}

@@ -99,7 +99,7 @@ export function HomeCarousel() {
                     <Link to={target} className="home-carousel-link">{banner.actionLabel || '자세히 보기'}<Icon name="chevron-right" size={16} /></Link>
                   </div>
                   <div className="home-carousel-art" aria-hidden="true">
-                    <SafeImage src="/coala-developer.png" alt="" loading={loading}
+                    <SafeImage src="/coala-mascot-plush.png" alt="" loading={loading}
                       fallback={<span className="home-carousel-art-fallback" />} />
                   </div>
                 </div>

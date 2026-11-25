@@ -17,7 +17,7 @@ export function ProfileActivityList({ items, loading, error, retry, emptyText = 
 }) {
   if (loading) return <LoadingSpinner label="활동을 불러오는 중입니다." />
   if (error) return <div className="profile-overview-error"><p role="alert">{error}</p>
-    <button type="button" className="ghost-button" onClick={retry}>다시 불러오기</button></div>
+    <button type="button" className="ghost-button retry-button" onClick={retry}>다시 불러오기</button></div>
   if (!items.length) return <p className="profile-empty-text">{emptyText}</p>
   return <ul className="profile-content-list">
     {items.map((item) => {

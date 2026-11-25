@@ -140,8 +140,8 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
               title={!board ? '질문게시판이 아직 준비되지 않았습니다.' : undefined}
               onClick={board ? onWritePost : undefined}
             >
-              <Icon name="edit" size={15} />
-              글쓰기
+              <Icon name="pencil-color" size={18} />
+              게시글 작성하기
             </button>
         </ListingControls>
 

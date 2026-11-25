@@ -1,0 +1,77 @@
+/* Shared action size across lists, editors and service pages. */
+.coala-app .coala-content.coala-content :is(.write-post-button, .community-board-write, .community-board-retry, .recruit-create-button, .member-service-add-button, .jcloud-submit-button, .primary-button, .ghost-button, .coas-actions > button, .coas-actions > a) {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 32px; height: 32px; min-width: 0; padding: 0 12px;
+  border-radius: 10px; font-family: inherit; font-size: 12px; font-weight: 600; line-height: 1.2; white-space: nowrap;
+}
+.coala-app .coala-content.coala-content :is(.write-post-button, .community-board-write, .community-board-retry, .recruit-create-button, .member-service-add-button, .jcloud-submit-button, .primary-button, .ghost-button, .coas-actions) svg { width: 14px; height: 14px; flex-shrink: 0; }
+.coala-app .coala-content.coala-content .community-board-search-toggle { width: 32px; height: 32px; min-height: 32px; padding: 0; border-radius: 10px; }
+.coala-app .coala-content.coala-content .community-board-search-toggle svg { width: 16px; height: 16px; }
+
+/* Moderate corners for buttons, without altering switches or carousel dots. */
+.coala-app.coala-app button:not([role="switch"]):not(.home-carousel-dots button),
+.coala-app.coala-app :is(.jcloud-login-link, .auth-secondary-link) { border-radius: 10px; }
+
+/* One neutral retry action across all loading error states. */
+.coala-app.coala-app button.retry-button.retry-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-width: 0;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  background: #f2f2f2;
+  color: #333;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: none;
+  cursor: pointer;
+  transition: background-color 150ms, border-color 150ms;
+}
+.coala-app.coala-app button.retry-button.retry-button:hover:not(:disabled) {
+  background: #e5e5e5;
+  border-color: #bdbdbd;
+  color: #222;
+}
+.coala-app.coala-app button.retry-button.retry-button:focus-visible {
+  outline: 2px solid #737373;
+  outline-offset: 3px;
+}
+.coala-app.coala-app button.retry-button.retry-button:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Compact segmented view controls with no gaps around the active segment. */
+.coala-app .coala-content .view-toggle.view-toggle--compact {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: fit-content;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  box-sizing: border-box;
+}
+.coala-app.coala-app .view-toggle.view-toggle--compact button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 32px;
+  width: 32px;
+  min-width: 32px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+}
+.coala-app .view-toggle.view-toggle--compact button svg { width: 16px; height: 16px; }

@@ -1,4 +1,5 @@
-.page-frame-body.archive-content { min-width: 0; padding-top: 0; }
+.coala-content--archive .page-frame-body.archive-content { min-width: 0; padding-top: 40px; }
+@media (max-width: 900px) { .coala-content--archive .page-frame-body.archive-content { padding-top: 24px; } }
 .archive-calendar-toggle { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; border: 0; background: none; color: #536573; font: inherit; cursor: pointer; }
 .archive-calendar-toggle[aria-pressed=true] { color: #08734e; }
 .archive-resource-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }

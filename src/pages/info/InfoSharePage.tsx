@@ -233,8 +233,8 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               className="write-post-button write-post-button--info"
               onClick={onWriteInfo}
             >
-              <Icon name="edit" size={15} />
-              글쓰기
+              <Icon name="pencil-color" size={18} />
+              게시글 작성하기
             </button>
         </ListingControls>
 
@@ -355,7 +355,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               )
             })}
 
-            {loading ? <li><LoadingSpinner label="정보를 불러오는 중입니다." /></li> : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button type="button" className="ghost-button" onClick={() => { setLoading(true); setLoadRevision((value) => value + 1) }}>다시 불러오기</button></li> : visibleResources.length === 0 ? (
+            {loading ? <li><LoadingSpinner label="정보를 불러오는 중입니다." /></li> : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setLoading(true); setLoadRevision((value) => value + 1) }}>다시 불러오기</button></li> : visibleResources.length === 0 ? (
               <li className="empty-post-state">조건에 맞는 정보가 없습니다.</li>
             ) : null}
           </ul>

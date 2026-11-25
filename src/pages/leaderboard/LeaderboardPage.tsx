@@ -114,7 +114,7 @@ export function LeaderboardPage() {
 
         <div className="activity-table-shell">
           {loadError && <div><p role="alert" className="auth-error">{loadError}</p>
-            <button type="button" className="ghost-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}
+            <button type="button" className="ghost-button retry-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}
           <section className="activity-directory-controls" aria-label="유저 검색 및 필터">
             <SearchField
               className="activity-search"

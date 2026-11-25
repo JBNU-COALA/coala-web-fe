@@ -207,3 +207,20 @@
 .post-report-dialog :focus-visible { outline: 2px solid #737373; outline-offset: 3px; }
 @keyframes report-backdrop-enter { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .post-report-dialog[open], .post-report-dialog::backdrop { animation: none; } }
+
+/* 헤더 계정 메뉴: 테두리 없는 트리거와 각진 메뉴. */
+.coala-app .header-user-button,
+.coala-app .header-user-button:hover,
+.coala-app .header-user-button.is-open {
+  height: 42px; padding: 0; gap: 10px; border: 0; border-radius: 0;
+  background: transparent; box-shadow: none; transform: none; color: #505b69; font-size: 14px;
+}
+.coala-app .header-user-button .header-user-avatar { width: 34px; height: 34px; min-width: 34px; }
+.coala-app .header-user-button > svg { margin-left: 12px; transition: transform 180ms ease; }
+.coala-app .header-user-button.is-open > svg { transform: rotate(180deg); }
+.coala-app .header-profile-popover { width: min(240px, calc(100vw - 28px)); padding: 16px 20px; gap: 2px; border-radius: 0; box-shadow: 0 8px 24px #0000000d; }
+.coala-app .header-profile-popover::before { display: none; }
+.coala-app .header-profile-menu-item { min-height: 46px; padding: 10px 4px; border-radius: 0; font-size: 15px; font-weight: 500; color: #343e4c; }
+.coala-app .header-profile-logout { margin-top: 12px; padding-top: 20px; border-top: 1px solid #e1e5e9; }
+/* 원형 아바타 안에 새 캐릭터의 귀까지 보이도록 여백을 둔다. */
+.character-avatar > .character-avatar-art { object-fit: contain; padding: 6%; }

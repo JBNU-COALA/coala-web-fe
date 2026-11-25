@@ -1,0 +1,2 @@
+Official CNCF Kubestronaut logo
+https://github.com/cncf/artwork/blob/main/other/kubestronaut/stacked/color/kubestronaut-stacked-color.svg

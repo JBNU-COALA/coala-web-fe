@@ -154,7 +154,7 @@ function ActivityContent({
           {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>출석 체크</Link>}
           {
             <button
-              className="study-text-button"
+              className="study-text-button retry-button"
               onClick={() => setReload((value) => value + 1)}
             >
               다시 불러오기
@@ -168,7 +168,7 @@ function ActivityContent({
       ) : mode === 'new' ? (
         <>
           {data.groupsError ? <p className="study-error" role="alert">{data.groupsError}
-            <button type="button" className="study-text-button" onClick={() => setReload((value) => value + 1)}>다시 불러오기</button>
+            <button type="button" className="study-text-button retry-button" onClick={() => setReload((value) => value + 1)}>다시 불러오기</button>
           </p> : selectedGroup !== 'all' && !manageableGroups.some((group) => group.id === selectedGroup) ? (
             <div className="study-empty"><p role="alert">선택한 조를 찾을 수 없거나 출석을 등록할 권한이 없습니다.</p>
               <Link to={back}>활동 목록으로 돌아가기</Link>
