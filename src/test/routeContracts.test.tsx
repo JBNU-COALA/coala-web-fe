@@ -53,7 +53,7 @@ describe('route layout contracts', () => {
     expect(mock.get.mock.calls.some(([path]) => path === '/api/users')).toBe(false)
   })
   it.each([
-    ['home', '/portal', 'COALA Developer Club'],
+    ['home', '/portal', '동아리의 소식과 활동을 한곳에서.'],
     ['board', '/community/board', '게시판'],
     ['info', '/community/info', '정보공유'],
     ['archive', '/archive/labs', '연구실 자료'],

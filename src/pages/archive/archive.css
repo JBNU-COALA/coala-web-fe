@@ -144,3 +144,7 @@
 .archive-login-required .archive-login-button:hover { background: #292929; border-color: #292929; }
 .coala-content--archive .archive-back-link { color: #737373; }
 .coala-content--archive .archive-back-link:hover { color: #111; }
+
+.archive-content .archive-empty { font-family: var(--font-sans); font-weight: 400; color: #737373; }
+.archive-editor .archive-type-select { width: 100%; }
+.coala-app .archive-editor .archive-type-select.custom-select > .select-control-trigger { min-height: 40px !important; height: 40px !important; padding: 0 12px !important; font-size: 14px !important; }

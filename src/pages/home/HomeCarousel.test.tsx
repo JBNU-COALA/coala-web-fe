@@ -36,7 +36,7 @@ describe('home banner carousel', () => {
     vi.mocked(siteApi.getBanners).mockRejectedValue(new Error('offline'))
     mount()
     await act(async () => {})
-    expect(screen.getByRole('heading', { name: '함께 만드는 개발 동아리' })).toBeTruthy()
+    expect(screen.getByRole('heading', { name: '동아리의 소식과 활동을 한곳에서.' })).toBeTruthy()
     expect(screen.getByRole('link', { name: '동아리 소개' }).getAttribute('href')).toBe('/about')
   })
 

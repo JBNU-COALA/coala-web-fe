@@ -114,7 +114,7 @@ export function ArchiveEditorPage() {
                 {formIsLabs ? (
                   <label className={draft.sourceUrl ? 'archive-upload-zone archive-upload-zone--ready' : 'archive-upload-zone'}>
                     <input type="file" onChange={handleArchiveFileChange} disabled={isUploadingArchiveFile} />
-                    <Icon name="file" size={22} />
+                    <Icon name="file-color" size={26} />
                     <span>
                       <strong>{isUploadingArchiveFile ? '업로드 중' : draft.sourceUrl ? '파일 연결됨' : '파일 업로드'}</strong>
                       <small>{uploadedFileName || (draft.sourceUrl ? '등록된 파일 또는 링크가 있습니다.' : 'PDF, PPTX, DOCX, ZIP 자료')}</small>

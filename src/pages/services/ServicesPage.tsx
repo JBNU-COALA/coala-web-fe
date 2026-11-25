@@ -450,6 +450,15 @@ export function ServicesPage() {
             )}
           </div>
         ) : selectedService ? (
+          <>
+                    <button
+                      type="button"
+                      className="ghost-button member-service-back-button"
+                      onClick={() => navigate(routes.services.user)}
+                    >
+                      <Icon name="chevron-left" size={15} />
+                      목록으로 돌아가기
+                    </button>
               <article className="surface-card member-service-detail">
                 <div
                   className={
@@ -468,14 +477,7 @@ export function ServicesPage() {
 
                 <div className="member-service-detail-body">
                   <header className="member-service-detail-header">
-                    <button
-                      type="button"
-                      className="ghost-button member-service-back-button"
-                      onClick={() => navigate(routes.services.user)}
-                    >
-                      <Icon name="chevron-left" size={15} />
-                      목록으로 돌아가기
-                    </button>
+
                     <div>
                       <p className="services-hub-eyebrow">유저 서비스</p>
                       <h3>{selectedService.title}</h3>
@@ -568,6 +570,7 @@ export function ServicesPage() {
                   ) : null}
                 </div>
               </article>
+          </>
         ) : serviceId ? (
               <section className="surface-card member-service-detail-empty">
                 <strong>서비스를 찾을 수 없습니다.</strong>
@@ -762,6 +765,7 @@ export function ServicesPage() {
                         />
                       </div>
                       <div className="member-service-card-head">
+                        <h3>{service.title}</h3>
                         <span className="member-service-status">{service.status}</span>
                         {service.canEdit ? (
                           <button
@@ -777,17 +781,12 @@ export function ServicesPage() {
                           </button>
                         ) : null}
                       </div>
-                      <h3>{service.title}</h3>
                       <p>{service.summary}</p>
-                      <div className="member-service-tags">
-                        {renderServiceTags(service.tags)}
-                      </div>
                       <footer className="member-service-card-footer">
                         <div>
                           <span>{service.owner}</span>
-                          <strong>{service.url}</strong>
                         </div>
-                        <span className="member-service-open-hint">안내 보기</span>
+                        <Icon name="chevron-right" size={18} />
                       </footer>
                     </>
                   ) : (

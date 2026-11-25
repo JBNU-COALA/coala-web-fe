@@ -272,3 +272,13 @@
 @media(prefers-reduced-motion:reduce) { .home-carousel-slide, .home-carousel-copy { transition: none; } .home-carousel-slide:not(.home-carousel-slide--media)::before { animation: none; } }
 
 .home-carousel.is-paused .home-carousel-slide::before { animation-play-state: paused; }
+
+/* Introductory copy must remain readable at narrow widths. */
+.home-carousel-copy :is(h1, h2), .home-carousel-description { display: block; overflow: visible; }
+.home-carousel-copy :is(h1, h2) { color: #222; }
+.home-carousel-description { color: #525252; }
+@media (max-width: 560px) {
+  .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr); padding-block: 24px 48px; }
+  .home-carousel-art { display: none; }
+  .home-carousel-copy :is(h1, h2) { font-size: 25px; }
+}

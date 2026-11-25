@@ -7,10 +7,24 @@ import { SafeImage } from '../../shared/ui/SafeImage'
 import './HomeCarousel.css'
 
 const defaultBanners: SiteBanner[] = [
-  { id: -1, eyebrow: 'TOGETHER WE BUILD', title: '함께 만드는 개발 동아리', description: '함께 만들고 운영하는 개발 동아리', targetPath: routes.about, actionLabel: '동아리 소개', tone: 'green', imageUrl: '', sortOrder: 0, enabled: true },
-  { id: -2, eyebrow: 'COMMUNITY', title: '배우고, 나누고, 함께.', description: '새로운 이야기와 함께할 사람들을 만나보세요.', targetPath: routes.community.board, actionLabel: '커뮤니티', tone: 'blue', imageUrl: '', sortOrder: 1, enabled: true },
-  { id: -3, eyebrow: 'MADE BY COALA', title: '아이디어에서 서비스로.', description: '코알라가 만들고 운영하는 서비스를 만나보세요.', targetPath: routes.services.root, actionLabel: '서비스 보기', tone: 'coral', imageUrl: '', sortOrder: 2, enabled: true },
+  { id: -1, eyebrow: '', title: '동아리의 소식과 활동을 한곳에서.', description: '새로운 소식을 확인하고, 함께할 멤버를 찾고, 필요한 서비스를 이용하세요. 코알라의 활동을 이어주는 공간입니다.', targetPath: routes.about, actionLabel: '동아리 소개', tone: 'green', imageUrl: '', sortOrder: 0, enabled: true },
+  { id: -2, eyebrow: '', title: '개발 이야기를 나누고, 함께할 팀을 찾아보세요.', description: '게시판에서 질문과 경험을 나누고, 정보공유에서 대회와 학습 자료를 확인하세요. 스터디와 프로젝트 모집도 함께 살펴보세요.', targetPath: routes.community.board, actionLabel: '커뮤니티', tone: 'blue', imageUrl: '', sortOrder: 1, enabled: true },
+  { id: -3, eyebrow: '', title: '프로젝트에 필요한 서비스, 여기서 시작하세요.', description: '인스턴스 대여와 도메인을 신청하고 진행 내역을 확인하세요. 멤버들이 직접 만든 서비스도 둘러볼 수 있습니다.', targetPath: routes.services.root, actionLabel: '서비스 보기', tone: 'coral', imageUrl: '', sortOrder: 2, enabled: true },
 ]
+
+// Refresh the original seed copy while preserving administrator-authored banners.
+function refreshDefaultCopy(banner: SiteBanner): SiteBanner {
+  if (banner.imageUrl) return banner
+  const legacyTitles = [
+    ['COALA Developer Club', '함께 만드는 개발 동아리'],
+    ['배우고, 나누고, 함께.'],
+    ['아이디어에서 서비스로.'],
+  ]
+  const index = legacyTitles.findIndex((titles) => titles.includes(banner.title))
+  if (index < 0) return banner
+  const { title, description } = defaultBanners[index]
+  return { ...banner, title, description }
+}
 
 export function HomeCarousel() {
   const [banners, setBanners] = useState(defaultBanners)
@@ -27,7 +41,7 @@ export function HomeCarousel() {
     async function loadBanners() {
       try {
         const items = await siteApi.getBanners()
-        if (active) setBanners(items.filter((item) => item.enabled).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id))
+        if (active) setBanners(items.filter((item) => item.enabled).map(refreshDefaultCopy).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id))
       } catch {
         // Keep the navigation banners usable when this optional API is unavailable.
       }
