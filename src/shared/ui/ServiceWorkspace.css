@@ -51,6 +51,7 @@
 .coala-app .jcloud-tab-shell :is(.jcloud-apply-instance, .jcloud-detail-value) { color: #262626; }
 .coala-app .jcloud-tab-shell :is(.jcloud-apply-duration, .jcloud-apply-date, .jcloud-apply-chevron, .jcloud-detail-label) { color: #737373; }
 .coala-app .jcloud-tab-shell :is(.jcloud-mail-notice, .jcloud-admin-note) { background: #fafafa; border: 1px solid #e5e5e5; color: #525252; border-radius: 8px; }
-.coala-app .jcloud-tab-shell .jcloud-mail-notice strong { color: #262626; }
+.coala-app .jcloud-tab-shell .jcloud-mail-notice strong { display: block; color: #262626; font-size: 13px; line-height: 20px; }
+.coala-app .jcloud-tab-shell .jcloud-mail-notice > svg { flex: 0 0 14px; width: 14px; height: 14px; margin-top: 3px; }
 .coala-app .jcloud-tab-shell .jcloud-mail-notice p { color: #737373; }
 .coala-app .jcloud-tab-shell .jcloud-status-badge { color: #525252; background: #f0f0f0; border-color: #dedede; }
