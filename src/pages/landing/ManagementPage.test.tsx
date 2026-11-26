@@ -4,7 +4,7 @@ import { ManagementPage } from './ManagementPage'
 
 describe('ManagementPage', () => {
   it('shows the preparation state without invented generations or members', () => {
-    render(<ManagementPage />)
+    render(<ManagementPage generations={[]} />)
     expect(screen.getByText('임원진 정보를 준비 중입니다.')).toBeTruthy()
     expect(screen.queryByRole('navigation', { name: '임원진 기수 선택' })).toBeNull()
   })

@@ -381,3 +381,25 @@
   outline: 2px solid #525252;
   outline-offset: 2px;
 }
+
+/* Compact profile navigation includes logout in the same scrollable row. */
+.coala-content--profile .profile-page-meta > a { gap: 6px; }
+@media (max-width: 640px) {
+  .coala-app .profile-settings { padding: 20px 12px 28px; }
+  .coala-app .profile-settings-title { font-size: 20px; margin: 0 0 16px; }
+  .coala-app .profile-settings-sidebar { display: flex; align-items: center; gap: 6px; overflow-x: auto; padding: 0 0 12px; margin-bottom: 16px; scrollbar-width: none; }
+  .coala-app .profile-settings-sidebar > .section-nav { flex: 0 0 auto; width: auto; }
+  .coala-app .profile-settings-sidebar .section-nav .section-nav-items { flex-wrap: nowrap; overflow: visible; gap: 4px; }
+  .coala-app .profile-settings-sidebar .section-nav .section-nav-item,
+  .coala-app .profile-settings-sidebar .profile-settings-logout { flex: 0 0 auto; width: auto; min-height: 32px; padding: 6px 9px; margin: 0; gap: 6px; font-size: 11px; white-space: nowrap; border: 0; }
+  .coala-app .profile-settings-sidebar svg { width: 16px; height: 16px; }
+  .coala-app .profile-settings-main .profile-page-hero { padding: 12px 0 20px; }
+  .coala-app .profile-settings-main .profile-page-hero-main { gap: 12px; }
+  .coala-app .profile-settings-main .profile-page-avatar { width: 56px; height: 56px; min-width: 56px; }
+  .coala-app .profile-settings-main .profile-page-name { font-size: 20px; margin: 0; }
+  .coala-app .profile-settings-main .profile-identity-heading { gap: 6px; }
+  .coala-app .profile-settings-main :is(.profile-joined-top, .profile-page-role, .profile-page-focus) { font-size: 11px; margin: 6px 0; line-height: 1.6; }
+  .coala-app .profile-settings-main .profile-page-meta { gap: 6px; margin-top: 8px; }
+  .coala-app .profile-settings-main .profile-page-meta > * { min-height: 26px; padding: 4px 8px; font-size: 10px; overflow-wrap: anywhere; }
+  .coala-app .profile-settings-main .profile-section-title { font-size: 16px; }
+}

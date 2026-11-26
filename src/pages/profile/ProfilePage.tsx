@@ -585,9 +585,10 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               <p className="profile-page-role">{displayRole}</p>
               {profileMember.focus ? <p className="profile-page-focus">{profileMember.focus}</p> : null}
               <div className="profile-page-meta">
-                <span>{profileAffiliation}</span>
+                {profileAffiliation && !profileMember.focus?.includes(profileAffiliation) && <span>{profileAffiliation}</span>}
                 {profileGithubUrl ? (
                   <a href={profileGithubUrl} target="_blank" rel="noreferrer">
+                    <Icon name="github" size={15} />
                     {profileGithubLabel}
                   </a>
                 ) : (

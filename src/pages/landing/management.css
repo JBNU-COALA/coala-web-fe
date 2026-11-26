@@ -3,8 +3,11 @@
 .management-heading h1 { margin: 0 0 12px; font-size: 26px; color: #171717; }
 .management-heading > span { font-size: 14px; color: #737373; line-height: 1.6; }
 .management-generations { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 480px; margin: 0 auto 24px; }
-.management-generation-list { display: flex; gap: 6px; overflow-x: auto; min-width: 0; scrollbar-width: thin; }
-.management-generations button { flex-shrink: 0; min-height: 34px; padding: 6px 14px; border: 1px solid #e5e5e5; background: #fff; color: #666; font: inherit; font-size: 12px; white-space: nowrap; cursor: pointer; }
+.management-generation-list { display: flex; gap: 8px; overflow-x: auto; min-width: 0; max-width: 232px; scrollbar-width: none; scroll-behavior: smooth; scroll-snap-type: x proximity; overscroll-behavior-x: contain; }
+.management-generation-list::-webkit-scrollbar { display: none; }
+.management-generation-list > button { min-width: 50px; scroll-snap-align: center; }
+.management-generations button { flex-shrink: 0; min-height: 34px; border-radius: 999px; padding: 6px 14px; border: 1px solid #e5e5e5; background: #fff; color: #666; font: inherit; font-size: 12px; white-space: nowrap; cursor: pointer; transition: background-color 160ms ease, color 160ms ease; }
+.management-generations button:hover:not(:disabled):not([aria-current]) { background: #f3f3f3; color: #222; }
 .management-generations button[aria-current] { background: #222; border-color: #222; color: #fff; }
 .management-generations .management-arrow { display: grid; place-items: center; width: 34px; padding: 0; }
 .management-generations button:disabled { opacity: .3; cursor: default; }
@@ -39,4 +42,22 @@
   .management-empty h2 { font-size: 14px; }
   .management-empty p { font-size: 12px; }
 }
-@media (prefers-reduced-motion: reduce) { .management-grid { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .management-grid { animation: none; } .management-generation-list { scroll-behavior: auto; } .management-generations button { transition: none; } }
+
+.management-card { position: relative; isolation: isolate; overflow: hidden; background: linear-gradient(145deg, #fafafa, #fff 65%); transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease; }
+.management-card > :not(.management-vine) { position: relative; z-index: 1; }
+.management-vine { position: absolute; z-index: 0; pointer-events: none; top: -12px; right: -18px; width: 110px; height: 240px; color: #dedede; opacity: .5; transform-origin: top right; transition: transform 400ms ease, opacity 400ms ease; }
+.management-avatar { transition: transform 240ms ease; }
+.management-links a { transition: background-color 180ms ease, transform 180ms ease; }
+.management-card:focus-within { border-color: #aaa; box-shadow: 0 8px 24px #0000000a; }
+@media (hover: hover) and (pointer: fine) {
+  .management-card:hover { transform: translateY(-4px); border-color: #bbb; box-shadow: 0 12px 28px #0000000d; }
+  .management-card:hover .management-vine { transform: rotate(-4deg) translateX(-3px); opacity: .8; }
+  .management-card:hover .management-avatar { transform: translateY(-2px) scale(1.04); }
+  .management-links a:hover { transform: translateY(-2px); }
+}
+@media (max-width: 700px) { .management-vine { width: 82px; height: 180px; opacity: .4; } }
+@media (prefers-reduced-motion: reduce) {
+  .management-card, .management-vine, .management-avatar, .management-links a { transition: none; }
+  .management-card:hover, .management-card:hover .management-vine, .management-card:hover .management-avatar, .management-links a:hover { transform: none; }
+}
