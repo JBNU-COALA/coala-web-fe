@@ -1,4 +1,4 @@
-// @vitest-environment jsdom
+﻿// @vitest-environment jsdom
 import { cleanup, render, screen } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -15,7 +15,7 @@ describe('public landing and member portal', () => {
   it('shows the koala landing first with the recruiting banner', () => {
     render(<MemoryRouter><App /></MemoryRouter>)
     expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('코알라')
-    expect(screen.getByRole('link', { name: '2기 모집 알림 신청' }).getAttribute('href')).toBe('/recruiting')
+    expect(screen.getByRole('link', { name: '8기 모집 알림 신청' }).getAttribute('href')).toBe('/recruiting')
     expect(screen.queryByText('동아리 회원을 위한 게시판과 자료를 이용할 수 있습니다.')).toBeNull()
     expect(screen.getByRole('link', { name: 'RECRUITING' }).getAttribute('href')).toBe('/recruiting')
     expect(screen.queryByText('Member portal content')).toBeNull()
@@ -32,3 +32,4 @@ describe('public landing and member portal', () => {
     expect(await screen.findByText('Member portal content')).toBeTruthy()
   })
 })
+
