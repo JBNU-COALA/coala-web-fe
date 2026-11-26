@@ -13,6 +13,23 @@
   from { background-position: 0% 50%; }
   to { background-position: 100% 50%; }
 }
+
+/* The portal hero shares the approved mint and pink palette. */
+.coala-app .home-editorial .home-carousel-slide:not(.home-carousel-slide--media) {
+  background: linear-gradient(115deg, #d5f3e8 0%, #e2f0f5 32%, #f9deea 68%, #e6e1f5 100%);
+  background-size: 250% 250%;
+  animation: portal-hero-flow 14s ease-in-out infinite alternate;
+  animation-play-state: paused;
+}
+.coala-app .home-editorial .home-carousel-slide.is-active:not(.home-carousel-slide--media) { animation-play-state: running; }
+.coala-app .home-editorial .home-carousel-slide:not(.home-carousel-slide--media)::before { background: radial-gradient(ellipse at 25% 35%, #ffffff88, transparent 48%), radial-gradient(ellipse at 78% 70%, #f4bddb66, transparent 48%); }
+.coala-app .home-editorial .home-carousel-slide--blue:not(.home-carousel-slide--media) { animation-delay: -5s; }
+.coala-app .home-editorial .home-carousel-slide--coral:not(.home-carousel-slide--media) { animation-delay: -10s; }
+@keyframes portal-hero-flow {
+  from { background-position: 0% 30%; }
+  to { background-position: 100% 70%; }
+}
 @media (prefers-reduced-motion: reduce) {
   .coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status) { animation: none; }
+  .coala-app .home-editorial .home-carousel-slide:not(.home-carousel-slide--media) { animation: none; }
 }

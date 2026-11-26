@@ -978,3 +978,25 @@ a.study-person-name:hover {
 
 .coala-app .study-page .study-editor :is(input:not([type=checkbox]):not([type=radio]), textarea):is(:focus, :focus-visible) { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
 .coala-app .study-page .study-editor .participant-search input:is(:focus, :focus-visible) { border: 0; outline: none; box-shadow: none; }
+
+/* Compact activity editor on desktop and mobile, including native date fields. */
+.coala-app .record-editor-page .study-back { margin-bottom: 14px; min-height: 30px; font-size: 12px; }
+.coala-app .record-editor-page .study-page-heading { margin-bottom: 14px; }
+.coala-app .record-editor-page .study-page-heading h1 { font-size: 18px; }
+.coala-app .study-page .study-editor > fieldset { gap: 16px; min-width: 0; }
+.coala-app .study-page .study-editor :is(fieldset > label, .study-editor-fields > label, .study-editor-field) { min-width: 0; gap: 5px; font-size: 12px; }
+.coala-app .study-page .study-editor .study-editor-fields { gap: 12px; }
+.coala-app .study-page .study-editor input:not([type=checkbox]):not([type=radio]) { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; height: 36px; min-height: 36px; padding: 0 10px; font-size: 13px; }
+.coala-app .study-page .study-editor input[type=date] { appearance: none; -webkit-appearance: none; text-align: left; }
+.coala-app .study-page .study-editor input[type=date]::-webkit-date-and-time-value { text-align: left; }
+.coala-app .study-page .study-editor textarea { box-sizing: border-box; min-height: 112px; padding: 10px; font-size: 13px; }
+.coala-app .study-page .study-editor .participant-picker > label { font-size: 12px; margin-bottom: 5px; }
+.coala-app .study-page .study-editor .participant-search { min-height: 36px; padding-inline: 10px; gap: 8px; }
+.coala-app .study-page .study-editor .participant-search input { padding: 0; }
+.coala-app .study-page .study-editor .study-editor-group.select-control { height: 36px !important; min-height: 36px !important; }
+.coala-app .study-page .study-editor .study-editor-group.select-control > .select-control-trigger { height: 34px !important; min-height: 34px !important; font-size: 13px !important; padding-inline: 10px; }
+@media (max-width: 700px) {
+  .coala-app .study-page .study-editor > fieldset { gap: 12px; }
+  .coala-app .study-page .study-editor :is(fieldset > label, .study-editor-fields > label, .study-editor-field, .participant-picker > label) { font-size: 11px; }
+  .coala-app .record-editor-page .study-page-heading h1 { font-size: 17px; }
+}

@@ -268,3 +268,18 @@
   .coala-app .post-detail .post-category-meta-row .post-cover-pill { flex: 0 0 auto; }
   .coala-app .post-detail .post-category-meta-row .post-meta-updated { width: auto; min-width: 0; margin-left: auto; font-size: 10px; line-height: 1.5; white-space: nowrap; }
 }
+
+/* Keep engagement counts beside the author instead of dropping below it. */
+.coala-app .post-detail .post-cover-meta { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.coala-app .post-detail .post-meta-author { min-width: 0; flex: 1 1 auto; }
+.coala-app .post-detail .post-meta-stats { flex: 0 0 auto; align-self: flex-start; margin: 0; width: auto; }
+@media (max-width: 700px) {
+  .coala-app .post-detail .post-meta-author { gap: 8px; }
+  .coala-app .post-detail .post-meta-author .board-avatar { width: 28px; height: 28px; min-width: 28px; }
+  .coala-app .post-detail .post-meta-author > div { min-width: 0; }
+  .coala-app .post-detail .post-meta-author strong { font-size: 12px; }
+  .coala-app .post-detail .post-meta-author > div > span { font-size: 10px; overflow-wrap: anywhere; }
+  .coala-app .post-detail .post-meta-stats { gap: 8px; padding-top: 1px; font-size: 11px; }
+  .coala-app .post-detail .post-meta-stats svg { width: 13px; height: 13px; }
+  .coala-app .post-detail .post-meta-stats .post-like-button { padding: 0; min-height: 0; font-size: 11px; }
+}
