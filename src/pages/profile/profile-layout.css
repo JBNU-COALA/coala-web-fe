@@ -417,3 +417,26 @@
 .coala-app .profile-lab-professor { position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 5; width: max-content; max-width: 240px; padding: 7px 10px; border-radius: 8px; background: #222; color: #fff; font-size: 11px; font-weight: 400; box-shadow: 0 4px 12px #00000014; animation: profile-edit-enter 180ms ease-out; }
 @media (max-width: 640px) { .coala-app .profile-department { font-size: 11px; } }
 @media (prefers-reduced-motion: reduce) { .coala-app .profile-lab-professor { animation: none; } }
+
+/* Keep profile identity and fields compact without stretching their rows. */
+.coala-app .profile-settings-main .profile-page-identity { display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 8px; }
+.coala-app .profile-settings-main .profile-identity-heading { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; }
+.coala-app .profile-settings-main .profile-page-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+@media (max-width: 640px) {
+  .coala-app .profile-settings-main.profile-page { padding: 8px 0 28px; }
+  .coala-app .profile-settings-main .profile-page-hero-main { align-items: flex-start; gap: 14px; }
+  .coala-app .profile-settings-main .profile-photo-panel { width: 56px; flex: 0 0 56px; }
+  .coala-app .profile-settings-main .profile-page-identity { gap: 7px; }
+  .coala-app .profile-settings-main :is(.profile-page-role, .profile-joined-top) { margin: 0; font-weight: 400; }
+  .coala-app .profile-settings-main .profile-page-meta { margin-top: 3px; }
+  .coala-app .profile-settings-main .profile-section-grid { margin-top: 18px; gap: 20px; }
+  .coala-app .profile-settings-main .profile-section-card { padding: 12px 0; }
+  .coala-app .profile-settings-main .profile-section-title-row { margin-bottom: 12px; }
+  .coala-app .profile-settings-main .profile-handles-list { gap: 12px; }
+  .coala-app .profile-settings-main .profile-handle-body { gap: 5px; }
+  .coala-app .profile-settings-main .profile-handle-service { font-size: 11px; }
+  .coala-app .profile-settings-main .profile-handle-value { box-sizing: border-box; min-height: 34px; padding: 7px 10px; font-size: 12px; line-height: 18px; }
+  .coala-app .profile-settings .member-fields { gap: 12px; }
+  .coala-app .profile-settings .member-field { gap: 5px; font-size: 11px; }
+  .coala-app .profile-settings .member-field :is(input, select) { height: 36px !important; min-height: 36px !important; padding: 0 9px !important; font-size: 13px !important; }
+}
