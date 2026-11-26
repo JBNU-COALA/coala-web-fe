@@ -74,7 +74,7 @@
 .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { flex: 0 0 auto; margin: 0 0 0 auto; gap: 6px; max-width: 55%; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .info-footer-category { max-width: 76px; padding-inline: 4px; }
 @media (max-width: 640px) {
-  .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { gap: 5px; padding-left: 0; }
+  .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { gap: 5px; padding-left: calc(var(--info-label-width) + var(--info-label-gap)); }
   .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { gap: 5px; }
   .coala-app .coala-content--info .info-post-card.board-post-card--list .info-footer-category { max-width: 64px; }
   .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta { gap: 4px; font-size: 10px; }
@@ -94,3 +94,12 @@
 @keyframes info-view-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 @media (max-width: 640px) { .coala-app .coala-content--info .info-list--editorial .info-post-row .board-post-thumbnail--card { height: 120px; } }
 @media (prefers-reduced-motion: reduce) { .coala-app .coala-content--info .info-view-transition { animation: none; } }
+
+/* Stretch the thumbnail to the title/summary row without setting its height. */
+.coala-app .coala-content--info .info-list--editorial .info-post-card.board-post-card--list .board-post-thumbnail--list { position: relative; align-self: stretch; height: auto; min-height: 0; aspect-ratio: auto; }
+.coala-app .coala-content--info .info-list--editorial .info-post-card.board-post-card--list .board-post-thumbnail--list img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.coala-app .coala-content--info .listing-controls-bar { align-items: center; }
+.coala-app .coala-content--info .listing-controls-bar :is(.write-post-button, .listing-search-toggle, .view-toggle, .select-control) { box-sizing: border-box; height: 32px !important; min-height: 32px !important; max-height: 32px; margin-block: 0; }
+.coala-app .coala-content--info .listing-controls-bar .write-post-button { padding: 0 9px; font-size: 12px; }
+.coala-app .coala-content--info .listing-controls-bar .select-control-trigger,
+.coala-app .coala-content--info .listing-controls-bar .view-toggle button { height: 30px !important; min-height: 30px !important; }
