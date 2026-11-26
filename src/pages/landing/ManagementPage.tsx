@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
+import { CommunityBanner } from '../community/CommunityBanner'
 import { managementGenerations, type ManagementGeneration } from './managementData'
 import './management.css'
 
@@ -24,11 +25,9 @@ export function ManagementPage({ generations = managementGenerations }: { genera
     const buttonBounds = current.getBoundingClientRect()
     list.scrollLeft += buttonBounds.left - listBounds.left - (list.clientWidth - current.offsetWidth) / 2
   }, [selected?.id])
-  return <section className="coala-content management-page" aria-labelledby="management-title">
-    <header className="management-heading">
-      <h1 id="management-title">임원진</h1>
-      <span>함께 배우고 성장하는 코알라를 만들어가는 사람들입니다.</span>
-    </header>
+  return <section className="coala-content management-page" aria-label="임원진">
+    <CommunityBanner title="임원진" description="함께 배우고 성장하는 코알라를 만들어가는 사람들입니다." tone="about" />
+    <div className="management-body">
     {selected && <nav className="management-generations" aria-label="임원진 기수 선택">
       <button className="management-arrow" type="button" aria-label="더 최근 기수" disabled={selectedIndex <= 0} onClick={() => setSelectedId(generations[selectedIndex - 1].id)}><Icon name="chevron-left" size={16} /></button>
       <div ref={generationListRef} className="management-generation-list">
@@ -59,5 +58,6 @@ export function ManagementPage({ generations = managementGenerations }: { genera
       <h2>임원진 정보를 준비 중입니다.</h2>
       <p>기수별 임원진 소개는 업데이트 후 확인할 수 있어요.</p>
     </div>}
+    </div>
   </section>
 }

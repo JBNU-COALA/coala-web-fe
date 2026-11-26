@@ -140,3 +140,14 @@
   .coala-section-layout .coala-section-main:has(.study-frame--list .study-view-transition--card .study-feed--card > li) { grid-column: 2 / -1; }
   .coala-section-layout .coala-section-main:has(.study-frame--list .study-view-transition--card .study-feed--card > li) .community-banner { width: calc(100% + var(--section-sidebar-width) + var(--section-column-gap)); }
 }
+
+/* Section navigation must not inherit the home sidebar's two-column grid. */
+@media (min-width: 901px) {
+  .coala-app .coala-section-layout > .coala-sidebar { display: block; min-width: 0; width: 100%; box-sizing: border-box; }
+  .coala-app .coala-section-layout > .coala-sidebar .coala-sidebar-nav { display: flex; flex-direction: column; width: 100%; min-width: 0; }
+  .coala-app .coala-section-layout > .coala-sidebar .coala-sidebar-link { box-sizing: border-box; width: 100%; white-space: nowrap; }
+}
+@media (min-width: 901px) and (max-width: 1150px) {
+  .coala-app .coala-section-main .community-board-layout { grid-template-columns: minmax(0, 1fr) 160px; gap: 20px; }
+  .coala-app .coala-section-main .community-board-filters { padding: 14px; }
+}

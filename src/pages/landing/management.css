@@ -61,3 +61,9 @@
   .management-card, .management-vine, .management-avatar, .management-links a { transition: none; }
   .management-card:hover, .management-card:hover .management-vine, .management-card:hover .management-avatar, .management-links a:hover { transform: none; }
 }
+
+.coala-app .management-page { padding: 0; }
+.management-body { padding: 28px 24px 56px; }
+@media (max-width: 700px) {
+  .management-body { padding: 20px 12px 32px; }
+}

@@ -346,3 +346,12 @@
   .coala-app.coala-app .coala-content .listing-controls-bar .view-toggle.view-toggle--compact { height: 32px; min-height: 32px; }
   .coala-app.coala-app .coala-content .listing-controls-bar .view-toggle.view-toggle--compact button { height: 30px; min-height: 30px; width: 28px; min-width: 28px; flex-basis: 28px; }
 }
+
+@media (max-width: 700px) {
+  .coala-app .coala-header .coala-header-actions { gap: 2px; }
+  .coala-app .coala-header .header-icon-button { width: 26px; height: 30px; min-height: 30px; }
+  .coala-app .coala-header .header-icon-button > svg { width: 18px; height: 18px; }
+  .coala-app .coala-header .header-user-button { height: 30px; min-height: 30px; padding: 0 2px; gap: 4px; }
+  .coala-app .coala-header .header-user-button .header-user-avatar { width: 26px; height: 26px; min-width: 26px; }
+  .coala-app .coala-header .header-user-button > svg { width: 14px; height: 14px; margin-left: 0; }
+}

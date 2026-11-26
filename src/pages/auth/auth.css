@@ -234,8 +234,8 @@
 
 /* Compact account forms on mobile, without the desktop minimum-height frame. */
 @media (max-width: 700px) {
-  .coala-app .coala-shell.coala-shell--auth { min-height: 0; align-items: flex-start; }
-  .coala-app .coala-shell--auth > .coala-content.coala-content--auth { box-sizing: border-box; padding: 24px 16px 32px; }
+  .coala-app .coala-shell.coala-shell--auth { min-height: 0; align-items: center; }
+  .coala-app .coala-shell--auth > .coala-content.coala-content--auth { box-sizing: border-box; padding: 24px 16px; }
   .coala-app .coala-content--auth .auth-intro { padding-bottom: 16px; }
   .coala-app .coala-content--auth .auth-title { font-size: 20px; }
   .coala-app .coala-content--auth .auth-form { gap: 14px; }

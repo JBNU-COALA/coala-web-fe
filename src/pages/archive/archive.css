@@ -75,8 +75,8 @@
 .archive-filter-heading { display: flex; align-items: center; justify-content: space-between; font-size: 14px; }
 .archive-filter-heading button { border: 0; background: none; color: #737373; font: inherit; font-size: 12px; cursor: pointer; }
 .archive-filter-popover p { margin: 18px 0 8px; font-size: 12px; color: #737373; }
-.archive-filter-options { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-.archive-filter-options button { min-height: 34px; padding: 0 10px; border: 1px solid #dedede; border-radius: 6px; background: #fff; color: #525252; font: inherit; font-size: 12px; cursor: pointer; }
+.archive-filter-options { display: flex; flex-wrap: nowrap; gap: 6px; margin-top: 14px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: thin; overscroll-behavior-x: contain; }
+.archive-filter-options button { flex: 0 0 auto; white-space: nowrap; min-height: 34px; padding: 0 10px; border: 1px solid #dedede; border-radius: 6px; background: #fff; color: #525252; font: inherit; font-size: 12px; cursor: pointer; }
 .archive-filter-options button:hover { background: #f3f3f3; }
 .archive-filter-options button[aria-pressed=true] { background: #111; border-color: #111; color: #fff; }
 .archive-filter-calendar { display: flex; align-items: center; justify-content: space-between; margin-top: 18px; padding-top: 16px; border-top: 1px solid #e5e5e5; font-size: 13px; cursor: pointer; }
@@ -152,3 +152,27 @@
 .archive-filter-popover { transform-origin: top right; animation: archive-filter-enter 180ms ease-out; }
 @keyframes archive-filter-enter { from { opacity: 0; transform: translateY(-6px) scale(.98); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .archive-filter-popover { animation: none; } }
+
+/* Match list toolbar spacing across both archive categories. */
+.coala-app .coala-content--archive .page-frame-body.archive-content:has(> .listing-controls) { padding-top: 24px; }
+.coala-app .archive-content > .listing-controls { padding-top: 0; }
+@media (max-width: 700px) {
+  .coala-app .coala-content--archive .page-frame-body.archive-content:has(> .listing-controls) { padding-top: 16px; }
+}
+
+.archive-filter-options { scrollbar-width: none; cursor: grab; user-select: none; }
+.archive-filter-options::-webkit-scrollbar { display: none; }
+.archive-filter-options button { cursor: grab; }
+.archive-filter-options[data-dragging=true], .archive-filter-options[data-dragging=true] button { cursor: grabbing; }
+
+/* Size the popover to its options so reset aligns with the final chip. */
+.coala-app .coala-content .archive-filter-popover {
+  box-sizing: border-box;
+  width: max-content;
+  max-width: min(252px, calc(100vw - 32px));
+}
+.coala-app .archive-filter-heading button { padding-inline: 0; }
+.coala-app .archive-filter-options { max-width: 100%; }
+@media (max-width: 700px) {
+  .coala-app .coala-content .archive-filter-popover { max-width: min(220px, calc(100vw - 32px)); }
+}

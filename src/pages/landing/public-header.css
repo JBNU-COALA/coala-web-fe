@@ -21,3 +21,14 @@
 .jungle-site.jungle-site .jungle-header nav a:focus-visible { outline-color: #fff; }
 .recruiting-site.recruiting-site .recruiting-header nav a { color: #737373; }
 .recruiting-site.recruiting-site .recruiting-header nav a:is([aria-current="page"], :hover, :focus-visible) { color: #111; }
+
+/* Share the community header's horizontal logo baseline. */
+.jungle-site.jungle-site .jungle-header,
+.recruiting-site.recruiting-site .recruiting-header {
+  box-sizing: border-box;
+  padding-inline: max(32px, calc((100% - 1600px) / 2));
+}
+@media (max-width: 900px) {
+  .jungle-site.jungle-site .jungle-header,
+  .recruiting-site.recruiting-site .recruiting-header { padding-inline: 8px; }
+}
