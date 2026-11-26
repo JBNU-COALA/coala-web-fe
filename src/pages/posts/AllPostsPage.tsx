@@ -151,7 +151,7 @@ export function AllPostsPage({
               <SelectControl label="정렬" value={sortMode} options={[{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]} onChange={setSortMode} />
             </ListingControls>
             {likeError && <p className="auth-error" role="alert">{likeError}</p>}
-            <ul className="community-board-posts" aria-busy={isLoading}>
+            <ul key={activeBoard} className="community-board-posts community-board-posts--reveal" aria-busy={isLoading}>
               {isLoading ? <li className="community-board-empty"><LoadingSpinner label="게시글을 불러오는 중..." /></li>
                 : loadError ? <li className="community-board-empty"><p role="alert">{loadError}</p><button type="button" className="community-board-retry retry-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></li>
                 : pagination.pageItems.map((post) => {
