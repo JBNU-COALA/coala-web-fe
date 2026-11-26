@@ -1000,3 +1000,24 @@ a.study-person-name:hover {
   .coala-app .study-page .study-editor :is(fieldset > label, .study-editor-fields > label, .study-editor-field, .participant-picker > label) { font-size: 11px; }
   .coala-app .record-editor-page .study-page-heading h1 { font-size: 17px; }
 }
+
+/* Compact calendar geometry across desktop and handheld screens. */
+.coala-app .study-calendar { max-width: 680px; margin: 16px auto; }
+.coala-app .study-calendar header { padding: 8px 12px; }
+.coala-app .study-calendar h2 { font-size: 15px; }
+.coala-app .study-calendar .study-icon-button { width: 30px; height: 30px; min-height: 30px; padding: 0; }
+.coala-app .study-calendar-legend { padding: 2px 12px 8px; gap: 6px 10px; font-size: 11px; }
+.coala-app .study-calendar-weekdays { padding-block: 5px; }
+.coala-app .study-calendar-weekdays span { font-size: 11px; padding-block: 3px; }
+.coala-app.coala-app .study-calendar .study-calendar-days button { min-height: 54px; padding: 5px; gap: 3px; }
+.coala-app .study-calendar-days button > span:first-child { width: 24px; height: 24px; font-size: 12px; }
+.coala-app .study-calendar-dots { padding-left: 5px; gap: 3px; }
+.coala-app .study-calendar-dots i { width: 5px; height: 5px; }
+@media (max-width: 700px) {
+  .coala-app .study-calendar { margin-block: 12px; }
+  .coala-app .study-calendar header { padding: 6px 8px; }
+  .coala-app .study-calendar h2 { font-size: 14px; }
+  .coala-app .study-calendar-legend { padding-inline: 8px; font-size: 10px; }
+  .coala-app.coala-app .study-calendar .study-calendar-days button { min-height: 46px; padding: 3px; }
+  .coala-app .study-calendar-days button > span:first-child { width: 22px; height: 22px; font-size: 11px; }
+}

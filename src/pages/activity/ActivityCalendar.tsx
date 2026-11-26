@@ -21,7 +21,7 @@ export function ActivityCalendar({
   onSelect: (date: string) => void
 }) {
   const groupIds = [...new Set([...groups.map((group) => group.id), ...records.flatMap((record) => record.groupId ? [record.groupId] : [])])].sort()
-  const palette = ['#222222', '#555555', '#777777', '#333333', '#666666', '#444444', '#707070', '#505050']
+  const palette = ['#287d68', '#4366b0', '#a64f78', '#8460ad', '#a76b25', '#287f91', '#b65d4d', '#687d35']
   const colorFor = (id: string | null) => {
     if (!id) return '#737373'
     const index = groupIds.indexOf(id)
