@@ -484,3 +484,23 @@
   .coala-app .profile-settings .member-field :is(input, select) { height: 36px !important; min-height: 36px !important; padding: 0 10px !important; font-size: 13px !important; }
   .coala-app .profile-settings .profile-bio-textarea { min-height: 88px; padding: 10px; }
 }
+
+/* Use the same heading size as Basic information on every profile section. */
+.coala-app .profile-settings-main .profile-section-card:has(.profile-bio-text, .profile-bio-textarea) > .profile-section-title,
+.coala-app .profile-settings-main .profile-custom-card > .profile-section-title { font-size: 16px; }
+
+.coala-app .profile-settings .profile-award-edit-item { box-sizing: border-box; padding: 14px; gap: 12px; animation: profile-edit-enter 220ms ease-out; }
+.coala-app .profile-settings .profile-award-edit-grid { gap: 12px; }
+.coala-app .profile-settings .profile-award-edit-item .profile-edit-field { gap: 5px; }
+.coala-app .profile-settings .profile-award-edit-item .profile-edit-field > span { font-size: 12px; }
+.coala-app .profile-settings .profile-award-edit-item .auth-input { height: 36px; min-height: 36px; padding: 0 10px; font-size: 13px; }
+.coala-app .profile-settings .profile-award-select.custom-select { height: 36px !important; min-height: 36px !important; }
+.coala-app .profile-settings .profile-award-select.custom-select > .select-control-trigger { height: 34px !important; min-height: 34px !important; padding: 0 10px !important; font-size: 12px !important; }
+@media (max-width: 640px) {
+  .coala-app .profile-settings .profile-award-edit-item { padding: 12px; }
+  .coala-app .profile-settings .profile-award-edit-grid { gap: 10px; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .coala-app .profile-settings .profile-award-edit-item .profile-edit-field { min-width: 0; }
+  .coala-app .profile-settings .profile-award-edit-item .profile-edit-field > span { font-size: 11px; }
+  .coala-app .profile-settings .profile-award-edit-item .auth-input { min-width: 0; font-size: 13px !important; }
+}
+@media (prefers-reduced-motion: reduce) { .coala-app .profile-settings .profile-award-edit-item { animation: none; } }

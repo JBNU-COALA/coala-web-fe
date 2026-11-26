@@ -365,3 +365,11 @@
   .coala-app .coala-header .coala-main-nav { justify-content: center; gap: 16px; }
   .coala-app .coala-header .main-nav-button { padding-inline: 8px; }
 }
+
+/* Profile actions use a small menu rather than the notification panel width. */
+.coala-app .coala-header .header-profile-popover { box-sizing: border-box; width: 160px; min-width: 0; max-width: calc(100vw - 24px); padding: 5px; gap: 2px; border-radius: 10px; }
+.coala-app .coala-header .header-profile-menu-item { min-height: 30px; padding: 6px 9px; font-size: 12px; line-height: 1.5; }
+@media (max-width: 700px) {
+  .coala-app .coala-header .header-profile-popover { width: 144px; right: 8px; }
+  .coala-app .coala-header .header-profile-menu-item { min-height: 28px; padding: 5px 8px; font-size: 11px; }
+}
