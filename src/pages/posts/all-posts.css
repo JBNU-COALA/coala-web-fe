@@ -87,3 +87,10 @@
 @media (prefers-reduced-motion: reduce) {
   .community-board-search-reveal, .community-board-search-reveal.is-open { transition: none; }
 }
+
+/* Align the toolbar with the tag panel without stacked top padding. */
+.coala-app .community-board { padding-top: 24px; }
+.coala-app .community-board-main > .listing-controls { padding-top: 0; }
+@media (max-width: 700px) {
+  .coala-app .community-board { padding-top: 16px; }
+}

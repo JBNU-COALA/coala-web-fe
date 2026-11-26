@@ -102,3 +102,16 @@
 .listing-controls .listing-controls-panel .search-field input { border: 0 !important; border-radius: 0 !important; outline: none !important; box-shadow: none !important; background: transparent !important; }
 .listing-controls .listing-search-toggle:is(:focus, :focus-visible, :active) { outline: none !important; box-shadow: none !important; }
 .listing-controls:has(.listing-controls-reveal.is-open) { border-bottom: 0 !important; }
+
+/* Keep filtering and list actions together instead of wrapping the write action. */
+.coala-app .coala-content .listing-controls-bar { flex-wrap: nowrap; }
+.coala-app .coala-content .listing-controls-bar > :not(.listing-visible-filters) { flex-shrink: 0; }
+.coala-app .coala-content .listing-visible-filters { flex-wrap: nowrap; }
+.coala-app .coala-content .listing-visible-filters .select-control-trigger { white-space: nowrap; }
+@media (max-width: 700px) {
+  .coala-app .coala-content .listing-controls-bar { gap: 4px; }
+  .coala-app .coala-content .listing-visible-filters { gap: 4px; }
+  .coala-app .coala-content .listing-visible-filters > .select-control { flex: 0 1 76px; min-width: 66px; }
+  .coala-app .coala-content .listing-controls-bar .view-toggle { width: auto; min-width: 0; }
+  .coala-app .coala-content .listing-controls-bar .view-toggle button { width: 26px; min-width: 26px; }
+}
