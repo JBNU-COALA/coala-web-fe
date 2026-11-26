@@ -1,4 +1,4 @@
-/* Compact controls shared across public lists. */
+﻿/* Compact controls shared across public lists. */
 .coala-app .header-user-button {
   background: #fff; border-color: #d4d4d4; color: #262626;
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
@@ -270,7 +270,7 @@
 }
 
 /* Keep engagement counts beside the author instead of dropping below it. */
-.coala-app .post-detail .post-cover-meta { display: flex; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.coala-app .post-detail .post-cover-meta { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .coala-app .post-detail .post-meta-author { min-width: 0; flex: 1 1 auto; }
 .coala-app .post-detail .post-meta-stats { flex: 0 0 auto; align-self: flex-start; margin: 0; width: auto; }
 @media (max-width: 700px) {
@@ -283,3 +283,4 @@
   .coala-app .post-detail .post-meta-stats svg { width: 13px; height: 13px; }
   .coala-app .post-detail .post-meta-stats .post-like-button { padding: 0; min-height: 0; font-size: 11px; }
 }
+
