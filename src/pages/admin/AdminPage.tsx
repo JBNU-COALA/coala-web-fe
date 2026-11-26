@@ -32,7 +32,8 @@ import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 import './admin-design.css'
 import { AdminMenuIcon } from './AdminMenuIcon'
-import { useAdminReveal } from './useAdminReveal'
+
+
 
 type AdminTab = AdminDestination
 
@@ -298,7 +299,7 @@ function instanceToDraft(instance: InstanceApplication): InstanceDraft {
 }
 
 export function AdminPage() {
-  const adminRevealRef = useAdminReveal()
+
   const { user, updateUser } = useAuth()
   const hasAdminAccess = isAdminUser(user)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -685,7 +686,13 @@ export function AdminPage() {
 
         </div>
         <nav className="admin-tab-list" aria-label="관리자 메뉴">
-          {adminTabs.map((tab) => (
+          {[
+            { label: '운영', ids: ['stats', 'users', 'reports'] },
+            { label: '콘텐츠', ids: ['banners', 'about', 'boards', 'posts', 'activity'] },
+            { label: '서비스 · 신청', ids: ['services', 'instances', 'domains'] },
+          ].map(group => <div className="admin-nav-group" key={group.label}>
+            <span className="admin-nav-group-label">{group.label}</span>
+            {group.ids.map(id => adminTabs.find(tab => tab.id === id)!).map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -696,7 +703,7 @@ export function AdminPage() {
               <AdminMenuIcon name={tab.id} />
               <span>{tab.label}</span>
             </button>
-          ))}
+          ))}</div>)}
         </nav>
         <Link className="admin-home-link" to={routes.home}>
           <Icon name="chevron-left" size={15} />
@@ -704,7 +711,7 @@ export function AdminPage() {
         </Link>
       </aside>
 
-      <div className="admin-main" ref={adminRevealRef}>
+      <div className="admin-main" key={activeTab}>
         <header className="admin-topbar">
           <div>
             <span className="admin-kicker">관리자 콘솔</span>
@@ -713,7 +720,7 @@ export function AdminPage() {
           <div className="admin-row-actions">
             <p className="admin-status" role="status">{isLoading ? '불러오는 중...' : statusMessage}</p>
             <button type="button" className="admin-ghost-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => { setRefreshKey((value) => value + 1); void loadAdminData() }}>
-              <span className={isLoading ? 'admin-refresh-icon is-loading' : 'admin-refresh-icon'} aria-hidden="true">🔄</span>
+              <span className={isLoading ? 'admin-refresh-icon is-loading' : 'admin-refresh-icon'} aria-hidden="true"><AdminMenuIcon name="refresh" /></span>
             </button>
           </div>
         </header>
