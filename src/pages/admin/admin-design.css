@@ -99,3 +99,42 @@
   .admin-page .admin-row-actions { gap: 5px; }
 }
 @media (prefers-reduced-motion: reduce) { .admin-page *, .admin-page *::before, .admin-page *::after { transition: none !important; animation: none !important; } }
+
+/* Color accents distinguish destinations without coloring the whole console. */
+.admin-page .admin-color-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 24px; width: 24px; height: 24px; font-family: 'Apple Color Emoji', 'Segoe UI Emoji', sans-serif; font-size: 20px; line-height: 1; filter: drop-shadow(0 2px 2px #00000012); }
+.admin-page .admin-sidebar-header { border-bottom: 1px solid #e5e5e5; }
+.admin-page .admin-summary-band button { border-radius: 0; }
+.admin-page .admin-summary-band button > span { display: flex; align-items: center; gap: 8px; }
+.admin-page .admin-summary-band button:nth-child(1) { background: #f0f5ff; }
+.admin-page .admin-summary-band button:nth-child(2) { background: #fff6ec; }
+.admin-page .admin-summary-band button:nth-child(3) { background: #f2f8f3; }
+.admin-page .admin-summary-band { padding-block: 0; overflow: hidden; }
+.admin-page .admin-summary-band button { padding-block: 16px; }
+.admin-page .admin-queue-list button:first-child { background: #fff5f5; border-color: #f0dddd; }
+.admin-page .admin-queue-list button:nth-child(2) { background: #f1f5ff; border-color: #dfe5f2; }
+.admin-page .admin-shortcuts { border-bottom: 1px solid #e5e5e5; padding-bottom: 12px; }
+.admin-page .admin-shortcuts button > .admin-color-icon { flex: 0 0 24px; }
+.admin-page .admin-queue-list button > .admin-color-icon { flex: 0 0 24px; font-size: 20px; }
+.admin-page :is(form, fieldset) > .admin-primary-button { justify-self: end; align-self: flex-end; margin-left: auto; width: fit-content; }
+.admin-page :is(.admin-row-actions, .admin-user-editor-actions) > .admin-primary-button { margin-left: auto; }
+@media (max-width: 640px) {
+  .admin-page .admin-summary-band button > span { gap: 4px; }
+  .admin-page .admin-color-icon { width: 20px; height: 20px; flex-basis: 20px; font-size: 18px; }
+}
+.admin-page .admin-list-row > b { width: fit-content; justify-self: start; flex: 0 0 auto; padding: 3px 7px; border-radius: 999px; font-size: 10px; line-height: 1.3; white-space: nowrap; }
+.admin-page button { transition: background-color 180ms ease, border-color 180ms ease, transform 180ms ease, box-shadow 180ms ease; }
+.admin-page button:active:not(:disabled) { transform: scale(.97); }
+.admin-page .admin-refresh-icon { display: inline-flex; font-size: 19px; line-height: 1; }
+.admin-page .admin-refresh-icon.is-loading { animation: admin-refresh-spin 1s linear infinite; }
+.admin-editor-enter { animation: admin-editor-enter 240ms ease-out both; }
+.admin-page :is(.admin-panel, .admin-recent-actions, .admin-summary-band) { transition: opacity 400ms ease, transform 400ms ease; }
+.admin-page .admin-reveal-pending { opacity: 0; transform: translateY(16px); }
+.admin-page .admin-tone--green { background: #a8dbc8; }
+.admin-page .admin-tone--blue { background: #abc8ed; }
+.admin-page .admin-tone--coral { background: #efbacb; }
+@keyframes admin-refresh-spin { to { transform: rotate(360deg); } }
+@keyframes admin-editor-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .admin-page .admin-reveal-pending { opacity: 1; transform: none; }
+  .admin-page button:active:not(:disabled) { transform: none; }
+}

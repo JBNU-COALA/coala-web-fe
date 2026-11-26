@@ -260,7 +260,7 @@
 .home-carousel-slide.is-active .home-carousel-copy { transform: translateY(0); }
 .home-carousel-copy :is(h1,h2) { color: #282828; }
 .home-carousel-description { color: #4f4f4f; }
-.home-carousel .home-carousel-inner { padding-block: 32px 48px; }
+.home-carousel .home-carousel-inner { padding-block: 48px 32px; }
 .home-carousel-art { height: 280px; }
 .home-carousel-dots button span { background: #33333340; }
 .home-carousel-dots button[aria-current] span { background: #333333; }
@@ -278,7 +278,7 @@
 .home-carousel-copy :is(h1, h2) { color: #222; }
 .home-carousel-description { color: #525252; }
 @media (max-width: 560px) {
-  .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr); padding-block: 24px 48px; }
+  .home-carousel .home-carousel-inner { grid-template-columns: minmax(0, 1fr); padding-block: 40px 32px; }
   .home-carousel-art { display: none; }
   .home-carousel-copy :is(h1, h2) { font-size: 25px; }
 }
