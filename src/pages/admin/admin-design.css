@@ -249,6 +249,7 @@
 .coala-app--admin :is(button, a[role='button']):is(:hover, :active, :focus, :focus-visible) { box-shadow: none !important; filter: none; }
 .coala-app--admin button:focus:not(:focus-visible) { outline: none; }
 .coala-app--admin .header-user-button, .coala-app--admin .header-icon-button { box-shadow: none !important; }
+.coala-app.coala-app--admin .header-profile-logout { border-top: 0; }
 @media(max-width:980px) {
   .coala-app--admin .admin-page { grid-template-rows: auto auto 1fr; }
   .coala-app--admin .admin-sidebar { height: auto; }
