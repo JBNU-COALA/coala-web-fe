@@ -748,7 +748,7 @@ export function AdminPage() {
           onStatusChange={setReportStatus} onHandle={handleReport} />}
 
         {activeTab === 'users' && !isLoading && !loadFailures.includes('users') ? (
-          <div className={`admin-two-column admin-master-detail${selectedUser ? ' has-selection' : ''}`}>
+          <div className={`admin-two-column admin-master-detail admin-members-workspace${selectedUser ? ' has-selection' : ''}`}>
             <div className="admin-panel">
               <div className="admin-panel-header">
                 <h3>회원 목록</h3>
@@ -776,10 +776,10 @@ export function AdminPage() {
               </div>
             </div>
             {selectedUser && <div id="admin-member-detail" className="admin-stack admin-member-detail" key={selectedUser.id}>
-              <div className="admin-member-detail-heading"><button type="button" className="admin-ghost-button" onClick={() => setSelectedUserId(null)}>닫기</button><strong>{selectedUser.name}</strong></div>
+              <div className="admin-member-detail-heading"><button type="button" className="admin-ghost-button" onClick={() => setSelectedUserId(null)}>닫기</button></div>
               <div className="admin-panel admin-form">
                 <div className="admin-panel-header">
-                  <h3>회원정보</h3>
+                  <h3>{selectedUser.name} 회원정보</h3>
                   {selectedUser ? <span>ID {selectedUser.id}</span> : null}
                 </div>
                 {selectedUser ? (

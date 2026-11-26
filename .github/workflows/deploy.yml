@@ -11,11 +11,16 @@ jobs:
     steps:
     - name: 우분투 서버 접속 및 빌드
       uses: appleboy/ssh-action@v1.0.3
+      env:
+        POSTHOG_PROJECT_TOKEN: ${{ secrets.VITE_POSTHOG_PROJECT_TOKEN || vars.VITE_POSTHOG_PROJECT_TOKEN }}
+        POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST || secrets.VITE_POSTHOG_HOST }}
+        POSTHOG_DASHBOARD_EMBED_URL: ${{ vars.VITE_POSTHOG_DASHBOARD_EMBED_URL }}
       with:
         host: ${{ secrets.SERVER_HOST }}
         username: ${{ secrets.SERVER_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SERVER_PORT }}
+        envs: POSTHOG_PROJECT_TOKEN,POSTHOG_HOST,POSTHOG_DASHBOARD_EMBED_URL
         script: |
           set -euo pipefail
 
@@ -26,4 +31,8 @@ jobs:
           git fetch origin main
           git reset --hard origin/main
           npm ci
+          # Only override server-side .env files when an Actions value is provided.
+          if [ -n "${POSTHOG_PROJECT_TOKEN:-}" ]; then export VITE_POSTHOG_PROJECT_TOKEN="$POSTHOG_PROJECT_TOKEN"; fi
+          if [ -n "${POSTHOG_HOST:-}" ]; then export VITE_POSTHOG_HOST="$POSTHOG_HOST"; fi
+          if [ -n "${POSTHOG_DASHBOARD_EMBED_URL:-}" ]; then export VITE_POSTHOG_DASHBOARD_EMBED_URL="$POSTHOG_DASHBOARD_EMBED_URL"; fi
           npm run build

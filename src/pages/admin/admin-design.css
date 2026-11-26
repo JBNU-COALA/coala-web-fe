@@ -288,3 +288,40 @@
   .admin-page .admin-master-detail.has-selection { grid-template-columns: minmax(0, 1fr); }
   .admin-page .admin-master-detail.has-selection > .admin-panel .admin-list { max-height: 240px; }
 }
+
+/* Member rows have their own quiet outline and pointer/touch feedback. */
+.admin-page .admin-members-workspace > .admin-panel .admin-list { gap: 8px; padding: 2px; }
+.admin-page .admin-members-workspace .admin-list-row { border: 1px solid #ddd; border-radius: 6px; background: #fff; transition: background-color 180ms ease, border-color 180ms ease, transform 140ms ease; box-shadow: none; }
+@media (hover: hover) {
+  .admin-page .admin-members-workspace .admin-list-row:hover { background: #f7f7f7; border-color: #aaa; }
+}
+.admin-page .admin-members-workspace .admin-list-row:active:not(:disabled) { background: #eee; border-color: #888; transform: scale(.99); opacity: 1; }
+.admin-page .admin-members-workspace .admin-list-row.is-active { background: #f3f3f3; border-color: #999; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-page .admin-members-workspace .admin-list-row:active:not(:disabled) { transform: none; }
+}
+
+/* Opening a member never shrinks or clips the list. Details follow below it. */
+.admin-page .admin-master-detail.admin-members-workspace.has-selection { grid-template-columns: minmax(0, 1fr); }
+.admin-page .admin-master-detail.admin-members-workspace.has-selection > .admin-panel .admin-list { max-height: none; overflow: visible; }
+.admin-page .admin-members-workspace .admin-member-detail { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(240px, 1fr); gap: 16px 28px; align-items: start; }
+.admin-page .admin-members-workspace .admin-member-detail-heading { grid-column: 1 / -1; }
+@media(max-width:760px) {
+  .admin-page .admin-members-workspace .admin-member-detail { grid-template-columns: minmax(0, 1fr); }
+}
+
+/* Shared list treatment across boards, banners, services and applications. */
+.admin-page .admin-list { gap: 8px; padding: 2px; }
+.admin-page .admin-list-row { border: 1px solid #ddd; border-radius: 6px; background: #fff; box-shadow: none; transition: background-color 180ms ease, border-color 180ms ease, transform 140ms ease; }
+.admin-page .admin-list-row.is-active { background: #f3f3f3; border-color: #999; }
+@media (hover: hover) {
+  .admin-page .admin-list-row:hover:not(:disabled) { background: #f7f7f7; border-color: #aaa; }
+  .admin-page .admin-list-row.is-active:hover:not(:disabled) { background: #eee; border-color: #888; }
+}
+.admin-page .admin-list-row:active:not(:disabled) { background: #eee; border-color: #888; transform: scale(.99); opacity: 1; }
+.admin-page .admin-two-column > :is(form, .admin-form) { animation: admin-content-enter 220ms ease-out; }
+.admin-page .admin-master-detail.has-selection { grid-template-columns: minmax(0, 1fr); }
+.admin-page .admin-master-detail.has-selection > .admin-panel .admin-list { max-height: none; overflow: visible; }
+@media (prefers-reduced-motion: reduce) {
+  .admin-page .admin-list-row:active:not(:disabled) { transform: none; }
+}

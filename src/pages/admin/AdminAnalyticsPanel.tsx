@@ -7,7 +7,6 @@ export function AdminAnalyticsPanel() {
   return <section className="admin-panel admin-analytics">
     <div className="admin-panel-header"><h3>사용 분석</h3><a className="admin-ghost-button" href={appUrl} target="_blank" rel="noreferrer">PostHog 열기</a></div>
     {embed ? <>
-      {!analyticsConfigured && <p className="admin-field-hint">대시보드가 연결되었습니다. 사이트 이벤트 수집은 배포 환경에 프로젝트 토큰을 등록한 뒤 시작됩니다.</p>}
       <iframe key={embed} src={embed} title="코알라 사용 분석 대시보드" className="admin-analytics-frame" referrerPolicy="no-referrer" loading="lazy" allowFullScreen sandbox="allow-scripts allow-same-origin allow-popups" />
     </> : !analyticsConfigured ? <div className="admin-analytics-setup">
       <h4>PostHog 프로젝트를 연결해 주세요.</h4>

@@ -12,6 +12,9 @@ VITE_POSTHOG_HOST=https://us.i.posthog.com
 ```
 
 EU 프로젝트는 `https://eu.i.posthog.com`을 사용합니다. 개발 환경은 기본적으로 수집하지 않습니다.
+현재 배포는 GitHub Actions가 Ubuntu 서버에서 빌드합니다. 저장소 **Settings → Secrets and variables → Actions**에서
+`VITE_POSTHOG_PROJECT_TOKEN`을 Secret 또는 Variable로, `VITE_POSTHOG_HOST`를 Variable로 등록한 뒤 배포를 다시 실행합니다.
+워크플로가 SSH 빌드 단계에 값을 전달합니다. Actions 값이 없으면 서버의 `.env.production` 설정을 유지합니다.
 로컬 수신 확인 시 `.env.local`에 위 값과 `VITE_POSTHOG_ENABLE_DEV=true`를 넣습니다.
 
 ## 수집 이벤트
