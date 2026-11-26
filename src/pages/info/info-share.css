@@ -79,3 +79,18 @@
   .coala-app .coala-content--info .info-post-card.board-post-card--list .info-footer-category { max-width: 64px; }
   .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta { gap: 4px; font-size: 10px; }
 }
+
+/* Card thumbnails must not inherit the narrow mobile list thumbnail size. */
+.coala-app .coala-content--info .info-list--editorial.board-post-list--card { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 16px; }
+.coala-app .coala-content--info .info-list--editorial.board-post-list--card .info-post-row { grid-column: auto; grid-row: auto; }
+.coala-app .coala-content--info .info-list--editorial .info-post-row .board-post-card--card { display: flex; flex-direction: column; min-height: 0; height: 100%; padding: 0; gap: 0; overflow: hidden; }
+.coala-app .coala-content--info .info-list--editorial .info-post-row .board-post-thumbnail--card { width: 100%; max-width: none; height: 140px; min-height: 0; aspect-ratio: auto; margin: 0; border: 0; border-radius: 0; background: #fafafa; }
+.coala-app .coala-content--info .info-list--editorial .board-post-thumbnail--card img { width: 100%; height: 100%; object-fit: contain; }
+.coala-app .coala-content--info .info-list--editorial .board-post-card--card .board-post-main { padding: 12px; gap: 7px; }
+.coala-app .coala-content--info .info-list--editorial .board-post-card--card .info-post-footer { box-sizing: border-box; padding: 0 12px 12px; gap: 6px; }
+.coala-app .coala-content--info .info-list--editorial .board-post-card--card .board-post-title { font-size: 14px; line-height: 1.4; }
+.coala-app .coala-content--info .info-list--editorial .board-post-card--card .board-post-excerpt { font-size: 11px; line-height: 1.45; }
+.coala-app .coala-content--info .info-view-transition { animation: info-view-enter 220ms ease-out both; }
+@keyframes info-view-enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+@media (max-width: 640px) { .coala-app .coala-content--info .info-list--editorial .info-post-row .board-post-thumbnail--card { height: 120px; } }
+@media (prefers-reduced-motion: reduce) { .coala-app .coala-content--info .info-view-transition { animation: none; } }
