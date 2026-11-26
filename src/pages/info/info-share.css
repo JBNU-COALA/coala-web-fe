@@ -63,3 +63,11 @@
 .coala-app .coala-content--info .info-post-card .info-list-actions { flex-shrink: 0; }
 .coala-app .coala-content--info .info-post-card .info-list-actions .board-like-button { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0 2px; }
 .coala-app .coala-content--info .info-post-card .info-list-actions .board-like-button:is(:hover, :active, .is-liked) { background: transparent; box-shadow: none; }
+
+/* Keep list engagement below the image, with long copy contained above it. */
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-open,
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-main { min-width: 0; max-width: 100%; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-title { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta { min-width: 0; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { grid-row: 2; justify-self: end; margin: 0; max-width: 100%; }
