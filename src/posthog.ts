@@ -1,28 +1,12 @@
-import posthog from 'posthog-js'
-
-const posthogKey = import.meta.env.VITE_POSTHOG_KEY
-const posthogHost = import.meta.env.VITE_POSTHOG_HOST
-export const isPostHogConfigured = Boolean(posthogKey && posthogHost)
-
-if (!isPostHogConfigured) {
-  if (import.meta.env.DEV) {
-    const missingVariable = !posthogKey ? 'VITE_POSTHOG_KEY' : 'VITE_POSTHOG_HOST'
-
-    throw new Error(
-      `${missingVariable} variable required by PostHog is missing or un-configured, this causes events to be silently missed. This error stops appearing once ${missingVariable} is configured`,
-    )
-  }
-} else {
-  posthog.init(posthogKey, {
-    api_host: posthogHost,
-    capture_exceptions: true,
-    logs: {
-      serviceName: 'coala-web-fe',
-      environment: import.meta.env.MODE,
-    },
-  })
+﻿// Compatibility entry point. Only shared/analytics/analytics.ts initializes PostHog.
+import { analyticsConfigured, track } from './shared/analytics/analytics'
+import { analyticsRoute } from './shared/analytics/policy'
+export const isPostHogConfigured = analyticsConfigured
+const capturedByApi = new Set(['post_published', 'recruitment_published', 'recruitment_application_submitted', 'archive_item_created', 'domain_application_submitted', 'jcloud_application_submitted'])
+export default {
+  capture(event: string, _properties?: Record<string, unknown>) {
+    if (capturedByApi.has(event)) return
+    const route = analyticsRoute(window.location.pathname)
+    if (route && ['post_updated', 'activity_record_created', 'activity_record_updated', 'archive_item_updated'].includes(event)) void track(event, { route })
+  },
 }
-
-export const posthogLogger = posthog.logger
-
-export default posthog

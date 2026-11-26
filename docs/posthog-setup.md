@@ -15,6 +15,7 @@ EU 프로젝트는 `https://eu.i.posthog.com`을 사용합니다. 개발 환경�
 현재 배포는 GitHub Actions가 Ubuntu 서버에서 빌드합니다. 저장소 **Settings → Secrets and variables → Actions**에서
 `VITE_POSTHOG_PROJECT_TOKEN`을 Secret 또는 Variable로, `VITE_POSTHOG_HOST`를 Variable로 등록한 뒤 배포를 다시 실행합니다.
 워크플로가 SSH 빌드 단계에 값을 전달합니다. Actions 값이 없으면 서버의 `.env.production` 설정을 유지합니다.
+Wizard가 사용하는 `VITE_POSTHOG_KEY`도 대체 이름으로 지원하며, `VITE_POSTHOG_PROJECT_TOKEN`이 우선합니다. SDK는 공통 analytics 모듈에서 한 번만 초기화합니다.
 로컬 수신 확인 시 `.env.local`에 위 값과 `VITE_POSTHOG_ENABLE_DEV=true`를 넣습니다.
 
 ## 수집 이벤트
@@ -29,6 +30,8 @@ EU 프로젝트는 `https://eu.i.posthog.com`을 사용합니다. 개발 환경�
 | `archive_created`, `service_created` | 자료/서비스 등록 API 성공 |
 | `instance_application_submitted`, `domain_application_submitted`, `recruit_application_submitted` | 각 신청 API 성공 |
 
+Wizard 대시보드 호환을 위해 `post_published`, `recruitment_published`, `recruitment_application_submitted`, `archive_item_created`, `jcloud_application_submitted`도 대응하는 생성 이벤트와 함께 전송합니다. 같은 행동의 별칭이므로 두 이름의 횟수를 합산하지 않습니다. 수정/활동 이벤트는 `post_updated`, `activity_record_created`, `activity_record_updated`, `archive_item_updated`입니다.
+
 추천 집계: 일별 고유 방문자, `route`별 조회수, 기기별 이용량, 글 작성 페이지 조회→`post_created`,
 인스턴스/도메인 페이지 조회→신청 완료 퍼널. 신청 페이지 조회는 실제 입력 시작을 뜻하지 않습니다.
 서버 데이터와 비교할 때 광고 차단기나 브라우저 종료로 인한 수집 누락을 고려합니다.
@@ -36,6 +39,7 @@ EU 프로젝트는 `https://eu.i.posthog.com`을 사용합니다. 개발 환경�
 ## 관리자 화면
 
 `/admin?tab=analytics`에 연결 상태와 집계 대시보드를 표시합니다.
+초록색 Live는 해당 iframe의 PostHog 메시지를 받아 로드를 확인한 상태입니다. 네트워크 단절, 로드 오류 또는 확인 시간 초과에는 빨간색으로 표시합니다. 이벤트 수집 성공이나 실시간 차트 갱신을 보증하는 표시는 아닙니다.
 사용자가 제공한 코알라 공유 대시보드가 기본으로 연결되어 있습니다. 대시보드 표시는 수집 토큰 설정과 독립적입니다.
 아래 환경변수에 다른 주소를 넣으면 기본 연결을 변경합니다.
 PostHog에서 집계 대시보드를 만든 뒤 **Share → Embed**의 iframe `src`를 다음 설정에 넣습니다.

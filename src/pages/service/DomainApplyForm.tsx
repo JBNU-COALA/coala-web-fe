@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
 import { servicesApi } from '../../shared/api/services'
 import { useAuth } from '../../shared/auth/AuthContext'
-import posthog, { isPostHogConfigured, posthogLogger } from '../../posthog'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 type DomainApplyFormProps = {
   onSubmit?: () => void
@@ -67,7 +67,6 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
       })
       if (isPostHogConfigured) {
         posthog.capture('domain_application_submitted', { has_target_url: Boolean(targetUrl.trim()) })
-        posthogLogger.info('domain_application_submitted', { has_target_url: Boolean(targetUrl.trim()) })
       }
       setSubmittedDomain(created.requestedDomain)
       setError(null)

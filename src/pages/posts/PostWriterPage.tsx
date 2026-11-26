@@ -39,7 +39,7 @@ import {
 import { infoApi, type InfoFilterId } from '../../shared/api/info'
 import { useRequestScope } from '../../useRequestScope'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
-import posthog, { isPostHogConfigured, posthogLogger } from '../../posthog'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 5000
@@ -538,7 +538,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
         })
         if (isPostHogConfigured) {
           posthog.capture('post_published', { post_type: writerType, has_attachments: attachmentIds.length > 0 })
-          posthogLogger.info('post_published', { post_type: writerType, has_attachments: attachmentIds.length > 0 })
         }
       }
       if (isCurrent()) onClose()

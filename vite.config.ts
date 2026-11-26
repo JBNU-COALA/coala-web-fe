@@ -13,7 +13,7 @@ export default defineConfig(({ mode }) => {
     envPrefix: [],
     define: {
       'import.meta.env.API_BASE_URL': JSON.stringify(env.API_BASE_URL || ''),
-      'import.meta.env.VITE_POSTHOG_PROJECT_TOKEN': JSON.stringify(analyticsEnv.VITE_POSTHOG_PROJECT_TOKEN || ''),
+      'import.meta.env.VITE_POSTHOG_PROJECT_TOKEN': JSON.stringify(analyticsEnv.VITE_POSTHOG_PROJECT_TOKEN || analyticsEnv.VITE_POSTHOG_KEY || ''),
       'import.meta.env.VITE_POSTHOG_HOST': JSON.stringify(analyticsEnv.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'),
       'import.meta.env.VITE_POSTHOG_ENABLE_DEV': JSON.stringify(analyticsEnv.VITE_POSTHOG_ENABLE_DEV || 'false'),
       'import.meta.env.VITE_POSTHOG_DASHBOARD_EMBED_URL': JSON.stringify(analyticsEnv.VITE_POSTHOG_DASHBOARD_EMBED_URL || 'https://us.posthog.com/embedded/DWxTSGOhilDTefJOxPLvZWAy-vfhxg'),

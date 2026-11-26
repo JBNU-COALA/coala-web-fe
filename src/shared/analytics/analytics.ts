@@ -53,4 +53,10 @@ export function trackSuccessfulRequest(method?: string, url?: string) {
   const event = successfulAction(method, url)
   const route = analyticsRoute(window.location.pathname)
   if (event && route) void track(event, { route })
+  const wizardAliases: Record<string, string> = {
+    post_created: 'post_published', info_created: 'post_published', recruit_created: 'recruitment_published',
+    recruit_application_submitted: 'recruitment_application_submitted', archive_created: 'archive_item_created',
+    instance_application_submitted: 'jcloud_application_submitted',
+  }
+  if (event && route && wizardAliases[event]) void track(wizardAliases[event], { route })
 }

@@ -12,7 +12,7 @@ jobs:
     - name: 우분투 서버 접속 및 빌드
       uses: appleboy/ssh-action@v1.0.3
       env:
-        POSTHOG_PROJECT_TOKEN: ${{ secrets.VITE_POSTHOG_PROJECT_TOKEN || vars.VITE_POSTHOG_PROJECT_TOKEN }}
+        POSTHOG_PROJECT_TOKEN: ${{ secrets.VITE_POSTHOG_PROJECT_TOKEN || vars.VITE_POSTHOG_PROJECT_TOKEN || secrets.VITE_POSTHOG_KEY || vars.VITE_POSTHOG_KEY }}
         POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST || secrets.VITE_POSTHOG_HOST }}
         POSTHOG_DASHBOARD_EMBED_URL: ${{ vars.VITE_POSTHOG_DASHBOARD_EMBED_URL }}
       with:

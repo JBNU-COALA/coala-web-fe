@@ -17,7 +17,7 @@ import {
   readMarkdownImagesFromDrop,
 } from '../../shared/markdownImages'
 import { routes } from '../../shared/routes'
-import posthog, { isPostHogConfigured, posthogLogger } from '../../posthog'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 type RecruitApplicationDraft = {
   role: string
@@ -193,7 +193,6 @@ function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) 
       await recruitsApi.apply(item.id, { role: draft.role.trim(), body: draft.body })
       if (isPostHogConfigured) {
         posthog.capture('recruitment_application_submitted', { application_type: application ? 'update' : 'new' })
-        posthogLogger.info('recruitment_application_submitted', { application_type: application ? 'update' : 'new' })
       }
       setSubmitted(true)
       setError(null)
