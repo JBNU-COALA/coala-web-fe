@@ -115,3 +115,17 @@
   .coala-app .coala-content .listing-controls-bar .view-toggle { width: auto; min-width: 0; }
   .coala-app .coala-content .listing-controls-bar .view-toggle button { width: 26px; min-width: 26px; }
 }
+/* One shared height for filters and actions on every listing page. */
+.coala-app .coala-content .listing-controls .listing-controls-bar { align-items: center; }
+.coala-app .coala-content .listing-controls .listing-controls-bar > :is(button, a),
+.coala-app .coala-content .listing-controls .listing-controls-bar :is(.select-control, .view-toggle, .study-layout-toggle, .archive-filter-trigger, .write-post-button, .community-board-write, .recruit-create-button, .member-service-add-button) {
+  box-sizing: border-box; height: 32px !important; min-height: 32px !important; max-height: 32px; margin-block: 0; flex-shrink: 0;
+}
+.coala-app .coala-content .listing-controls .listing-controls-bar > :is(button, a) {
+  display: inline-flex; align-items: center; justify-content: center; padding-block: 0; font-size: 12px; white-space: nowrap;
+}
+.coala-app .coala-content .listing-controls .listing-controls-bar .select-control > :is(.select-control-trigger, .select-control-native),
+.coala-app .coala-content .listing-controls .listing-controls-bar :is(.view-toggle, .study-layout-toggle) > button {
+  box-sizing: border-box; height: 30px !important; min-height: 30px !important; max-height: 30px; padding-block: 0; font-size: 12px;
+}
+.coala-app .coala-content .listing-controls .listing-controls-bar :is(.listing-search-toggle, .archive-filter-trigger) { width: 32px; min-width: 32px; padding: 0; }

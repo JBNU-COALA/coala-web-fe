@@ -97,3 +97,8 @@
 .community-board-posts--reveal { animation: community-posts-reveal 240ms ease-out both; }
 @keyframes community-posts-reveal { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .community-board-posts--reveal { animation: none; } }
+
+/* Match board sorting, search and writing controls on desktop and mobile. */
+.coala-app .coala-content--posts .listing-controls-bar :is(.community-board-write, .write-post-button, .listing-search-toggle, .select-control) { box-sizing: border-box; height: 32px !important; min-height: 32px !important; max-height: 32px; margin-block: 0; }
+.coala-app .coala-content--posts .listing-controls-bar :is(.community-board-write, .write-post-button) { display: inline-flex; align-items: center; justify-content: center; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+.coala-app .coala-content--posts .listing-controls-bar .select-control-trigger { height: 30px !important; min-height: 30px !important; font-size: 12px; }
