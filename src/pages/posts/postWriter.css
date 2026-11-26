@@ -31,7 +31,7 @@
 .coala-app .velog-writer-footer .velog-publish-button { min-height: 34px; padding: 0 14px; border-radius: 5px; background: #171717; color: #fff; font-size: 12px; }
 .coala-app .velog-writer-footer .velog-publish-button:hover { background: #333; }
 .coala-app .post-writer--velog .pw-counter { color: #999; font-size: 11px; }
-.coala-app .post-writer--velog .pw-counter--over { color: #c0392b; }
+.coala-app .post-writer--velog .pw-counter--over { color: #555555; }
 .coala-app .post-writer--velog .pw-shortcut-hint { color: #888; }
 .coala-app .post-writer--velog kbd { color: #737373; background: #f5f5f5; border-color: #ddd; }
 .coala-app .info-writer-image-field { background: #fff; border-color: #e5e5e5; padding-inline: 28px; }

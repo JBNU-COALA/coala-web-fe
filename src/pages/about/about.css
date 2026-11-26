@@ -9,7 +9,7 @@
   width: 100%;
   overflow: hidden;
   background: #fff;
-  color: #17251f;
+  color: #222222;
 }
 
 .about-together-container {
@@ -28,7 +28,7 @@
   overflow: hidden;
   display: flex;
   align-items: center;
-  background: #fbfaf6;
+  background: #fafafa;
 }
 
 .about-together-hero > img {
@@ -45,7 +45,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(251, 250, 246, 0.98) 0%, rgba(251, 250, 246, 0.9) 30%, rgba(251, 250, 246, 0.08) 58%, rgba(251, 250, 246, 0) 100%);
+  background: linear-gradient(90deg, rgba(250, 250, 250, 0.98) 0%, rgba(250, 250, 250, 0.9) 30%, rgba(250, 250, 250, 0.08) 58%, rgba(250, 250, 250, 0) 100%);
 }
 
 .about-together-hero-copy {
@@ -57,7 +57,7 @@
 .about-together-hero-copy > p,
 .about-together-intro-head > p {
   margin: 0;
-  color: #16805d;
+  color: #676767;
   font-size: 12px;
   line-height: 1.3;
   font-weight: 850;
@@ -65,7 +65,7 @@
 
 .about-together-hero-copy h1 {
   margin: 14px 0 0;
-  color: #103f30;
+  color: #343434;
   font-size: 76px;
   line-height: 1;
   font-weight: 930;
@@ -75,7 +75,7 @@
 .about-together-hero-copy > strong {
   display: block;
   margin-top: 24px;
-  color: #263a32;
+  color: #353535;
   font-size: 28px;
   line-height: 1.4;
   font-weight: 800;
@@ -92,7 +92,7 @@
 .about-together-hero-copy > div button,
 .about-together-join button {
   min-height: 46px;
-  border: 1px solid #cbd8d1;
+  border: 1px solid #d5d5d5;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.9);
   padding: 0 18px;
@@ -100,7 +100,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: #21483a;
+  color: #3f3f3f;
   cursor: pointer;
   font-size: 14px;
   font-weight: 820;
@@ -108,8 +108,8 @@
 
 .about-together-hero-copy > div button:last-child,
 .about-together-join button:last-child {
-  border-color: #117553;
-  background: #117553;
+  border-color: #5d5d5d;
+  background: #5d5d5d;
   color: #fff;
 }
 
@@ -132,7 +132,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: #63776e;
+  color: #727272;
   cursor: pointer;
   font-size: 13px;
   font-weight: 750;
@@ -148,7 +148,7 @@
 
 .about-together-intro-copy h2 {
   margin: 0;
-  color: #17251f;
+  color: #222222;
   font-size: 38px;
   line-height: 1.3;
   font-weight: 850;
@@ -158,7 +158,7 @@
 
 .about-together-intro-copy > div > p:first-child {
   margin: 2px 0 0;
-  color: #5b6d65;
+  color: #696969;
   font-size: 17px;
   line-height: 1.8;
   word-break: keep-all;
@@ -166,7 +166,7 @@
 
 .about-together-keywords {
   margin: 20px 0 0;
-  color: #14805c;
+  color: #666666;
   font-size: 12px;
   line-height: 1.7;
   font-weight: 800;
@@ -174,7 +174,7 @@
 
 .about-together-edit {
   margin-top: 28px;
-  border-top: 1px solid #dce5e0;
+  border-top: 1px solid #e3e3e3;
   padding-top: 26px;
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -194,31 +194,31 @@
 
 .about-together-edit-actions button {
   min-height: 40px;
-  border: 1px solid #cbd8d1;
+  border: 1px solid #d5d5d5;
   border-radius: 7px;
   background: #fff;
   padding: 0 17px;
-  color: #40584e;
+  color: #525252;
   cursor: pointer;
   font-size: 13px;
   font-weight: 800;
 }
 
 .about-together-edit-actions button:last-child {
-  border-color: #117553;
-  background: #117553;
+  border-color: #5d5d5d;
+  background: #5d5d5d;
   color: #fff;
 }
 
 .about-together-message {
   margin: 18px 0 0;
-  color: #117553;
+  color: #5d5d5d;
   font-size: 13px;
   font-weight: 750;
 }
 
 .about-together-links {
-  border-top: 1px solid #dce5e0;
+  border-top: 1px solid #e3e3e3;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
 }
@@ -226,7 +226,7 @@
 .about-together-links > button {
   min-height: 190px;
   border: 0;
-  border-right: 1px solid #dce5e0;
+  border-right: 1px solid #e3e3e3;
   background: transparent;
   padding: 32px;
   display: grid;
@@ -234,7 +234,7 @@
   grid-template-rows: auto auto;
   gap: 4px 16px;
   align-items: center;
-  color: #274138;
+  color: #3b3b3b;
   text-align: left;
   cursor: pointer;
 }
@@ -250,18 +250,18 @@
   border-radius: 50%;
   display: grid;
   place-items: center;
-  color: #0f7351;
-  background: #e1f4eb;
+  color: #5b5b5b;
+  background: #efefef;
 }
 
 .about-together-icon--blue {
-  color: #3269a3;
-  background: #e8f1fb;
+  color: #616161;
+  background: #f0f0f0;
 }
 
 .about-together-icon--coral {
-  color: #a85a3d;
-  background: #fff0e8;
+  color: #686868;
+  background: #f3f3f3;
 }
 
 .about-together-links strong {
@@ -273,7 +273,7 @@
 
 .about-together-links small {
   align-self: start;
-  color: #75867e;
+  color: #828282;
   font-size: 12px;
   font-weight: 650;
 }
@@ -281,13 +281,13 @@
 .about-together-links > button > svg {
   grid-column: 3;
   grid-row: 1 / 3;
-  color: #8b9b94;
+  color: #979797;
 }
 
 .about-together-join {
   margin-top: 96px;
   padding: 94px 0 102px;
-  background: #e8f5ee;
+  background: #f2f2f2;
   text-align: center;
 }
 
@@ -298,7 +298,7 @@
 
 .about-together-join h2 {
   margin: 16px 0 0;
-  color: #114b38;
+  color: #3d3d3d;
   font-size: 50px;
   line-height: 1.1;
   font-weight: 900;
@@ -307,7 +307,7 @@
 
 .about-together-join p {
   margin: 16px 0 0;
-  color: #526a60;
+  color: #646464;
   font-size: 15px;
   line-height: 1.7;
 }
@@ -357,7 +357,7 @@
   }
 
   .about-together-hero::after {
-    background: linear-gradient(180deg, rgba(251, 250, 246, 0.04) 0%, rgba(251, 250, 246, 0.28) 42%, rgba(251, 250, 246, 0.96) 68%, #fbfaf6 100%);
+    background: linear-gradient(180deg, rgba(250, 250, 250, 0.04) 0%, rgba(250, 250, 250, 0.28) 42%, rgba(250, 250, 250, 0.96) 68%, #fafafa 100%);
   }
 
   .about-together-hero-copy {
@@ -420,7 +420,7 @@
   .about-together-links > button {
     min-height: 94px;
     border-right: 0;
-    border-bottom: 1px solid #dce5e0;
+    border-bottom: 1px solid #e3e3e3;
     padding: 18px 8px;
   }
 

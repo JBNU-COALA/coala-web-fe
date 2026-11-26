@@ -121,19 +121,13 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
       <div className="board-page">
         <CommunityBanner title="질문게시판" description={QNA_CAPTION} tone="board" />
 
-        <ListingControls className="page-container" label="질문게시판 필터"
-          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
-            <SearchField
+        <ListingControls search={<SearchField
               className="community-list-search"
               value={query}
               onChange={setQuery}
               placeholder="질문 제목을 검색하세요"
-            />
-            <SelectControl label="정렬" value={sortMode} onChange={setSortMode}
-              options={[{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]} />
-            <ViewModeToggle value={viewMode} onChange={setViewMode} />
-
-            <button
+            />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
+<button
               type="button"
               className="write-post-button write-post-button--board"
               disabled={!board}
@@ -141,8 +135,15 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
               onClick={board ? onWritePost : undefined}
             >
               <Icon name="pencil-color" size={18} />
-              게시글 작성하기
-            </button>
+              글 작성
+            </button></>} className="page-container" label="질문게시판 필터"
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
+
+            <SelectControl label="정렬" value={sortMode} onChange={setSortMode}
+              options={[{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]} />
+
+
+
         </ListingControls>
 
         <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>

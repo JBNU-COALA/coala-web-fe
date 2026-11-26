@@ -55,7 +55,7 @@
 .coala-app .post-detail .post-cover--has-media { grid-template-columns: minmax(0, 1fr) 200px; }
 .coala-app .post-detail .post-cover-media { min-height: 120px; max-height: 180px; border-radius: 8px; background: #f5f5f5; }
 .coala-app .post-detail .post-like-button { min-height: 30px; border-color: #e5e5e5; background: #fff; color: #737373; }
-.coala-app .post-detail .post-like-button.is-liked { color: #dc5266; border-color: #f2c8cf; background: #fff5f6; }
+.coala-app .post-detail .post-like-button.is-liked { color: #717171; border-color: #d1d1d1; background: #f7f7f7; }
 .coala-app .post-detail .post-body { padding: 24px 0 0; gap: 24px; color: #262626; }
 .coala-app .post-detail .post-tag { background: #f5f5f5; color: #737373; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; }
 .coala-app .post-detail .post-meta-updated { color: #8a8a8a; font-size: 11px; }
@@ -171,7 +171,7 @@
 .coala-app .post-detail .post-report-icon:hover { background: #f5f5f5; }
 .coala-app .post-detail .post-header-actions > button > svg { width: 18px; height: 18px; }
 .coala-app .post-detail .post-cover-pill { width: fit-content; padding: 4px 10px; background: #f5f5f5 !important; color: #666 !important; border-radius: 999px; }
-.coala-app .post-detail .post-like-button.is-liked > svg { color: #e54861; fill: #e54861; stroke: #e54861; }
+.coala-app .post-detail .post-like-button.is-liked > svg { color: #6b6b6b; fill: #6b6b6b; stroke: #6b6b6b; }
 .coala-app .post-detail .post-comment-thread { display: block; padding-bottom: 12px; border-bottom: 1px solid #ededed; }
 .coala-app .post-detail .post-comment-item { padding-block: 16px 8px; border-bottom: 0; }
 .coala-app .post-detail .post-comment-content { margin-top: 10px; margin-bottom: 4px; }
@@ -192,7 +192,7 @@
 .coala-app .coala-content--info .board-post-card--list .info-post-stats { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; width: 100%; min-width: 0; }
 .coala-app .coala-content--info .board-post-card--list .info-post-stats .board-stat { justify-content: flex-start; }
 .coala-app .coala-content--info .board-post-card--list .info-list-actions { display: flex; margin: 0 0 0 auto; gap: 6px; }
-.coala-app .board-like-button.is-liked > svg { color: #e54861; fill: #e54861; stroke: #e54861; }
+.coala-app .board-like-button.is-liked > svg { color: #6b6b6b; fill: #6b6b6b; stroke: #6b6b6b; }
 .post-report-dialog { width: min(420px, calc(100vw - 32px)); padding: 24px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fff; color: #262626; box-shadow: 0 16px 60px #0002; }
 .post-report-dialog[open] { animation: filter-popover-enter 180ms ease-out; }
 .post-report-dialog::backdrop { background: #0005; animation: report-backdrop-enter 180ms ease-out; }
@@ -213,15 +213,15 @@
 .coala-app .header-user-button:hover,
 .coala-app .header-user-button.is-open {
   height: 42px; padding: 0; gap: 10px; border: 0; border-radius: 0;
-  background: transparent; box-shadow: none; transform: none; color: #505b69; font-size: 14px;
+  background: transparent; box-shadow: none; transform: none; color: #5a5a5a; font-size: 14px;
 }
 .coala-app .header-user-button .header-user-avatar { width: 34px; height: 34px; min-width: 34px; }
 .coala-app .header-user-button > svg { margin-left: 12px; transition: transform 180ms ease; }
 .coala-app .header-user-button.is-open > svg { transform: rotate(180deg); }
 .coala-app .header-profile-popover { width: min(240px, calc(100vw - 28px)); padding: 16px 20px; gap: 2px; border-radius: 0; box-shadow: 0 8px 24px #0000000d; }
 .coala-app .header-profile-popover::before { display: none; }
-.coala-app .header-profile-menu-item { min-height: 46px; padding: 10px 4px; border-radius: 0; font-size: 15px; font-weight: 500; color: #343e4c; }
-.coala-app .header-profile-logout { margin-top: 12px; padding-top: 20px; border-top: 1px solid #e1e5e9; }
+.coala-app .header-profile-menu-item { min-height: 46px; padding: 10px 4px; border-radius: 0; font-size: 15px; font-weight: 500; color: #3d3d3d; }
+.coala-app .header-profile-logout { margin-top: 12px; padding-top: 20px; border-top: 1px solid #e4e4e4; }
 /* 원형 아바타 안에 새 캐릭터의 귀까지 보이도록 여백을 둔다. */
 .character-avatar > .character-avatar-art { object-fit: contain; padding: 6%; }
 
@@ -240,7 +240,7 @@
 
 .coala-app .character-avatar { background: #fff; border-color: #e5e5e5; }
 
-.coala-app .recruit-empty-icon--color { background: #f8f9fc; font-size: 28px; line-height: 1; }
+.coala-app .recruit-empty-icon--color { background: #f9f9f9; font-size: 28px; line-height: 1; }
 
 .post-report-dialog textarea:focus { border-color: #171717; outline: none; box-shadow: 0 0 0 3px #0000000d; }
 

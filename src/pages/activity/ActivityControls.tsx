@@ -1,3 +1,4 @@
+import { ListingControls } from '../../shared/ui/ListingControls'
 import { Icon } from '../../shared/ui/Icon'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { parseDate, shiftDate, type StudyGroup } from '../../shared/activity'
@@ -27,7 +28,30 @@ export function ActivityControls({
   onFilter,
 }: ActivityControlsProps) {
   return (
-    <div className="study-controls">
+    <ListingControls label="활동 조회 필터" actions={<div className="study-view-toolbar">
+        <div
+            className="study-layout-toggle"
+            role="group"
+          aria-label="출석 체크 보기 방식"
+          >
+            <button
+              title="카드형"
+              aria-label="카드형"
+              aria-pressed={layout === 'card'}
+              onClick={() => onFilter('layout', 'card')}
+            >
+              <Icon name="layout" size={18} />
+            </button>
+            <button
+              title="캘린더형"
+              aria-label="캘린더형"
+              aria-pressed={layout === 'calendar'}
+              onClick={() => onFilter('layout', 'calendar')}
+            >
+              <Icon name="calendar" size={18} />
+            </button>
+          </div>
+      </div>}>
         {layout === 'card' ? (
           <div className="study-week">
             <button
@@ -72,30 +96,7 @@ export function ActivityControls({
             ]}
           />
         </div>
-      <div className="study-view-toolbar">
-        <div
-            className="study-layout-toggle"
-            role="group"
-          aria-label="출석 체크 보기 방식"
-          >
-            <button
-              title="카드형"
-              aria-label="카드형"
-              aria-pressed={layout === 'card'}
-              onClick={() => onFilter('layout', 'card')}
-            >
-              <Icon name="layout" size={18} />
-            </button>
-            <button
-              title="캘린더형"
-              aria-label="캘린더형"
-              aria-pressed={layout === 'calendar'}
-              onClick={() => onFilter('layout', 'calendar')}
-            >
-              <Icon name="calendar" size={18} />
-            </button>
-          </div>
-      </div>
-    </div>
+
+    </ListingControls>
   )
 }

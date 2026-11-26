@@ -140,14 +140,14 @@ export function ArchivePage() {
 
   return (
     <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
-      <ListingControls label="자료 분류 및 검색">
-          <SearchField className="archive-search" value={query} onChange={setQuery}
-            placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />
+      <ListingControls search={<SearchField className="archive-search" value={query} onChange={setQuery}
+            placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />} actions={<><button type="button" className="write-post-button" onClick={startCreate}>
+            <Icon name="plus" size={15} />{actionLabel}
+          </button></>} label="자료 분류 및 검색">
+
           <ArchiveFilters key={activeCategory} options={filterOptions} value={selectedMaterial} onChange={setMaterialFilter}
             hasCalendar={activeCategory === 'labs'} showCalendar={showCalendar} onCalendarChange={setShowCalendar} />
-          <button type="button" className="write-post-button" onClick={startCreate}>
-            <Icon name="plus" size={15} />{actionLabel}
-          </button>
+
       </ListingControls>
             {activeCategory === 'labs' && showCalendar ? (
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">

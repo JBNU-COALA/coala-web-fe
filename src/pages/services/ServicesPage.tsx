@@ -558,13 +558,14 @@ export function ServicesPage() {
               </section>
         ) : (
           <>
-            <ListingControls className="page-container" label="유저 서비스 필터">
+            <ListingControls search={<SearchField value={query} onChange={(value) => { setQuery(value); setCurrentPage(1) }} placeholder="서비스명, 만든 유저, 태그 검색" />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
+<button type="button" className="write-post-button" onClick={startCreateService}><Icon name="plus" size={15} />서비스 추가</button></>} className="page-container user-service-controls" label="유저 서비스 필터">
               <SelectControl value={selectedStatus}
                 options={serviceStatusTabs.map((tab) => ({ value: tab.id, label: tab.label }))}
                 onChange={(status) => { setSelectedStatus(status); setCurrentPage(1) }} label="운영 상태" />
-              <SearchField value={query} onChange={(value) => { setQuery(value); setCurrentPage(1) }} placeholder="서비스명, 만든 유저, 태그 검색" />
-              <ViewModeToggle value={viewMode} onChange={setViewMode} />
-              <button type="button" className="write-post-button" onClick={startCreateService}><Icon name="plus" size={15} />서비스 추가</button>
+
+
+
             </ListingControls>
 
             {serviceError ? <p className="auth-error">{serviceError}</p> : null}
@@ -757,7 +758,7 @@ export function ServicesPage() {
                 </li>
               ))}
               {listLoading ? <li className="empty-post-state"><LoadingSpinner label="서비스를 불러오는 중입니다." /></li> : listError ? (
-                <li className="empty-post-state"><p role="alert">{listError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
+                <li className="empty-post-state service-list-error"><img className="login-koala" src="/coala-mascot-crying.png" alt="" /><p role="alert">{listError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
               ) : paginatedServices.length === 0 ? (
                 <li className="empty-post-state">조건에 맞는 서비스가 없습니다.</li>
               ) : null}

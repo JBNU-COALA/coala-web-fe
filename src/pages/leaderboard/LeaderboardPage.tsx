@@ -1,3 +1,4 @@
+import { ListingControls } from '../../shared/ui/ListingControls'
 import { loadRecentAttendanceRecords } from '../../shared/activityRepository'
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
@@ -98,8 +99,10 @@ export function LeaderboardPage() {
   }, [loadRevision, user?.id])
 
   const normalizedQuery = query.trim().toLowerCase()
-  const gradeOptions = ['all', ...Array.from(new Set(members.map((member) => member.grade)))]
-  const labOptions = ['all', ...Array.from(new Set(members.map((member) => member.lab)))]
+  const gradeOptions = ['all', ...Array.from(new Set(members.map((member) => member.grade)))
+    .sort((a, b) => a.localeCompare(b, 'ko', { numeric: true }))]
+  const labOptions = ['all', ...Array.from(new Set(members.map((member) => member.lab)))
+    .sort((a, b) => a.localeCompare(b, 'ko', { numeric: true }))]
 
   useEffect(() => {
     let active = true
@@ -138,13 +141,13 @@ export function LeaderboardPage() {
         <div className="activity-table-shell">
           {loadError && <div><p role="alert" className="auth-error">{loadError}</p>
             <button type="button" className="ghost-button retry-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}
-          <section className="activity-directory-controls" aria-label="유저 검색 및 필터">
-            <SearchField
+          <ListingControls search={<SearchField
               className="activity-search"
               value={query}
               onChange={setQuery}
               placeholder="이름, 기술, 프로젝트 검색"
-            />
+            />} label="유저 검색 및 필터" actions={<ViewModeToggle value={viewMode} onChange={setViewMode} className="activity-view-toggle" />}>
+
             <SelectControl
               className="activity-select-control"
               label="학년"
@@ -159,8 +162,7 @@ export function LeaderboardPage() {
               options={labOptions.map((lab) => ({ value: lab, label: lab === 'all' ? '연구실 전체' : lab }))}
               onChange={setLabFilter}
             />
-            <ViewModeToggle value={viewMode} onChange={setViewMode} className="activity-view-toggle" />
-          </section>
+            </ListingControls>
 
           {!isLoading && !loadError && filteredMembers.length > 0 ? (
             <section className="activity-recent-members" aria-label="출석 우수 멤버">

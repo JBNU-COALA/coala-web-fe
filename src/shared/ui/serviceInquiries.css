@@ -16,20 +16,20 @@
 .service-inquiries-form textarea { resize: vertical; min-height: 140px; }
 .service-inquiries-form button[type=submit] { justify-self: end; }
 .service-inquiries-load-error { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding-block: 12px; }
-.service-inquiries-load-error p, .service-inquiries-error { margin: 0; color: #aa3636; line-height: 1.6; }
+.service-inquiries-load-error p, .service-inquiries-error { margin: 0; color: #4f4f4f; line-height: 1.6; }
 .service-inquiries-list { margin: 0; padding: 0; list-style: none; }
 .service-inquiries-list > li { padding: 22px 0; border-top: 1px solid #e5e5e5; }
 .service-inquiries-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; color: #737373; font-size: 12px; }
 .service-inquiries-meta time { margin-left: auto; }
-.service-inquiries-status { padding: 4px 8px; border-radius: 4px; font-weight: 600; background: #edf0f2; color: #53616c; }
-.service-inquiries-status--open { color: #805c15; background: #fff3d6; }
-.service-inquiries-status--answered { color: #1d6650; background: #e7f4ed; }
-.service-inquiries-status--closed { color: #555e6a; background: #edf0f5; }
+.service-inquiries-status { padding: 4px 8px; border-radius: 4px; font-weight: 600; background: #f0f0f0; color: #5f5f5f; }
+.service-inquiries-status--open { color: #5f5f5f; background: #f3f3f3; }
+.service-inquiries-status--answered { color: #555555; background: #f1f1f1; }
+.service-inquiries-status--closed { color: #5d5d5d; background: #f0f0f0; }
 .service-inquiries-list h4 { margin: 14px 0 10px; font-size: 16px; line-height: 1.6; overflow-wrap: anywhere; }
 .service-inquiries-content { margin: 0; line-height: 1.8; white-space: pre-wrap; overflow-wrap: anywhere; }
-.service-inquiries-reply { margin-top: 20px; padding-left: 16px; border-left: 3px solid #a8c9df; }
+.service-inquiries-reply { margin-top: 20px; padding-left: 16px; border-left: 3px solid #c4c4c4; }
 .service-inquiries-reply .service-inquiries-meta { margin-bottom: 10px; }
-.service-inquiries-reply strong { color: #296083; font-size: 13px; }
+.service-inquiries-reply strong { color: #575757; font-size: 13px; }
 .service-inquiries-awaiting, .service-inquiries-empty { color: #737373; line-height: 1.6; }
 .service-inquiries--login { padding-block: 24px; text-align: center; }
 .service-inquiries--login h3 { margin-top: 12px; }

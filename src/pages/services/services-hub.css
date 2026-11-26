@@ -10,18 +10,18 @@
 .coas-actions > a:hover { background: #f5f5f5; border-color: #999; }
 .coas-external-label { color: #737373; }
 .coas-sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-.coas-project-banner { overflow: hidden; min-width: 0; border: 1px solid #333; border-radius: 12px; background: #202020; color: #f5f5f3; }
+.coas-project-banner { overflow: hidden; min-width: 0; border: 1px solid #333; border-radius: 12px; background: #202020; color: #f5f5f5; }
 .coas-project-topline { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 28px; padding: 20px 0; border-bottom: 1px solid #393939; font-size: 11px; letter-spacing: .05em; }
 .coas-project-topline > span:first-child { display: inline-flex; align-items: center; gap: 9px; }
 .coas-project-public { padding: 4px 9px; border: 1px solid #555; border-radius: 20px; color: #c4c4c4; font-size: 10px; white-space: nowrap; }
 .coas-project-identity { display: flex; align-items: center; gap: 20px; padding: 30px 28px 8px; }
 .coas-project-identity > img { width: 80px; height: 80px; flex-shrink: 0; }
 .coas-project-identity strong { display: block; font-size: clamp(36px, 4vw, 56px); line-height: 1; letter-spacing: -.06em; font-weight: 750; }
-.coas-project-identity strong > span { color: #d3b885; }
+.coas-project-identity strong > span { color: #bababa; }
 .coas-project-identity p { margin: 10px 0 0; color: #b6b6b6; font-size: 12px; line-height: 1.5; }
 .coas-project-branches { display: block; width: 100%; height: 100px; }
 .coas-project-bottomline { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 28px 22px; color: #bbb; font-size: 11px; }
-.coas-project-bottomline > span:last-child { font-family: var(--font-sans); font-size: 18px; color: #d3b885; }
+.coas-project-bottomline > span:last-child { font-family: var(--font-sans); font-size: 18px; color: #bababa; }
 .coas-hub .services-showcase { width: 100%; padding-top: 32px; }
 .coas-hub .services-showcase + .services-showcase { margin-top: 32px; padding-top: 32px; border-color: #e5e5e5; }
 .coas-hub .services-showcase-head { margin-bottom: 20px; }
@@ -37,14 +37,14 @@
 .coas-hub .member-service-preview-copy small { background: #f5f5f5; color: #525252; }
 .coas-hub .member-service-preview-copy > span { color: #737373; font-size: 13px; }
 .coas-hub :is(button, a):focus-visible { outline: 2px solid #525252; outline-offset: 3px; }
-.coala-content--services .service-section-intro { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 32px 36px; margin: 32px 0 28px; background: #202020; color: #f5f5f3; border: 1px solid #333; border-radius: 12px; }
-.service-section-intro p { margin: 0 0 14px; color: #b9aa8e; font-size: 10px; font-weight: 600; letter-spacing: .12em; }
+.coala-content--services .service-section-intro { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding: 32px 36px; margin: 32px 0 28px; background: #202020; color: #f5f5f5; border: 1px solid #333; border-radius: 12px; }
+.service-section-intro p { margin: 0 0 14px; color: #ababab; font-size: 10px; font-weight: 600; letter-spacing: .12em; }
 .service-section-intro h2 { margin: 0 0 12px; font-size: clamp(22px, 2.4vw, 30px); line-height: 1.4; letter-spacing: -.04em; }
 .service-section-intro > div > span { color: #bcbcbc; font-size: 14px; line-height: 1.7; word-break: keep-all; }
-.service-section-art { display: flex; align-items: center; justify-content: center; gap: 20px; flex: 0 0 200px; color: #d3b885; }
+.service-section-art { display: flex; align-items: center; justify-content: center; gap: 20px; flex: 0 0 200px; color: #bababa; }
 .service-section-art > img { width: 72px; height: 72px; }
 .service-section-art .service-section-connector { width: 36px; height: 1px; background: #777; }
-.service-section-art .service-section-code { font-family: var(--font-sans); font-size: 36px; color: #d3b885; }
+.service-section-art .service-section-code { font-family: var(--font-sans); font-size: 36px; color: #bababa; }
 .coala-content--services .official-service-panel,
 .coala-content--services .member-services-toolbar,
 .coala-content--services .member-service-grid,
@@ -153,15 +153,15 @@
 @media (max-width: 640px) { .coala-content--services .member-service-form { padding: 20px 16px; } }
 
 /* Layered blue and violet waves for the COAS open-source identity. */
-.coas-project-banner { position: relative; isolation: isolate; border: 1px solid #524b87; border-radius: 24px; background: #191638; box-shadow: 0 18px 42px #26205124; }
+.coas-project-banner { position: relative; isolation: isolate; border: 1px solid #515151; border-radius: 24px; background: #191919; box-shadow: 0 18px 42px #25252524; }
 .coas-project-banner::before { content: ''; position: absolute; inset: 0; z-index: -2; background: url('/coas-waves.svg') center / cover no-repeat; pointer-events: none; }
-.coas-project-banner::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #171431b3, #17143150 60%, transparent); pointer-events: none; }
-.coas-project-topline { border-color: #ffffff26; color: #eeecff; }
-.coas-project-public { border-color: #ffffff40; background: #201a4266; color: #f2efff; }
+.coas-project-banner::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, #171717b3, #17171750 60%, transparent); pointer-events: none; }
+.coas-project-topline { border-color: #ffffff26; color: #eeeeee; }
+.coas-project-public { border-color: #ffffff40; background: #1e1e1e66; color: #f1f1f1; }
 .coas-project-identity strong { color: #fff; }
-.coas-project-identity strong > span { color: #9cdcf9; }
-.coas-project-identity p, .coas-project-bottomline { color: #e1def4; }
-.coas-project-bottomline > span:last-child { color: #b8e6ff; }
+.coas-project-identity strong > span { color: #d0d0d0; }
+.coas-project-identity p, .coas-project-bottomline { color: #e0e0e0; }
+.coas-project-bottomline > span:last-child { color: #dedede; }
 .coas-project-branches { opacity: .85; }
 
 .coas-project-public { padding: 7px 13px; font-size: 13px; font-weight: 600; line-height: 1.4; }

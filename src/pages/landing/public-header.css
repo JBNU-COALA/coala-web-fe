@@ -8,10 +8,11 @@
 .jungle-site.jungle-site .jungle-header nav, .recruiting-site.recruiting-site .recruiting-header nav { display: flex; align-items: center; gap: 28px; font-size: 20px; font-weight: 700; line-height: 1; }
 .jungle-site.jungle-site .jungle-header nav a, .recruiting-site.recruiting-site .recruiting-header nav a { display: inline-flex; align-items: center; min-height: 44px; line-height: 1; }
 @media(max-width:600px) {
- .jungle-site.jungle-site .jungle-header, .recruiting-site.recruiting-site .recruiting-header { height: 68px; padding: 10px 6%; }
- .jungle-site.jungle-site .jungle-header img.public-header-symbol, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol { width: 30px; height: 30px; }
- .jungle-site.jungle-site .jungle-header .jungle-logo img.jungle-brand-image, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol) { width: 88px; height: 30px; }
- .jungle-site.jungle-site .jungle-header nav, .recruiting-site.recruiting-site .recruiting-header nav { font-size: 16px; gap: 18px; }
+ .jungle-site.jungle-site .jungle-header, .recruiting-site.recruiting-site .recruiting-header { box-sizing: border-box; height: 56px; padding: 8px 16px; gap: 12px; }
+ .jungle-site.jungle-site .jungle-header .jungle-logo, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand { flex-shrink: 0; }
+ .jungle-site.jungle-site .jungle-header img.public-header-symbol, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol { width: 24px; height: 24px; }
+ .jungle-site.jungle-site .jungle-header .jungle-logo img.jungle-brand-image, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol) { width: 64px; height: 24px; }
+ .jungle-site.jungle-site .jungle-header nav, .recruiting-site.recruiting-site .recruiting-header nav { font-size: clamp(10px, 2.6vw, 12px); gap: clamp(8px, 2.5vw, 14px); white-space: nowrap; }
 }
 
 /* Neutral navigation, with readable contrast on each header background. */

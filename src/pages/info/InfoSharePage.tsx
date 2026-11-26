@@ -194,16 +194,24 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
           tone="info"
         />
 
-        <ListingControls className="page-container" label="정보공유 필터"
-          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
-            <SelectControl label="분류" value={activeFilter} onChange={setActiveFilter}
-              options={infoTabs.map((tab) => ({ value: tab.id, label: tab.label }))} />
-            <SearchField
+        <ListingControls search={<SearchField
               className="community-list-search"
               value={query}
               onChange={setQuery}
               placeholder="소식, 대회, 연구실, 자료 검색"
-            />
+            />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
+<button
+              type="button"
+              className="write-post-button write-post-button--info"
+              onClick={onWriteInfo}
+            >
+              <Icon name="pencil-color" size={18} />
+              글 작성
+            </button></>} className="page-container" label="정보공유 필터"
+          message={likeError ? <p className="auth-error" role="alert">{likeError}</p> : null}>
+            <SelectControl label="분류" value={activeFilter} onChange={setActiveFilter}
+              options={infoTabs.map((tab) => ({ value: tab.id, label: tab.label }))} />
+
             <SelectControl
               className="board-sort-field"
               label="정렬"
@@ -214,15 +222,8 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               ]}
               onChange={setSortMode}
             />
-            <ViewModeToggle value={viewMode} onChange={setViewMode} />
-            <button
-              type="button"
-              className="write-post-button write-post-button--info"
-              onClick={onWriteInfo}
-            >
-              <Icon name="pencil-color" size={18} />
-              게시글 작성하기
-            </button>
+
+
         </ListingControls>
 
         <article className={`surface-card board-shell info-board-shell page-container board-shell--${viewMode}`} aria-label="정보공유 목록">
