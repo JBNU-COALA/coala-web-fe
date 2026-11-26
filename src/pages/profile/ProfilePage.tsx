@@ -1,4 +1,4 @@
-import { usePageTransition } from '../../shared/ui/usePageTransition'
+﻿import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useScrollReveal } from '../landing/useScrollReveal'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
@@ -588,7 +588,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               ) : null}
             </div>
             <div className="profile-page-identity">
-              <div className="profile-identity-heading"><div className="profile-name-affiliation"><h2 className="profile-page-name">{displayName}</h2>{department && <span className="profile-department">{department}</span>}</div>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입 · 동아리 코알라</p> : null}</div>
+              <div className="profile-identity-heading"><div className="profile-name-affiliation"><h2 className="profile-page-name">{displayName}</h2>{department && <span className="profile-department">{department}</span>}</div>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입</p> : null}</div>
               <p className="profile-page-role">{displayRole}</p>
               <div className="profile-page-meta">
                 {labName && labName !== department && <span className="profile-lab-badge" onMouseEnter={() => setLabInfoOpen(true)} onMouseLeave={() => setLabInfoOpen(false)}>
@@ -1099,3 +1099,4 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
     </section>
   )
 }
+

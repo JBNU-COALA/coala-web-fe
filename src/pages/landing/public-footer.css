@@ -78,3 +78,15 @@ body:has(.jungle-site), body:has(.recruiting-site), body:has(.coala-app > .publi
   .public-footer .public-footer-channel img { width: 24px; height: 24px; }
   .public-footer .public-footer-inner > :is(p, small) { font-size: 11px; line-height: 1.5; }
 }
+
+@media (min-width: 601px) and (max-width: 1024px) {
+  .public-footer.public-footer { padding: 18px 24px 20px; }
+  .public-footer .public-footer-inner { column-gap: 16px; }
+  .public-footer a.public-footer-brand { margin-bottom: 6px; }
+  .public-footer .public-footer-brand img { width: 48px; height: 48px; }
+  .public-footer .public-footer-channels { gap: 8px; }
+  .public-footer .public-footer-channels :is(button, a.public-footer-channel) { width: 36px; height: 36px; padding: 0; }
+  .public-footer .public-footer-channels svg { width: 20px; height: 20px; }
+  .public-footer .public-footer-channel img { width: 26px; height: 26px; }
+  .public-footer .public-footer-inner > :is(p, small) { font-size: 11px; line-height: 1.5; }
+}
