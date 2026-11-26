@@ -476,8 +476,19 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
     )
   }
 
-  const removeAwardDraft = (index: number) => {
-    setAwardDrafts((current) => current.filter((_award, awardIndex) => awardIndex !== index))
+  const removeAwardDraft = async (index: number, button: HTMLButtonElement) => {
+    const id = awardDrafts[index]?.awardId
+    if (!id) return
+    const card = button.closest<HTMLElement>('.profile-award-edit-item')
+    button.disabled = true
+    if (card && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      card.style.overflow = 'hidden'
+      await card.animate([
+        { height: `${card.offsetHeight}px`, opacity: 1, transform: 'translateY(0)' },
+        { height: '0px', opacity: 0, transform: 'translateY(-6px)', paddingTop: '0px', paddingBottom: '0px', borderWidth: '0px' },
+      ], { duration: 220, easing: 'ease-in-out', fill: 'forwards' }).finished.catch(() => undefined)
+    }
+    setAwardDrafts((current) => current.filter((award) => award.awardId !== id))
   }
 
   const startAddSharedRepo = () => {
@@ -1035,7 +1046,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
                         />
                       </label>
                     </div>
-                    <button type="button" className="ghost-button" onClick={() => removeAwardDraft(index)}>
+                    <button type="button" className="ghost-button" onClick={(event) => void removeAwardDraft(index, event.currentTarget)}>
                       삭제
                     </button>
                   </div>
