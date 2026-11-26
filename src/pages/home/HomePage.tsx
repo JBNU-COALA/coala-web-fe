@@ -13,6 +13,7 @@ import {
 import { useHomeFeed } from './useHomeFeed'
 import { HomeCarousel } from './HomeCarousel'
 import './home-editorial.css'
+import './portal-badge-colors.css'
 
 type HomePageProps = {
   onOpenAllPosts?: () => void

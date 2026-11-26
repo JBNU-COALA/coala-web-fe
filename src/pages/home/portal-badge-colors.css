@@ -1,0 +1,18 @@
+/* User-approved pastel color exception, scoped to portal badges. */
+.coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status) {
+  background: linear-gradient(115deg, #d6f5e9, #fbe0ec, #dceefa, #d6f5e9);
+  background-size: 300% 100%;
+  border: 1px solid #dfebe6;
+  border-radius: 999px;
+  color: #354b45;
+  animation: portal-badge-flow 9s ease-in-out infinite alternate;
+}
+.coala-app .home-editorial .home-feed-column:nth-child(2) .home-feed-tag { animation-delay: -4s; }
+.coala-app .home-editorial .home-recruit-status { animation-delay: -7s; }
+@keyframes portal-badge-flow {
+  from { background-position: 0% 50%; }
+  to { background-position: 100% 50%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status) { animation: none; }
+}
