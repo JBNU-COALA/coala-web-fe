@@ -330,3 +330,19 @@
   .coala-app .info-list--editorial .info-post-footer { flex-wrap: wrap; gap: 6px; }
   .coala-app .info-list--editorial :is(.board-stat, .board-like-button) { font-size: 10px; }
 }
+
+/* Match the search button to the adjacent compact controls. */
+.coala-app .coala-content .listing-controls-bar .listing-search-toggle {
+  box-sizing: border-box;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  padding: 0;
+  border-radius: 10px;
+}
+.coala-app .coala-content .listing-controls-bar .listing-search-toggle svg { width: 16px; height: 16px; }
+@media (max-width: 700px) {
+  .coala-app.coala-app .coala-content .listing-controls-bar .view-toggle.view-toggle--compact { height: 32px; min-height: 32px; }
+  .coala-app.coala-app .coala-content .listing-controls-bar .view-toggle.view-toggle--compact button { height: 30px; min-height: 30px; width: 28px; min-width: 28px; flex-basis: 28px; }
+}
