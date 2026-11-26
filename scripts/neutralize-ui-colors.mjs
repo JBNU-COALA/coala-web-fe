@@ -10,7 +10,7 @@ async function visit(dir) {
     const file = path.join(dir, entry.name)
     if (entry.isDirectory()) { await visit(file); continue }
     if (!file.endsWith('.css')) continue
-    if (entry.name === 'hero-art-colors.css') continue // Explicitly approved forest illustration colors.
+    if (['hero-art-colors.css', 'portal-badge-colors.css'].includes(entry.name)) continue // Explicitly approved forest and portal badge colors.
     const before = await readFile(file, 'utf8')
     let after = before.replace(/#([\da-f]{8}|[\da-f]{6}|[\da-f]{4}|[\da-f]{3})(?![\w-])/gi, (original, hex) => {
       const expanded = hex.length < 5 ? [...hex].map((digit) => digit + digit).join('') : hex

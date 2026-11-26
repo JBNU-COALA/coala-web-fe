@@ -545,7 +545,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
           </aside>
           <div className={`profile-page profile-settings-main${editing ? ' is-editing' : ''}`}>
             <div className="profile-editor-heading">{editing && <h2 className="profile-settings-section-title">프로필 편집</h2>}
-          {tab !== 'overview' && profileEditActions}
+          {tab !== 'overview' && tab !== 'activity' && profileEditActions}
 </div>
         <div className="profile-page-hero surface-card">
           <div className="profile-page-hero-main">
@@ -599,7 +599,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               ) : null}
             </div>
             <div className="profile-page-identity">
-              <div className="profile-identity-heading"><div className="profile-name-affiliation"><h2 className="profile-page-name">{displayName}</h2>{department && <span className="profile-department">{department}</span>}</div>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입</p> : null}</div>
+              <div className="profile-identity-heading"><div className="profile-name-row"><div className="profile-name-affiliation"><h2 className="profile-page-name">{displayName}</h2>{department && <span className="profile-department">{department}</span>}</div>{tab === 'activity' && profileEditActions}</div>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입</p> : null}</div>
               <p className="profile-page-role">{displayRole}</p>
               <div className="profile-page-meta">
                 {labName && labName !== department && <span className="profile-lab-badge" onMouseEnter={() => setLabInfoOpen(true)} onMouseLeave={() => setLabInfoOpen(false)}>
