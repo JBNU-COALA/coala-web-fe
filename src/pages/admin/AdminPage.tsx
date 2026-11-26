@@ -30,6 +30,7 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { routes } from '../../shared/routes'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
+import './admin-design.css'
 
 type AdminTab = AdminDestination
 
@@ -676,7 +677,7 @@ export function AdminPage() {
     <section className="admin-page">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-header">
-          <span className="admin-kicker">Admin</span>
+          <Link to={routes.home} className="admin-brand" aria-label="코알라 홈"><img src="/coala-logo.svg" alt="" /><img src="/coala-wordmark.svg" alt="Coala" /><span>ADMIN</span></Link>
           <h1>관리자 대시보드</h1>
           <p>{user.name} · {roleLabel(user.role)}</p>
         </div>
