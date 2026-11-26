@@ -261,3 +261,17 @@
 @media(max-width:980px) {
   .coala-app--admin .admin-page { grid-template-rows: 92px auto minmax(0, 1fr); }
 }
+
+.admin-page .admin-tab { transition: background-color 220ms ease, color 220ms ease; }
+.admin-page .admin-tab.is-active .admin-menu-art { animation: admin-menu-select 240ms ease-out; }
+.admin-page .admin-main { animation: admin-content-enter 240ms ease-out; }
+.admin-page .admin-queue-list { border: 0; }
+.admin-page .admin-queue-list button, .admin-page .admin-queue-list button:hover { border: 0; background: transparent; box-shadow: none; }
+.admin-page .admin-queue-list button:hover { color: #111; }
+.admin-page :is(.admin-panel, .admin-recent-actions, .admin-summary-band) { transition: opacity 320ms ease, transform 320ms ease; }
+.admin-page .admin-scroll-pending { opacity: 0; transform: translateY(10px); }
+@keyframes admin-menu-select { from { transform: scale(.9); } to { transform: scale(1); } }
+@keyframes admin-content-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .admin-page .admin-scroll-pending { opacity: 1; transform: none; }
+}

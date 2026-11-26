@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react'
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'API_')
+  const analyticsEnv = loadEnv(mode, process.cwd(), 'VITE_POSTHOG_')
   const apiProxyTarget = env.API_PROXY_TARGET || 'http://localhost:8080'
 
   return {
@@ -12,6 +13,10 @@ export default defineConfig(({ mode }) => {
     envPrefix: [],
     define: {
       'import.meta.env.API_BASE_URL': JSON.stringify(env.API_BASE_URL || ''),
+      'import.meta.env.VITE_POSTHOG_PROJECT_TOKEN': JSON.stringify(analyticsEnv.VITE_POSTHOG_PROJECT_TOKEN || ''),
+      'import.meta.env.VITE_POSTHOG_HOST': JSON.stringify(analyticsEnv.VITE_POSTHOG_HOST || 'https://us.i.posthog.com'),
+      'import.meta.env.VITE_POSTHOG_ENABLE_DEV': JSON.stringify(analyticsEnv.VITE_POSTHOG_ENABLE_DEV || 'false'),
+      'import.meta.env.VITE_POSTHOG_DASHBOARD_EMBED_URL': JSON.stringify(analyticsEnv.VITE_POSTHOG_DASHBOARD_EMBED_URL || 'https://us.posthog.com/embedded/DWxTSGOhilDTefJOxPLvZWAy-vfhxg'),
     },
     server: {
       port: 3000,

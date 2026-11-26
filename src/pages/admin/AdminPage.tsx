@@ -33,6 +33,7 @@ import './admin-design.css'
 import { AdminMenuIcon } from './AdminMenuIcon'
 import { AdminAnalyticsPanel } from './AdminAnalyticsPanel'
 import { CommunityBanner } from '../community/CommunityBanner'
+import { useAdminReveal } from './useAdminReveal'
 
 
 
@@ -307,6 +308,7 @@ export function AdminPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get('tab')
   const activeTab: AdminTab = adminTabs.find((tab) => tab.id === requestedTab)?.id ?? 'stats'
+  const adminContentRef = useAdminReveal(activeTab)
   const setActiveTab = (tab: AdminTab) => setSearchParams({ tab })
   const [refreshKey, setRefreshKey] = useState(0)
   const [postQuery, setPostQuery] = useState('')
@@ -709,7 +711,7 @@ export function AdminPage() {
         </nav>
       </aside>
 
-      <div className="admin-main" key={activeTab}>
+      <div className="admin-main" key={activeTab} ref={adminContentRef}>
         <header className="admin-topbar">
           <div className="admin-row-actions">
             <p
