@@ -89,3 +89,18 @@
 .coala-app .post-writer--velog .velog-editor-wrap .w-md-editor { border-bottom: 1px solid #e5e5e5; }
 .coala-app .post-writer--velog .velog-editor-wrap .w-md-editor-text-input,
 .coala-app .post-writer--velog .velog-editor-wrap .w-md-editor-text-input:is(:focus, :focus-visible) { border: 0 !important; border-radius: 0; outline: none !important; box-shadow: none !important; }
+
+@media (max-width: 700px) {
+  .coala-app .post-writer-has-banner .post-writer-layout--velog { margin-top: 12px; width: calc(100% - 24px); }
+  .coala-app .post-writer--velog .velog-writer-topbar { min-height: 36px; padding: 6px 12px; }
+  .coala-app .post-writer--velog .velog-title-field { margin: 0 12px; padding: 10px 0 8px; }
+  .coala-app .post-writer--velog .velog-title-input { font-size: 22px; min-height: 36px; padding: 0; }
+  .coala-app .post-writer--velog .velog-tag-field { min-height: 36px; padding: 6px 12px; }
+  .coala-app .velog-editor-wrap .w-md-editor-toolbar { display: flex; flex-wrap: nowrap; overflow-x: auto; padding: 4px 8px; gap: 4px; scrollbar-width: thin; }
+  .coala-app .velog-editor-wrap .w-md-editor-toolbar ul { display: flex; flex: 0 0 auto; flex-wrap: nowrap; align-items: center; }
+  .coala-app .velog-editor-wrap .w-md-editor-toolbar li button { min-height: 28px; height: 28px; min-width: 28px; padding: 4px; font-size: 11px; white-space: nowrap; }
+  .coala-app .velog-editor-wrap .w-md-editor-toolbar button svg { width: 13px; height: 13px; }
+  .coala-app .velog-editor-wrap :is(.w-md-editor-text-input, .w-md-editor-text-pre, .w-md-editor-text-pre > code, .w-md-editor-preview) { padding: 12px !important; font-size: 14px !important; line-height: 1.7 !important; }
+  .coala-app .velog-editor-wrap .w-md-editor-text-pre > code { padding: 0 !important; }
+  .coala-app .post-writer--velog .velog-writer-footer { padding: 10px 12px; }
+}

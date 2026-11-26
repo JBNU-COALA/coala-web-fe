@@ -312,3 +312,21 @@
 .coala-app .main-nav-indicator { position: absolute; z-index: 2; top: 0; left: 0; height: 2px; width: 0; background: #111; border-radius: 999px; pointer-events: none; opacity: 0; }
 .coala-app .main-nav-indicator[data-ready=true] { transition: transform 240ms cubic-bezier(.22, 1, .36, 1), width 240ms cubic-bezier(.22, 1, .36, 1), opacity 160ms ease; }
 @media (prefers-reduced-motion: reduce) { .coala-app .main-nav-indicator[data-ready=true] { transition: none; } }
+
+@media (max-width: 700px) {
+  .coala-app .coala-content .listing-controls-bar { gap: 5px; }
+  .coala-app .coala-content .listing-visible-filters { gap: 4px; flex-wrap: nowrap; }
+  .coala-app .coala-content .listing-visible-filters > .select-control { min-width: 0; width: 76px; }
+  .coala-app .coala-content .listing-visible-filters .select-control-trigger { padding: 0 7px; font-size: 11px; min-height: 30px; }
+  .coala-app .coala-content .listing-controls-bar .listing-search-toggle { width: 30px; height: 30px; min-height: 30px; flex: 0 0 30px; }
+  .coala-app .coala-content .listing-controls-bar :is(.write-post-button, .community-board-write) { min-height: 30px; padding: 0 8px; font-size: 11px; white-space: nowrap; }
+  .coala-app .coala-content .listing-controls-bar .view-toggle button { width: 28px; min-height: 30px; padding: 4px; }
+  .coala-app .info-list--editorial .info-post-row { padding-block: 16px; }
+  .coala-app .info-list--editorial .board-post-title { font-size: 14px; line-height: 1.5; }
+  .coala-app .info-list--editorial .board-post-excerpt { font-size: 12px; line-height: 1.5; margin-block: 6px; }
+  .coala-app .info-list--editorial .board-post-meta { font-size: 10px; gap: 4px; }
+  .coala-app .info-list--editorial .board-post-thumbnail { width: 64px; height: 48px; }
+  .coala-app .info-list--editorial .board-tag { font-size: 10px; padding: 3px 8px; }
+  .coala-app .info-list--editorial .info-post-footer { flex-wrap: wrap; gap: 6px; }
+  .coala-app .info-list--editorial :is(.board-stat, .board-like-button) { font-size: 10px; }
+}

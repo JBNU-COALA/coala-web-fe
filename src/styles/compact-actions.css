@@ -9,7 +9,7 @@
 .coala-app .coala-content.coala-content .community-board-search-toggle svg { width: 16px; height: 16px; }
 
 /* Moderate corners for buttons, without altering switches or carousel dots. */
-.coala-app.coala-app button:not([role="switch"]):not(.home-carousel-dots button):not(.community-board-filters button),
+.coala-app.coala-app button:not([role="switch"]):not(.home-carousel-dots button):not(.community-board-filters button):not(.management-generations button),
 .coala-app.coala-app :is(.jcloud-login-link, .auth-secondary-link) { border-radius: 10px; }
 
 /* Tag filters retain a full capsule shape instead of the shared button corners. */
