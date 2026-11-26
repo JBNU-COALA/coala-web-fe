@@ -1,4 +1,4 @@
-﻿import './public-header.css'
+import './public-header.css'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './landing.css'
@@ -25,7 +25,7 @@ export function LandingPage() {
     <header className="jungle-header">
       <Link className="jungle-logo" to="/" aria-label="코알라 홈"><img className="public-header-symbol" src="/coala-logo.svg" alt="" /><img className="jungle-brand-image" src="/coala-wordmark.svg" alt="Coala" /></Link>
       <nav aria-label="동아리 소개 메뉴">
-        <Link to="/" aria-current="page">HOME</Link><Link to="/portal">MAIN</Link><Link to="/about/management">MANAGEMENT</Link><Link to="/recruiting">RECRUITING</Link>
+        <Link to="/" aria-current="page">HOME</Link><Link to="/about/management">MANAGEMENT</Link><Link to="/recruiting">RECRUITING</Link><Link to="/portal">COMMUNITY</Link>
       </nav>
     </header>
 

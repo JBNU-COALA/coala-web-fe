@@ -155,7 +155,7 @@ export function RecruitingPage() {
   const revealRoot = useScrollReveal(pathname)
 
   return <div ref={revealRoot} className="recruiting-site">
-    <header className="recruiting-header"><Link to="/" className="recruiting-brand" aria-label="코알라 홈"><img className="public-header-symbol" src="/coala-logo.svg" alt="" /><img src="/coala-wordmark.svg" alt="Coala" /></Link><nav aria-label="주요 메뉴"><Link to="/">HOME</Link><Link to="/portal">MAIN</Link><Link to="/about/management">MANAGEMENT</Link><Link to="/recruiting" aria-current="page">RECRUITING</Link></nav></header>
+    <header className="recruiting-header"><Link to="/" className="recruiting-brand" aria-label="코알라 홈"><img className="public-header-symbol" src="/coala-logo.svg" alt="" /><img src="/coala-wordmark.svg" alt="Coala" /></Link><nav aria-label="주요 메뉴"><Link to="/">HOME</Link><Link to="/about/management">MANAGEMENT</Link><Link to="/recruiting" aria-current="page">RECRUITING</Link><Link to="/portal">COMMUNITY</Link></nav></header>
       <section className="rc-hero" aria-labelledby="rc-hero-title">
         {slug ? <h2 id="rc-hero-title">27-1 코알라 정기 리크루팅</h2> : <h1 id="rc-hero-title">27-1 코알라 정기 리크루팅</h1>}
         <p className="rc-hero-copy">처음이어도 괜찮아요. 함께 성장하고 싶은 마음이면 충분합니다!</p>

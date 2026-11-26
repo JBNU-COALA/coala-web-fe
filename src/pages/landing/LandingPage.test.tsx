@@ -1,4 +1,4 @@
-﻿// @vitest-environment jsdom
+// @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -19,20 +19,20 @@ describe('public landing and member portal', () => {
     expect(screen.queryByText('동아리 회원을 위한 게시판과 자료를 이용할 수 있습니다.')).toBeNull()
     expect(screen.getByRole('link', { name: 'RECRUITING' }).getAttribute('href')).toBe('/recruiting')
     expect(screen.getByRole('link', { name: 'HOME', current: 'page' }).getAttribute('href')).toBe('/')
-    expect(screen.getByRole('link', { name: 'MAIN' }).getAttribute('href')).toBe('/portal')
+    expect(screen.getByRole('link', { name: 'COMMUNITY' }).getAttribute('href')).toBe('/portal')
     expect(screen.queryByText('Member portal content')).toBeNull()
   })
-  it('opens login with the portal destination when a visitor clicks MAIN from HOME', async () => {
+  it('opens login with the portal destination when a visitor clicks COMMUNITY from HOME', async () => {
     render(<MemoryRouter><App /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('link', { name: 'MAIN' }))
+    fireEvent.click(screen.getByRole('link', { name: 'COMMUNITY' }))
     expect(await screen.findByText('Login destination: /portal')).toBeTruthy()
     expect(screen.queryByText('Member portal content')).toBeNull()
   })
-  it('opens the portal when an authenticated verified member clicks MAIN from HOME', async () => {
+  it('opens the portal when an authenticated verified member clicks COMMUNITY from HOME', async () => {
     auth.isLoggedIn = true
     auth.user = { id: 1, verified: true }
     render(<MemoryRouter><App /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('link', { name: 'MAIN' }))
+    fireEvent.click(screen.getByRole('link', { name: 'COMMUNITY' }))
     expect(await screen.findByText('Member portal content')).toBeTruthy()
   })
   it('redirects visitors opening the member portal to login and preserves the destination', async () => {
