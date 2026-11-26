@@ -31,6 +31,8 @@ import { routes } from '../../shared/routes'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 import './admin-design.css'
+import { AdminMenuIcon } from './AdminMenuIcon'
+import { useAdminReveal } from './useAdminReveal'
 
 type AdminTab = AdminDestination
 
@@ -296,6 +298,7 @@ function instanceToDraft(instance: InstanceApplication): InstanceDraft {
 }
 
 export function AdminPage() {
+  const adminRevealRef = useAdminReveal()
   const { user, updateUser } = useAuth()
   const hasAdminAccess = isAdminUser(user)
   const [searchParams, setSearchParams] = useSearchParams()
@@ -679,7 +682,7 @@ export function AdminPage() {
         <div className="admin-sidebar-header">
           <Link to={routes.home} className="admin-brand" aria-label="코알라 홈"><img src="/coala-logo.svg" alt="" /><img src="/coala-wordmark.svg" alt="Coala" /><span>ADMIN</span></Link>
           <h1>관리자 대시보드</h1>
-          <p>{user.name} · {roleLabel(user.role)}</p>
+
         </div>
         <nav className="admin-tab-list" aria-label="관리자 메뉴">
           {adminTabs.map((tab) => (
@@ -690,7 +693,7 @@ export function AdminPage() {
               className={activeTab === tab.id ? 'admin-tab is-active' : 'admin-tab'}
               onClick={() => setActiveTab(tab.id)}
             >
-              <Icon name={tab.icon} size={16} />
+              <AdminMenuIcon name={tab.id} />
               <span>{tab.label}</span>
             </button>
           ))}
@@ -701,7 +704,7 @@ export function AdminPage() {
         </Link>
       </aside>
 
-      <div className="admin-main">
+      <div className="admin-main" ref={adminRevealRef}>
         <header className="admin-topbar">
           <div>
             <span className="admin-kicker">관리자 콘솔</span>
@@ -710,7 +713,7 @@ export function AdminPage() {
           <div className="admin-row-actions">
             <p className="admin-status" role="status">{isLoading ? '불러오는 중...' : statusMessage}</p>
             <button type="button" className="admin-ghost-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => { setRefreshKey((value) => value + 1); void loadAdminData() }}>
-              새로고침
+              <span className={isLoading ? 'admin-refresh-icon is-loading' : 'admin-refresh-icon'} aria-hidden="true">🔄</span>
             </button>
           </div>
         </header>

@@ -1,5 +1,5 @@
 import type { AdminActionLog } from '../../shared/api/admin'
-import { Icon } from '../../shared/ui/Icon'
+import { AdminMenuIcon } from './AdminMenuIcon'
 
 export type AdminDestination = 'stats' | 'users' | 'boards' | 'posts' | 'reports' | 'services' | 'instances' | 'domains' | 'about' | 'banners' | 'activity'
 
@@ -17,8 +17,8 @@ export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
           { key: 'reports', label: '미처리 신고', icon: 'bell', value: counts.reports },
           { key: 'instances', label: '인스턴스 승인 대기', icon: 'layout', value: counts.instances },
         ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}>
-          <Icon name={item.icon} size={20} /><span>{item.label}</span>
-          <strong>{item.value ?? '-'}</strong><Icon name="chevron-right" size={18} />
+          <AdminMenuIcon name={item.key} /><span>{item.label}</span>
+          <strong>{item.value ?? '-'}</strong>
         </button>)}
       </div>
     </section>
@@ -29,7 +29,7 @@ export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
         { key: 'boards', label: '게시판 설정', icon: 'layout' },
         { key: 'activity', label: '활동 관리', icon: 'calendar' },
         { key: 'domains', label: '도메인 신청', icon: 'link' },
-      ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}><Icon name={item.icon} size={18} /><span>{item.label}</span><Icon name="chevron-right" size={16} /></button>)}
+      ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}><AdminMenuIcon name={item.key} /><span>{item.label}</span></button>)}
     </section>
     <section className="admin-summary-band" aria-label="운영 현황">
       {([
@@ -37,7 +37,7 @@ export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
         { key: 'posts', label: '게시글', value: counts.posts },
         { key: 'services', label: '운영 서비스', value: counts.services },
       ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}>
-        <span>{item.label}</span><strong>{item.value ?? '-'}</strong><Icon name="chevron-right" size={16} />
+        <span><AdminMenuIcon name={item.key} />{item.label}</span><strong>{item.value ?? '-'}</strong>
       </button>)}
     </section>
     <section className="admin-recent-actions">

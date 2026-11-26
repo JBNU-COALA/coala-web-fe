@@ -62,7 +62,7 @@ function BannerEditor({ banner, onSave, onDelete, onBusy }: {
     catch { setMessage('배너를 삭제하지 못했습니다.') }
     finally { setSaving(false); onBusy(false) }
   }
-  return <div className="admin-stack">
+  return <div className="admin-stack admin-editor-enter">
     <form className="admin-panel admin-form" onSubmit={(event) => void save(event)}>
       <div className="admin-panel-header"><h3>{banner ? '배너 수정' : '배너 추가'}</h3>{banner && <button type="button" className="admin-danger-button" disabled={saving} onClick={() => void remove()}>삭제</button>}</div>
       <fieldset className="admin-fieldset" disabled={saving}>
