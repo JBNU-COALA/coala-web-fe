@@ -1,3 +1,4 @@
+import { AdminDetail } from './AdminDetail'
 import { useState, type FormEvent } from 'react'
 import { adminApi, type AdminServicePayload } from '../../shared/api/admin'
 import type { MemberService } from '../../shared/api/services'
@@ -14,19 +15,20 @@ function serviceDraft(service?: MemberService): AdminServicePayload {
 }
 
 export function AdminServicesPanel({ services, onChange }: { services: MemberService[]; onChange: (services: MemberService[]) => void }) {
-  const [selectedId, setSelectedId] = useState<string | null>(services[0]?.id ?? null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [editorOpen, setEditorOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState('all')
   const [busy, setBusy] = useState(false)
   const selected = services.find((service) => service.id === selectedId)
   const filtered = services.filter((service) => (status === 'all' || serviceDraft(service).status === status) && `${service.title} ${service.owner}`.toLowerCase().includes(query.trim().toLowerCase()))
   return <div className="admin-two-column">
-    <section className="admin-panel"><div className="admin-panel-header"><h3>회원 서비스</h3><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => setSelectedId(null)}><Icon name="plus" size={15} />서비스 추가</button></div>
+    <section className="admin-panel"><div className="admin-panel-header"><h3>회원 서비스</h3><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => { setSelectedId(null); setEditorOpen(true) }}><Icon name="plus" size={15} />서비스 추가</button></div>
       <label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="서비스 검색" placeholder="서비스 이름, 운영자 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
       <select className="admin-inline-select" aria-label="서비스 상태" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">전체 상태</option>{['운영중', '운영중지', '운영완료'].map((value) => <option key={value}>{value}</option>)}</select>
-      <div className="admin-list">{filtered.map((service) => <button type="button" key={service.id} className={`admin-list-row${selectedId === service.id ? ' is-active' : ''}`} disabled={busy} aria-pressed={selectedId === service.id} onClick={() => setSelectedId(service.id)}><span>{service.title}</span><small>{service.category} · {service.owner}</small><b>{service.status}</b></button>)}{!filtered.length && <p className="admin-empty">조건에 맞는 서비스가 없습니다.</p>}</div>
+      <div className="admin-list">{filtered.map((service) => <button type="button" key={service.id} className={`admin-list-row${selectedId === service.id ? ' is-active' : ''}`} disabled={busy} aria-pressed={selectedId === service.id} onClick={() => { setSelectedId(service.id); setEditorOpen(true) }}><span>{service.title}</span><small>{service.category} · {service.owner}</small><b>{service.status}</b></button>)}{!filtered.length && <p className="admin-empty">조건에 맞는 서비스가 없습니다.</p>}</div>
     </section>
-    <ServiceEditor key={selected?.id ?? 'new'} service={selected} onBusy={setBusy} onSave={(saved) => { onChange(services.some((item) => item.id === saved.id) ? services.map((item) => item.id === saved.id ? saved : item) : [...services, saved]); setSelectedId(saved.id) }} />
+    {editorOpen && <AdminDetail key={selectedId ?? 'new'} busy={busy} onClose={() => { setEditorOpen(false); setSelectedId(null) }}><ServiceEditor key={selected?.id ?? 'new'} service={selected} onBusy={setBusy} onSave={(saved) => { onChange(services.some((item) => item.id === saved.id) ? services.map((item) => item.id === saved.id ? saved : item) : [...services, saved]); setSelectedId(saved.id) }} /></AdminDetail>}
   </div>
 }
 
@@ -67,7 +69,7 @@ function ServiceEditor({ service, onSave, onBusy }: { service?: MemberService; o
       {imageList.length > 5 && <p className="admin-error">추가 이미지는 최대 5개입니다.</p>}
       {tagList.some((tag) => tag.length > 50) && <p className="admin-error">태그는 각각 50자 이내로 입력하세요.</p>}
       {((draft.url && !isHttpUrl(draft.url.trim())) || (draft.githubUrl && !isHttpUrl(draft.githubUrl.trim())) || !isImageUrl(draft.imageUrl?.trim() ?? '') || imageList.some((url) => !isImageUrl(url) || url.length > 500)) && <p className="admin-error">URL을 확인하세요. 서비스 주소는 HTTP(S), 이미지는 HTTP(S) 또는 사이트 내부 경로로 입력하세요.</p>}
-      <button type="submit" className="admin-primary-button" disabled={!valid}><Icon name="edit" size={15} />{saving ? '저장 중...' : '서비스 저장'}</button>
+      <div className="admin-service-save-actions"><button type="submit" className="admin-primary-button" disabled={!valid}>{saving ? '저장 중...' : '서비스 저장'}</button></div>
     </fieldset><p className="admin-feedback" role="status">{message}</p>
   </form>
 }

@@ -1,3 +1,4 @@
+import { AdminDetail } from './AdminDetail'
 import { useState, type FormEvent } from 'react'
 import { adminApi } from '../../shared/api/admin'
 import type { ApplyStatus, DomainApplication } from '../../shared/api/services'
@@ -20,7 +21,7 @@ export function AdminDomainsPanel({ refreshKey }: { refreshKey: number }) {
       <section className="admin-panel"><div className="admin-panel-header"><h3>도메인 신청</h3><select className="admin-inline-select" aria-label="도메인 신청 상태" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">전체</option>{Object.entries(statuses).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></div>
         <div className="admin-list">{filtered.map((item) => <button type="button" key={item.id} disabled={busy} className={`admin-list-row${selectedId === item.id ? ' is-active' : ''}`} onClick={() => setSelectedId(item.id)} aria-pressed={selectedId === item.id}><span>{item.serviceName}</span><small>{item.applicantName} · {item.requestedDomain}</small><b>{statuses[item.status]}</b></button>)}{!filtered.length && <p className="admin-empty">해당 상태의 신청이 없습니다.</p>}</div>
       </section>
-      {selected ? <DomainEditor key={selected.id} application={selected} onBusy={setBusy} onSave={(saved) => applications.setData((items) => items?.map((item) => item.id === saved.id ? saved : item) ?? [])} /> : <p className="admin-empty">신청을 선택하세요.</p>}
+      {selected ? <AdminDetail key={selected.id} busy={busy} onClose={() => setSelectedId(null)}><DomainEditor key={selected.id} application={selected} onBusy={setBusy} onSave={(saved) => applications.setData((items) => items?.map((item) => item.id === saved.id ? saved : item) ?? [])} /></AdminDetail> : <p className="admin-empty">신청을 선택하세요.</p>}
     </div>}
     <AdminInquiriesPanel kind="domains" refreshKey={refreshKey} />
   </div>

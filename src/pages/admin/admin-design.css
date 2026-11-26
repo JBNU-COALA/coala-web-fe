@@ -283,7 +283,6 @@
 .admin-page .admin-member-detail { animation: admin-content-enter 220ms ease-out; }
 .admin-member-detail-heading { display: flex; align-items: center; gap: 12px; }
 .admin-member-detail-heading strong { font-size: 14px; font-weight: 600; }
-.admin-page .admin-master-detail:not(.has-selection) > .admin-banner-collapse { position: absolute; width: 0; overflow: hidden; }
 @media(max-width:1100px) {
   .admin-page .admin-master-detail.has-selection { grid-template-columns: minmax(0, 1fr); }
   .admin-page .admin-master-detail.has-selection > .admin-panel .admin-list { max-height: 240px; }
@@ -312,23 +311,35 @@
 
 /* Shared list treatment across boards, banners, services and applications. */
 .admin-page .admin-list { gap: 8px; padding: 2px; }
-.admin-page .admin-list .admin-list-row { border: 1px solid #ccc; border-radius: 6px; background: #fff; box-shadow: none; transition: background-color 180ms ease, border-color 180ms ease, transform 140ms ease; }
-.admin-page .admin-list .admin-list-row.is-active { background: #f3f3f3; border: 1px solid #aaa; animation: admin-row-select 220ms ease-out; }
+.admin-page :is(.admin-list, .admin-service-list) .admin-list-row { border: 1px solid #e0e0e0; border-radius: 6px; background: #fff; box-shadow: none; transition: background-color 180ms ease, border-color 180ms ease, transform 140ms ease; }
+.admin-page :is(.admin-list, .admin-service-list) .admin-list-row.is-active { background: #f3f3f3; border: 1px solid #d4d4d4; animation: admin-row-select 220ms ease-out; }
 @media (hover: hover) {
-  .admin-page .admin-list .admin-list-row:hover:not(:disabled) { background: #f7f7f7; border-color: #aaa; }
-  .admin-page .admin-list .admin-list-row.is-active:hover:not(:disabled) { background: #eee; border-color: #aaa; }
+  .admin-page :is(.admin-list, .admin-service-list) .admin-list-row:hover:not(:disabled) { background: #f7f7f7; border-color: #aaa; }
+  .admin-page :is(.admin-list, .admin-service-list) .admin-list-row.is-active:hover:not(:disabled) { background: #eee; border-color: #aaa; }
 }
-.admin-page .admin-list .admin-list-row:active:not(:disabled) { background: #eee; border-color: #aaa; transform: scale(.99); opacity: 1; }
+.admin-page :is(.admin-list, .admin-service-list) .admin-list-row:active:not(:disabled) { background: #eee; border-color: #aaa; transform: scale(.99); opacity: 1; }
 @keyframes admin-row-select { from { transform: scale(.99); } to { transform: scale(1); } }
 .admin-page .admin-two-column > :is(form, .admin-form) { animation: admin-content-enter 220ms ease-out; }
 .admin-page .admin-master-detail.has-selection { grid-template-columns: minmax(0, 1fr); }
 .admin-page .admin-master-detail.has-selection > .admin-panel .admin-list { max-height: none; overflow: visible; }
 @media (prefers-reduced-motion: reduce) {
-  .admin-page .admin-list .admin-list-row:active:not(:disabled) { transform: none; }
-  .admin-page .admin-list .admin-list-row.is-active { animation: none; }
+  .admin-page :is(.admin-list, .admin-service-list) .admin-list-row:active:not(:disabled) { transform: none; }
+  .admin-page :is(.admin-list, .admin-service-list) .admin-list-row.is-active { animation: none; }
 }
 .admin-page .admin-analytics .admin-panel-header h3 { display: flex; align-items: center; gap: 10px; }
 .admin-analytics-status { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #777; font-weight: 400; }
 .admin-analytics-status i { width: 6px; height: 6px; border-radius: 50%; background: #aaa; }
 .admin-analytics-status.is-live i { background: #28a56a; }
 .admin-analytics-status.is-offline i { background: #d75a5a; }
+.admin-page .admin-service-save-actions { display: flex; justify-content: flex-end; width: 100%; border-top: 1px solid #ddd; padding-top: 16px; margin-top: 4px; }
+.admin-page .admin-activity-toolbar input[type='month'],
+.admin-page .admin-activity-actions > a { height: 32px; min-height: 32px; font-size: 12px; line-height: 1.4; }
+.admin-page .admin-activity-toolbar input[type='month'] { appearance: none; -webkit-appearance: none; padding: 0 10px; }
+.admin-page .admin-activity-toolbar input[type='month']::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.admin-page .admin-detail-motion { min-width: 0; display: grid; grid-template-rows: 1fr; animation: admin-detail-expand 260ms ease both; }
+.admin-page .admin-detail-motion > div { min-height: 0; overflow: hidden; }
+.admin-page .admin-detail-motion.is-closing { animation: admin-detail-collapse 260ms ease both; }
+.admin-page .admin-detail-close { margin-bottom: 10px; }
+@keyframes admin-detail-expand { from { grid-template-rows: 0fr; opacity: 0; } to { grid-template-rows: 1fr; opacity: 1; } }
+@keyframes admin-detail-collapse { from { grid-template-rows: 1fr; opacity: 1; } to { grid-template-rows: 0fr; opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .admin-page .admin-detail-motion, .admin-page .admin-detail-motion.is-closing { animation: none; } }

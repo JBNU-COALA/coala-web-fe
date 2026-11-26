@@ -67,7 +67,7 @@ function BannerEditor({ banner, onSave, onDelete, onBusy, onClose }: {
   }
   return <div className="admin-stack admin-editor-enter">
     <form className="admin-panel admin-form" onSubmit={(event) => void save(event)}>
-      <div className="admin-panel-header"><h3>{banner ? '배너 수정' : '배너 추가'}</h3>{banner && <button type="button" className="admin-danger-button" disabled={saving} onClick={() => void remove()}>삭제</button>}</div>
+      <div className="admin-panel-header"><h3>{banner ? '배너 수정' : '배너 추가'}</h3>{banner && <button type="button" className="admin-danger-button" disabled={saving} onClick={() => void remove()} aria-label="삭제" title="삭제"><Icon name="trash-color" size={18} /></button>}</div>
       <fieldset className="admin-fieldset" disabled={saving}>
         <Field label="제목"><input required maxLength={150} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></Field>
         <Field label="상단 문구"><input maxLength={80} value={draft.eyebrow} onChange={(e) => setDraft({ ...draft, eyebrow: e.target.value })} /></Field>

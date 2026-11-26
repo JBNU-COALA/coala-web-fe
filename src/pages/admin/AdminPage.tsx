@@ -1,3 +1,4 @@
+import { AdminDetail } from './AdminDetail'
 import { AdminOverview, type AdminDestination } from './AdminOverview'
 import { AdminUserEditor } from './AdminUserEditor'
 import { AdminAboutPanel } from './AdminAboutPanel'
@@ -775,8 +776,8 @@ export function AdminPage() {
                 ))}
               </div>
             </div>
-            {selectedUser && <div id="admin-member-detail" className="admin-stack admin-member-detail" key={selectedUser.id}>
-              <div className="admin-member-detail-heading"><button type="button" className="admin-ghost-button" onClick={() => setSelectedUserId(null)}>닫기</button></div>
+            {selectedUser && <AdminDetail key={selectedUser.id} onClose={() => setSelectedUserId(null)}><div id="admin-member-detail" className="admin-stack admin-member-detail" key={selectedUser.id}>
+
               <div className="admin-panel admin-form">
                 <div className="admin-panel-header">
                   <h3>{selectedUser.name} 회원정보</h3>
@@ -848,7 +849,7 @@ export function AdminPage() {
                   제재 저장
                 </button>
               </form>
-            </div>}
+            </div></AdminDetail>}
           </div>
         ) : null}
 
@@ -891,7 +892,7 @@ export function AdminPage() {
                   ))}
                 </div>
               </div>
-              <div className="admin-panel admin-form">
+              {selectedPost && <AdminDetail key={selectedContentKey} onClose={() => setSelectedContentKey(null)}><div className="admin-panel admin-form">
                 <div className="admin-panel-header">
                   <h3>게시글 조치/수정</h3>
                   {selectedPost ? <span>{selectedPost.contentKey}</span> : null}
@@ -915,8 +916,8 @@ export function AdminPage() {
                           <button type="button" onClick={() => void runPostAction(selectedPost.locked ? 'unlock' : 'lock')}>
                             {selectedPost.locked ? '잠금 해제' : '잠금'}
                           </button>
-                          <button type="button" className="admin-danger-button" onClick={() => void runPostAction('delete')}>
-                            관리자 삭제
+                          <button type="button" className="admin-danger-button" onClick={() => void runPostAction('delete')} aria-label="관리자 삭제" title="관리자 삭제">
+                            <Icon name="trash-color" size={18} />
                           </button>
                         </div>
                         <div className="admin-post-preview">
@@ -929,8 +930,8 @@ export function AdminPage() {
                         {hasContentDraftError && <p className="admin-error" role="alert">상세 조회에 실패하여 편집할 수 없습니다. 새로고침해 주세요.</p>}
                         <div className="admin-panel-subhead">
                           <strong>정보공유 수정</strong>
-                          <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()}>
-                            삭제
+                          <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()} aria-label="삭제" title="삭제">
+                            <Icon name="trash-color" size={18} />
                           </button>
                         </div>
                         <div className="admin-field-row">
@@ -1009,8 +1010,8 @@ export function AdminPage() {
                         {hasContentDraftError && <p className="admin-error" role="alert">상세 조회에 실패하여 편집할 수 없습니다. 새로고침해 주세요.</p>}
                         <div className="admin-panel-subhead">
                           <strong>모집 수정</strong>
-                          <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()}>
-                            삭제
+                          <button type="button" className="admin-danger-button" onClick={() => void deleteSelectedExternalContent()} aria-label="삭제" title="삭제">
+                            <Icon name="trash-color" size={18} />
                           </button>
                         </div>
                         <div className="admin-field-row">
@@ -1118,7 +1119,7 @@ export function AdminPage() {
                 ) : (
                   <p className="admin-empty">선택된 게시글이 없습니다.</p>
                 )}
-              </div>
+              </div></AdminDetail>}
             </div>
           </div>
         ) : null}
@@ -1146,7 +1147,7 @@ export function AdminPage() {
                   ))}
                 </div>
               </div>
-              <div className="admin-panel admin-form">
+              {selectedInstance && <AdminDetail key={selectedInstanceId} onClose={() => setSelectedInstanceId(null)}><div className="admin-panel admin-form">
                 <div className="admin-panel-header">
                   <h3>신청 상세</h3>
                   {selectedInstance ? <span>{selectedInstance.keyEmail}</span> : null}
@@ -1208,7 +1209,7 @@ export function AdminPage() {
                 ) : (
                   <p className="admin-empty">선택된 신청이 없습니다.</p>
                 )}
-              </div>
+              </div></AdminDetail>}
             </div>
           </div>
         ) : null}

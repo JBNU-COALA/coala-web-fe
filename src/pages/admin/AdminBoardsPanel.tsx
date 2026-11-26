@@ -1,3 +1,4 @@
+import { AdminDetail } from './AdminDetail'
 import { useState, type FormEvent } from 'react'
 import { adminApi } from '../../shared/api/admin'
 import type { BoardCategoryKey, BoardData, BoardType } from '../../shared/api/boards'
@@ -10,24 +11,25 @@ const boardCategories: Record<BoardCategoryKey, string> = {
 }
 
 export function AdminBoardsPanel({ boards, onChange }: { boards: BoardData[]; onChange: (boards: BoardData[]) => void }) {
-  const [selectedId, setSelectedId] = useState<number | null>(boards[0]?.boardId ?? null)
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+  const [editorOpen, setEditorOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [busy, setBusy] = useState(false)
   const selected = boards.find((board) => board.boardId === selectedId)
   const filtered = boards.filter((board) => `${board.boardName} ${board.description}`.toLowerCase().includes(query.trim().toLowerCase()))
   return <div className="admin-two-column">
     <section className="admin-panel">
-      <div className="admin-panel-header"><h3>게시판 목록</h3><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => setSelectedId(null)}><Icon name="plus" size={15} />게시판 추가</button></div>
+      <div className="admin-panel-header"><h3>게시판 목록</h3><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => { setSelectedId(null); setEditorOpen(true) }}><Icon name="plus" size={15} />게시판 추가</button></div>
       <label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="게시판 검색" placeholder="게시판 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
       <div className="admin-list">{filtered.map((board) => <button type="button" key={board.boardId} disabled={busy} aria-pressed={selectedId === board.boardId}
-        className={`admin-list-row${selectedId === board.boardId ? ' is-active' : ''}`} onClick={() => setSelectedId(board.boardId)}>
+        className={`admin-list-row${selectedId === board.boardId ? ' is-active' : ''}`} onClick={() => { setSelectedId(board.boardId); setEditorOpen(true) }}>
         <span>{board.boardName}</span><small>{boardTypes[board.boardType]}{board.categoryKey ? ` · ${boardCategories[board.categoryKey]}` : ''} · {board.description || '설명 없음'}</small><b>{board.isActive ? '공개' : '비활성'}</b>
       </button>)}{!filtered.length && <p className="admin-empty">게시판이 없습니다.</p>}</div>
     </section>
-    <BoardEditor key={selected?.boardId ?? 'new'} board={selected} onBusy={setBusy} onSave={(saved) => {
+    {editorOpen && <AdminDetail key={selectedId ?? 'new'} busy={busy} onClose={() => { setEditorOpen(false); setSelectedId(null) }}><BoardEditor key={selected?.boardId ?? 'new'} board={selected} onBusy={setBusy} onSave={(saved) => {
       onChange(boards.some((item) => item.boardId === saved.boardId) ? boards.map((item) => item.boardId === saved.boardId ? saved : item) : [...boards, saved])
       setSelectedId(saved.boardId)
-    }} />
+    }} /></AdminDetail>}
   </div>
 }
 

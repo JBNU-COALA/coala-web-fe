@@ -1,3 +1,4 @@
+import { AdminDetail } from './AdminDetail'
 import { useState, type FormEvent } from 'react'
 import { adminApi, type AdminInquiryStatus, type AdminServiceInquiry } from '../../shared/api/admin'
 import { AdminField as Field, AdminLoadState } from './AdminFields'
@@ -26,7 +27,7 @@ export function AdminInquiriesPanel({ kind, refreshKey }: { kind: 'instances' | 
       <div className="admin-list">{filtered.map((item) => <button type="button" className={`admin-list-row${item.id === selectedId ? ' is-active' : ''}`} aria-pressed={item.id === selectedId} key={item.id} disabled={busy} onClick={() => setSelectedId(item.id)}>
         <span>{item.title}</span><small>{item.author} · {item.createdAt}</small><b>{labels[inquiryStatus(item)]}</b>
       </button>)}{!filtered.length && <p className="admin-empty">조건에 맞는 문의가 없습니다.</p>}</div>
-      {selected ? <InquiryEditor key={selected.id} kind={kind} inquiry={selected} onBusy={setBusy} onSave={(saved) => resource.setData((items) => items?.map((item) => item.id === saved.id ? saved : item) ?? [])} /> : <p className="admin-empty">문의를 선택하세요.</p>}
+      {selected ? <AdminDetail key={selected.id} busy={busy} onClose={() => setSelectedId(null)}><InquiryEditor key={selected.id} kind={kind} inquiry={selected} onBusy={setBusy} onSave={(saved) => resource.setData((items) => items?.map((item) => item.id === saved.id ? saved : item) ?? [])} /></AdminDetail> : <p className="admin-empty">문의를 선택하세요.</p>}
     </div>}
   </section>
 }
