@@ -2,7 +2,20 @@ export const routes = {
   home: '/',
   about: '/about',
   management: '/about/management',
+  education: {
+    root: '/education',
+    hacking: {
+      root: '/education/hacking',
+      challenges: '/education/hacking/challenges',
+      challenge: (id: string) => `/education/hacking/challenges/${encodeURIComponent(id)}`,
+      curriculum: '/education/hacking/curriculum',
+      scoreboard: '/education/hacking/scoreboard',
+      instances: '/education/hacking/instances',
+    },
+    algorithms: { root: '/education/algorithms' },
+  },
   community: {
+    employment: '/community/employment',
     root: '/community',
     board: '/community/board',
     boardPost: (boardId: string | number, postId: string | number) =>

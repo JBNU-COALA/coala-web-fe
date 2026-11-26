@@ -28,6 +28,8 @@ import type { RecruitCategory, RecruitItem, RecruitPostPayload, RecruitStatus } 
 import type { ApplyStatus, InstanceApplication, MemberService } from '../../shared/api/services'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
+import { AdminEducationPanel } from './AdminEducationPanel'
+import { AdminEmploymentPanel } from './AdminEmploymentPanel'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 import './admin-design.css'
@@ -74,6 +76,8 @@ type InstanceDraft = {
 }
 
 const adminTabs: { id: AdminTab; label: string; icon: IconName }[] = [
+  { id: 'education', label: '교육 관리', icon: 'book' },
+  { id: 'employment', label: '취업 후기 분류', icon: 'file' },
   { id: 'stats', label: '운영 현황', icon: 'chart' },
   { id: 'analytics', label: '사용 분석', icon: 'chart' },
   { id: 'users', label: '회원 관리', icon: 'users' },
@@ -693,7 +697,7 @@ export function AdminPage() {
         <nav className="admin-tab-list" aria-label="관리자 메뉴">
           {[
             { label: '운영', ids: ['stats', 'analytics', 'users', 'reports'] },
-            { label: '콘텐츠', ids: ['banners', 'about', 'boards', 'posts', 'activity'] },
+            { label: '콘텐츠', ids: ['banners', 'about', 'boards', 'posts', 'activity', 'education', 'employment'] },
             { label: '서비스 · 신청', ids: ['services', 'instances', 'domains'] },
           ].map(group => <div className="admin-nav-group" key={group.label}>
             <span className="admin-nav-group-label">{group.label}</span>
@@ -731,6 +735,8 @@ export function AdminPage() {
 
         {loadFailures.includes(activeTab) && <p className="admin-error" role="alert">이 항목을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>}
         {activeTab === 'banners' && <AdminBannersPanel refreshKey={refreshKey} />}
+        {activeTab === 'education' && <AdminEducationPanel key={refreshKey} />}
+        {activeTab === 'employment' && <AdminEmploymentPanel key={refreshKey} />}
         {activeTab === 'analytics' && <AdminAnalyticsPanel />}
         {activeTab === 'about' && <AdminAboutPanel refreshKey={refreshKey} />}
         {activeTab === 'activity' && <AdminActivityPanel refreshKey={refreshKey} />}

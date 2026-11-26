@@ -91,6 +91,17 @@ components:
 
 # Coala Portal Design System
 
+## Education Hierarchy (2026-11-26)
+
+- `교육` is the top-level member-site navigation section. Its first level is learning subjects (`해킹`, `알고리즘`), not CTF-specific tools. The public landing/recruiting header is unchanged.
+- `/education` lists subjects. `/education/hacking/*` owns the CTF problem list/detail, curriculum, scoreboard and personal practice instances. `/education/algorithms` is an independent subject, currently without registered courses; do not invent problems or progress there.
+- Subject navigation and the hacking tool navigation are separate levels. Preserve this hierarchy in desktop, mobile and deep links. New subjects must not inherit CTF sessions, API clients or terminology.
+- Use the existing neutral portal shell, `CommunityBanner`, shared icons, search, selectors and pagination. Learning pages are work surfaces: compact headings, unframed sections, readable tables, collapsible weekly lessons and explicit loading/error/empty states. Confine horizontal scrolling to tables and tab bars on small screens.
+- Education uses Coala authentication and the shared API client. Never forward Coala bearer tokens to the private CTF execution bridge, persist passwords or label a dry-run instance as a usable environment. Catalog data, grading results and progress belong to the Coala backend database.
+- Education visual refinement: use the existing `CommunityBanner` as the single subject heading, with a compact breadcrumb instead of a duplicate subject-tab row and repeated large title. Subject selection stays in the site's existing education navigation.
+- Match subject entries to the archive's 8px resource-card grammar, and use `SectionNav`, `ListingControls` and `FilterTabs` for hacking tools, search and curriculum tracks. Empty states are unframed, compact and neutral; success/solve feedback must not introduce green.
+- Education uses the same wide main column as other list/service workspaces; do not reserve an empty third column beside its tables. Keep all responsive overrides scoped to education.
+
 ## Overview
 
 Coala has two distinct surfaces: a public club website at `/` and `/recruiting`, and the existing member dashboard at `/portal`. Public pages follow the approved design below. The remaining portal guidelines apply to the operational pages, not to the public landing or recruiting page.

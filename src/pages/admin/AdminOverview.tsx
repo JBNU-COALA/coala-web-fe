@@ -1,7 +1,7 @@
 import type { AdminActionLog } from '../../shared/api/admin'
 
 
-export type AdminDestination = 'stats' | 'analytics' | 'users' | 'boards' | 'posts' | 'reports' | 'services' | 'instances' | 'domains' | 'about' | 'banners' | 'activity'
+export type AdminDestination = 'stats' | 'analytics' | 'users' | 'boards' | 'posts' | 'reports' | 'services' | 'instances' | 'domains' | 'about' | 'banners' | 'activity' | 'education' | 'employment'
 
 export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
   counts: { users: number | null; posts: number | null; services: number | null; reports: number | null; instances: number | null }

@@ -5,6 +5,7 @@ export type AppRoute =
   | 'home'
   | 'about'
   | 'community'
+  | 'education'
   | 'recruit'
   | 'game'
   | 'service'
@@ -17,7 +18,7 @@ export type AppRoute =
   | 'verifyEmail'
   | 'passwordReset'
 
-export type HeaderRoute = 'about' | 'community' | 'services' | 'archive' | 'game'
+export type HeaderRoute = 'about' | 'community' | 'education' | 'services' | 'archive' | 'game'
 
 export type HeaderNavItem = {
   id: HeaderRoute
@@ -65,6 +66,7 @@ export const routePathById: Record<AppRoute, string> = {
   home: routes.home,
   about: routes.about,
   community: routes.community.root,
+  education: routes.education.root,
   recruit: routes.community.recruit,
   game: routes.users.root,
   service: routes.services.root,
@@ -81,6 +83,7 @@ export const routePathById: Record<AppRoute, string> = {
 export function getRouteFromPath(pathname: string): AppRoute {
   if (pathname.startsWith('/about')) return 'about'
   if (pathname.startsWith('/community')) return 'community'
+  if (pathname === '/education' || pathname.startsWith('/education/')) return 'education'
   if (pathname.startsWith('/recruit')) return 'community'
   if (pathname.startsWith('/users')) return 'game'
   if (pathname.startsWith('/members')) return 'game'
@@ -100,18 +103,32 @@ export function getRouteFromPath(pathname: string): AppRoute {
 export const headerNavItems: HeaderNavItem[] = [
   { id: 'about', label: '소개', icon: 'layout' },
   { id: 'community', label: '커뮤니티', icon: 'message' },
+  { id: 'education', label: '교육', icon: 'book' },
   { id: 'services', label: '서비스', icon: 'settings' },
   { id: 'archive', label: '자료실', icon: 'book' },
   { id: 'game', label: '유저', icon: 'users' },
 ]
 
 export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>> = {
+  education: [
+    {
+      id: 'education-hacking', label: '해킹', icon: 'network', path: routes.education.hacking.root,
+      children: [
+        { id: 'hacking-challenges', label: 'CTF 문제', icon: 'file', path: routes.education.hacking.challenges },
+        { id: 'hacking-curriculum', label: '커리큘럼', icon: 'book', path: routes.education.hacking.curriculum },
+        { id: 'hacking-scoreboard', label: '스코어보드', icon: 'chart', path: routes.education.hacking.scoreboard },
+        { id: 'hacking-instances', label: '내 실습 환경', icon: 'server', path: routes.education.hacking.instances },
+      ],
+    },
+    { id: 'education-algorithms', label: '알고리즘', icon: 'list', path: routes.education.algorithms.root },
+  ],
   about: [
     { id: 'about-root', label: '동아리 소개', icon: 'layout', path: routes.about },
     { id: 'about-management', label: '임원진', icon: 'users', path: routes.management },
     { id: 'about-recruiting', label: '리크루팅', icon: 'users', path: '/recruiting' },
   ],
   community: [
+    { id: 'community-employment', label: '취업 후기', icon: 'file', path: routes.community.employment },
     { id: 'community-board', label: '게시판', icon: 'message', path: routes.community.board },
     { id: 'community-qna', label: '질문게시판', icon: 'help-circle', path: routes.community.qna },
     { id: 'community-info', label: '정보공유', icon: 'book', path: routes.community.info },
@@ -139,6 +156,7 @@ export const routeLabelById: Record<AppRoute, string> = {
   home: '홈',
   about: '소개',
   community: '커뮤니티',
+  education: '교육',
   recruit: '모집',
   game: '유저',
   service: '인스턴스',
@@ -311,6 +329,14 @@ export function buildContextPanel(route: AppRoute, pathname = '', search = ''): 
         title: '커뮤니티',
         description: '',
         items: toCommunityItems(pathname),
+      }
+    case 'education':
+      return {
+        title: '교육', description: '',
+        items: (headerSubNavItems.education ?? []).map((item) => ({
+          id: item.id, label: item.label, icon: item.icon, kind: 'action', value: item.id,
+          isActive: pathname === item.path || pathname.startsWith(`${item.path}/`),
+        })),
       }
     case 'game':
       return {

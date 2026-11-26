@@ -818,3 +818,7 @@
   .admin-recent-actions li { flex-direction: column; gap: 8px; }
   .admin-list-row :is(span, small) { overflow-wrap: anywhere; min-width: 0; }
 }
+.admin-content-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.admin-import-section { margin-top: 28px; padding-top: 20px; border-top: 1px solid #e5e5e5; }
+.admin-import-section h3 { font-size: 15px; }
+.admin-import-section input { max-width: 100%; margin: 12px 8px 12px 0; }

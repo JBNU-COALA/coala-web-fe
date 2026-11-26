@@ -60,6 +60,8 @@ const ArchiveEditorPage = lazy(() => import('./pages/archive/ArchiveEditorPage')
 const ArchiveDetailPage = lazy(() => import('./pages/archive/ArchiveDetailPage').then((m) => ({ default: m.ArchiveDetailPage })))
 const ArchivePage = lazy(() => import('./pages/archive/ArchivePage').then((m) => ({ default: m.ArchivePage })))
 const AdminPage = lazy(() => import('./pages/admin/AdminPage').then((m) => ({ default: m.AdminPage })))
+const EducationPage = lazy(() => import('./pages/education/EducationPage').then((m) => ({ default: m.EducationPage })))
+const EmploymentPage = lazy(() => import('./pages/employment/EmploymentPage').then((m) => ({ default: m.EmploymentPage })))
 
 function PostDetailRoute() {
   const { boardId, postId } = useParams<{ boardId: string; postId: string }>()
@@ -620,8 +622,10 @@ function AppSession() {
         />
 
         <Route path="/about" element={<Navigate to="/" replace />} />
+        <Route path="/education/*" element={<EducationPage />} />
         <Route path={routes.management} element={<ManagementPage />} />
         <Route path="/community/activity" element={<StudyActivityPage />} />
+        <Route path="/community/employment/*" element={<EmploymentPage />} />
         <Route path="/community/activity/records/new" element={<StudyActivityPage mode="new" />} />
         <Route path="/community/activity/records/:recordId" element={<StudyActivityPage mode="detail" />} />
         <Route path="/community/activity/records/:recordId/editor" element={<StudyActivityPage mode="edit" />} />
@@ -916,7 +920,7 @@ function AppSession() {
                   {subItems.length > 0 ? (
                     <div className="main-nav-dropdown" role="menu" aria-label={`${item.label} 하위 메뉴`}>
                       <div className="main-nav-mobile-heading" role="presentation">
-                        <span aria-hidden="true">{sectionIcons[item.id]}</span>
+                        <span aria-hidden="true">{sectionIcons[item.id] ?? <Icon name={item.icon} size={24} />}</span>
                         <span>{item.label}</span>
                       </div>
                       {subItems.map((subItem) => (
@@ -988,7 +992,7 @@ function AppSession() {
                     : [{ id: `${item.id}-root`, label: `${item.label} 바로가기`, icon: item.icon, path: routePathById[item.id as AppRoute], depth: 0 }]
                   return (
                     <div key={item.id} className={activeRoute === item.id ? 'main-nav-mega-column is-active' : 'main-nav-mega-column'}>
-                      <p className="main-nav-mega-title"><span className="main-nav-mega-art" aria-hidden="true">{sectionIcons[item.id]}</span>{item.label}</p>
+                      <p className="main-nav-mega-title"><span className="main-nav-mega-art" aria-hidden="true">{sectionIcons[item.id] ?? <Icon name={item.icon} size={28} />}</span>{item.label}</p>
                       <div className="main-nav-mega-links" role="group" aria-label={`${item.label} 메뉴`}>
                         {links.map((link) => (
                           <button
@@ -1170,7 +1174,7 @@ function AppSession() {
         {sidebarItems.length > 0 ? (
           <div className="coala-section-layout">
             <aside className="coala-sidebar" aria-label={`${sidebarTitle} 메뉴`}>
-              <p className="coala-sidebar-title"><span className="coala-sidebar-art" aria-hidden="true">{sidebarSection && sectionIcons[sidebarSection.id]}</span>{sidebarTitle}</p>
+              <p className="coala-sidebar-title"><span className="coala-sidebar-art" aria-hidden="true">{sidebarSection && (sectionIcons[sidebarSection.id] ?? <Icon name={sidebarSection.icon} size={24} />)}</span>{sidebarTitle}</p>
               <nav className="coala-sidebar-nav">
                 {sidebarItems.map((item) => (
                   <button
