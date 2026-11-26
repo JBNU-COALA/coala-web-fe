@@ -1,4 +1,5 @@
 import { usePageTransition } from '../../shared/ui/usePageTransition'
+import { useScrollReveal } from '../landing/useScrollReveal'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -208,6 +209,12 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
   const profileAffiliation = isOwnProfile
     ? firstNonBlank(user?.lab, user?.department, profileMember.lab, '소속 미입력')
     : profileMember.lab
+  const department = isOwnProfile ? user?.department : profileMember.focus?.split(' · ')[0]
+  const labParts = profileAffiliation.split(/\s*[:：]\s*/)
+  const labName = labParts[0]
+  const professor = labParts.slice(1).join(' : ')
+  const [labInfoOpen, setLabInfoOpen] = useState(false)
+  const profileRevealRef = useScrollReveal(`${tab}-${profileMember.id}-${editing}`, '.profile-section-card, .profile-tab-content li')
   const joinedAt = isOwnProfile && user?.createdAt
     ? new Date(user.createdAt).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long' })
     : profileMember.recentCommit.replace(' 가입', '')
@@ -516,7 +523,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
 
   return (
     <section className="coala-content coala-content--profile profile-settings">
-      <div className="page-container">
+      <div className="page-container" ref={profileRevealRef}>
         <h1 className="profile-settings-title">{isOwnProfile ? '마이페이지' : '프로필'}</h1>
         <div className="profile-settings-layout">
           <aside className="profile-settings-sidebar">
@@ -581,11 +588,13 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
               ) : null}
             </div>
             <div className="profile-page-identity">
-              <div className="profile-identity-heading"><h2 className="profile-page-name">{displayName}</h2>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입 · 동아리 코알라</p> : null}</div>
+              <div className="profile-identity-heading"><div className="profile-name-affiliation"><h2 className="profile-page-name">{displayName}</h2>{department && <span className="profile-department">{department}</span>}</div>{joinedAt ? <p className="profile-joined-top">{joinedAt} 가입 · 동아리 코알라</p> : null}</div>
               <p className="profile-page-role">{displayRole}</p>
-              {profileMember.focus ? <p className="profile-page-focus">{profileMember.focus}</p> : null}
               <div className="profile-page-meta">
-                {profileAffiliation && !profileMember.focus?.includes(profileAffiliation) && <span>{profileAffiliation}</span>}
+                {labName && labName !== department && <span className="profile-lab-badge" onMouseEnter={() => setLabInfoOpen(true)} onMouseLeave={() => setLabInfoOpen(false)}>
+                  <button type="button" aria-expanded={professor ? labInfoOpen : undefined} onClick={() => setLabInfoOpen(!labInfoOpen)} onBlur={() => setLabInfoOpen(false)} onKeyDown={(event) => { if (event.key === 'Escape') setLabInfoOpen(false) }}>{labName}</button>
+                  {professor && labInfoOpen && <span className="profile-lab-professor" role="status">{professor}</span>}
+                </span>}
                 {profileGithubUrl ? (
                   <a href={profileGithubUrl} target="_blank" rel="noreferrer">
                     <Icon name="github" size={15} />

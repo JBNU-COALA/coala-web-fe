@@ -67,3 +67,11 @@
 @media (max-width: 700px) {
   .management-body { padding: 20px 12px 32px; }
 }
+
+/* Touch feedback mirrors desktop hover, then settles after release. */
+.management-card.is-touched { transform: translateY(-4px); border-color: #bbb; box-shadow: 0 12px 28px #0000000d; }
+.management-card.is-touched .management-vine { transform: rotate(-4deg) translateX(-3px); opacity: .8; }
+.management-card.is-touched .management-avatar { transform: translateY(-2px) scale(1.04); }
+@media (prefers-reduced-motion: reduce) {
+  .management-card.is-touched, .management-card.is-touched .management-vine, .management-card.is-touched .management-avatar { transform: none; }
+}
