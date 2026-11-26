@@ -4,6 +4,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { durationOptions, instanceTypes, type InstanceType } from './serviceData'
 import { servicesApi } from '../../shared/api/services'
 import { useAuth } from '../../shared/auth/AuthContext'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 type JcloudApplyFormProps = {
   onSubmit: () => void
@@ -44,6 +45,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
         duration: durationOptions.find((d) => d.id === selectedDuration)?.label ?? selectedDuration,
         purpose: purpose.trim(),
       })
+      if (isPostHogConfigured) posthog.capture('jcloud_application_submitted', { instance_type: selectedType, duration: selectedDuration })
       setSubmitted(true)
       onSubmit()
     } catch {

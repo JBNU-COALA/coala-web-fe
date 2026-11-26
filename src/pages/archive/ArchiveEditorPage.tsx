@@ -12,6 +12,7 @@ import { Icon } from '../../shared/ui/Icon'
 import { buildUploadedFileContent, emptyDraft, itemToDraft, resolveArchiveCategory, stripFileExtension, toPayload } from './archiveModel'
 import './archive.css'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 export function ArchiveEditorPage() {
   const location = useLocation()
@@ -91,6 +92,7 @@ export function ArchiveEditorPage() {
     setArchiveError(null)
     try {
       const saved = editingItemId ? await archiveApi.updateItem(editingItemId, payload) : await archiveApi.createItem(payload)
+      if (isPostHogConfigured) posthog.capture(editingItemId ? 'archive_item_updated' : 'archive_item_created', { category, material_type: payload.materialType, has_source_url: Boolean(payload.sourceUrl), has_repository_url: Boolean(payload.repositoryUrl) })
       navigate(routes.archive.detail(category, saved.id), { replace: true })
     } catch (error) { setArchiveError(error instanceof Error ? error.message : '자료를 저장하지 못했습니다.') }
     finally { setSaving(false) }

@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import posthog, { isPostHogConfigured } from '../../posthog'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
 import { AUTH_SESSION_EVENT, clearAuthSession, getAuthSessionVersion, getRefreshToken, getStoredUser, handleAuthStorageEvent, setAuthSession, setStoredUser } from './tokenStorage'
 
@@ -15,6 +16,7 @@ type AuthState = {
 const AuthContext = createContext<AuthState | null>(null)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const identifiedUserId = useRef<string | null>(null)
   const [user, setUser] = useState<UserData | null>(() => {
     const storedUser = getStoredUser()
     if (!storedUser || !getRefreshToken()) {
@@ -37,6 +39,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('storage', handleAuthStorageEvent)
     }
   }, [])
+
+  useEffect(() => {
+    if (!isPostHogConfigured) return
+
+    if (!user) {
+      if (identifiedUserId.current !== null) posthog.reset()
+      identifiedUserId.current = null
+      return
+    }
+
+    const distinctId = String(user.id)
+    if (identifiedUserId.current === distinctId) return
+
+    if (identifiedUserId.current !== null) posthog.reset()
+    posthog.identify(distinctId, {
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    })
+    identifiedUserId.current = distinctId
+  }, [user])
 
   const login = async (email: string, password: string) => {
     const data = await authApi.login({ email, password })
