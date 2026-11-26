@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import './scroll-reveal.css'
 
-export function useScrollReveal(resetKey?: string) {
+export function useScrollReveal(resetKey?: string, additionalSelector = '') {
   const root = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const container = root.current
@@ -9,7 +9,7 @@ export function useScrollReveal(resetKey?: string) {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
     if (reducedMotion.matches) return
     const selector = '.jungle-intro-grid, .jungle-section-heading, .jungle-activity, .showcase-heading, .showcase-card, .culture-heading, .culture-course, .achievement-heading, .achievement-year, .alumni-heading, .alumni-window, .jungle-join > h2, .jungle-join > p, .jungle-join > a, .jungle-members > div, .recruiting-heading, .recruiting-filters, .rc-hero > *, .rc-card, .rc-value, .rc-step, .recruiting-questions > h2, .recruiting-questions > details, .rc-detail-heading, .rc-detail-panel, .rc-detail-message, .rc-detail-timeline > li'
-    const elements = Array.from(container.querySelectorAll<HTMLElement>(selector))
+    const elements = Array.from(container.querySelectorAll<HTMLElement>(additionalSelector || selector))
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) entry.target.classList.add('is-revealed')
@@ -54,6 +54,6 @@ export function useScrollReveal(resetKey?: string) {
       reducedMotion.removeEventListener('change', revealAll)
       elements.forEach((element) => { element.classList.remove('scroll-reveal', 'is-revealed'); element.style.removeProperty('--reveal-delay') })
     }
-  }, [resetKey])
+  }, [resetKey, additionalSelector])
   return root
 }

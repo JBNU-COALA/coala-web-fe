@@ -1,0 +1,8 @@
+﻿.application-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows 260ms ease, opacity 200ms ease, visibility 0s linear 260ms; }
+.application-collapse.is-open { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition-delay: 0s; }
+.application-collapse-inner { min-height: 0; overflow: hidden; }
+.jcloud-apply-item .jcloud-apply-chevron { transition: transform 260ms ease; }
+.jcloud-apply-item.is-expanded .jcloud-apply-chevron { transform: rotate(90deg); }
+@media (prefers-reduced-motion: reduce) {
+  .application-collapse, .jcloud-apply-item .jcloud-apply-chevron { transition: none; }
+}

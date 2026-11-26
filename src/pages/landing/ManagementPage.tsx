@@ -14,6 +14,12 @@ function externalProfile(url?: string) {
 
 export function ManagementPage({ generations = managementGenerations }: { generations?: ManagementGeneration[] }) {
   const [selectedId, setSelectedId] = useState(generations[0]?.id ?? '')
+  const [touchedMember, setTouchedMember] = useState<string | null>(null)
+  const touchTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => {
+    setTouchedMember(null)
+    return () => clearTimeout(touchTimer.current)
+  }, [selectedId])
   const selected = generations.find((generation) => generation.id === selectedId) ?? generations[0]
   const selectedIndex = selected ? generations.indexOf(selected) : -1
   const generationListRef = useRef<HTMLDivElement>(null)
@@ -37,7 +43,17 @@ export function ManagementPage({ generations = managementGenerations }: { genera
     </nav>}
     {selected?.term && <p className="management-term">{selected.term}</p>}
     {selected?.members.length ? <div className="management-grid" key={selected.id}>
-      {selected.members.map((member) => <article className="management-card" key={member.id}>
+      {selected.members.map((member) => <article className={`management-card${touchedMember === member.id ? ' is-touched' : ''}`} key={member.id}
+        onPointerDown={(event) => {
+          if (event.pointerType === 'mouse') return
+          clearTimeout(touchTimer.current)
+          setTouchedMember(member.id)
+        }}
+        onPointerUp={(event) => {
+          if (event.pointerType === 'mouse') return
+          touchTimer.current = setTimeout(() => setTouchedMember(null), 400)
+        }}
+        onPointerCancel={() => { clearTimeout(touchTimer.current); setTouchedMember(null) }}>
         <svg className="management-vine" viewBox="0 0 120 240" aria-hidden="true" focusable="false">
           <path d="M112-10C32 40 116 92 57 145S46 210 12 250" fill="none" stroke="currentColor" strokeWidth="1.5" />
           <g fill="currentColor">

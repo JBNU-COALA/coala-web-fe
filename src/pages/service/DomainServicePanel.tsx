@@ -1,3 +1,4 @@
+﻿import './application-motion.css'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Icon } from '../../shared/ui/Icon'
@@ -104,7 +105,7 @@ function DomainApplicationItem({
 
   return (
     <li className={`jcloud-apply-item surface-card${isExpanded ? ' is-expanded' : ''}`}>
-      <button type="button" className="jcloud-apply-item-header" onClick={onToggle}>
+      <button type="button" className="jcloud-apply-item-header" aria-expanded={isExpanded} onClick={onToggle}>
         <div className="jcloud-apply-item-main">
           <span className={`jcloud-status-badge ${meta.colorClass}`}>{meta.label}</span>
           <span className="jcloud-apply-instance">{application.serviceName}</span>
@@ -113,14 +114,14 @@ function DomainApplicationItem({
         <div className="jcloud-apply-item-meta">
           <span className="jcloud-apply-date">{application.requestedAt} 신청</span>
           <Icon
-            name={isExpanded ? 'chevron-down' : 'chevron-right'}
+            name="chevron-right"
             size={14}
             className="jcloud-apply-chevron"
           />
         </div>
       </button>
 
-      {isExpanded ? (
+      <div className={`application-collapse${isExpanded ? ' is-open' : ''}`} inert={!isExpanded} aria-hidden={!isExpanded}><div className="application-collapse-inner">
         <div className="jcloud-apply-item-body">
           <div className="jcloud-apply-detail-grid">
             <div className="jcloud-apply-detail-row">
@@ -162,7 +163,7 @@ function DomainApplicationItem({
             </div>
           </div>
         </div>
-      ) : null}
+      </div></div>
     </li>
   )
 }
@@ -182,3 +183,4 @@ function DomainLoginRequired({ message }: { message: string }) {
     </div>
   )
 }
+

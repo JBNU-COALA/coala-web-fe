@@ -403,3 +403,17 @@
   .coala-app .profile-settings-main .profile-page-meta > * { min-height: 26px; padding: 4px 8px; font-size: 10px; overflow-wrap: anywhere; }
   .coala-app .profile-settings-main .profile-section-title { font-size: 16px; }
 }
+
+@media (max-width: 640px) {
+  .coala-app .profile-settings-sidebar > .section-nav { width: max-content; max-width: none; flex: 0 0 auto; }
+  .coala-app .profile-settings-sidebar .section-nav .section-nav-items { width: max-content; max-width: none; overflow: visible; flex: 0 0 auto; }
+  .coala-app .profile-settings-sidebar > .profile-settings-logout { flex: 0 0 auto; margin-left: 6px; }
+}
+
+.profile-name-affiliation { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 10px; }
+.coala-app .profile-department { color: #737373; font-size: 12px; font-weight: 400; }
+.coala-app .profile-page-meta .profile-lab-badge { position: relative; overflow: visible; }
+.coala-app .profile-lab-badge > button { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.coala-app .profile-lab-professor { position: absolute; bottom: calc(100% + 8px); left: 0; z-index: 5; width: max-content; max-width: 240px; padding: 7px 10px; border-radius: 8px; background: #222; color: #fff; font-size: 11px; font-weight: 400; box-shadow: 0 4px 12px #00000014; animation: profile-edit-enter 180ms ease-out; }
+@media (max-width: 640px) { .coala-app .profile-department { font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { .coala-app .profile-lab-professor { animation: none; } }
