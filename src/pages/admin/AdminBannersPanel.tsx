@@ -13,11 +13,11 @@ export function AdminBannersPanel({ refreshKey }: { refreshKey: number }) {
   const resource = useAdminResource(adminApi.getBanners, refreshKey)
   const [selectedId, setSelectedId] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
-  const [editorOpen, setEditorOpen] = useState(true)
+  const [editorOpen, setEditorOpen] = useState(false)
   if (resource.loading || resource.error || !resource.data) return <AdminLoadState {...resource} onRetry={resource.reload} />
   const banners = [...resource.data].sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
   const selected = banners.find((item) => item.id === selectedId)
-  return <div className="admin-two-column">
+  return <div className={`admin-two-column admin-master-detail${editorOpen ? ' has-selection' : ''}`}>
     <section className="admin-panel">
       <div className="admin-panel-header"><h3>홈 배너 <small>{banners.length}</small></h3>
         <div className="admin-row-actions"><BannerHelp /><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => { setSelectedId(null); setEditorOpen(true) }}><Icon name="plus" size={15} />배너 추가</button></div></div>
@@ -30,7 +30,7 @@ export function AdminBannersPanel({ refreshKey }: { refreshKey: number }) {
     <BannerEditor key={selected?.id ?? 'new'} banner={selected} onBusy={setBusy} onClose={() => { setEditorOpen(false); setSelectedId(null) }} onSave={(saved) => {
       resource.setData((items) => items?.some((item) => item.id === saved.id) ? items.map((item) => item.id === saved.id ? saved : item) : [...(items ?? []), saved])
       setSelectedId(saved.id)
-    }} onDelete={(id) => { resource.setData((items) => items?.filter((item) => item.id !== id) ?? []); setSelectedId(null) }} />
+    }} onDelete={(id) => { resource.setData((items) => items?.filter((item) => item.id !== id) ?? []); setSelectedId(null); setEditorOpen(false) }} />
     </div></div>
   </div>
 }

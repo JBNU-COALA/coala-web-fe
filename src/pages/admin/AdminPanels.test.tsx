@@ -71,6 +71,7 @@ describe('admin management panels', () => {
     const create = vi.spyOn(adminApi, 'createBanner').mockImplementation(() => new Promise((resolve) => { finish = resolve }))
     render(<AdminBannersPanel refreshKey={0} />)
     await screen.findByText('등록된 배너가 없습니다.')
+    fireEvent.click(screen.getByRole('button', { name: '배너 추가' }))
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: '신규 배너' } })
     fireEvent.change(screen.getByLabelText('이동 경로'), { target: { value: '/%252fexample.com' } })
     expect((screen.getByRole('button', { name: '배너 저장' }) as HTMLButtonElement).disabled).toBe(true)

@@ -275,3 +275,16 @@
 @media (prefers-reduced-motion: reduce) {
   .admin-page .admin-scroll-pending { opacity: 1; transform: none; }
 }
+
+.admin-page .admin-master-detail { grid-template-columns: minmax(0, 1fr); }
+.admin-page .admin-master-detail.has-selection { grid-template-columns: minmax(240px, 320px) minmax(0, 1fr); }
+.admin-page .admin-master-detail > .admin-panel { min-width: 0; }
+.admin-page .admin-master-detail.has-selection > .admin-panel .admin-list { max-height: 520px; overflow-y: auto; }
+.admin-page .admin-member-detail { animation: admin-content-enter 220ms ease-out; }
+.admin-member-detail-heading { display: flex; align-items: center; gap: 12px; }
+.admin-member-detail-heading strong { font-size: 14px; font-weight: 600; }
+.admin-page .admin-master-detail:not(.has-selection) > .admin-banner-collapse { position: absolute; width: 0; overflow: hidden; }
+@media(max-width:1100px) {
+  .admin-page .admin-master-detail.has-selection { grid-template-columns: minmax(0, 1fr); }
+  .admin-page .admin-master-detail.has-selection > .admin-panel .admin-list { max-height: 240px; }
+}

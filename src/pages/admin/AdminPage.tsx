@@ -424,7 +424,7 @@ export function AdminPage() {
     setPendingReportCount(pendingReportsResult.status === 'fulfilled' ? pendingReportsResult.value.length : null)
     if (usersResult.status === 'fulfilled') {
       setUsers(usersResult.value)
-      setSelectedUserId((current) => usersResult.value.some((item) => item.id === current) ? current : usersResult.value[0]?.id ?? null)
+      setSelectedUserId((current) => usersResult.value.some((item) => item.id === current) ? current : null)
     }
     if (boardsResult.status === 'fulfilled') setBoards(boardsResult.value)
     if (postsResult.status === 'fulfilled') {
@@ -748,7 +748,7 @@ export function AdminPage() {
           onStatusChange={setReportStatus} onHandle={handleReport} />}
 
         {activeTab === 'users' && !isLoading && !loadFailures.includes('users') ? (
-          <div className="admin-two-column admin-two-column--wide-left">
+          <div className={`admin-two-column admin-master-detail${selectedUser ? ' has-selection' : ''}`}>
             <div className="admin-panel">
               <div className="admin-panel-header">
                 <h3>회원 목록</h3>
@@ -764,7 +764,9 @@ export function AdminPage() {
                     key={item.id}
                     type="button"
                     className={selectedUserId === item.id ? 'admin-list-row is-active' : 'admin-list-row'}
-                    onClick={() => setSelectedUserId(item.id)}
+                    aria-expanded={selectedUserId === item.id}
+                    aria-controls={selectedUserId === item.id ? 'admin-member-detail' : undefined}
+                    onClick={() => { setSelectedUserId(item.id); if (selectedUserId !== item.id) setSanctionDraft(current => ({ ...current, reason: '', endAt: '' })) }}
                   >
                     <span>{item.name}</span>
                     <small>{item.email}</small>
@@ -773,7 +775,8 @@ export function AdminPage() {
                 ))}
               </div>
             </div>
-            <div className="admin-stack">
+            {selectedUser && <div id="admin-member-detail" className="admin-stack admin-member-detail" key={selectedUser.id}>
+              <div className="admin-member-detail-heading"><button type="button" className="admin-ghost-button" onClick={() => setSelectedUserId(null)}>닫기</button><strong>{selectedUser.name}</strong></div>
               <div className="admin-panel admin-form">
                 <div className="admin-panel-header">
                   <h3>회원정보</h3>
@@ -845,7 +848,7 @@ export function AdminPage() {
                   제재 저장
                 </button>
               </form>
-            </div>
+            </div>}
           </div>
         ) : null}
 
