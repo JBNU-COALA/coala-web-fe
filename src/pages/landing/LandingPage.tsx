@@ -2,6 +2,7 @@ import './public-header.css'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './landing.css'
+import './hero-art-colors.css'
 import { PublicFooter } from './PublicFooter'
 import { ProjectShowcase } from './ProjectShowcase'
 import { AlumniShowcase } from './AlumniShowcase'
@@ -24,7 +25,7 @@ export function LandingPage() {
     <header className="jungle-header">
       <Link className="jungle-logo" to="/" aria-label="코알라 홈"><img className="public-header-symbol" src="/coala-logo.svg" alt="" /><img className="jungle-brand-image" src="/coala-wordmark.svg" alt="Coala" /></Link>
       <nav aria-label="동아리 소개 메뉴">
-        <Link to="/" aria-current="page">MAIN</Link><Link to="/recruiting">RECRUITING</Link>
+        <Link to="/" aria-current="page">MAIN</Link><Link to="/about/management">MANAGEMENT</Link><Link to="/recruiting">RECRUITING</Link>
       </nav>
     </header>
 
@@ -77,7 +78,7 @@ export function LandingPage() {
       <CultureSection />
       <AchievementTimeline />
       <AlumniShowcase />
-      <section className="apply-banner" aria-labelledby="apply-banner-title"><div className="apply-banner-content"><h2 id="apply-banner-title">배운 것을 넘어 직접 해내는 경험, 코알라에서 시작해요.</h2><Link to="/recruiting" className="jungle-button">지원하러 가기</Link></div></section>
+      <section className="apply-banner" aria-labelledby="apply-banner-title"><div className="apply-banner-content"><h2 id="apply-banner-title">배운 것을 넘어 직접 해내는 경험, 코알라에서 시작해요.</h2><Link to="/recruiting" className="jungle-button">2기 모집 알림 신청</Link></div></section>
     </main>
     <PublicFooter />
   </div>

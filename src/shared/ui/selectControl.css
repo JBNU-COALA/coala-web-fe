@@ -26,12 +26,40 @@
 .select-control-option > span { white-space: normal; overflow-wrap: anywhere; }
 .select-control.custom-select:has(.select-control-menu) { z-index: 125; }
 @media (max-width: 700px) {
-  .coala-app .select-control.custom-select { min-width: 0; max-width: 100%; height: 44px !important; min-height: 44px !important; }
+  .coala-app .select-control.custom-select { min-width: 0; max-width: 100%; height: 36px !important; min-height: 36px !important; }
   .coala-app .select-control.custom-select > .select-control-trigger,
   .coala-app .select-control.custom-select > .select-control-menu { display: none; }
-  .coala-app .select-control.custom-select > .select-control-native { display: block; box-sizing: border-box; width: 100%; max-width: 100%; height: 42px !important; min-height: 42px !important; margin: 0; padding: 0 30px 0 10px !important; border: 0; border-radius: inherit; background-color: transparent; color: inherit; font: inherit; font-size: 16px !important; text-overflow: ellipsis; }
+  .coala-app .select-control.custom-select > .select-control-native { display: block; box-sizing: border-box; width: 100%; max-width: 100%; height: 34px !important; min-height: 34px !important; margin: 0; padding: 0 24px 0 8px !important; border: 0; border-radius: inherit; background-color: transparent; color: inherit; font: inherit; font-size: 12px !important; text-overflow: ellipsis; }
   .coala-app .select-control-native:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
 }
 
 .select-control-trigger:disabled { cursor: not-allowed; opacity: .6; }
 @media (max-width: 700px) { .coala-app .select-control.custom-select > .select-control-native { appearance: auto; } }
+
+/* Use the same animated menu on touch and desktop devices. */
+.coala-app .select-control.custom-select:has(.select-control-menu.is-open) { z-index: 125; }
+.coala-app .select-control.custom-select:not(:has(.select-control-menu.is-open)) { z-index: auto; }
+.coala-app .select-control.custom-select > .select-control-menu {
+  display: block;
+  animation: none;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(-6px);
+  transition: opacity 160ms ease, transform 180ms ease, visibility 0s linear 180ms;
+}
+.coala-app .select-control.custom-select > .select-control-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition-delay: 0s;
+}
+@media (max-width: 700px) {
+  .coala-app .select-control.custom-select > .select-control-trigger { display: flex; height: 34px !important; min-height: 34px !important; padding-inline: 8px !important; gap: 6px; }
+  .coala-app .select-control.custom-select > .select-control-menu { left: 0; right: auto; min-width: max(100%, 132px); max-width: calc(100vw - 32px); }
+  .coala-app .select-control-option { min-height: 32px; box-sizing: border-box; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .coala-app .select-control.custom-select > .select-control-menu { transition: none; transform: none; }
+}

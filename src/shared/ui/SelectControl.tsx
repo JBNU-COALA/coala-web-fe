@@ -55,10 +55,6 @@ export function SelectControl<T extends string>({
   return (
     <div ref={rootRef} className={`select-control custom-select ${className}`.trim()}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
-      <select disabled={disabled} className="select-control-native" aria-label={label} value={value}
-        onChange={(event) => { onChange(event.target.value as T); setOpen(false) }}>
-        {options.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
-      </select>
       <button ref={triggerRef} disabled={disabled} type="button" className="select-control-trigger"
         aria-label={`${label}: ${options[selectedIndex]?.label ?? ''}`}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
@@ -70,9 +66,10 @@ export function SelectControl<T extends string>({
         <span>{options[selectedIndex]?.label ?? label}</span>
         <Icon name="chevron-down" size={14} />
       </button>
-      {open && <div ref={listRef} id={id} role="listbox" aria-label={label} tabIndex={-1}
+      <div ref={listRef} id={id} role="listbox" aria-label={label} tabIndex={-1}
+        aria-hidden={!open} inert={!open}
         aria-activedescendant={options[activeIndex] ? `${id}-${activeIndex}` : undefined}
-        className="select-control-menu"
+        className={`select-control-menu${open ? ' is-open' : ''}`}
         onKeyDown={(event) => {
           if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); close() }
           else if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); choose(activeIndex) }
@@ -88,7 +85,7 @@ export function SelectControl<T extends string>({
           onPointerMove={() => setActiveIndex(index)} onClick={() => choose(index)}>
           <span>{option.label}</span>
         </div>)}
-      </div>}
+      </div>
     </div>
   )
 }

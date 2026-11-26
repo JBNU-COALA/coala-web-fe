@@ -7,7 +7,7 @@
   overflow: hidden;
   width: 100%;
   touch-action: pan-y;
-  background: #1f4034;
+  background: #383838;
 }
 /* 컨트롤이 밝은 배너 위에서도 읽히도록 아래쪽에만 그라데이션을 깐다. */
 .home-carousel::after {
@@ -22,9 +22,9 @@
 .home-carousel-track { display: flex; align-items: stretch; transition: transform 420ms cubic-bezier(.2,.7,.2,1); }
 
 .home-carousel-slide {
-  --slide-base: #1f4034;
-  --slide-deep: #122a22;
-  --slide-glow: #3c7a5e;
+  --slide-base: #383838;
+  --slide-deep: #242424;
+  --slide-glow: #6b6b6b;
   position: relative;
   flex: 0 0 100%;
   min-width: 0;
@@ -34,8 +34,8 @@
     radial-gradient(88% 120% at 76% 22%, var(--slide-glow), #0000 60%),
     linear-gradient(104deg, var(--slide-deep), var(--slide-base) 62%);
 }
-.home-carousel-slide--blue { --slide-base: #26405c; --slide-deep: #16263a; --slide-glow: #41699a; }
-.home-carousel-slide--coral { --slide-base: #4f3135; --slide-deep: #2f1d20; --slide-glow: #96605c; }
+.home-carousel-slide--blue { --slide-base: #3c3c3c; --slide-deep: #242424; --slide-glow: #646464; }
+.home-carousel-slide--coral { --slide-base: #383838; --slide-deep: #212121; --slide-glow: #6b6b6b; }
 
 /* 유칼립투스 잎 모티프 — 코알라 브랜드 결을 배너에도 이어 붙인다. */
 .home-carousel-slide:not(.home-carousel-slide--media)::before,
@@ -144,7 +144,7 @@
   padding: 0 20px;
   border-radius: 999px;
   background: #fff;
-  color: #1c2b24;
+  color: #272727;
   text-decoration: none;
   font-size: 13px;
   font-weight: 650;
@@ -230,7 +230,7 @@
 }
 
 /* Slowly flowing mesh gradients, with a crossfade that also wraps seamlessly. */
-.home-carousel { --carousel-height: clamp(280px, 27vw, 390px); background: #adf5e7; }
+.home-carousel { --carousel-height: clamp(280px, 27vw, 390px); background: #e5e5e5; }
 .home-carousel::after { display: none; }
 .home-carousel-track { display: grid; transition: none; }
 .home-carousel-slide {
@@ -239,14 +239,14 @@
   pointer-events: none;
   overflow: hidden;
   transition: opacity 950ms ease;
-  --slide-base: #aaf6e6;
-  --slide-deep: #5bdacb;
-  --slide-glow: #dcfff2;
+  --slide-base: #e5e5e5;
+  --slide-deep: #bebebe;
+  --slide-glow: #f7f7f7;
   background: var(--slide-base);
-  color: #163d39;
+  color: #343434;
 }
-.home-carousel-slide--blue { --slide-base: #c6e2ff; --slide-deep: #92bdf4; --slide-glow: #e9e4ff; }
-.home-carousel-slide--coral { --slide-base: #f8d9d0; --slide-deep: #edb8bd; --slide-glow: #fff0d8; }
+.home-carousel-slide--blue { --slide-base: #dedede; --slide-deep: #b8b8b8; --slide-glow: #e7e7e7; }
+.home-carousel-slide--coral { --slide-base: #dfdfdf; --slide-deep: #c4c4c4; --slide-glow: #f1f1f1; }
 .home-carousel-slide.is-active { opacity: 1; pointer-events: auto; z-index: 1; }
 .home-carousel-slide:not(.home-carousel-slide--media)::before {
   inset: -40%; width: auto; height: auto; opacity: 1;
@@ -258,12 +258,12 @@
 .home-carousel-slide--media { background: #222; }
 .home-carousel-copy { transform: translateY(12px); transition: transform 950ms cubic-bezier(.2,.7,.2,1); }
 .home-carousel-slide.is-active .home-carousel-copy { transform: translateY(0); }
-.home-carousel-copy :is(h1,h2) { color: #172c30; }
-.home-carousel-description { color: #3c5458; }
+.home-carousel-copy :is(h1,h2) { color: #282828; }
+.home-carousel-description { color: #4f4f4f; }
 .home-carousel .home-carousel-inner { padding-block: 32px 48px; }
 .home-carousel-art { height: 280px; }
-.home-carousel-dots button span { background: #173b3940; }
-.home-carousel-dots button[aria-current] span { background: #173b39; }
+.home-carousel-dots button span { background: #33333340; }
+.home-carousel-dots button[aria-current] span { background: #333333; }
 .home-carousel .home-carousel-controls { justify-content: center; bottom: 10px; }
 .home-carousel:focus-visible { outline: 2px solid #333; outline-offset: -3px; }
 @keyframes portal-gradient-flow { from { transform: translate(-6%, -4%) rotate(-8deg) scale(1); } to { transform: translate(7%, 6%) rotate(10deg) scale(1.12); } }
@@ -298,8 +298,8 @@
 .home-carousel-dots button:hover span { transform: scale(1.15); }
 .home-carousel-dots button:active { transform: scale(.92); }
 @keyframes carousel-marker-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 #173b3900; }
-  50% { box-shadow: 0 0 0 3px #173b3914; }
+  0%, 100% { box-shadow: 0 0 0 0 #33333300; }
+  50% { box-shadow: 0 0 0 3px #33333314; }
 }
 @media (prefers-reduced-motion: reduce) {
   .home-carousel-dots button, .home-carousel-dots button span { transition: none; }

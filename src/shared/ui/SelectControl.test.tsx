@@ -6,13 +6,15 @@ beforeAll(() => { Element.prototype.scrollIntoView = vi.fn() })
 const options = [{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]
 
 describe('SelectControl', () => {
-  it('uses the same value and callback in the native mobile picker', () => {
+  it('selects an option and keeps the closed menu inert for its exit animation', () => {
     const onChange = vi.fn()
     render(<SelectControl label="정렬" value="latest" options={options} onChange={onChange} />)
-    const select = screen.getByRole('combobox', { name: '정렬' }) as HTMLSelectElement
-    expect(select.value).toBe('latest')
-    fireEvent.change(select, { target: { value: 'popular' } })
+    fireEvent.click(screen.getByRole('button', { name: '정렬: 최신순' }))
+    const menu = screen.getByRole('listbox')
+    fireEvent.click(within(menu).getByRole('option', { name: '인기순' }))
     expect(onChange).toHaveBeenCalledWith('popular')
+    expect(menu.hasAttribute('inert')).toBe(true)
+    expect(screen.queryByRole('listbox')).toBeNull()
   })
 
   it('selects with arrow keys and Enter, then restores trigger focus', () => {

@@ -1,3 +1,4 @@
+import { ListingControls } from '../../shared/ui/ListingControls'
 import { useEffect, useMemo, useState } from 'react'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
@@ -62,7 +63,7 @@ export function AllPostsPage({
   const [isLoading, setIsLoading] = useState(true)
   const [query, setQuery] = useState('')
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
-  const [searchOpen, setSearchOpen] = useState(false)
+
   const [likeError, setLikeError] = useState<string | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [loadRevision, setLoadRevision] = useState(0)
@@ -143,27 +144,12 @@ export function AllPostsPage({
       <div className="community-board page-container">
         <div className="community-board-layout">
           <div className="community-board-main">
-            <div className="community-board-toolbar">
-              <SelectControl label="정렬" value={sortMode} options={[
-                { value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' },
-              ]} onChange={setSortMode} />
-              <div className="community-board-actions">
-                <button type="button" className="community-board-search-toggle" aria-label="게시글 검색" aria-expanded={searchOpen} aria-controls="community-board-search" onClick={() => setSearchOpen((open) => !open)}>
-                  <Icon name="search" size={21} />
-                </button>
-                <button type="button" className="community-board-write" disabled={!canWriteCurrentBoard}
+            <ListingControls search={<SearchField value={query} onChange={setQuery} placeholder="제목, 내용, 작성자로 검색" />} label="게시글 검색 및 필터" actions={<button type="button" className="community-board-write" disabled={!canWriteCurrentBoard}
                   title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
-                  onClick={canWriteCurrentBoard ? onWritePost : undefined}><svg className="community-board-pencil" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(40 12 12)"><path d="M9 6h6v12H9z" fill="#f5bc45" /><path d="M12 6h3v12h-3z" fill="#e49b29" /><path d="M9 18l3 5 3-5z" fill="#ead2aa" /><path d="M10.8 21l1.2 2 1.2-2z" fill="#343434" /><path d="M9 3a3 3 0 0 1 6 0v2H9z" fill="#ef929e" /><path d="M9 5h6v2H9z" fill="#d8d8d8" /></g></svg>게시글 작성하기</button>
-              </div>
-            </div>
-            <div id="community-board-search" className={`community-board-search-reveal${searchOpen ? ' is-open' : ''}`} inert={!searchOpen} aria-hidden={!searchOpen}>
-              <div className="community-board-search-clip">
-                <div className="community-board-search">
-                  <SearchField value={query} onChange={setQuery} placeholder="제목, 내용, 작성자로 검색" />
-                </div>
-              </div>
-            </div>
-            {!searchOpen && query && <button type="button" className="community-board-query" onClick={() => { setQuery(''); setSearchOpen(true) }}>검색: {query} · 지우기</button>}
+                  onClick={canWriteCurrentBoard ? onWritePost : undefined}><svg className="community-board-pencil" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(40 12 12)"><path d="M9 6h6v12H9z" fill="#f5bc45" /><path d="M12 6h3v12h-3z" fill="#e49b29" /><path d="M9 18l3 5 3-5z" fill="#ead2aa" /><path d="M10.8 21l1.2 2 1.2-2z" fill="#343434" /><path d="M9 3a3 3 0 0 1 6 0v2H9z" fill="#ef929e" /><path d="M9 5h6v2H9z" fill="#d8d8d8" /></g></svg>글 작성</button>}>
+
+              <SelectControl label="정렬" value={sortMode} options={[{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]} onChange={setSortMode} />
+            </ListingControls>
             {likeError && <p className="auth-error" role="alert">{likeError}</p>}
             <ul className="community-board-posts" aria-busy={isLoading}>
               {isLoading ? <li className="community-board-empty"><LoadingSpinner label="게시글을 불러오는 중..." /></li>
@@ -202,6 +188,7 @@ export function AllPostsPage({
             <h2 id="community-board-filters-title">태그로 찾기</h2>
             <div>{boardFilterOptions.map((option) => <button key={option.value} type="button" aria-pressed={activeBoard === option.value} onClick={() => setActiveBoard(option.value)}>#{option.label}</button>)}</div>
           </aside>
+
         </div>
       </div>
     </section>

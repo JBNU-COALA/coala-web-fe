@@ -28,7 +28,7 @@
   padding: 0 4px;
   border: 0;
   background: transparent;
-  color: #53645c;
+  color: #606060;
   font-size: 14px;
   font-weight: 650;
   line-height: 1.4;
@@ -45,7 +45,7 @@
 .section-nav-item[aria-current] { color: var(--coala-green-800); }
 .section-nav-item[aria-current]::after { background: var(--coala-green-700); }
 .section-nav-item:hover { color: var(--coala-green-700); }
-.section-nav-item:focus-visible { outline: 2px solid #3688bd; outline-offset: -3px; }
+.section-nav-item:focus-visible { outline: 2px solid #7a7a7a; outline-offset: -3px; }
 .section-nav-action { display: flex; flex: 0 0 auto; padding: 8px 0; }
 .section-nav--context { border-bottom: 0; }
 .section-nav--context .section-nav-item { min-height: 48px; }

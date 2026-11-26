@@ -2,29 +2,29 @@
 
 :root {
   /* 색상 토큰 - 시인성 강화 (대비 WCAG AA 이상 충족) */
-  --page-bg: #f2f5f3;
+  --page-bg: #f4f4f4;
   --surface: #ffffff;
-  --surface-secondary: #f6faf8;
-  --surface-tertiary: #eef3f0;
+  --surface-secondary: #f9f9f9;
+  --surface-tertiary: #f2f2f2;
 
-  --text-primary: #1a2520;        /* 본문, 16:1 대비 (page-bg 대비) */
-  --text-secondary: #3a4d44;      /* 부제목 */
-  --text-muted: #5f7167;          /* 보조 라벨 */
-  --text-inverse: #effcf4;
+  --text-primary: #222222;        /* 본문, 16:1 대비 (page-bg 대비) */
+  --text-secondary: #484848;      /* 부제목 */
+  --text-muted: #6c6c6c;          /* 보조 라벨 */
+  --text-inverse: #f9f9f9;
 
-  --border-default: #d8e1dd;
-  --border-strong: #b7c4be;
+  --border-default: #dfdfdf;
+  --border-strong: #c1c1c1;
 
-  --brand-primary: #1a5d41;
-  --brand-primary-strong: #14492f;
-  --brand-accent: #4caf82;
+  --brand-primary: #222222;
+  --brand-primary-strong: #111111;
+  --brand-accent: #979797;
 
-  --color-success: #2e7d4f;
-  --color-warning: #c87a00;
-  --color-danger: #c0392b;
-  --color-info: #1f5fa8;
+  --color-success: #696969;
+  --color-warning: #828282;
+  --color-danger: #555555;
+  --color-info: #575757;
 
-  --focus-ring: 0 0 0 3px rgba(26, 93, 65, 0.35);
+  --focus-ring: 0 0 0 3px rgba(77, 77, 77, 0.35);
 
   --font-sans: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
   font-family: var(--font-sans);

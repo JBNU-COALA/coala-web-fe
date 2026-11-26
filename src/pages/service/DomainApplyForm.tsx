@@ -92,10 +92,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
         <div className="jcloud-success-icon">
           <img className="login-koala" src="/coala-mascot-plush.png" alt="" />
         </div>
-        <h3 className="jcloud-success-title">로그인 후 신청할 수 있습니다.</h3>
-        <p className="jcloud-success-desc">
-          도메인 신청 정보는 로그인된 사용자 정보로 기본 설정됩니다.
-        </p>
+        <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
         <Link className="jcloud-login-link" to="/login">
           로그인하기
         </Link>

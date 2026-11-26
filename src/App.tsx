@@ -30,6 +30,7 @@ import './styles/content-refinements.css'
 import './styles/compact-actions.css'
 import './styles/mobile-layout.css'
 import { LandingPage } from './pages/landing/LandingPage'
+import { ManagementPage } from './pages/landing/ManagementPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
 import { PublicFooter } from './pages/landing/PublicFooter'
 import './pages/landing/forest-theme.css'
@@ -270,6 +271,7 @@ function AppSession() {
   const [notificationError, setNotificationError] = useState<string | null>(null)
   const [menuPathname, setMenuPathname] = useState(location.pathname)
   const mainNavRef = useRef<HTMLElement | null>(null)
+  const mainNavIndicatorRef = useRef<HTMLSpanElement>(null)
   const closeSubNavTimerRef = useRef<number | null>(null)
   const releaseSubNavTimerRef = useRef<number | null>(null)
   const { isLoggedIn, user, logout } = useAuth()
@@ -307,6 +309,33 @@ function AppSession() {
   }, [clearSubNavTimers])
 
   const activeRoute: AppRoute = getRouteFromPath(location.pathname)
+  useLayoutEffect(() => {
+    const nav = mainNavRef.current
+    const header = headerRef.current
+    const indicator = mainNavIndicatorRef.current
+    if (!nav || !header || !indicator) return
+    const update = () => {
+      const selected = nav.querySelector<HTMLButtonElement>(`[data-nav-id="${expandedMainNav ?? activeRoute}"]`)
+      if (!selected) { indicator.style.opacity = '0'; return }
+      const bounds = selected.getBoundingClientRect()
+      const navBounds = nav.getBoundingClientRect()
+      const headerBounds = header.getBoundingClientRect()
+      const left = Math.max(bounds.left + 8, navBounds.left)
+      const right = Math.min(bounds.right - 8, navBounds.right)
+      indicator.style.width = `${Math.max(0, right - left)}px`
+      const top = Math.max(0, Math.min(bounds.bottom - headerBounds.top, header.clientHeight) - 7)
+      indicator.style.transform = `translate(${left - headerBounds.left}px, ${top}px)`
+      indicator.style.opacity = right > left ? '1' : '0'
+    }
+    update()
+    const frame = requestAnimationFrame(() => { indicator.dataset.ready = 'true' })
+    const observer = new ResizeObserver(update)
+    observer.observe(header)
+    observer.observe(nav)
+    nav.querySelectorAll('.main-nav-button').forEach((button) => observer.observe(button))
+    nav.addEventListener('scroll', update, { passive: true })
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); nav.removeEventListener('scroll', update) }
+  }, [activeRoute, expandedMainNav])
   const isAuthRoute =
     activeRoute === 'login' ||
     activeRoute === 'signup' ||
@@ -590,6 +619,7 @@ function AppSession() {
         />
 
         <Route path="/about" element={<Navigate to="/" replace />} />
+        <Route path={routes.management} element={<ManagementPage />} />
         <Route path="/community/activity" element={<StudyActivityPage />} />
         <Route path="/community/activity/records/new" element={<StudyActivityPage mode="new" />} />
         <Route path="/community/activity/records/:recordId" element={<StudyActivityPage mode="detail" />} />
@@ -876,6 +906,7 @@ function AppSession() {
                   <button
                     type="button"
                     className={activeRoute === item.id ? 'main-nav-button is-active' : 'main-nav-button'}
+                    data-nav-id={item.id}
                     aria-expanded={subItems.length > 0 ? expandedMainNav === item.id : undefined}
                     onClick={() => handleMainNavClick(item.id, subItems.length > 0)}
                   >
@@ -883,6 +914,10 @@ function AppSession() {
                   </button>
                   {subItems.length > 0 ? (
                     <div className="main-nav-dropdown" role="menu" aria-label={`${item.label} 하위 메뉴`}>
+                      <div className="main-nav-mobile-heading" role="presentation">
+                        <span aria-hidden="true">{sectionIcons[item.id]}</span>
+                        <span>{item.label}</span>
+                      </div>
                       {subItems.map((subItem) => (
                         subItem.children?.length ? (
                           <div key={subItem.id} className="main-nav-dropdown-group">
@@ -1123,6 +1158,7 @@ function AppSession() {
             )}
           </div>
         </div>
+        <span ref={mainNavIndicatorRef} className="main-nav-indicator" aria-hidden="true" />
       </header>
 
       <main

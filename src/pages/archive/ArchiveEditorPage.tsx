@@ -98,8 +98,8 @@ export function ArchiveEditorPage() {
 
   return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트/스킬'} tone="archive" className="coala-content--archive" bodyClassName="archive-content">
     {!isLoggedIn ? <div className="archive-login-required">
-      <span className="archive-login-icon"><Icon name="user" size={28} /></span>
-      <h3>로그인이 필요합니다.</h3><p>자료 등록은 로그인 후 이용할 수 있습니다.</p>
+      <img className="archive-login-koala" src="/coala-mascot-plush.png" alt="" />
+      <h3>로그인이 필요합니다.</h3>
       <Link className="archive-login-button" to="/login" state={{ from: location }}>로그인하기</Link></div>
       : loading ? <LoadingSpinner label="자료를 불러오는 중입니다." />
       : !allowed ? <p role="alert">{archiveError}</p>

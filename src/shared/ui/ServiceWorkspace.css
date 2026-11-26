@@ -2,7 +2,7 @@
   display: flex;
   gap: 4px;
   padding: 6px;
-  border-bottom: 1px solid var(--coala-line, #d8e4df);
+  border-bottom: 1px solid var(--coala-line, #e1e1e1);
   overflow-x: auto;
   scrollbar-width: thin;
 }
@@ -17,7 +17,7 @@
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #50675d;
+  color: #616161;
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
@@ -34,9 +34,9 @@
   .service-workspace-tab { transition: none; }
 }
 .service-workspace-tab svg { flex-shrink: 0; }
-.service-workspace-tab:hover { background: #eef4f0; }
-.service-workspace-tab.is-active { background: #1a5d41; color: #fff; }
-.service-workspace-tab:focus-visible { outline: 2px solid #1a5d41; outline-offset: -2px; }
+.service-workspace-tab:hover { background: #f2f2f2; }
+.service-workspace-tab.is-active { background: #4d4d4d; color: #fff; }
+.service-workspace-tab:focus-visible { outline: 2px solid #4d4d4d; outline-offset: -2px; }
 @media (max-width: 370px) {
   .service-workspace-tab { gap: 4px; padding-inline: 8px; font-size: 12px; }
 }

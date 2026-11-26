@@ -31,11 +31,20 @@
 }
 
 .search-field:focus-within {
-  border-color: #111;
-  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.08);
+  box-shadow: none;
   background: #fff;
 }
 
+/* Search inputs never inherit the global field focus ring. */
+.coala-app .search-field:is(:focus, :focus-within, :focus-visible),
+.coala-app .search-field input:is(:focus, :focus-visible) {
+  outline: none !important;
+  box-shadow: none !important;
+}
+.coala-app .search-field input:is(:focus, :focus-visible) {
+  border: 0 !important;
+}
+
 .search-field input::placeholder {
-  color: #789189;
+  color: #8b8b8b;
 }

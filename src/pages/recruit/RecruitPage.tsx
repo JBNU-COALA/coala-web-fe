@@ -557,15 +557,15 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
         </section>
       ) : (
         <>
-          <ListingControls className="page-container" label="모집 공고 필터">
-              <SelectControl label="분류" value={activeCategory} onChange={setActiveCategory}
-                options={categories.map((category) => ({ value: category.id, label: category.label }))} />
-              <SearchField
+          <ListingControls search={<SearchField
                 className="community-list-search recruit-search"
                 value={query}
                 onChange={setQuery}
                 placeholder="주제, 기술 스택, 역할 검색"
-              />
+              />} className="page-container" label="모집 공고 필터">
+              <SelectControl label="분류" value={activeCategory} onChange={setActiveCategory}
+                options={categories.map((category) => ({ value: category.id, label: category.label }))} />
+
 
               <SelectControl
                 label="상태"

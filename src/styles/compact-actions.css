@@ -9,8 +9,11 @@
 .coala-app .coala-content.coala-content .community-board-search-toggle svg { width: 16px; height: 16px; }
 
 /* Moderate corners for buttons, without altering switches or carousel dots. */
-.coala-app.coala-app button:not([role="switch"]):not(.home-carousel-dots button),
+.coala-app.coala-app button:not([role="switch"]):not(.home-carousel-dots button):not(.community-board-filters button),
 .coala-app.coala-app :is(.jcloud-login-link, .auth-secondary-link) { border-radius: 10px; }
+
+/* Tag filters retain a full capsule shape instead of the shared button corners. */
+.coala-app.coala-app .community-board-filters button:not([role="switch"]) { border-radius: 9999px; }
 
 /* One neutral retry action across all loading error states. */
 .coala-app.coala-app button.retry-button.retry-button {
@@ -82,7 +85,7 @@
   .coala-app .coala-content .listing-controls-actions > .search-field input { height: 30px; min-height: 0; padding-block: 0; font-size: 13px; }
   .coala-app .coala-content .listing-controls-actions > .search-field > svg { width: 16px; height: 16px; }
   .coala-app .coala-content .archive-filters { flex-basis: 32px; }
-  .coala-app .coala-content .archive-filters > summary { box-sizing: border-box; width: 32px; height: 32px; min-height: 32px; }
+  .coala-app .coala-content .archive-filters > .archive-filter-trigger { box-sizing: border-box; width: 32px; height: 32px; min-height: 32px; }
   .coala-app .coala-content .archive-filter-popover { top: 40px; }
 }
 

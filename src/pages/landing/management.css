@@ -1,0 +1,42 @@
+.coala-app .management-page { display: block; width: 100%; padding: 40px 24px 56px; box-sizing: border-box; }
+.management-heading { text-align: center; margin-bottom: 28px; }
+.management-heading h1 { margin: 0 0 12px; font-size: 26px; color: #171717; }
+.management-heading > span { font-size: 14px; color: #737373; line-height: 1.6; }
+.management-generations { display: flex; align-items: center; justify-content: center; gap: 8px; max-width: 480px; margin: 0 auto 24px; }
+.management-generation-list { display: flex; gap: 6px; overflow-x: auto; min-width: 0; scrollbar-width: thin; }
+.management-generations button { flex-shrink: 0; min-height: 34px; padding: 6px 14px; border: 1px solid #e5e5e5; background: #fff; color: #666; font: inherit; font-size: 12px; white-space: nowrap; cursor: pointer; }
+.management-generations button[aria-current] { background: #222; border-color: #222; color: #fff; }
+.management-generations .management-arrow { display: grid; place-items: center; width: 34px; padding: 0; }
+.management-generations button:disabled { opacity: .3; cursor: default; }
+.management-term { margin: -12px 0 24px; text-align: center; color: #737373; font-size: 12px; }
+.management-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; max-width: 1000px; margin: auto; animation: management-enter 180ms ease-out; }
+.management-card { display: flex; flex-direction: column; align-items: center; min-width: 0; padding: 24px 18px 18px; border: 1px solid #e5e5e5; border-radius: 12px; background: #fff; text-align: center; }
+.management-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 1px solid #e5e5e5; margin-bottom: 12px; }
+.management-role { border-radius: 20px; padding: 4px 10px; color: #555; background: #f4f4f4; font-size: 11px; }
+.management-card h2 { margin: 10px 0 8px; font-size: 16px; }
+.management-card > p { margin: 0 0 20px; color: #737373; font-size: 12px; line-height: 1.7; overflow-wrap: anywhere; }
+.management-links { display: flex; gap: 8px; margin-top: auto; padding-top: 12px; }
+.management-links a { display: grid; place-items: center; width: 32px; height: 32px; border: 1px solid #e5e5e5; border-radius: 7px; color: #555; }
+.management-links a:hover { background: #f3f3f3; }
+.management-page :is(a, button):focus-visible { outline: 2px solid #555; outline-offset: 3px; }
+.management-empty { padding: 32px 12px; text-align: center; }
+.management-empty img { width: 88px; height: 88px; object-fit: contain; }
+.management-empty h2 { margin: 16px 0 8px; font-size: 16px; }
+.management-empty p { margin: 0; font-size: 13px; line-height: 1.6; color: #737373; }
+@keyframes management-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (max-width: 700px) {
+  .coala-app .management-page { padding: 24px 12px 32px; }
+  .management-heading { margin-bottom: 20px; }
+  .management-heading h1 { font-size: 20px; margin-bottom: 8px; }
+  .management-heading > span { font-size: 12px; }
+  .management-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .management-card { padding: 16px 10px 12px; }
+  .management-avatar { width: 56px; height: 56px; }
+  .management-card h2 { font-size: 14px; }
+  .management-card > p { font-size: 11px; }
+  .management-empty { padding: 24px 8px; }
+  .management-empty img { width: 60px; height: 60px; }
+  .management-empty h2 { font-size: 14px; }
+  .management-empty p { font-size: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { .management-grid { animation: none; } }
