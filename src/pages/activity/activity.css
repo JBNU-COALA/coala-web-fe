@@ -1026,3 +1026,16 @@ a.study-person-name:hover {
 .coala-app .study-calendar h2 { font-size: 13px; font-weight: 600; }
 .coala-app .study-page input:is([type='date'], [type='month']), .coala-app .study-editor input:is([type='date'], [type='month']) { font-family: inherit; font-size: 13px; font-weight: 400; text-align: left; }
 .coala-app input:is([type='date'], [type='month'])::-webkit-datetime-edit { font: inherit; padding: 0; }
+
+/* Reserve space for both view modes instead of clipping the calendar on phones. */
+.coala-app .study-page .study-listing-controls .listing-controls-bar { flex-wrap: wrap; gap: 8px; }
+.coala-app .study-page .study-listing-controls .listing-visible-filters { flex: 1 1 240px; min-width: 0; flex-wrap: wrap; }
+.coala-app .study-page .study-listing-controls .study-view-toolbar { flex: 0 0 auto; margin-left: auto; }
+.coala-app .study-page .study-listing-controls .study-layout-toggle { width: 66px; height: 32px; flex-wrap: nowrap; }
+.coala-app .study-page .study-listing-controls .study-layout-toggle button { flex: 0 0 32px; width: 32px; height: 30px; min-height: 30px; padding: 0; }
+.coala-app .study-page .study-editor input[type=date] { height: 32px; min-height: 32px; font-size: 12px; padding-inline: 8px; }
+.coala-app .study-page .study-editor .study-editor-group.select-control,
+.coala-app .study-page .study-group-select.select-control { height: 32px !important; min-height: 32px !important; }
+.coala-app .study-page :is(.study-editor-group, .study-group-select).select-control > .select-control-trigger { height: 30px !important; min-height: 30px !important; font-size: 12px !important; padding-inline: 8px; }
+.coala-app .study-page .study-week strong { font-size: 12px; }
+.coala-app .study-page .study-week span { font-size: 11px; }

@@ -170,7 +170,7 @@
 .coala-app .post-detail .post-header-actions > button:hover,
 .coala-app .post-detail .post-report-icon:hover { background: #f5f5f5; }
 .coala-app .post-detail .post-header-actions > button > svg { width: 18px; height: 18px; }
-.coala-app .post-detail .post-cover-pill { width: fit-content; padding: 4px 10px; background: #f5f5f5 !important; color: #666 !important; border-radius: 999px; }
+.coala-app .post-detail .post-cover-pill { width: fit-content; padding: 4px 10px; border-radius: 999px; }
 .coala-app .post-detail .post-like-button.is-liked > svg { color: #6b6b6b; fill: #6b6b6b; stroke: #6b6b6b; }
 .coala-app .post-detail .post-comment-thread { display: block; padding-bottom: 12px; border-bottom: 1px solid #ededed; }
 .coala-app .post-detail .post-comment-item { padding-block: 16px 8px; border-bottom: 0; }

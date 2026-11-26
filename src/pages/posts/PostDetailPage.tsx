@@ -654,3 +654,4 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
     </section>
   )
 }
+import '../home/portal-badge-colors.css'

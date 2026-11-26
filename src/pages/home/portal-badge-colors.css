@@ -1,5 +1,9 @@
 /* User-approved pastel color exception, scoped to portal badges. */
-.coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status) {
+.coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status),
+.coala-app .post-detail .post-category-meta-row .post-cover-pill,
+.coala-app .coala-content--info .info-post-card .info-tag,
+.coala-app .coala-content--info .info-post-card .info-footer-category,
+.coala-app .recruit-status-pill {
   background: linear-gradient(115deg, #d6f5e9, #fbe0ec, #dceefa, #d6f5e9);
   background-size: 300% 100%;
   border: 1px solid #dfebe6;
@@ -30,6 +34,9 @@
   to { background-position: 100% 70%; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status) { animation: none; }
+  .coala-app .home-editorial :is(.home-feed-tag, .home-recruit-status),
+  .coala-app .post-detail .post-category-meta-row .post-cover-pill,
+  .coala-app .coala-content--info .info-post-card :is(.info-tag, .info-footer-category),
+  .coala-app .recruit-status-pill { animation: none; }
   .coala-app .home-editorial .home-carousel-slide:not(.home-carousel-slide--media) { animation: none; }
 }

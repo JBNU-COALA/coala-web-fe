@@ -55,3 +55,11 @@
 .coala-app .coala-content--info .info-list--editorial.board-post-list--list { margin: 0; padding: 0; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list { padding-inline: 0; }
 .coala-app .coala-content--info .community-list-search { border-color: #d4d4d4; background: #fff; color: #737373; }
+
+.coala-app .coala-content--info .info-post-card .info-post-stats { flex-wrap: nowrap; min-width: 0; max-width: 100%; }
+.coala-app .coala-content--info .info-post-card .info-footer-category { flex: 0 1 auto; min-width: 0; max-width: 110px; white-space: nowrap; }
+.coala-app .coala-content--info .info-post-card .info-footer-category svg { flex-shrink: 0; }
+.coala-app .coala-content--info .info-post-card .info-footer-category > span { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.coala-app .coala-content--info .info-post-card .info-list-actions { flex-shrink: 0; }
+.coala-app .coala-content--info .info-post-card .info-list-actions .board-like-button { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0 2px; }
+.coala-app .coala-content--info .info-post-card .info-list-actions .board-like-button:is(:hover, :active, .is-liked) { background: transparent; box-shadow: none; }

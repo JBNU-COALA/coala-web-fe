@@ -28,7 +28,7 @@ export function ActivityControls({
   onFilter,
 }: ActivityControlsProps) {
   return (
-    <ListingControls label="활동 조회 필터" actions={<div className="study-view-toolbar">
+    <ListingControls className="study-listing-controls" label="활동 조회 필터" actions={<div className="study-view-toolbar">
         <div
             className="study-layout-toggle"
             role="group"
