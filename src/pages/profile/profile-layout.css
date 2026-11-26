@@ -440,3 +440,17 @@
   .coala-app .profile-settings .member-field { gap: 5px; font-size: 11px; }
   .coala-app .profile-settings .member-field :is(input, select) { height: 36px !important; min-height: 36px !important; padding: 0 9px !important; font-size: 13px !important; }
 }
+
+/* Compact copy in the introduction and profile customization sections. */
+.coala-app .profile-settings-main .profile-section-card:has(.profile-bio-text, .profile-bio-textarea) > .profile-section-title,
+.coala-app .profile-settings-main .profile-custom-card > .profile-section-title { font-size: 16px; line-height: 1.5; margin-bottom: 12px; }
+.coala-app .profile-settings-main :is(.profile-bio-text, .profile-bio-textarea) { font-size: 13px; line-height: 1.6; }
+.coala-app .profile-custom-card :is(.profile-edit-field > span, .profile-empty-text, .profile-link-list a, .profile-tone-button) { font-size: 12px; line-height: 1.5; }
+.coala-app .profile-custom-card .profile-custom-editor { gap: 16px; }
+@media (max-width: 640px) {
+  .coala-app .profile-settings-main .profile-section-card:has(.profile-bio-text, .profile-bio-textarea) > .profile-section-title,
+  .coala-app .profile-settings-main .profile-custom-card > .profile-section-title { font-size: 14px; margin-bottom: 8px; }
+  .coala-app .profile-settings-main :is(.profile-bio-text, .profile-bio-textarea) { font-size: 12px; }
+  .coala-app .profile-custom-card :is(.profile-edit-field > span, .profile-empty-text, .profile-link-list a, .profile-tone-button) { font-size: 11px; }
+  .coala-app .profile-custom-card .profile-custom-editor { gap: 12px; }
+}
