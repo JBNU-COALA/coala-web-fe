@@ -1,4 +1,4 @@
-import './public-header.css'
+﻿import './public-header.css'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import './landing.css'
@@ -78,8 +78,9 @@ export function LandingPage() {
       <CultureSection />
       <AchievementTimeline />
       <AlumniShowcase />
-      <section className="apply-banner" aria-labelledby="apply-banner-title"><div className="apply-banner-content"><h2 id="apply-banner-title">배운 것을 넘어 직접 해내는 경험, 코알라에서 시작해요.</h2><Link to="/recruiting" className="jungle-button">2기 모집 알림 신청</Link></div></section>
+      <section className="apply-banner" aria-labelledby="apply-banner-title"><div className="apply-banner-content"><h2 id="apply-banner-title">배운 것을 넘어 직접 해내는 경험, 코알라에서 시작해요.</h2><Link to="/recruiting" className="jungle-button">8기 모집 알림 신청</Link></div></section>
     </main>
     <PublicFooter />
   </div>
 }
+
