@@ -38,7 +38,7 @@ export function ArchivePage() {
   const [calendarMonth, setCalendarMonth] = useState(() => currentMonthKey())
   const [selectedDate, setSelectedDate] = useState(() => toLocalDateKey(new Date()))
 
-  const activeTab = { label: activeCategory === 'labs' ? '연구실 자료' : '에이전트/스킬' }
+  const activeTab = { label: activeCategory === 'labs' ? '연구실 자료' : '에이전트 / 스킬' }
   const actionLabel = '자료 등록'
   const filterOptions: FilterTabOption<string>[] = activeCategory === 'labs'
     ? [{ id: 'all', label: '전체', icon: 'layout' }, { id: 'SEMINAR', label: '세미나', icon: 'calendar', tone: 'contest' }, { id: 'PAPER', label: '논문', icon: 'book', tone: 'lab' }, { id: 'OTHER', label: '기타', icon: 'file', tone: 'resource' }]
@@ -275,7 +275,7 @@ export function ArchivePage() {
 
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
               <div className="archive-resource-grid">
-                {isLoading ? <LoadingSpinner label="자료를 불러오는 중입니다." />
+                {isLoading ? <div className="archive-load-state"><LoadingSpinner label="자료를 불러오는 중입니다." /></div>
                   : archiveError ? <div className="archive-load-state"><p role="alert">{archiveError}</p><button className="ghost-button retry-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
                   : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}

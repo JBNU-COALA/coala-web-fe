@@ -6,6 +6,7 @@ import { ServiceWorkspace } from '../../shared/ui/ServiceWorkspace'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { statusMeta, type ApplyStatus } from './serviceData'
 import { DomainApplyForm } from './DomainApplyForm'
+import './jcloud-provider.css'
 
 
 const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
@@ -17,6 +18,10 @@ const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
 
 export function DomainServicePanel() {
   return <div className="services-instance-panel">
+    <header className="jcloud-provider-heading domain-provider-heading">
+      <img src="/coala-logo.svg" alt="코알라" width={48} height={48} />
+      <div><h2>코알라 도메인 신청</h2><p>프로젝트에 사용할 코알라 도메인을 신청하고, 배포한 서비스에 연결하세요.</p></div>
+    </header>
     <ServiceWorkspace kind="domains" form={(onSubmit) => <DomainApplyForm onSubmit={onSubmit} />}
       list={<DomainApplyList />} />
   </div>

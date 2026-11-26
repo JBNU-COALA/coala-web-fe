@@ -131,7 +131,7 @@ export const headerSubNavItems: Partial<Record<HeaderRoute, HeaderSubNavItem[]>>
   ],
   archive: [
     { id: 'archive-labs', label: '연구실 자료', icon: 'network', path: routes.archive.labs },
-    { id: 'archive-agents', label: '에이전트/스킬', icon: 'file', path: routes.archive.agents },
+    { id: 'archive-agents', label: '에이전트 / 스킬', icon: 'file', path: routes.archive.agents },
   ],
 }
 

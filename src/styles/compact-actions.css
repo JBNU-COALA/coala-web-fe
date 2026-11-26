@@ -101,3 +101,60 @@
 
 /* Every editor separates its fields from the final cancel/save actions. */
 .coala-app :is(.velog-writer-footer, .recruit-write-footer, .archive-form-actions, .recruit-application-footer, .study-editor-footer) { border-top: 1px solid #e5e5e5; padding-top: 20px; margin-top: 24px; }
+
+/* Archive and service failures use the same typography and retry treatment. */
+.coala-app :is(.archive-load-state, .service-list-error) > p {
+  margin: 0;
+  color: #737373;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.coala-app.coala-app :is(.archive-load-state, .service-list-error) button.retry-button {
+  box-sizing: border-box;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  background: #f2f2f2;
+  color: #333;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+/* Login prompts share the service list's neutral status typography and action. */
+.coala-app .coala-content :is(.jcloud-login-required .jcloud-success-title, .archive-login-required h3) {
+  color: #737373;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.6;
+}
+.coala-app.coala-app .coala-content :is(.jcloud-login-required .jcloud-login-link, .archive-login-required .archive-login-button) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid #d4d4d4;
+  border-radius: 10px;
+  background: #f2f2f2;
+  color: #333;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  box-shadow: none;
+}
+.coala-app.coala-app .coala-content :is(.jcloud-login-required .jcloud-login-link, .archive-login-required .archive-login-button):hover {
+  background: #e5e5e5;
+  border-color: #bdbdbd;
+  color: #222;
+}

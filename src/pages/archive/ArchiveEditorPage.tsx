@@ -96,7 +96,7 @@ export function ArchiveEditorPage() {
     finally { setSaving(false) }
   }
 
-  return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트/스킬'} tone="archive" className="coala-content--archive" bodyClassName="archive-content">
+  return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트 / 스킬'} tone="archive" className="coala-content--archive" bodyClassName="archive-content">
     {!isLoggedIn ? <div className="archive-login-required">
       <img className="archive-login-koala" src="/coala-mascot-plush.png" alt="" />
       <h3>로그인이 필요합니다.</h3>
