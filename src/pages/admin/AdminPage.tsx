@@ -681,6 +681,7 @@ export function AdminPage() {
 
   return (
     <section className="admin-page">
+      <CommunityBanner title={adminTabs.find((tab) => tab.id === activeTab)?.label ?? '관리자'} description="코알라 관리자" />
       <aside className="admin-sidebar">
         <div className="admin-sidebar-header">
           <h1>관리자 대시보드</h1>
@@ -709,7 +710,6 @@ export function AdminPage() {
       </aside>
 
       <div className="admin-main" key={activeTab}>
-        <CommunityBanner title={adminTabs.find((tab) => tab.id === activeTab)?.label ?? '관리자'} description="코알라 관리자" />
         <header className="admin-topbar">
           <div className="admin-row-actions">
             <p

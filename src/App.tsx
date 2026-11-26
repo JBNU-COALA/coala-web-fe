@@ -878,7 +878,7 @@ function AppSession() {
             </span>
           </button>
 
-          <nav
+          {!isAdminRoute && <nav
             ref={mainNavRef}
             className={[
               'coala-main-nav',
@@ -1009,12 +1009,13 @@ function AppSession() {
                 })}
               </div>
             </div>
-          </nav>
+          </nav>}
 
           <div className="coala-header-actions">
             <button
               type="button"
               className="mobile-menu-toggle"
+              hidden={isAdminRoute}
               aria-label="메뉴 열기"
               aria-expanded={mobileNavOpen}
               onClick={() => { setProfileMenuOpen(false); setNotificationMenuOpen(false); setMobileNavOpen((value) => !value) }}
