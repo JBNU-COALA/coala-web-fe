@@ -272,7 +272,7 @@
   .coala-app .coas-hub .official-service-preview-grid > button { min-height: 80px; padding: 14px 12px; gap: 10px; }
   .coala-app .coas-hub .official-service-preview-grid strong { font-size: 13px; }
   .coala-app .coas-hub .official-service-preview-grid small { font-size: 11px; line-height: 1.5; }
-  .coala-app .coas-hub .member-service-preview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .coala-app .coas-hub .member-service-preview-grid { gap: 10px; }
   .coala-app .coas-hub .member-service-preview-copy { padding: 8px; }
   .coala-app .coas-hub .member-service-preview-copy strong { font-size: 12px; }
   .coala-app .coas-hub .member-service-preview-copy > span { font-size: 11px; }

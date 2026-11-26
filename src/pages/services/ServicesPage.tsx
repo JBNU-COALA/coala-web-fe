@@ -57,7 +57,6 @@ export type MemberServiceDetail = {
   stack: string[]
 }
 
-const USER_SERVICE_PAGE_SIZE = 6
 const serviceStatusFilters: { id: ServiceStatusFilter; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: '운영중', label: '운영중' },
@@ -113,7 +112,6 @@ export function ServicesPage() {
   const [selectedStatus, setSelectedStatus] = useState<ServiceStatusFilter>('all')
   const [query, setQuery] = useState('')
   const [viewMode, setViewMode] = useState<UserServiceViewMode>('card')
-  const [currentPage, setCurrentPage] = useState(1)
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
@@ -159,12 +157,6 @@ export function ServicesPage() {
         .includes(normalizedQuery)
     })
   }, [memberServices, normalizedQuery, selectedStatus])
-  const totalUserServicePages = Math.max(1, Math.ceil(visibleServices.length / USER_SERVICE_PAGE_SIZE))
-  const safeCurrentPage = Math.min(currentPage, totalUserServicePages)
-  const paginatedServices = visibleServices.slice(
-    (safeCurrentPage - 1) * USER_SERVICE_PAGE_SIZE,
-    safeCurrentPage * USER_SERVICE_PAGE_SIZE,
-  )
 
   useEffect(() => {
     let active = true
@@ -394,7 +386,7 @@ export function ServicesPage() {
                 <button type="button" onClick={() => navigate(routes.services.user)}>전체 보기</button>
               </header>
               <div className="member-service-preview-grid">
-                {memberServices.slice(0, 3).map((service) => (
+                {memberServices.map((service) => (
                   <button key={service.id} type="button" onClick={() => openServiceDetail(service.id)}>
                     <span className="member-service-preview-image">
                       <SafeImage
@@ -558,11 +550,11 @@ export function ServicesPage() {
               </section>
         ) : (
           <>
-            <ListingControls search={<SearchField value={query} onChange={(value) => { setQuery(value); setCurrentPage(1) }} placeholder="서비스명, 만든 유저, 태그 검색" />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
+            <ListingControls search={<SearchField value={query} onChange={setQuery} placeholder="서비스명, 만든 유저, 태그 검색" />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
 <button type="button" className="write-post-button" onClick={startCreateService}><Icon name="plus" size={15} />서비스 추가</button></>} className="page-container user-service-controls" label="유저 서비스 필터">
               <SelectControl value={selectedStatus}
                 options={serviceStatusTabs.map((tab) => ({ value: tab.id, label: tab.label }))}
-                onChange={(status) => { setSelectedStatus(status); setCurrentPage(1) }} label="운영 상태" />
+                onChange={setSelectedStatus} label="운영 상태" />
 
 
 
@@ -700,7 +692,7 @@ export function ServicesPage() {
 
             {!showServiceForm && <>
             <ul className={viewMode === 'card' ? 'member-service-grid' : 'member-service-list'}>
-              {paginatedServices.map((service) => (
+              {visibleServices.map((service) => (
                 <li
                   key={service.id}
                   role="button"
@@ -759,46 +751,10 @@ export function ServicesPage() {
               ))}
               {listLoading ? <li className="empty-post-state"><LoadingSpinner label="서비스를 불러오는 중입니다." /></li> : listError ? (
                 <li className="empty-post-state service-list-error"><img className="login-koala" src="/coala-mascot-crying.png" alt="" /><p role="alert">{listError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
-              ) : paginatedServices.length === 0 ? (
+              ) : visibleServices.length === 0 ? (
                 <li className="empty-post-state">조건에 맞는 서비스가 없습니다.</li>
               ) : null}
             </ul>
-
-            {totalUserServicePages > 1 ? (
-              <nav className="board-pagination member-service-pagination" aria-label="유저 서비스 페이지">
-                <button
-                  type="button"
-                  className="page-button"
-                  disabled={safeCurrentPage === 1}
-                  onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-                  aria-label="이전 페이지"
-                >
-                  <Icon name="chevron-left" size={15} />
-                </button>
-                {Array.from({ length: totalUserServicePages }, (_, index) => {
-                  const page = index + 1
-                  return (
-                    <button
-                      key={page}
-                      type="button"
-                      className={safeCurrentPage === page ? 'page-button is-active' : 'page-button'}
-                      onClick={() => setCurrentPage(page)}
-                    >
-                      {page}
-                    </button>
-                  )
-                })}
-                <button
-                  type="button"
-                  className="page-button"
-                  disabled={safeCurrentPage === totalUserServicePages}
-                  onClick={() => setCurrentPage((page) => Math.min(totalUserServicePages, page + 1))}
-                  aria-label="다음 페이지"
-                >
-                  <Icon name="chevron-right" size={15} />
-                </button>
-              </nav>
-            ) : null}
             </>}
           </>
         )}

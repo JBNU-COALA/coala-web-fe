@@ -2,7 +2,7 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { boardsApi } from '../../shared/api/boards'
 import { infoApi } from '../../shared/api/info'
-import { servicesApi } from '../../shared/api/services'
+import { servicesApi, type MemberService } from '../../shared/api/services'
 import { recruitsApi } from '../../shared/api/recruits'
 import { postsApi } from '../../shared/api/posts'
 import { useHomeFeed } from './useHomeFeed'
@@ -29,10 +29,18 @@ describe('home feed API scope', () => {
   })
   it('keeps successful feeds and reports failed domains separately', async () => {
     vi.mocked(infoApi.getArticles).mockRejectedValue(new Error('offline'))
+    const services: MemberService[] = Array.from({ length: 12 }, (_, index) => ({
+      id: `service-${index}`, title: `Service ${index}`, category: 'community', owner: 'COALA',
+      summary: 'Service preview', url: 'https://example.com', githubUrl: '', imageUrl: '',
+      tags: [], status: '운영중', audience: '', visibility: 'PUBLIC', period: '',
+      description: '', features: [], stack: [],
+    }))
+    vi.mocked(servicesApi.getMemberServices).mockResolvedValue(services)
     const { result } = renderHook(useHomeFeed)
     await waitFor(() => expect(result.current.loading).toBe(false))
     expect(result.current.errors.articles).toBe(true)
     expect(result.current.errors.services).toBe(false)
+    expect(result.current.services).toEqual(services)
     expect(result.current.errors.posts).toBe(false)
   })
 })

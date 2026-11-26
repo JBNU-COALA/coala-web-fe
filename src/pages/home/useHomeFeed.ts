@@ -70,7 +70,7 @@ export function useHomeFeed() {
           .sort((a, b) => popularity(b) - popularity(a) || timestamp(b.createdAt) - timestamp(a.createdAt))
           .slice(0, 5),
         recruits: recruitResult.status === 'fulfilled' ? recruitResult.value.slice(0, 3) : [],
-        services: serviceResult.status === 'fulfilled' ? serviceResult.value.slice(0, 3) : [],
+        services: serviceResult.status === 'fulfilled' ? serviceResult.value : [],
         loading: false,
         errors: { articles: articleResult.status === 'rejected', posts: postsFailed, recruits: recruitResult.status === 'rejected', services: serviceResult.status === 'rejected' },
       })
