@@ -355,3 +355,13 @@
   .coala-app .coala-header .header-user-button .header-user-avatar { width: 26px; height: 26px; min-width: 26px; }
   .coala-app .coala-header .header-user-button > svg { width: 14px; height: 14px; margin-left: 0; }
 }
+
+/* Keep tablet navigation grouped rather than stretching each item. */
+@media (max-width: 900px) {
+  .coala-app .coala-header .main-nav-item { flex: 0 0 auto; }
+  .coala-app .coala-header .coala-main-nav { gap: 4px; }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  .coala-app .coala-header .coala-main-nav { justify-content: center; gap: 16px; }
+  .coala-app .coala-header .main-nav-button { padding-inline: 8px; }
+}
