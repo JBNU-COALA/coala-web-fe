@@ -1,5 +1,5 @@
 import type { AdminActionLog } from '../../shared/api/admin'
-import { AdminMenuIcon } from './AdminMenuIcon'
+
 
 export type AdminDestination = 'stats' | 'users' | 'boards' | 'posts' | 'reports' | 'services' | 'instances' | 'domains' | 'about' | 'banners' | 'activity'
 
@@ -17,19 +17,10 @@ export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
           { key: 'reports', label: '미처리 신고', icon: 'bell', value: counts.reports },
           { key: 'instances', label: '인스턴스 승인 대기', icon: 'layout', value: counts.instances },
         ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}>
-          <AdminMenuIcon name={item.key} /><span>{item.label}</span>
+          <span>{item.label}</span>
           <strong>{item.value ?? '-'}</strong>
         </button>)}
       </div>
-    </section>
-    <section className="admin-shortcuts" aria-label="사이트 관리">
-      {([
-        { key: 'banners', label: '홈 배너', icon: 'image' },
-        { key: 'about', label: '동아리 소개', icon: 'edit' },
-        { key: 'boards', label: '게시판 설정', icon: 'layout' },
-        { key: 'activity', label: '활동 관리', icon: 'calendar' },
-        { key: 'domains', label: '도메인 신청', icon: 'link' },
-      ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}><AdminMenuIcon name={item.key} /><span>{item.label}</span></button>)}
     </section>
     <section className="admin-summary-band" aria-label="운영 현황">
       {([
@@ -37,7 +28,7 @@ export function AdminOverview({ counts, logs, logsUnavailable, onNavigate }: {
         { key: 'posts', label: '게시글', value: counts.posts },
         { key: 'services', label: '운영 서비스', value: counts.services },
       ] as const).map((item) => <button type="button" key={item.key} onClick={() => onNavigate(item.key)}>
-        <span><AdminMenuIcon name={item.key} />{item.label}</span><strong>{item.value ?? '-'}</strong>
+        <span>{item.label}</span><strong>{item.value ?? '-'}</strong>
       </button>)}
     </section>
     <section className="admin-recent-actions">
