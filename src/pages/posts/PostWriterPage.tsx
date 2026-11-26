@@ -39,6 +39,7 @@ import {
 import { infoApi, type InfoFilterId } from '../../shared/api/info'
 import { useRequestScope } from '../../useRequestScope'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import posthog, { isPostHogConfigured, posthogLogger } from '../../posthog'
 
 const TITLE_MAX = 100
 const CONTENT_MAX = 5000
@@ -503,10 +504,12 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
         }
         if (editPostId) {
           const updatedArticle = await infoApi.updateArticle(Number(editPostId), payload)
+          if (isPostHogConfigured) posthog.capture('post_updated', { post_type: writerType, has_attachments: nextAttachmentIds.length > 0 })
           if (isCurrent()) onClose({ postId: updatedArticle.id })
           return
         } else {
           const createdArticle = await infoApi.createArticle(payload)
+          if (isPostHogConfigured) posthog.capture('post_published', { post_type: writerType, has_attachments: nextAttachmentIds.length > 0 })
           if (isCurrent()) onClose({ postId: createdArticle.id })
           return
         }
@@ -520,6 +523,7 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
             attachmentIds: attachmentIds.length > 0 ? attachmentIds : undefined,
             thumbnailAttachmentId: thumbnailAttachmentId ?? undefined,
           })
+          if (isPostHogConfigured) posthog.capture('post_updated', { post_type: writerType, has_attachments: attachmentIds.length > 0 })
           if (isCurrent()) onClose({ boardId: selectedBoardId!, postId: parsed.postId })
           return
         } else {
@@ -532,6 +536,10 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
           attachmentIds,
           thumbnailAttachmentId,
         })
+        if (isPostHogConfigured) {
+          posthog.capture('post_published', { post_type: writerType, has_attachments: attachmentIds.length > 0 })
+          posthogLogger.info('post_published', { post_type: writerType, has_attachments: attachmentIds.length > 0 })
+        }
       }
       if (isCurrent()) onClose()
     } catch (error) {

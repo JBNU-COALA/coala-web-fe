@@ -12,6 +12,7 @@ import {
   type AttendanceEntry
 } from '../../shared/activity'
 import { AttendanceList } from './AttendanceList'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 export function RecordEditor({
   data,
@@ -96,6 +97,7 @@ export function RecordEditor({
         updatedAt: new Date().toISOString(),
         version: record?.version
       })
+      if (isPostHogConfigured) posthog.capture(record ? 'activity_record_updated' : 'activity_record_created', { attendance_count: attendance.length, photo_count: photos.length, has_group: Boolean(groupId) })
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : '기록을 저장하지 못했습니다.'

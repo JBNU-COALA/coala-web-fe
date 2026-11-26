@@ -28,6 +28,7 @@ import { useRecruitBookmarks } from './useRecruitBookmarks'
 import { applicationStatusLabel, useRecruitApplications } from './useRecruitApplications'
 import './recruit-workspace.css'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import posthog, { isPostHogConfigured } from '../../posthog'
 
 type RecruitPageProps = {
   onSelectRecruit: (id: string) => void
@@ -361,6 +362,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     setDraftError(null)
     try {
       const createdRecruit = await recruitsApi.createRecruit(buildRecruitPayload(draft))
+      if (isPostHogConfigured) posthog.capture('recruitment_published', { category: draft.category, role_count: draft.roles.length })
       setRemoteRecruitItems((current) => [createdRecruit, ...current])
       setDraft(defaultRecruitDraft)
       setDraftError(null)
