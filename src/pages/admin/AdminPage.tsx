@@ -9,7 +9,7 @@ import { AdminInquiriesPanel } from './AdminInquiriesPanel'
 import { AdminServicesPanel } from './AdminServicesPanel'
 import { AdminField as Field } from './AdminFields'
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react'
-import { Link, Navigate, useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import {
   adminApi,
   type AdminActionLog,
@@ -27,11 +27,12 @@ import type { RecruitCategory, RecruitItem, RecruitPostPayload, RecruitStatus } 
 import type { ApplyStatus, InstanceApplication, MemberService } from '../../shared/api/services'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
-import { routes } from '../../shared/routes'
 import { Icon, type IconName } from '../../shared/ui/Icon'
 import './admin.css'
 import './admin-design.css'
 import { AdminMenuIcon } from './AdminMenuIcon'
+import { AdminAnalyticsPanel } from './AdminAnalyticsPanel'
+import { CommunityBanner } from '../community/CommunityBanner'
 
 
 
@@ -72,6 +73,7 @@ type InstanceDraft = {
 
 const adminTabs: { id: AdminTab; label: string; icon: IconName }[] = [
   { id: 'stats', label: '운영 현황', icon: 'chart' },
+  { id: 'analytics', label: '사용 분석', icon: 'chart' },
   { id: 'users', label: '회원 관리', icon: 'users' },
   { id: 'banners', label: '배너 관리', icon: 'image' },
   { id: 'about', label: '소개 관리', icon: 'edit' },
@@ -681,13 +683,12 @@ export function AdminPage() {
     <section className="admin-page">
       <aside className="admin-sidebar">
         <div className="admin-sidebar-header">
-          <Link to={routes.home} className="admin-brand" aria-label="코알라 홈"><img src="/coala-logo.svg" alt="" /><img src="/coala-wordmark.svg" alt="Coala" /><span>ADMIN</span></Link>
           <h1>관리자 대시보드</h1>
 
         </div>
         <nav className="admin-tab-list" aria-label="관리자 메뉴">
           {[
-            { label: '운영', ids: ['stats', 'users', 'reports'] },
+            { label: '운영', ids: ['stats', 'analytics', 'users', 'reports'] },
             { label: '콘텐츠', ids: ['banners', 'about', 'boards', 'posts', 'activity'] },
             { label: '서비스 · 신청', ids: ['services', 'instances', 'domains'] },
           ].map(group => <div className="admin-nav-group" key={group.label}>
@@ -705,28 +706,29 @@ export function AdminPage() {
             </button>
           ))}</div>)}
         </nav>
-        <Link className="admin-home-link" to={routes.home}>
-          <Icon name="chevron-left" size={15} />
-          홈으로
-        </Link>
       </aside>
 
       <div className="admin-main" key={activeTab}>
+        <CommunityBanner title={adminTabs.find((tab) => tab.id === activeTab)?.label ?? '관리자'} description="코알라 관리자" />
         <header className="admin-topbar">
-          <div>
-            <span className="admin-kicker">관리자 콘솔</span>
-            <h2>{adminTabs.find((tab) => tab.id === activeTab)?.label}</h2>
-          </div>
           <div className="admin-row-actions">
-            <p className="admin-status" role="status">{isLoading ? '불러오는 중...' : statusMessage}</p>
-            <button type="button" className="admin-ghost-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => { setRefreshKey((value) => value + 1); void loadAdminData() }}>
-              <span className={isLoading ? 'admin-refresh-icon is-loading' : 'admin-refresh-icon'} aria-hidden="true"><AdminMenuIcon name="refresh" /></span>
+            <p
+              key={isLoading ? 'loading' : `${refreshKey}-${statusMessage}`}
+              className={`admin-status${!isLoading && statusMessage === '최신 상태입니다.' ? ' admin-status--temporary' : ''}`}
+              role="status"
+              onAnimationEnd={(event) => {
+                if (event.animationName === 'admin-status-notice') setStatusMessage(current => current === '최신 상태입니다.' ? '' : current)
+              }}
+            >{isLoading ? '불러오는 중...' : statusMessage}</p>
+            <button type="button" className="admin-refresh-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => { setRefreshKey((value) => value + 1); void loadAdminData() }}>
+              <span className={isLoading ? 'admin-refresh-icon is-loading' : 'admin-refresh-icon'} aria-hidden="true"><Icon name="refresh" size={16} /></span>
             </button>
           </div>
         </header>
 
         {loadFailures.includes(activeTab) && <p className="admin-error" role="alert">이 항목을 불러오지 못했습니다. 새로고침 후 다시 시도해 주세요.</p>}
         {activeTab === 'banners' && <AdminBannersPanel refreshKey={refreshKey} />}
+        {activeTab === 'analytics' && <AdminAnalyticsPanel />}
         {activeTab === 'about' && <AdminAboutPanel refreshKey={refreshKey} />}
         {activeTab === 'activity' && <AdminActivityPanel refreshKey={refreshKey} />}
         {activeTab === 'domains' && <AdminDomainsPanel refreshKey={refreshKey} />}

@@ -1126,6 +1126,7 @@ function AppSession() {
                   </button>
                   {profileMenuOpen ? (
                     <div id="header-profile-popover" className="header-profile-popover">
+                      {isAdminRoute && <button type="button" className="header-profile-menu-item" onClick={() => { setProfileMenuOpen(false); navigate('/portal') }}>홈으로</button>}
                       <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>내 계정 관리</button>
                       <button type="button" className="header-profile-menu-item" onClick={() => {
                         setProfileMenuOpen(false)

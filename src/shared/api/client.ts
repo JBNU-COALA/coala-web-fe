@@ -1,4 +1,5 @@
 import axios, { type InternalAxiosRequestConfig } from 'axios'
+import { trackSuccessfulRequest } from '../analytics/analytics'
 import {
   clearAuthSession,
   getAccessToken,
@@ -126,7 +127,10 @@ client.interceptors.request.use((config: RetryableRequestConfig) => {
 })
 
 client.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    trackSuccessfulRequest(response.config.method, response.config.url)
+    return response
+  },
   async (error) => {
     const original = error.config as RetryableRequestConfig | undefined
     const status = error.response?.status

@@ -23,10 +23,10 @@ export function AdminActivityPanel({ refreshKey }: { refreshKey: number }) {
     record.title.toLowerCase().includes(query.trim().toLowerCase())) ?? []
   const groups = resource.data?.groups ?? []
   return <div className="admin-stack">
-    <div className="admin-toolbar">
+    <div className="admin-toolbar admin-activity-toolbar">
       <label className="admin-field"><span>조회 월</span><input aria-label="활동 조회 월" type="month" required value={month} onChange={(e) => { if (/^\d{4}-\d{2}$/.test(e.target.value)) setMonth(e.target.value) }} /></label>
-      <Link className="admin-primary-button" to={routes.community.activity}><Icon name="calendar" size={16} />활동 관리</Link>
-      <Link className="admin-ghost-button" to={routes.community.activityRecordNew}><Icon name="plus" size={16} />활동 기록 추가</Link>
+      <div className="admin-activity-actions"><Link className="admin-ghost-button" to={routes.community.activity}><Icon name="calendar" size={16} />활동 관리</Link>
+      <Link className="admin-primary-button" to={routes.community.activityRecordNew}><Icon name="plus" size={16} />활동 기록 추가</Link></div>
     </div>
     <AdminLoadState {...resource} onRetry={resource.reload} />
     {!resource.loading && !resource.error && resource.data && <>

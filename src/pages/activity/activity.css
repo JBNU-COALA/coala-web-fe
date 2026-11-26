@@ -1021,3 +1021,8 @@ a.study-person-name:hover {
   .coala-app.coala-app .study-calendar .study-calendar-days button { min-height: 46px; padding: 3px; }
   .coala-app .study-calendar-days button > span:first-child { width: 22px; height: 22px; font-size: 11px; }
 }
+
+/* Calendar labels use the same scale as the surrounding form text. */
+.coala-app .study-calendar h2 { font-size: 13px; font-weight: 600; }
+.coala-app .study-page input:is([type='date'], [type='month']), .coala-app .study-editor input:is([type='date'], [type='month']) { font-family: inherit; font-size: 13px; font-weight: 400; text-align: left; }
+.coala-app input:is([type='date'], [type='month'])::-webkit-datetime-edit { font: inherit; padding: 0; }
