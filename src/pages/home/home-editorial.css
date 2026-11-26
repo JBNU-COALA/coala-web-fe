@@ -112,7 +112,7 @@
 
 /* Compact project cards in the portal service section. */
 .home-editorial .home-services { padding-block: 28px 32px; }
-.home-editorial .home-service-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 250px)); gap: 12px; }
+.home-editorial .home-service-grid { grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr)); gap: 12px; }
 .home-editorial .home-service-image { height: 88px; }
 .home-editorial .home-service-copy { min-width: 0; gap: 4px; padding: 10px 12px; }
 .home-editorial .home-service-copy strong { font-size: 14px; line-height: 1.5; overflow-wrap: anywhere; }
@@ -120,7 +120,7 @@
 .home-editorial .home-service-copy :is(small, em) { font-size: 10px; overflow-wrap: anywhere; }
 @media (max-width: 700px) {
   .home-editorial .home-services { padding-block: 20px 24px; }
-  .home-editorial .home-service-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .home-editorial .home-service-grid { gap: 10px; }
   .home-editorial .home-service-item { flex-direction: row; align-items: stretch; }
   .home-editorial .home-service-image { flex: 0 0 84px; width: 84px; height: auto; min-height: 96px; border-bottom: 0; border-right: 1px solid #eee; }
   .home-editorial .home-service-copy { flex: 1; padding: 9px 10px; gap: 3px; }
