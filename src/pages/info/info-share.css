@@ -33,7 +33,7 @@
 .coala-app .coala-content--info .info-post-card.board-post-card--list { padding: 16px 8px; gap: 10px 16px; align-items: start; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-main { gap: 6px; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-title { font-size: 15px; line-height: 1.4; margin: 0; }
-.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-excerpt { font-size: 12px; line-height: 1.5; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-excerpt { font-size: 11px; line-height: 1.45; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-thumbnail { width: 96px; height: 64px; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { margin-top: 0; gap: 8px 12px; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { width: auto; min-width: 0; flex-wrap: nowrap; margin-left: auto; gap: 8px; }
@@ -64,10 +64,18 @@
 .coala-app .coala-content--info .info-post-card .info-list-actions .board-like-button { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0 2px; }
 .coala-app .coala-content--info .info-post-card .info-list-actions .board-like-button:is(:hover, :active, .is-liked) { background: transparent; box-shadow: none; }
 
-/* Keep list engagement below the image, with long copy contained above it. */
+/* Keep long copy contained and metadata on one compact row below the image. */
 .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-open,
 .coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-main { min-width: 0; max-width: 100%; }
 .coala-app .coala-content--info .info-post-card.board-post-card--list .board-post-title { min-width: 0; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow-wrap: anywhere; }
-.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; }
-.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta { min-width: 0; }
-.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { grid-row: 2; justify-self: end; margin: 0; max-width: 100%; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { display: flex; flex-wrap: nowrap; gap: 8px; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta { flex: 1 1 0; min-width: 0; flex-wrap: nowrap; white-space: nowrap; overflow: hidden; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta > span:first-of-type { overflow: hidden; text-overflow: ellipsis; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { flex: 0 0 auto; margin: 0 0 0 auto; gap: 6px; max-width: 55%; }
+.coala-app .coala-content--info .info-post-card.board-post-card--list .info-footer-category { max-width: 76px; padding-inline: 4px; }
+@media (max-width: 640px) {
+  .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer { gap: 5px; padding-left: 0; }
+  .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-stats { gap: 5px; }
+  .coala-app .coala-content--info .info-post-card.board-post-card--list .info-footer-category { max-width: 64px; }
+  .coala-app .coala-content--info .info-post-card.board-post-card--list .info-post-footer .board-post-meta { gap: 4px; font-size: 10px; }
+}
