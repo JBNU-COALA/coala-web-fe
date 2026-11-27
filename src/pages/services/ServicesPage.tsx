@@ -1,10 +1,10 @@
 import { LoadErrorState } from '../../shared/ui/LoadErrorState'
-import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TechStackPicker } from '../../shared/ui/TechStackPicker'
 import { ServiceProjectDetail } from './ServiceProjectDetail'
+import { serializeServiceFeatures } from './serviceFeatures'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
@@ -28,7 +28,7 @@ import './service-projects.css'
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type UserServiceViewMode = 'card' | 'list'
 type OfficialServiceMode = 'instance' | 'domain'
-export type MemberServiceStatus = '운영중' | '운영중지' | '운영종료'
+export type MemberServiceStatus = '운영중' | '운영중지' | '운영종료' | '운영완료'
 type ServiceStatusFilter = 'all' | MemberServiceStatus
 
 export type MemberService = {
@@ -77,6 +77,8 @@ const toServiceImageUrl = (url?: string | null) => (url ? resolveApiAssetUrl(url
 
 const emptyServiceDraft = {
   title: '',
+  owner: '',
+  status: '운영중' as MemberServiceStatus,
   category: 'productivity',
   audience: '',
   description: '',
@@ -93,6 +95,8 @@ const emptyServiceDraft = {
 function serviceToDraft(service: MemberService) {
   return {
     title: service.title,
+    owner: service.owner,
+    status: service.status,
     category: service.category,
     audience: service.audience ?? '',
     description: service.description ?? '',
@@ -125,8 +129,6 @@ export function ServicesPage() {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingServiceId, setEditingServiceId] = useState<string | null>(null)
   const [memberServices, setMemberServices] = useState<MemberService[]>([])
-  const [retireTarget, setRetireTarget] = useState<MemberService | null>(null)
-  const [retiring, setRetiring] = useState(false)
   const [serviceError, setServiceError] = useState<string | null>(null)
   const [listError, setListError] = useState<string | null>(null)
   const [listLoading, setListLoading] = useState(true)
@@ -215,13 +217,20 @@ export function ServicesPage() {
 
   const handleSaveService = async (event: FormEvent) => {
     event.preventDefault()
+    const features = serializeServiceFeatures(addDraft.features)
+    if (features.length > 30 || features.some((feature) => feature.length > 255)) {
+      setServiceError('핵심 기능은 최대 30개, 각 항목은 줄바꿈과 공백을 포함해 255자 이하로 입력해 주세요.')
+      return
+    }
     try {
       const payload = {
         title: addDraft.title.trim(),
+        owner: addDraft.owner.trim(),
+        status: addDraft.status,
         category: addDraft.category,
         audience: addDraft.audience.trim(),
         description: addDraft.description.trim(),
-        features: addDraft.features.split('\n').map((line) => line.trim()).filter(Boolean),
+        features,
         summary: addDraft.summary.trim(),
         url: addDraft.url.trim(),
         githubUrl: addDraft.githubUrl.trim(),
@@ -243,29 +252,6 @@ export function ServicesPage() {
       setServiceError(null)
     } catch {
       setServiceError(editingServiceId ? '서비스 수정 권한이 없거나 저장에 실패했습니다.' : '서비스를 추가하지 못했습니다.')
-    }
-  }
-
-  const handleRetireService = async (service: MemberService) => {
-    if (retiring) return
-    setRetireTarget(null)
-    setRetiring(true)
-
-    try {
-      await servicesApi.retireMemberService(service.id)
-      setMemberServices((current) =>
-        current.map((item) => (
-          item.id === service.id
-            ? { ...item, status: '운영중지', visibility: 'Private', period: '운영 중지' }
-            : item
-        )),
-      )
-      navigate(routes.services.user)
-      setServiceError(null)
-    } catch {
-      setServiceError('서비스 운영 중지 권한이 없거나 처리에 실패했습니다.')
-    } finally {
-      setRetiring(false)
     }
   }
 
@@ -431,8 +417,8 @@ export function ServicesPage() {
                       <Icon name="chevron-left" size={15} />
                       목록으로 돌아가기
                     </button>
-              <ServiceProjectDetail service={selectedService} error={serviceError} retiring={retiring}
-                onEdit={() => startEditService(selectedService)} onRetire={() => setRetireTarget(selectedService)} />
+              <ServiceProjectDetail service={selectedService} error={serviceError}
+                onEdit={() => startEditService(selectedService)} />
           </>
         ) : serviceId ? (
               <section className="surface-card member-service-detail-empty">
@@ -447,7 +433,7 @@ export function ServicesPage() {
               </section>
         ) : (
           <>
-            <ListingControls search={<SearchField value={query} onChange={setQuery} placeholder="서비스명, 만든 유저, 태그 검색" />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
+            {!showServiceForm && <ListingControls search={<SearchField value={query} onChange={setQuery} placeholder="서비스명, 만든 유저, 태그 검색" />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
 <button type="button" className="write-post-button" onClick={startCreateService}><Icon name="pencil-color" size={16} />서비스 추가</button></>} className="page-container user-service-controls" label="유저 서비스 필터">
               <SelectControl value={selectedStatus}
                 options={serviceStatusTabs.map((tab) => ({ value: tab.id, label: tab.label }))}
@@ -455,7 +441,7 @@ export function ServicesPage() {
 
 
 
-            </ListingControls>
+            </ListingControls>}
 
             {serviceError ? <p className="auth-error">{serviceError}</p> : null}
 
@@ -491,6 +477,18 @@ export function ServicesPage() {
                   <label className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">한 줄 소개</span>
                     <input className="jcloud-input" placeholder="어떤 서비스인지 짧게 소개해 주세요." value={addDraft.summary} onChange={(event) => setAddDraft({ ...addDraft, summary: event.target.value })} required />
+                  </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">만든 사람</span>
+                    <input className="jcloud-input" maxLength={50} placeholder="홍길동, 김코알라 (미입력 시 등록자)" value={addDraft.owner} onChange={(event) => setAddDraft({ ...addDraft, owner: event.target.value })} />
+                  </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">운영 상태</span>
+                    <select className="jcloud-input" value={addDraft.status} onChange={(event) => setAddDraft({ ...addDraft, status: event.target.value as MemberServiceStatus })}>
+                      <option value="운영중">운영 중</option>
+                      <option value="운영중지">운영 중지</option>
+                      {['운영종료', '운영완료'].includes(addDraft.status) && <option value={addDraft.status}>운영 완료</option>}
+                    </select>
                   </label>
                   <label className="jcloud-field">
                     <span className="jcloud-label">서비스 주소</span>
@@ -684,11 +682,6 @@ export function ServicesPage() {
           </>
         )}
       </div>
-      <ConfirmDialog open={retireTarget !== null} title="서비스 운영을 중지할까요?"
-        description={`${retireTarget?.title ?? ''} 서비스를 운영 중지합니다.`}
-        confirmLabel="운영 중지" cancelLabel="취소"
-        onCancel={() => setRetireTarget(null)}
-        onConfirm={() => { if (retireTarget) void handleRetireService(retireTarget) }} />
     </section>
   )
 }

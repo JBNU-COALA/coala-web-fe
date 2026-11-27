@@ -26,6 +26,8 @@ export type MemberService = {
 
 export type MemberServicePayload = {
   title: string
+  owner?: string
+  status?: MemberServiceStatus
   category: string
   summary: string
   url: string

@@ -22,11 +22,15 @@
 .coala-app .service-project-prose h2 { margin: 0 0 12px; font-size: 13px; font-weight: 550; }
 .coala-app .service-project-prose p, .coala-app .service-project-prose li { font-size: 12px; line-height: 1.9; color: #444; white-space: pre-wrap; overflow-wrap: anywhere; }
 .coala-app .service-project-prose ul { padding-left: 18px; }
+.coala-app .service-project-prose p { tab-size: 4; }
+.service-project-edit-footer { display: flex; justify-content: flex-end; margin-top: 32px; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+.coala-app .service-project-edit-footer button { min-height: 34px; padding: 6px 14px; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #262626; font: inherit; font-size: 12px; cursor: pointer; }
+.service-project-edit-footer button:hover { background: #f5f5f5; }
 .coala-app .service-project-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .coala-app .service-project-tags > span { display: inline-flex; align-items: center; gap: 5px; padding: 4px 7px; font-size: 11px; border-radius: 3px; background: #f5f5f5; color: #555; }
 .coala-app .service-project-tags img { width: 14px; height: 14px; object-fit: contain; }
 .coala-app .service-project-prose .service-project-muted { color: #888; }
-.coala-app .coala-content--services .member-service-form { max-width: 1000px; box-sizing: border-box; margin: 24px auto 48px; padding: 24px; border: 0; border-radius: 0; }
+.coala-app .coala-content--services .member-service-form { max-width: 1000px; box-sizing: border-box; margin: 0 auto 48px; padding: 0 24px 24px; border: 0; border-radius: 0; }
 .coala-app .project-form-section { grid-column: 1 / -1; margin: 20px 0 0; padding: 0 0 12px; border-bottom: 1px solid #eee; font-size: 14px; font-weight: 550; }
 .coala-app .member-service-form .jcloud-textarea { font-size: 12px; line-height: 1.8; }
 .coala-app .member-service-form .jcloud-textarea::placeholder { font-size: 12px; }
@@ -38,7 +42,7 @@
   .coala-app .service-project-links { flex-direction: row; flex-wrap: wrap; }
   .coala-app .service-project-links a { flex: none; }
   .coala-app .service-project-prose { margin-top: 26px; }
-  .coala-app .coala-content--services .member-service-form { margin-top: 12px; padding: 16px; }
+  .coala-app .coala-content--services .member-service-form { margin-top: 0; padding: 0 16px 16px; }
 }
 .coala-app .coala-content--services .member-service-grid {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
