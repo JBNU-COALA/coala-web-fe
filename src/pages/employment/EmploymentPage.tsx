@@ -51,7 +51,7 @@ function EmploymentListPage() {
   const resource = useCtfResource(load, revision + (user?.id ?? 0))
   const change = (key: string, value: string) => { const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); if (key !== 'page') next.delete('page'); setParams(next) }
   return <>
-    <ListingControls label="취업 후기 검색" count={resource.data ? `전체 ${resource.data.totalElements}개` : undefined}
+    <ListingControls label="취업 후기 검색"
       search={<form className="employment-search-form" onSubmit={(event) => { event.preventDefault(); change('q', search.trim()) }}><SearchField value={search} onChange={setSearch} placeholder="회사명 · 제목으로 검색" /></form>}
       actions={<Link className="education-button is-primary" to={isLoggedIn ? `${root}/new` : '/login'}><Icon name="pencil-color" size={16} />후기 작성</Link>}
     >

@@ -733,19 +733,16 @@ export function ServicesPage() {
                     </>
                   ) : (
                     <>
+                      <div className="member-service-list-thumbnail">
+                        <SafeImage src={service.imageUrl ? toServiceImageUrl(service.imageUrl) : '/portal-koala-team.png'} alt="" loading="lazy" fallback={<img src="/portal-koala-team.png" alt="" loading="lazy" />} />
+                      </div>
                       <div className="member-service-list-main">
                         <span className="member-service-status">{service.status}</span>
                         <h3>{service.title}</h3>
                         <p>{service.summary}</p>
-                        <div className="member-service-tags">
-                          {renderServiceTags(service.tags)}
-                        </div>
                       </div>
                       <div className="member-service-list-side">
                         <span className="member-service-owner"><CharacterAvatar name={service.owner} size="xs" />{service.owner}</span>
-                        <strong>{service.url}</strong>
-
-                        <span className="member-service-open-hint">안내 보기</span>
                       </div>
                     </>
                   )}
