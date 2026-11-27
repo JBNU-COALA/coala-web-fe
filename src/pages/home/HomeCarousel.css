@@ -313,3 +313,9 @@
 @media (prefers-reduced-motion: reduce) { .home-carousel-tooltip { transition: none; } }
 
 .home-carousel-description-line { display: block; word-break: keep-all; overflow-wrap: anywhere; }
+
+/* Uploaded banners use the advertised 2400 by 880 canvas on every viewport. */
+.home-carousel:has(.home-carousel-slide--media.is-active) { aspect-ratio: 2400 / 880; }
+.home-carousel:has(.home-carousel-slide--media.is-active) .home-carousel-track { position: absolute; inset: 0; height: 100%; }
+.home-carousel:has(.home-carousel-slide--media.is-active) .home-carousel-slide { min-height: 0; height: 100%; overflow: hidden; }
+

@@ -83,7 +83,7 @@ function EmploymentDetail() {
   const [error, setError] = useState<string | null>(null)
   const review = resource.data
   const remove = async () => { if (!review || busy) return; setBusy(true); try { await employmentApi.delete(review.id); navigate(root) } catch (cause) { setError(featureError(cause)); setBusy(false) } }
-  return <><Link className="education-text-link" to={root}>후기 목록</Link><CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
+  return <><Link className="employment-back" to={root}><Icon name="chevron-left" size={14} />후기 목록</Link><CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
     {error && <p role="alert" className="education-message">{error}</p>}
     {review && <article className="employment-detail"><header><span className={`employment-outcome ${review.outcome.toLowerCase()}`}>{outcomeLabel(review.outcome)}</span><h2>{review.title}</h2><p className="employment-review-meta">{review.author} · {review.createdAt?.slice(0, 10)}</p></header>
       <dl className="employment-facts">{[['회사', review.company], ['계열', review.industry], ['직무', review.role], ['채용 연도', review.recruitmentYear], ['전형', stages[review.stage]]].map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}</dl>
@@ -109,12 +109,12 @@ function EmploymentEditor({ initial }: { initial?: EmploymentReview }) {
   const [error, setError] = useState<string | null>(null)
   const field = <K extends keyof EmploymentReviewInput>(key: K, value: EmploymentReviewInput[K]) => setForm((current) => ({ ...current, [key]: value }))
   const submit = async (event: FormEvent) => { event.preventDefault(); if (busy) return; setBusy(true); setError(null); try { const saved = await employmentApi.save(form, initial?.id); navigate(`${root}/${saved.id}`) } catch (cause) { setError(featureError(cause)); setBusy(false) } }
-  return <><Link className="education-text-link" to={root}>후기 목록</Link><h2 className="employment-editor-title">{initial ? '후기 수정' : '취업 후기 작성'}</h2>
+  return <><Link className="employment-back" to={root}><Icon name="chevron-left" size={14} />후기 목록</Link><h2 className="employment-editor-title">{initial ? '후기 수정' : '취업 후기 작성'}</h2>
     <CtfResourceState {...options} retry={() => setRevision((value) => value + 1)} />
     {error && <p className="education-message" role="alert">{error}</p>}
     {options.data && <form className="employment-form" onSubmit={submit}><fieldset disabled={busy}>
       <div className="employment-form-grid">
-        <label>회사<input value={form.company} onChange={(event) => field('company', event.target.value)} list="employment-companies" required maxLength={120} autoComplete="organization" /></label>
+        <label>회사<input type="text" value={form.company} onChange={(event) => field('company', event.target.value)} list="employment-companies" required maxLength={120} autoComplete="organization" /></label>
         <datalist id="employment-companies">{options.data.companies.map((company) => <option key={company} value={company} />)}</datalist>
         {(['INDUSTRY', 'ROLE'] as const).map((kind) => { const key = kind === 'INDUSTRY' ? 'industryId' : 'roleId'; const current = initial && !options.data!.options.some((item) => item.id === form[key]); return <label key={kind}>{kind === 'INDUSTRY' ? '계열' : '직무'}<select value={form[key]} onChange={(event) => field(key, event.target.value)} required><option value="">선택</option>{current && <option value={initial[key]}>{kind === 'INDUSTRY' ? initial.industry : initial.role}</option>}{options.data!.options.filter((item) => item.kind === kind).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label> })}
         <label>결과<select value={form.outcome} onChange={(event) => field('outcome', event.target.value as EmploymentOutcome)}><option value="ACCEPTED">합격</option><option value="REJECTED">불합격</option></select></label>
