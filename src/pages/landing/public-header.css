@@ -34,10 +34,18 @@
   .recruiting-site.recruiting-site .recruiting-header { padding-inline: 8px; }
 }
 
-/* Keep every destination visible on narrow phones. */
+/* Keep the mobile logo and navigation on one compact baseline. */
 @media (max-width: 480px) {
   .jungle-site.jungle-site .jungle-header,
-  .recruiting-site.recruiting-site .recruiting-header { height: auto; min-height: 56px; flex-wrap: wrap; gap: 2px; padding-block: 6px; }
+  .recruiting-site.recruiting-site .recruiting-header { height: 48px; min-height: 48px; flex-wrap: nowrap; gap: 12px; padding: 6px 10px; }
+  .jungle-site.jungle-site .jungle-header img.public-header-symbol,
+  .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol { width: 18px; height: 22px; }
+  .jungle-site.jungle-site .jungle-header .jungle-logo img.jungle-brand-image,
+  .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol) { width: 48px; height: 22px; }
   .jungle-site.jungle-site .jungle-header nav,
-  .recruiting-site.recruiting-site .recruiting-header nav { width: 100%; justify-content: space-between; gap: 8px; font-size: 11px; }
+  .recruiting-site.recruiting-site .recruiting-header nav { width: auto; flex: 1; justify-content: space-between; flex-wrap: nowrap; gap: 10px; font-size: 10px; overflow-x: auto; scrollbar-width: none; }
+  .jungle-site.jungle-site .jungle-header nav::-webkit-scrollbar,
+  .recruiting-site.recruiting-site .recruiting-header nav::-webkit-scrollbar { display: none; }
+  .jungle-site.jungle-site .jungle-header nav a,
+  .recruiting-site.recruiting-site .recruiting-header nav a { flex-shrink: 0; font-size: inherit; min-height: 34px; }
 }
