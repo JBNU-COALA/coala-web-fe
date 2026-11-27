@@ -13,7 +13,7 @@ export type CtfWorkspace = { api: CtfApi; session: CtfSession | null }
 export function HackingPage() {
   const { user, isLoggedIn } = useAuth()
   const api = useMemo(() => createCtfApi(), [])
-  const session: CtfSession | null = isLoggedIn && user ? { user: { id: user.id, username: user.nickname || `학습자 ${user.id}`, is_admin: user.role !== 'USER' } } : null
+  const session: CtfSession | null = isLoggedIn && user ? { user: { id: user.id, username: user.nickname?.trim() || user.name, is_admin: user.role !== 'USER' } } : null
   return <section className="ctf-workspace" aria-label="해킹 실습">
     <div key={session?.user.id ?? 'guest'}><Routes>
       <Route index element={<Navigate to={routes.education.hacking.challenges} replace />} />

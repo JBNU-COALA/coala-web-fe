@@ -27,6 +27,49 @@
 .ctf-table a { color: var(--text-primary); font-weight: 650; text-decoration: none; }
 .ctf-table a:hover { text-decoration: underline; }
 .ctf-table tr.is-self { background: #f5f5f5; }
+.ctf-scoreboard th:first-child, .ctf-scoreboard td:first-child { width: 80px; min-width: 64px; text-align: center; }
+.ctf-scoreboard th:nth-child(n+3), .ctf-scoreboard td:nth-child(n+3) { width: 120px; text-align: right; }
+.ctf-rank-trophy { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 52px; padding: 6px; border-radius: 10px; }
+.ctf-rank-trophy--1 { color: #bb8b20; background: #fff7df; }
+.ctf-rank-trophy--2 { color: #8190a3; background: #f0f3f7; }
+.ctf-rank-trophy--3 { color: #ad7752; background: #faf0e8; }
+.ctf-rank-trophy strong { font-size: 14px; }
+.ctf-rank-number { color: #777; font-variant-numeric: tabular-nums; }
+.ctf-score-name { display: inline-flex; align-items: center; gap: 8px; font-weight: 550; }
+.ctf-self-badge { padding: 2px 6px; border-radius: 5px; background: #e3eee8; color: #446552; font-size: 10px; font-weight: 500; }
+.ctf-score-points { font-weight: 650; font-variant-numeric: tabular-nums; }
+.ctf-score-points small { margin-left: 3px; color: #888; font-size: 10px; font-weight: 400; }
+.ctf-podium { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin: 8px 0 28px; }
+.ctf-podium-card { --rank-color: #b58a2f; position: relative; display: flex; flex-direction: column; align-items: center; min-width: 0; padding: 28px 20px 22px; border: 1px solid #e2e5e8; border-radius: 10px; background: #fff; text-align: center; }
+.ctf-podium-card--2 { --rank-color: #74869d; }
+.ctf-podium-card--3 { --rank-color: #ad7856; }
+.ctf-podium-ribbon { position: absolute; top: -1px; left: 18px; display: grid; place-items: center; width: 44px; height: 62px; padding-bottom: 10px; box-sizing: border-box; background: var(--rank-color); color: #fff; font-size: 15px; font-weight: 700; clip-path: polygon(0 0, 100% 0, 100% 73%, 50% 100%, 0 73%); }
+.ctf-podium-card > .character-avatar, .ctf-podium-empty-avatar { width: 88px; height: 88px; flex: 0 0 88px; margin: 4px 0 16px; border: 3px solid #f0f1f2; border-radius: 50%; }
+.ctf-podium-empty-avatar { display: grid; place-items: center; background: #fafafa; opacity: .5; }
+.ctf-podium-card h3 { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px; margin: 0 0 18px; font-size: 16px; color: #333; overflow-wrap: anywhere; }
+.ctf-podium-stats { display: grid; grid-template-columns: 1fr 1fr; width: 100%; margin-top: auto; }
+.ctf-podium-stats > div { display: grid; gap: 5px; padding-inline: 8px; }
+.ctf-podium-stats > div + div { border-left: 1px solid #e5e7eb; }
+.ctf-podium-stats strong { color: #5488c4; font-size: 24px; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.ctf-podium-stats > div + div strong { color: #777; }
+.ctf-podium-stats span, .ctf-podium-card > p { color: #888; font-size: 12px; }
+.ctf-podium-card.is-empty { background: #fcfcfc; border-style: dashed; }
+.ctf-podium-card.is-empty .ctf-podium-ribbon { opacity: .45; }
+.ctf-podium-card.is-empty h3 { color: #888; font-size: 13px; }
+.ctf-score-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 14px; color: #888; font-size: 12px; }
+.ctf-score-toolbar > .search-field { max-width: 300px; }
+@media (max-width: 640px) {
+  .ctf-podium { gap: 8px; }
+  .ctf-podium-card { padding: 44px 8px 14px; border-radius: 8px; }
+  .ctf-podium-ribbon { left: 10px; width: 30px; height: 40px; padding-bottom: 7px; font-size: 11px; }
+  .ctf-podium-card > .character-avatar, .ctf-podium-empty-avatar { width: 54px; height: 54px; flex-basis: 54px; margin-bottom: 10px; }
+  .ctf-podium-card h3 { font-size: 12px; margin-bottom: 12px; }
+  .ctf-podium-stats { grid-template-columns: 1fr; gap: 8px; }
+  .ctf-podium-stats > div + div { border-left: 0; }
+  .ctf-podium-stats strong { font-size: 19px; }
+  .ctf-podium-stats span, .ctf-podium-card > p { font-size: 10px; }
+  .ctf-podium-card.is-empty h3 { font-size: 11px; }
+}
 .ctf-status { display: inline-block; margin-left: 5px; font-size: 12px; color: var(--text-muted); }
 .ctf-status.is-solved { color: #404040; font-weight: 700; }
 .ctf-solved-card { display: flex; align-items: center; gap: 14px; padding: 20px; border: 1px solid #cce5dc; border-radius: 12px; background: linear-gradient(120deg, #f0faf6, #fafdfb); }
