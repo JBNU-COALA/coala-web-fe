@@ -1,3 +1,4 @@
+import { AdminSearch } from './AdminSearch'
 import { useCallback, useState } from 'react'
 import client from '../../shared/api/client'
 import { useApiResource } from '../../shared/hooks/useApiResource'
@@ -10,11 +11,11 @@ import { adminEducationApi } from '../../shared/api/adminEducation'
 export function AdminOperationsPanel({ onNavigate }: { onNavigate: (destination: AdminDestination) => void }) {
   const [revision, setRevision] = useState(0)
   const load = useCallback(async (signal: AbortSignal) => (await client.get<{ counts: Record<string, number | null> }>('/api/admin/operations', { signal })).data, [])
-  const resource = useApiResource(load, revision)
+  const resource = useApiResource(load, revision, 10000)
   const counts = resource.data?.counts
   const countKeys: Partial<Record<AdminDestination, string>> = { users: 'members', posts: 'posts', comments: 'comments', boards: 'boards', activity: 'records', archive: 'archives', education: 'challenges', employment: 'reviews' }
   return <div className="admin-operations"><AdminSeedPanel onInstalled={() => setRevision((value) => value + 1)} />
-    <section className="admin-workspace-directory"><div className="admin-section-heading"><h3>관리 영역</h3><button type="button" className="admin-icon-button" title="관리 현황 새로고침" aria-label="관리 현황 새로고침" onClick={() => setRevision((value) => value + 1)}><Icon name="refresh" size={16} /></button></div><AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />
+    <section className="admin-workspace-directory"><div className="admin-section-heading"><h3>관리 영역</h3></div><AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />
       <div className="admin-directory-list">{adminDestinations.filter((item) => item.id !== 'stats').map((item) => <button type="button" key={item.id} onClick={() => onNavigate(item.id)}><Icon name={item.icon} size={17} /><span>{item.label}</span><small>{counts && countKeys[item.id] ? counts[countKeys[item.id]!] ?? '-' : item.group}</small><Icon name="chevron-right" size={14} /></button>)}</div>
     </section></div>
 }
@@ -22,9 +23,9 @@ export function AdminAuditPanel() {
   const [revision, setRevision] = useState(0)
   const [query, setQuery] = useState('')
   const load = useCallback(async (signal: AbortSignal) => (await client.get<import('../../shared/api/admin').AdminActionLog[]>('/api/admin/audit-logs', { signal })).data, [])
-  const resource = useApiResource(load, revision)
+  const resource = useApiResource(load, revision, 10000)
   const rows = resource.data?.filter((row) => `${row.adminName} ${row.action} ${row.targetType} ${row.reason ?? ''}`.toLowerCase().includes(query.toLowerCase())) ?? []
-  return <section><div className="admin-toolbar"><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="작업 기록 검색" placeholder="작업 기록 검색" value={query} onChange={(event) => setQuery(event.target.value)} /></label></div><AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />
+  return <section><div className="admin-toolbar"><AdminSearch><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="작업 기록 검색" placeholder="작업 기록 검색" value={query} onChange={(event) => setQuery(event.target.value)} /></label></AdminSearch></div><AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />
     <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>시간</th><th>관리자</th><th>작업</th><th>대상</th><th>사유 · 참조</th></tr></thead><tbody>{rows.map((row) => <tr key={row.id}><td>{new Date(row.createdAt).toLocaleString('ko-KR')}</td><td>{row.adminName}</td><td>{row.action}</td><td>{row.targetType} {row.targetId || ''}</td><td>{row.reason}</td></tr>)}</tbody></table></div>{resource.data && rows.length === 0 && <p className="admin-empty">작업 기록이 없습니다.</p>}
   </section>
 }
@@ -33,9 +34,9 @@ export function AdminEducationActivity({ mode }: { mode: 'learners' | 'instances
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState('')
   const [stopId, setStopId] = useState<string | null>(null)
-  const learners = useApiResource(adminEducationApi.learners, revision)
-  const instances = useApiResource(adminEducationApi.instances, revision)
-  const runtime = useApiResource(adminEducationApi.runtime, revision)
+  const learners = useApiResource(adminEducationApi.learners, revision, 10000)
+  const instances = useApiResource(adminEducationApi.instances, revision, 10000)
+  const runtime = useApiResource(adminEducationApi.runtime, revision, 10000)
   const stop = async () => { if (!stopId || busy) return; setBusy(stopId); try { await adminEducationApi.stop(stopId); setStopId(null); setRevision((value) => value + 1) } catch { setError('실습 환경을 종료하지 못했습니다.') } finally { setBusy(null) } }
   const resource = mode === 'learners' ? learners : instances
   return <section><div className="admin-section-heading"><h3>{mode === 'learners' ? '학습 현황' : '실행 환경'}</h3><button type="button" className="admin-icon-button" aria-label="학습 현황 새로고침" title="새로고침" onClick={() => setRevision((value) => value + 1)}><Icon name="refresh" size={16} /></button></div>

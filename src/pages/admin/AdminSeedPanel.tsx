@@ -6,7 +6,7 @@ import { Icon } from '../../shared/ui/Icon'
 
 export function AdminSeedPanel({ onInstalled }: { onInstalled?: () => void }) {
   const [revision, setRevision] = useState(0)
-  const seed = useApiResource(adminEducationApi.seed, revision)
+  const seed = useApiResource(adminEducationApi.seed, revision, 10000)
   const [confirm, setConfirm] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')

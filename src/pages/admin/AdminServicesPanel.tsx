@@ -1,3 +1,4 @@
+import { AdminSearch } from './AdminSearch'
 import { AdminDetail } from './AdminDetail'
 import { useState, type FormEvent } from 'react'
 import { adminApi, type AdminServicePayload } from '../../shared/api/admin'
@@ -29,7 +30,7 @@ export function AdminServicesPanel({ services, onChange }: { services: MemberSer
   return <div className="admin-two-column">
     <section className="admin-panel"><div className="admin-panel-header"><h3>회원 서비스</h3><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => { setSelectedId(null); setGeneration((value) => value + 1); setFeedback(''); setEditorOpen(true) }}><Icon name="plus" size={15} />서비스 추가</button></div>
       {feedback && <p role="status" className="admin-feedback">{feedback}</p>}
-      <label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="서비스 검색" placeholder="서비스 이름, 운영자 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
+      <AdminSearch><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="서비스 검색" placeholder="서비스 이름, 운영자 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label></AdminSearch>
       <select className="admin-inline-select" aria-label="서비스 상태" value={status} onChange={(e) => setStatus(e.target.value)}><option value="all">전체 상태</option>{['운영중', '운영중지', '운영완료'].map((value) => <option key={value}>{value}</option>)}</select>
       <div className="admin-list">{filtered.map((service) => <button type="button" key={service.id} className={`admin-list-row${selectedId === service.id ? ' is-active' : ''}`} disabled={busy} aria-pressed={selectedId === service.id} onClick={() => { setSelectedId(service.id); setEditorOpen(true) }}><span>{service.title}</span><small>{service.category} · {service.owner}</small><b>{service.status}</b></button>)}{!filtered.length && <p className="admin-empty">조건에 맞는 서비스가 없습니다.</p>}</div>
     </section>

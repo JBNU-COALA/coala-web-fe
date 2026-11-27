@@ -1,3 +1,4 @@
+import { AdminSearch } from './AdminSearch'
 import { AdminDetail } from './AdminDetail'
 import { AdminOverview, type AdminDestination } from './AdminOverview'
 import { AdminUserEditor } from './AdminUserEditor'
@@ -307,7 +308,7 @@ export function AdminPage() {
   const requiresLegacyData = ['stats', 'users', 'boards', 'posts', 'reports', 'services', 'instances'].includes(activeTab)
   const adminContentRef = useAdminReveal(activeTab)
   const setActiveTab = (tab: AdminTab) => setSearchParams({ tab })
-  const [refreshKey, setRefreshKey] = useState(0)
+  const refreshKey = 0
   const [sanctionRevision, setSanctionRevision] = useState(0)
   const [sanctionBusy, setSanctionBusy] = useState(false)
   const [menuQuery, setMenuQuery] = useState('')
@@ -374,11 +375,11 @@ export function AdminPage() {
     (contentType === 'ALL' || post.contentType === contentType) &&
     `${post.title} ${post.authorName ?? ''} ${post.boardName ?? ''}`.toLowerCase().includes(postQuery.trim().toLowerCase()))
 
-  const loadAdminData = async () => {
+  const loadAdminData = async (silent = false) => {
     if (!hasAdminAccess) return
     if (!requiresLegacyData) { setIsLoading(false); setStatusMessage(''); return }
     const sequence = ++loadSequence.current
-    setIsLoading(true)
+    if (!silent) setIsLoading(true)
 
     const [
       usersResult,
@@ -456,7 +457,13 @@ export function AdminPage() {
   useEffect(() => {
     // Server refresh hydrates the selected records and their controlled drafts.
     void loadAdminData()
-    return () => { loadSequence.current += 1 }
+    let pending = false
+    const timer = window.setInterval(async () => {
+      if (pending || document.activeElement?.matches('input, textarea, select')) return
+      pending = true
+      try { await loadAdminData(true) } finally { pending = false }
+    }, 10000)
+    return () => { loadSequence.current += 1; window.clearInterval(timer) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasAdminAccess, reportStatus, requiresLegacyData])
 
@@ -729,9 +736,7 @@ export function AdminPage() {
                 if (event.animationName === 'admin-status-notice') setStatusMessage(current => current === '최신 상태입니다.' ? '' : current)
               }}
             >{isLoading ? '불러오는 중...' : statusMessage}</p>
-            <button type="button" className="admin-refresh-button" title="새로고침" aria-label="새로고침" disabled={isLoading} onClick={() => { setRefreshKey((value) => value + 1); void loadAdminData() }}>
-              <span className={isLoading ? 'admin-refresh-icon is-loading' : 'admin-refresh-icon'} aria-hidden="true"><Icon name="refresh" size={16} /></span>
-            </button>
+
           </div>
         </header>
 
@@ -767,9 +772,9 @@ export function AdminPage() {
                 <h3>회원 목록</h3>
                 <span>{users.length}명</span>
               </div>
-              <label className="admin-member-search"><Icon name="search" size={16} />
+              <AdminSearch><label className="admin-member-search"><Icon name="search" size={16} />
                 <input aria-label="회원 검색" placeholder="이름, 이메일, 학번, 학과 검색" value={userQuery} onChange={(event) => setUserQuery(event.target.value)} />
-              </label>
+              </label></AdminSearch>
               <div className="admin-list">
                 {filteredUsers.length === 0 && <p className="admin-empty">검색 결과가 없습니다.</p>}
                 {filteredUsers.map((item) => (
@@ -884,7 +889,7 @@ export function AdminPage() {
                     ))}
                   </select>
                 </div>
-                <label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="게시글 검색" placeholder="제목, 작성자, 게시판 검색" value={postQuery} onChange={(event) => setPostQuery(event.target.value)} /></label>
+                <AdminSearch><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="게시글 검색" placeholder="제목, 작성자, 게시판 검색" value={postQuery} onChange={(event) => setPostQuery(event.target.value)} /></label></AdminSearch>
                 <select className="admin-inline-select" aria-label="게시글 유형" value={contentType} onChange={(event) => setContentType(event.target.value)}>
                   <option value="ALL">전체 유형</option><option value="POST">게시판</option><option value="INFO">정보공유</option><option value="RECRUIT">모집</option>
                 </select>

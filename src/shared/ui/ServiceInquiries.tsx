@@ -63,11 +63,19 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
   useEffect(() => {
     let active = true
     const load = kind === 'instances' ? servicesApi.getInquiries : servicesApi.getDomainInquiries
-    load()
-      .then((data) => { if (active) setItems(data) })
+    const fetchItems = () => load()
+      .then((data) => { if (active) { setItems(data); setLoadError('') } })
       .catch(() => { if (active) setLoadError('문의 내역을 불러오지 못했습니다. 다시 시도해 주세요.') })
       .finally(() => { if (active) setLoading(false) })
-    return () => { active = false }
+    let pending = false
+    const refresh = async () => {
+      if (pending || submitting.current) return
+      pending = true
+      try { await fetchItems() } finally { pending = false }
+    }
+    void refresh()
+    const timer = window.setInterval(() => { void refresh() }, 20000)
+    return () => { active = false; window.clearInterval(timer) }
   }, [kind, revision])
 
   const reload = () => {
@@ -109,13 +117,10 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
   return <section className="service-inquiries" aria-label={`${serviceNames[kind]} 문의사항`}>
     <header className="service-inquiries-header service-inquiries-header--untitled">
       <div className="service-inquiries-actions">
-        <button type="button" className="service-inquiries-icon service-inquiries-refresh" aria-label="새로고침" data-tooltip="새로고침" onClick={reload} disabled={loading || saving}>
-          <Icon name="refresh" size={18} />
-        </button>
-        <button type="button" className="service-inquiries-icon" disabled={saving}
+        <button type="button" className="service-inquiries-write" disabled={saving}
           aria-label={writing ? '작성 닫기' : '문의 작성'} data-tooltip={writing ? '작성 닫기' : '문의 작성'}
           aria-expanded={writing} aria-controls={formId} onClick={() => { setWriting((value) => !value); setMessage('') }}>
-          <Icon name={writing ? 'close' : 'pencil-color'} size={18} />
+          <Icon name={writing ? 'close' : 'pencil-color'} size={14} />{writing ? '닫기' : '글 작성'}
         </button>
       </div>
     </header>

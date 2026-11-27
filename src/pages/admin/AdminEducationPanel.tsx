@@ -1,3 +1,4 @@
+import { AdminSearch } from './AdminSearch'
 import { useCallback, useState } from 'react'
 import { adminEducationApi, type ManagedChallenge } from '../../shared/api/adminEducation'
 import { featureError } from '../../shared/api/featureError'
@@ -22,10 +23,10 @@ export function AdminEducationPanel() {
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
-  const subjects = useApiResource(adminEducationApi.subjects, revision)
-  const challenges = useApiResource(adminEducationApi.challenges, revision)
+  const subjects = useApiResource(adminEducationApi.subjects, revision, 10000)
+  const challenges = useApiResource(adminEducationApi.challenges, revision, 10000)
   const loadCourses = useCallback((signal: AbortSignal) => adminEducationApi.courses(subject, signal), [subject])
-  const courses = useApiResource(loadCourses, revision)
+  const courses = useApiResource(loadCourses, revision, 10000)
   const [showSeed, setShowSeed] = useState(false)
   const [importFile, setImportFile] = useState<File | null>(null)
   const kind: EducationKind = view === 'courses' ? 'courses' : view === 'challenges' ? 'challenges' : 'subjects'
@@ -44,7 +45,7 @@ export function AdminEducationPanel() {
     {showSeed && <AdminSeedPanel onInstalled={() => setRevision((value) => value + 1)} />}
     {message && <p className="admin-feedback" role="status">{message}</p>}{error && <p className="admin-error" role="alert">{error}</p>}
     {view === 'learners' || view === 'instances' ? <AdminEducationActivity key={view} mode={view} /> : <>
-      <div className="admin-toolbar"><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="교육 콘텐츠 검색" placeholder="이름 · ID 검색" value={query} onChange={(event) => setQuery(event.target.value)} /></label>{view === 'courses' && <select className="admin-inline-select" aria-label="분야 필터" value={subject} onChange={(event) => { setSubject(event.target.value); setEditing(null) }}>{subjects.data?.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>}</div>
+      <div className="admin-toolbar"><AdminSearch><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="교육 콘텐츠 검색" placeholder="이름 · ID 검색" value={query} onChange={(event) => setQuery(event.target.value)} /></label></AdminSearch>{view === 'courses' && <select className="admin-inline-select" aria-label="분야 필터" value={subject} onChange={(event) => { setSubject(event.target.value); setEditing(null) }}>{subjects.data?.map((row) => <option key={row.id} value={row.id}>{row.name}</option>)}</select>}</div>
       <AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />
       <div className={`admin-catalog-layout${editing ? ' has-editor' : ''}`}><div className="admin-catalog-list"><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>이름</th><th>상태</th><th>{view === 'challenges' ? '점수' : '분류'}</th><th><span className="sr-only">편집</span></th></tr></thead><tbody>{pages.pageItems.map((row) => <tr className={editing?.row?.id === row.id ? 'is-selected' : ''} key={row.id}><td><button type="button" className="admin-record-link" disabled={busy} onClick={() => void choose(row)}>{'name' in row ? row.name : row.title}</button><small className="admin-record-id">{row.id}</small></td><td><span className={`admin-state ${row.published ? 'is-ready' : ''}`}>{row.published ? '공개' : '비공개'}</span></td><td>{'points' in row ? (row as ManagedChallenge).points : 'kind' in row ? row.kind === 'GUIDE' ? '문서' : row.kind === 'TRACK' ? '트랙' : '과정' : 'courseCount' in row ? `${row.courseCount}개 과정` : '-'}</td><td><button type="button" className="admin-icon-button" aria-label={`${'name' in row ? row.name : row.title} 편집`} title="편집" disabled={busy} onClick={() => void choose(row)}><Icon name="edit" size={15} /></button></td></tr>)}</tbody></table></div>{resource.data && rows.length === 0 && <p className="admin-empty">등록된 항목이 없습니다.</p>}<Pagination {...pages} onChange={pages.setPage} /></div>
         {editing && <AdminEducationEditor key={editing.key} kind={kind} subjectId={subject} initial={editing.row} subjects={subjects.data ?? []} challenges={challenges.data ?? []} onSaved={saved} onClose={() => setEditing(null)} />}

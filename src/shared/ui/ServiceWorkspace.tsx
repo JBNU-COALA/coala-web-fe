@@ -42,7 +42,7 @@ export function ServiceWorkspace({ kind, form, list }: {
       </button>)}
       {isAdminUser(user) && <button type="button" className="service-workspace-tab"
         onClick={() => navigate(`${routes.admin}?tab=${kind}`)}>
-        <Icon name="settings" size={14} />관리자
+        <Icon name="profile-color" size={14} />관리자
       </button>}
     </nav>
     <div className="jcloud-tab-content service-workspace-content" key={`${kind}:${tab}:${user?.id ?? 'guest'}`}>
