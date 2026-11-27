@@ -2,6 +2,9 @@
 .admin-page .admin-main > * { min-width: 0; }
 .admin-page .admin-banner-editor { scroll-margin-top: 90px; }
 .admin-page .admin-comment-content { white-space: pre-wrap; max-width: 550px; margin: 8px 0; }
+.admin-page .admin-sanction-row { display: flex; gap: 12px; align-items: start; padding-block: 14px; border-bottom: 1px solid #eee; }
+.admin-page .admin-sanction-row > div { flex: 1; min-width: 0; }
+.admin-page .admin-sanction-row :is(p,small) { margin: 6px 0; color: #777; font-size: 12px; }
 .admin-page .admin-banner-preview > img { max-height: none; aspect-ratio: 30 / 11; }
 .admin-page .admin-banner-preview { background: #e5f0eb; border-color: #a8cdbb; }
 .admin-page .admin-banner-preview--blue { background: #e5edf6; border-color: #abc8ed; }

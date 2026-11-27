@@ -32,6 +32,7 @@ import { AdminEducationPanel } from './AdminEducationPanel'
 import { AdminEmploymentPanel } from './AdminEmploymentPanel'
 import { AdminArchivePanel } from './AdminArchivePanel'
 import { AdminCommentsPanel } from './AdminCommentsPanel'
+import { AdminSanctionsPanel } from './AdminSanctionsPanel'
 import { AdminAuditPanel, AdminOperationsPanel } from './AdminOperationsPanel'
 import { adminDestinations } from './adminSections'
 import { Icon } from '../../shared/ui/Icon'
@@ -307,6 +308,8 @@ export function AdminPage() {
   const adminContentRef = useAdminReveal(activeTab)
   const setActiveTab = (tab: AdminTab) => setSearchParams({ tab })
   const [refreshKey, setRefreshKey] = useState(0)
+  const [sanctionRevision, setSanctionRevision] = useState(0)
+  const [sanctionBusy, setSanctionBusy] = useState(false)
   const [menuQuery, setMenuQuery] = useState('')
   const [postQuery, setPostQuery] = useState('')
   const [contentType, setContentType] = useState('ALL')
@@ -550,7 +553,8 @@ export function AdminPage() {
 
   const sanctionSelectedUser = async (event: FormEvent) => {
     event.preventDefault()
-    if (!selectedUser || !sanctionDraft.reason.trim()) return
+    if (!selectedUser || !sanctionDraft.reason.trim() || sanctionBusy) return
+    setSanctionBusy(true)
     try {
       await adminApi.sanctionUser({
         userId: selectedUser.id,
@@ -560,10 +564,11 @@ export function AdminPage() {
       })
       setSanctionDraft({ type: 'WARNING', reason: '', endAt: '' })
       setStatusMessage('유저 제재를 등록했습니다.')
+      setSanctionRevision((value) => value + 1)
       await refreshAuditLogs()
     } catch {
       setStatusMessage('유저 제재 등록에 실패했습니다.')
-    }
+    } finally { setSanctionBusy(false) }
   }
 
   const runPostAction = async (action: 'hide' | 'restore' | 'delete' | 'lock' | 'unlock') => {
@@ -662,6 +667,13 @@ export function AdminPage() {
     }
   }
 
+  const inspectReport = (report: AdminReport) => {
+    if (report.targetType === 'COMMENT') { setSearchParams({ tab: 'comments', q: `#${report.targetId}` }); return }
+    if (report.targetType === 'USER') { setSelectedUserId(report.targetId); setUserQuery(''); setActiveTab('users'); return }
+    setSelectedContentKey(posts.find((post) => post.contentType === 'POST' && post.postId === report.targetId)?.contentKey ?? null)
+    setPostQuery(''); setPostStatus('ALL'); setContentType('POST'); setActiveTab('posts')
+  }
+
   const saveInstance = async (nextStatus?: ApplyStatus) => {
     if (!selectedInstance) return
     try {
@@ -746,7 +758,7 @@ export function AdminPage() {
           instances: isLoading || loadFailures.includes('instances') ? null : stats.pendingInstances,
         }} logs={auditLogs} logsUnavailable={loadFailures.includes('logs')} onNavigate={setActiveTab} />}
         {activeTab === 'reports' && !isLoading && !loadFailures.includes('reports') && <ReportsPanel reports={reports} reportStatus={reportStatus}
-          onStatusChange={setReportStatus} onHandle={handleReport} />}
+          onStatusChange={setReportStatus} onHandle={handleReport} onInspect={inspectReport} />}
 
         {activeTab === 'users' && !isLoading && !loadFailures.includes('users') ? (
           <div className={`admin-two-column admin-master-detail admin-members-workspace${selectedUser ? ' has-selection' : ''}`}>
@@ -821,7 +833,7 @@ export function AdminPage() {
                     onChange={(event) =>
                       setSanctionDraft((current) => ({ ...current, type: event.target.value as AdminUserSanctionType }))
                     }
-                    disabled={!selectedUser}
+                    disabled={!selectedUser || sanctionBusy}
                   >
                     {sanctionOptions.map((option) => (
                       <option key={option.value} value={option.value}>{option.label}</option>
@@ -832,23 +844,25 @@ export function AdminPage() {
                   <input
                     type="datetime-local"
                     value={sanctionDraft.endAt}
-                    disabled={!selectedUser}
+                    disabled={!selectedUser || sanctionBusy}
                     onChange={(event) => setSanctionDraft((current) => ({ ...current, endAt: event.target.value }))}
                   />
                 </Field>
                 <Field label="사유">
                   <textarea
                     rows={3}
+                    maxLength={500}
                     value={sanctionDraft.reason}
-                    disabled={!selectedUser}
+                    disabled={!selectedUser || sanctionBusy}
                     onChange={(event) => setSanctionDraft((current) => ({ ...current, reason: event.target.value }))}
                   />
                 </Field>
-                <button type="submit" className="admin-primary-button" disabled={!selectedUser || !sanctionDraft.reason.trim()}>
+                <button type="submit" className="admin-primary-button" disabled={!selectedUser || !sanctionDraft.reason.trim() || sanctionBusy}>
                   <Icon name="bell" size={15} />
                   제재 저장
                 </button>
               </form>
+              {selectedUser && <AdminSanctionsPanel key={selectedUser.id} userId={selectedUser.id} refreshKey={sanctionRevision + refreshKey} canRevoke={normalizeRole(user.role) === 'SUPER_ADMIN' || normalizeRole(selectedUser.role) === 'USER'} />}
             </div></AdminDetail>}
           </div>
         ) : null}
@@ -1269,11 +1283,13 @@ function ReportsPanel({
   reportStatus,
   onStatusChange,
   onHandle,
+  onInspect,
 }: {
   reports: AdminReport[]
   reportStatus: AdminReportStatus
   onStatusChange: (status: AdminReportStatus) => void
   onHandle: (report: AdminReport, status: AdminReportStatus) => void
+  onInspect: (report: AdminReport) => void
 }) {
   return (
     <div className="admin-panel">
@@ -1293,10 +1309,8 @@ function ReportsPanel({
       <DataTable
         headers={['대상', '사유', '상태', '신고자', '시각', '']}
         rows={reports.map((report) => [
-          `${report.targetType} #${report.targetId}`,
-          <span key={report.id} className={`admin-chip admin-chip--${cssToken(report.reasonType)}`}>
-            {report.reasonType}
-          </span>,
+          <button key={`${report.id}-target`} type="button" className="admin-record-link" onClick={() => onInspect(report)}>{report.targetType} #{report.targetId}</button>,
+          <div key={report.id}><span className={`admin-chip admin-chip--${cssToken(report.reasonType)}`}>{report.reasonType}</span>{report.reasonDetail && <p className="admin-comment-content">{report.reasonDetail}</p>}</div>,
           report.status,
           String(report.reporterId),
           formatDate(report.createdAt),

@@ -18,7 +18,8 @@ The supplied CTF YAML/Markdown is an import source, not the live application dat
 - `/community/employment/new`, `/:reviewId`, `/:reviewId/editor`: verified member writing, public reading, owner/moderator editing and deletion.
 - `/admin?tab=education`: subjects, structured courses/documents, problems, attachment uploads, learner history and execution readiness/termination.
 - `/admin?tab=employment`: review search/edit/delete and DB-backed industry/job-role taxonomy, including unpublishing options without destroying old reviews.
-- `/admin?tab=archive`, `/admin?tab=audit`: archive CRUD and searchable audit history. The searchable dashboard directory covers all 16 existing/new management areas.
+- `/admin?tab=archive`, `/admin?tab=audit`: archive CRUD and searchable audit history. The searchable dashboard directory covers 17 management areas.
+- The expanded 17-area dashboard also includes comment moderation, direct report-target inspection and sanction history/release. Full operational coverage and permission boundaries: [Administrator Coverage](ADMIN_MANAGEMENT.md).
 
 Subject metadata and course counts are fetched, not hardcoded. `subjects.ts` contains only route/icon mapping. Future subjects are siblings of hacking, not CTF categories. Algorithms supports real courses/documents/progress, but no algorithm judge is fabricated.
 
@@ -43,8 +44,8 @@ The development preview uses a persistent **local H2 file**, not production Post
 
 ## Verification
 
-- Education/employment/admin plus existing route/notification tests: 70 passed (12 files, single worker). Production build and changed-file ESLint passed.
-- The full frontend run retains 4 existing failures in unchanged attendance editor/group-selection tests (3) and post-report button test (1); 220 of 224 tests pass, including all new feature tests.
+- Full frontend regression suite: 249 passed (46 files, single worker) after integrating the concurrent responsive-UI changes. Production build and changed-file ESLint passed.
+- The previous four failures are resolved: three attendance tests now use the real custom selection control, and the missing post-report action is restored. The backend suite passes all 166 tests.
 - Backend integration tests cover real 120-problem/six-track/four-guide import, ownership, permissions, privacy, progress, create-only reimport, optimistic versions and database constraints. Runtime bridge has separate signature/replay/path/grader tests.
 - User-supplied source has six tracks: first/second/third/fourth year and advanced are 12 weeks; BoB preparation is 16. Guides preserve supplied content; time-sensitive program/admissions claims have not been independently re-researched.
 - Real local-browser checks: review creation/reload/result update, record survival across backend restart, mobile list/editor at 390/360px, six-track curriculum/four guides, lesson completion persistence and administrator catalogs. Temporary QA review removed; no real reviews seeded. Screenshot review used a temporary in-app browser tab, which was closed. Ego screenshot capture timed out; DOM checks and the independent screenshot were used without claiming a successful Ego image.

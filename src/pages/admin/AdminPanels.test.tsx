@@ -13,6 +13,7 @@ import { AdminDomainsPanel } from './AdminDomainsPanel'
 import { AdminServicesPanel } from './AdminServicesPanel'
 import { AdminInquiriesPanel } from './AdminInquiriesPanel'
 import { attachmentsApi } from '../../shared/api/attachments'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
@@ -95,10 +96,11 @@ describe('admin management panels', () => {
     render(<AdminBannersPanel refreshKey={0} />)
     fireEvent.click(await screen.findByRole('button', { name: /기존 배너/ }))
     fireEvent.change(screen.getByLabelText('노출 순서'), { target: { value: '2' } })
+    fireEvent.click(screen.getByRole('button', { name: '코랄' }))
     fireEvent.click(screen.getByLabelText('홈에 공개'))
     fireEvent.click(screen.getByRole('button', { name: '배너 저장' }))
     await screen.findByText('배너를 저장했습니다.')
-    expect(update).toHaveBeenCalledWith(3, expect.objectContaining({ sortOrder: 2, enabled: false, tone: 'blue' }))
+    expect(update).toHaveBeenCalledWith(3, expect.objectContaining({ sortOrder: 2, enabled: false, tone: 'coral' }))
     fireEvent.click(screen.getByRole('button', { name: '삭제' }))
     expect(remove).not.toHaveBeenCalled()
     confirm.mockReturnValue(true)
@@ -202,7 +204,7 @@ describe('banner media management', () => {
     fireEvent.change(screen.getByLabelText('배너 이미지 파일'), { target: { files: [file] } })
     await screen.findByText('이미지를 연결했습니다.')
     expect(upload).toHaveBeenCalledWith(file)
-    expect(screen.getByRole('img', { name: '배너 이미지' }).getAttribute('src')).toBe('/media/attachments/8/download')
+    expect(screen.getByRole('img', { name: '배너 이미지' }).getAttribute('src')).toBe(resolveApiAssetUrl('/media/attachments/8/download'))
     expect(screen.queryByRole('heading', { name: '이미지 배너' })).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: '배너 저장' }))
     await screen.findByText('배너를 저장했습니다.')

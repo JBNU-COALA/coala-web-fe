@@ -6,6 +6,12 @@ import { AdminCommentsPanel } from './AdminCommentsPanel'
 vi.mock('../../shared/api/adminComments', () => ({ adminCommentsApi: { list: vi.fn(), act: vi.fn() } }))
 beforeEach(() => { vi.mocked(adminCommentsApi.list).mockResolvedValue({ comments: [{ id: 3, postId: 1, boardId: 2, content: '관리 대상 댓글', postTitle: '원문 글', status: 'ACTIVE', createdAt: '', reply: false }], totalElements: 1, totalPages: 1 }); vi.mocked(adminCommentsApi.act).mockReset().mockResolvedValue(undefined) })
 afterEach(cleanup)
+it('opens a reported comment directly by its server-side ID search', async () => {
+  render(<MemoryRouter initialEntries={['/admin?tab=comments&q=%233']}><AdminCommentsPanel /></MemoryRouter>)
+  await screen.findByText('관리 대상 댓글')
+  expect((screen.getByLabelText('댓글 검색') as HTMLInputElement).value).toBe('#3')
+  expect(adminCommentsApi.list).toHaveBeenCalledWith('', '#3', 0, expect.any(AbortSignal))
+})
 it('requires a reason, confirms and calls the existing moderation endpoint once', async () => {
   render(<MemoryRouter><AdminCommentsPanel /></MemoryRouter>)
   fireEvent.click(await screen.findByRole('button', { name: '숨김' }))
