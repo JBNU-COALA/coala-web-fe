@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type DragEvent, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import MDEditor, { commands, type ICommand } from '@uiw/react-md-editor/nohighlight'
@@ -206,13 +207,10 @@ function RecruitApplicationContent({ recruitId }: { recruitId: string | null }) 
       <section className="coala-content coala-content--recruit">
         <CommunityBanner title="지원하기" description="관심 있는 모집 공고에 지원서를 작성해 제출해 보세요." tone="recruit" />
         <div className="surface-card recruit-application-empty">
-          <strong role={loadError || applications.error ? 'alert' : 'status'}>
-            {loadError || applications.error || (loading || applications.loading || item ? '지원서를 불러오는 중입니다.' : '지원할 모집 공고를 찾을 수 없습니다.')}
-          </strong>
-          {(loadError || applications.error) && <button type="button" className="ghost-button retry-button" onClick={() => {
+          {loadError || applications.error ? <LoadErrorState message={loadError || applications.error || ''} onRetry={() => {
             if (loadError) { setLoadError(''); setLoading(true); setRevision((value) => value + 1) }
             if (applications.error) applications.retry()
-          }}>다시 불러오기</button>}
+          }} /> : <strong role="status">{loading || applications.loading || item ? '지원서를 불러오는 중입니다.' : '지원할 모집 공고를 찾을 수 없습니다.'}</strong>}
           <button type="button" className="recruit-row-button recruit-row-button--primary" onClick={() => navigate(routes.community.recruit)}>
             모집 목록
           </button>

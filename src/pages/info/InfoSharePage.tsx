@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRequestScope } from '../../useRequestScope'
 import { infoApi, type InfoArticle, type InfoFilterId } from '../../shared/api/info'
@@ -322,7 +323,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
               )
             })}
 
-            {loading ? <li><LoadingSpinner label="정보를 불러오는 중입니다." /></li> : loadError ? <li className="empty-post-state"><p role="alert">{loadError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setLoading(true); setLoadRevision((value) => value + 1) }}>다시 불러오기</button></li> : visibleResources.length === 0 ? (
+            {loading ? <li><LoadingSpinner label="정보를 불러오는 중입니다." /></li> : loadError ? <li><LoadErrorState message={loadError} onRetry={() => { setLoading(true); setLoadRevision((value) => value + 1) }} /></li> : visibleResources.length === 0 ? (
               <li className="empty-post-state">조건에 맞는 정보가 없습니다.</li>
             ) : null}
           </ul>

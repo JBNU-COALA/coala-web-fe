@@ -73,7 +73,7 @@
 .ctf-instance-list > li > a { grid-column: 1 / -1; color: var(--text-primary); font-weight: 700; overflow-wrap: anywhere; }
 .ctf-instance-list .ctf-instance-status { margin: 0; }
 @media (max-width: 600px) {
-  .ctf-view-heading { align-items: start; }
+  .ctf-view-heading { align-items: center; }
   .ctf-view-heading h2 { font-size: 16px; }
   .ctf-view-heading > span { flex-shrink: 1; text-align: right; }
   .ctf-week-content { padding-left: 0; }
@@ -82,4 +82,22 @@
   .ctf-week summary > span:last-of-type { flex-basis: 100%; padding-left: 28px; }
   .ctf-instance-list > li { grid-template-columns: minmax(0, 1fr); }
   .ctf-instance-list > li > .education-button { justify-self: start; }
+}
+
+/* Align heading actions with compact listing filters. */
+.coala-app .ctf-view-heading { min-height: 32px; align-items: center; gap: 8px; margin-bottom: 12px; }
+.coala-app .ctf-view-heading > .education-icon-button { box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 32px; width: 32px; height: 32px; min-height: 32px; padding: 0; }
+.coala-app .ctf-view-heading > .education-icon-button > svg { width: 15px; height: 15px; }
+.coala-app .ctf-workspace { padding-top: 0; }
+.coala-app .education-page .education-body { padding-top: 8px; }
+.coala-app .ctf-workspace .listing-controls { padding-top: 0; }
+@media (max-width: 900px) {
+  .coala-app .ctf-workspace > .recruit-mobile-navigation { margin: 0 0 12px; }
+  .coala-app .ctf-workspace > .recruit-mobile-navigation .select-control { width: 140px; max-width: 100%; }
+  .coala-app .ctf-workspace .listing-controls-bar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 6px; }
+  .coala-app .ctf-workspace .listing-visible-filters { display: flex; flex: 1 1 270px; flex-wrap: wrap; min-width: 0; gap: 6px; }
+  .coala-app .ctf-workspace .listing-visible-filters > .select-control.custom-select { flex: 1 1 92px; width: auto; min-width: 92px; max-width: none; }
+  .coala-app .ctf-workspace .select-control.custom-select > .select-control-trigger { padding-inline: 8px !important; gap: 5px; font-size: 11px !important; }
+  .coala-app .ctf-workspace .listing-search-toggle { flex: 0 0 32px; margin-left: auto; }
+  .coala-app .ctf-workspace .listing-visible-filters > .select-control:last-child .select-control-menu { left: auto; right: 0; }
 }

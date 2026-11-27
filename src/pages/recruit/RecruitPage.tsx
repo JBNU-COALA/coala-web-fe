@@ -1,3 +1,5 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
+import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { RecruitRoleFields } from './RecruitRoleFields'
@@ -6,7 +8,6 @@ import { mutationError } from '../../shared/api/mutationError'
 import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CommunityBanner } from '../community/CommunityBanner'
-import { SectionNav } from '../../shared/ui/SectionNav'
 import { SearchField } from '../../shared/ui/SearchField'
 import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { ListingControls } from '../../shared/ui/ListingControls'
@@ -27,6 +28,7 @@ import {
 import { useRecruitBookmarks } from './useRecruitBookmarks'
 import { applicationStatusLabel, useRecruitApplications } from './useRecruitApplications'
 import './recruit-workspace.css'
+import { TechStackPicker } from '../../shared/ui/TechStackPicker'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import posthog, { isPostHogConfigured } from '../../posthog'
 
@@ -375,9 +377,6 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     } finally { setCreating(false) }
   }
 
-  const isTabActive = (tabId: Exclude<RecruitMode, 'write'>) =>
-    mode === tabId || (mode === 'write' && tabId === 'manage')
-
   const workspaceTabs: {
     id: Exclude<RecruitMode, 'write'>
     label: string
@@ -392,21 +391,14 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
     <section className="coala-content coala-content--recruit">
       <CommunityBanner title="모집" description="스터디와 프로젝트를 함께할 팀원을 찾고, 관심 있는 모집에 참여해 보세요." tone="recruit" />
 
-      {mode !== 'write' && <SectionNav label="모집 메뉴" className="page-container" items={workspaceTabs}
-        value={workspaceTabs.find((tab) => isTabActive(tab.id))?.id ?? 'list'}
-        onChange={changeMode} action={(
+      {mode !== 'write' && <div className="page-container recruit-page-actions">
+        <div className="recruit-mobile-navigation"><SelectControl label="모집 메뉴" value={mode} options={workspaceTabs.map((tab) => ({ value: tab.id, label: tab.label }))} onChange={changeMode} /></div>
         <button type="button" className="recruit-create-button" onClick={() => changeMode('write')}>
           공고 등록
         </button>
-      )} />}
+      </div>}
       <div ref={panelRef}>
       {actionError ? <p className="auth-error" role="alert">{actionError}</p> : null}
-      {(bookmarks.error || applications.error) && <div className="recruit-load-state">
-        <p role="alert">{bookmarks.error || applications.error}</p><button type="button" className="ghost-button retry-button" onClick={() => {
-          if (bookmarks.error) bookmarks.retry()
-          if (applications.error) applications.retry()
-        }}>다시 불러오기</button>
-      </div>}
 
       {mode === 'write' ? (
         <form className="surface-card recruit-write-panel" onSubmit={handleCreateRecruit}>
@@ -443,16 +435,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
               />
             </label>
             <RecruitRoleFields roles={draft.roles} onChange={(roles) => updateDraft('roles', roles)} />
-            <label className="jcloud-field recruit-write-wide">
-              <span className="jcloud-label">기술 스택 (선택)</span>
-              <input
-                className="jcloud-input"
-                aria-label="기술 스택 (선택)"
-                value={draft.techStack}
-                onChange={(event) => updateDraft('techStack', event.target.value)}
-                placeholder="React, TypeScript, Spring Boot"
-              />
-            </label>
+            <TechStackPicker value={draft.techStack} onChange={(value) => updateDraft('techStack', value)} />
             <label className="jcloud-field">
               <span className="jcloud-label">진행 방식</span>
               <input
@@ -510,14 +493,16 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
           </div>
         </form>
       ) : mode !== 'list' && !isLoggedIn ? (
-        <p className="recruit-load-state" role="status">내 모집 내역은 로그인 후 확인할 수 있습니다.</p>
+        <LoginRequiredState />
       ) : listLoading || (mode === 'applied' && applications.loading) || (mode === 'saved' && bookmarks.loading) ? (
         <LoadingSpinner label="모집 내역을 불러오는 중입니다." />
-      ) : listError ? (
-        <div className="recruit-load-state"><p role="alert">{listError}</p>
-          <button type="button" className="ghost-button retry-button" onClick={() => { setListError(''); setListLoading(true); setListRevision((value) => value + 1) }}>다시 불러오기</button>
-        </div>
-      ) : (mode === 'applied' && applications.error) || (mode === 'saved' && bookmarks.error) ? null : mode === 'applied' || mode === 'saved' ? (
+      ) : listError || (mode === 'applied' && applications.error) || (mode === 'saved' && bookmarks.error) ? (
+        <LoadErrorState message={(mode === 'applied' && applications.error) || (mode === 'saved' && bookmarks.error) || listError} onRetry={() => {
+          if (listError) { setListError(''); setListLoading(true); setListRevision((value) => value + 1) }
+          if (mode === 'applied' && applications.error) applications.retry()
+          if (mode === 'saved' && bookmarks.error) bookmarks.retry()
+        }} />
+      ) : mode === 'applied' || mode === 'saved' ? (
         <section className="recruit-dashboard-panel">
           <RecruitList
             items={mode === 'applied' ? appliedItems : savedItems}

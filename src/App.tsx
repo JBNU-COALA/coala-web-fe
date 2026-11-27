@@ -30,6 +30,8 @@ import './styles/content-refinements.css'
 import './pages/home/portal-badge-colors.css'
 import './styles/compact-actions.css'
 import './styles/mobile-layout.css'
+import './styles/mobile-density.css'
+import './styles/compact-inputs.css'
 import { LandingPage } from './pages/landing/LandingPage'
 import { ManagementPage } from './pages/landing/ManagementPage'
 import { RecruitingPage } from './pages/landing/RecruitingPage'
@@ -37,7 +39,7 @@ import { PublicFooter } from './pages/landing/PublicFooter'
 import './pages/landing/forest-theme.css'
 import { LoadingSpinner } from './shared/ui/LoadingSpinner'
 
-const sectionIcons: Partial<Record<AppRoute, string>> = { about: '👋', community: '💬', services: '🧩', archive: '📚', game: '👥' }
+const sectionIcons: Partial<Record<AppRoute, string>> = { about: '👋', community: '💬', education: '🎓', services: '🧩', archive: '📚', game: '👥' }
 
 const HomePage = lazy(() => import('./pages/home/HomePage').then((m) => ({ default: m.HomePage })))
 const AllPostsPage = lazy(() => import('./pages/posts/AllPostsPage').then((m) => ({ default: m.AllPostsPage })))
@@ -902,6 +904,13 @@ function AppSession() {
               return (
                 <div
                   key={item.id}
+                  onMouseEnter={() => {
+                    if (window.matchMedia('(min-width: 901px)').matches) {
+                      clearSubNavTimers()
+                      setSuppressedMainNav(null)
+                      setExpandedMainNav(subItems.length > 0 ? item.id : null)
+                    }
+                  }}
                   className={[
                     'main-nav-item',
                     expandedMainNav === item.id ? 'is-expanded' : '',
@@ -924,7 +933,7 @@ function AppSession() {
                         <span>{item.label}</span>
                       </div>
                       {subItems.map((subItem) => (
-                        subItem.children?.length ? (
+                        subItem.children?.length && item.id !== 'education' ? (
                           <div key={subItem.id} className="main-nav-dropdown-group">
                             <button
                               type="button"
@@ -936,7 +945,6 @@ function AppSession() {
                               onClick={() => handleHeaderSubNavSelect(subItem.path, item.id)}
                               role="menuitem"
                             >
-                              <Icon name={subItem.icon} size={14} />
                               <span>{subItem.label}</span>
                             </button>
                             <div className="main-nav-dropdown-children" role="group" aria-label={`${subItem.label} 메뉴`}>
@@ -952,7 +960,6 @@ function AppSession() {
                                   onClick={() => handleHeaderSubNavSelect(childItem.path, item.id)}
                                   role="menuitem"
                                 >
-                                  <Icon name={childItem.icon} size={14} />
                                   <span>{childItem.label}</span>
                                 </button>
                               ))}
@@ -970,7 +977,6 @@ function AppSession() {
                             onClick={() => handleHeaderSubNavSelect(subItem.path, item.id)}
                             role="menuitem"
                           >
-                            <Icon name={subItem.icon} size={14} />
                             <span>{subItem.label}</span>
                           </button>
                         )
@@ -987,7 +993,7 @@ function AppSession() {
                   const links = subItems.length > 0
                     ? subItems.flatMap((subItem) => [
                         { ...subItem, depth: 0 },
-                        ...(subItem.children ?? []).map((child) => ({ ...child, depth: 1 })),
+                        ...(item.id === 'education' ? [] : subItem.children ?? []).map((child) => ({ ...child, depth: 1 })),
                       ])
                     : [{ id: `${item.id}-root`, label: `${item.label} 바로가기`, icon: item.icon, path: routePathById[item.id as AppRoute], depth: 0 }]
                   return (
@@ -1044,8 +1050,7 @@ function AppSession() {
                       </span>
                     ) : null}
                   </button>
-                  {notificationMenuOpen ? (
-                    <div className="header-notification-popover">
+                    <div className={`header-notification-popover${notificationMenuOpen ? ' is-open' : ''}`} inert={!notificationMenuOpen} aria-hidden={!notificationMenuOpen}>
                       <div className="header-notification-head">
                         <strong>알림</strong>
                         <button
@@ -1101,7 +1106,6 @@ function AppSession() {
                         <p className="header-notification-empty">새 알림이 없습니다.</p>
                       )}
                     </div>
-                  ) : null}
                 </div>
                 <div className="header-profile-menu" onKeyDown={(event) => {
                   if (event.key === 'Escape') {
@@ -1133,11 +1137,7 @@ function AppSession() {
                   {profileMenuOpen ? (
                     <div id="header-profile-popover" className="header-profile-popover">
                       {isAdminRoute && <button type="button" className="header-profile-menu-item" onClick={() => { setProfileMenuOpen(false); navigate('/portal') }}>홈으로</button>}
-                      <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>내 계정 관리</button>
-                      <button type="button" className="header-profile-menu-item" onClick={() => {
-                        setProfileMenuOpen(false)
-                        if (user) navigate(`${routes.users.detail(user.id)}?tab=activity`)
-                      }}>내 활동 내역</button>
+                      <button type="button" className="header-profile-menu-item" onClick={handleOpenProfile}>마이 프로필</button>
 
                       {isAdmin ? (
                         <button type="button" className="header-profile-menu-item" onClick={handleOpenAdmin}>
@@ -1177,6 +1177,7 @@ function AppSession() {
               <p className="coala-sidebar-title"><span className="coala-sidebar-art" aria-hidden="true">{sidebarSection && (sectionIcons[sidebarSection.id] ?? <Icon name={sidebarSection.icon} size={24} />)}</span>{sidebarTitle}</p>
               <nav className="coala-sidebar-nav">
                 {sidebarItems.map((item) => (
+                  <div key={item.id}>
                   <button
                     key={item.id}
                     type="button"
@@ -1186,6 +1187,16 @@ function AppSession() {
                   >
                     {item.label}
                   </button>
+                  {item.children?.length && location.pathname.startsWith(item.path) && <nav className="coala-sidebar-submenu" aria-label={`${item.label} 세부 메뉴`}>
+                    {item.children.map((child) => <button key={child.id} type="button" className={`coala-sidebar-sublink${isHeaderSubNavActive(child.path) ? ' is-active' : ''}`} aria-current={isHeaderSubNavActive(child.path) ? 'page' : undefined} onClick={() => navigate(child.path)}>{child.label}</button>)}
+                  </nav>}
+                  {item.path === routes.community.recruit && location.pathname.startsWith(routes.community.recruit) && <nav className="coala-sidebar-submenu" aria-label="모집 메뉴">
+                    {[['list', '모집 공고'], ['applied', '지원 내역'], ['saved', '관심 공고'], ['manage', isAdmin ? '모집 관리' : '내 공고']].map(([view, label]) => {
+                      const active = (new URLSearchParams(location.search).get('view') || 'list') === view
+                      return <button key={view} type="button" className={`coala-sidebar-sublink${active ? ' is-active' : ''}`} aria-current={active ? 'page' : undefined} onClick={() => navigate(`${routes.community.recruit}${view === 'list' ? '' : `?view=${view}`}`)}>{label}</button>
+                    })}
+                  </nav>}
+                  </div>
                 ))}
               </nav>
             </aside>

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { Icon } from '../../shared/ui/Icon'
 import { durationOptions, instanceTypes, type InstanceType } from './serviceData'
 import { servicesApi } from '../../shared/api/services'
@@ -67,19 +68,7 @@ export function JcloudApplyForm({ onSubmit }: JcloudApplyFormProps) {
     )
   }
 
-  if (!isLoggedIn) {
-    return (
-      <div className="jcloud-login-required">
-        <div className="jcloud-success-icon">
-          <img className="login-koala" src="/coala-mascot-plush.png" alt="" />
-        </div>
-        <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
-        <Link className="jcloud-login-link" to="/login">
-          로그인하기
-        </Link>
-      </div>
-    )
-  }
+  if (!isLoggedIn) return <LoginRequiredState />
 
   return (
     <form className="jcloud-apply-form" onSubmit={handleSubmit}>

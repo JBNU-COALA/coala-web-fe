@@ -7,6 +7,7 @@ import { isImageUrl, isInternalPath } from './adminValidation'
 import { useAdminResource } from './useAdminResource'
 import { attachmentsApi } from '../../shared/api/attachments'
 import { useAdminEditorFocus } from './useAdminEditorFocus'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 
 const emptyBanner: SiteBannerPayload = { title: '', eyebrow: '', description: '', imageUrl: '', targetPath: '/', actionLabel: '자세히 보기', tone: 'green', sortOrder: 0, enabled: false }
 const tones = { green: '초록', blue: '파랑', coral: '코랄' } as const
@@ -49,6 +50,7 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
     targetPath: banner.targetPath, actionLabel: banner.actionLabel, tone: banner.tone, sortOrder: banner.sortOrder, enabled: banner.enabled,
   } : emptyBanner)
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
   const editorRef = useAdminEditorFocus(active ? banner?.id ?? 'new' : null)
   const validPath = isInternalPath(draft.targetPath.trim())
@@ -56,7 +58,7 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
   const valid = draft.title.trim() && draft.actionLabel.trim() && validPath && validImage && Number.isSafeInteger(draft.sortOrder) && draft.sortOrder >= 0 && draft.sortOrder <= 2147483647
   async function save(event: FormEvent) {
     event.preventDefault()
-    if (!valid || saving) return
+    if (!valid || saving || uploading) return
     setSaving(true); onBusy(true); setMessage('')
     const payload = { ...draft, title: draft.title.trim(), eyebrow: draft.eyebrow.trim(), description: draft.description.trim(), imageUrl: draft.imageUrl.trim(), targetPath: draft.targetPath.trim(), actionLabel: draft.actionLabel.trim() }
     try {
@@ -66,16 +68,16 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
     finally { setSaving(false); onBusy(false) }
   }
   async function upload(file: File) {
-    if (saving) return
+    if (saving || uploading) return
     if (!/^image\/(png|jpeg|webp|gif)$/.test(file.type)) { setMessage('PNG, JPG, WebP, GIF 이미지를 선택하세요.'); return }
     if (file.size > 10485760) { setMessage('이미지는 파일당 10MB까지 업로드할 수 있습니다.'); return }
-    setSaving(true); onBusy(true); setMessage('')
+    setUploading(true); onBusy(true); setMessage('')
     try { const uploaded = await attachmentsApi.uploadImage(file); setDraft((current) => ({ ...current, imageUrl: uploaded.url })); setMessage('이미지를 연결했습니다.') }
     catch { setMessage('이미지 업로드에 실패했습니다. 기존 이미지는 유지됩니다.') }
-    finally { setSaving(false); onBusy(false) }
+    finally { setUploading(false); onBusy(false) }
   }
   async function remove() {
-    if (!banner || saving || !window.confirm(`"${banner.title}" 배너를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`)) return
+    if (!banner || saving || uploading || !window.confirm(`"${banner.title}" 배너를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`)) return
     setSaving(true); onBusy(true)
     try { await adminApi.deleteBanner(banner.id); onDelete(banner.id) }
     catch { setMessage('배너를 삭제하지 못했습니다.') }
@@ -83,13 +85,15 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
   }
   return <section ref={editorRef} className="admin-stack admin-editor-enter admin-banner-editor">
     <form className="admin-panel admin-form" onSubmit={(event) => void save(event)}>
-      <div className="admin-panel-header"><h3>{banner ? '배너 수정' : '배너 추가'}</h3>{banner && <button type="button" className="admin-danger-button" disabled={saving} onClick={() => void remove()} aria-label="삭제" title="삭제"><Icon name="trash-color" size={18} /></button>}</div>
-      <fieldset className="admin-fieldset" disabled={saving}>
+      <div className="admin-panel-header"><h3>{banner ? '배너 수정' : '배너 추가'}</h3>{banner && <button type="button" className="admin-danger-button" disabled={saving || uploading} onClick={() => void remove()} aria-label="삭제" title="삭제"><Icon name="trash-color" size={18} /></button>}</div>
+      <fieldset className="admin-fieldset" disabled={saving || uploading}>
         <Field label="제목"><input required maxLength={150} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></Field>
         <Field label="상단 문구"><input maxLength={80} value={draft.eyebrow} onChange={(e) => setDraft({ ...draft, eyebrow: e.target.value })} /></Field>
         <Field label="설명"><textarea rows={3} maxLength={2000} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></Field>
         <Field label="이미지 URL"><input maxLength={2000} value={draft.imageUrl} placeholder="https:// 또는 /images/..." onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })} /></Field>
         <div className="admin-row-actions"><label className="admin-file-command"><Icon name="image" size={15} />이미지 업로드<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="배너 이미지 파일" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(file) }} /></label>{draft.imageUrl && <button type="button" className="admin-icon-button" aria-label="배너 이미지 제거" title="이미지 제거" onClick={() => setDraft({ ...draft, imageUrl: '' })}><Icon name="close" size={15} /></button>}</div>
+        <p className="admin-hint">JPG, PNG, WebP, GIF · 최대 10MB · 가로형 2400×880 권장</p>
+        {uploading && <p role="status">이미지 업로드 중...</p>}
         {!validImage && <p className="admin-error">이미지는 HTTP(S) 주소 또는 사이트 내부 경로를 입력하세요.</p>}
         <Field label="이동 경로"><input required maxLength={500} value={draft.targetPath} placeholder="/community/activity" onChange={(e) => setDraft({ ...draft, targetPath: e.target.value })} /></Field>
         {!validPath && <p className="admin-error">이동 경로는 /로 시작하는 사이트 내부 주소여야 합니다.</p>}
@@ -124,5 +128,5 @@ function BannerHelp() {
 
 function BannerImage({ url }: { url: string }) {
   const [failed, setFailed] = useState(false)
-  return failed ? <p className="admin-empty">이미지를 불러오지 못했습니다.</p> : <img src={url} alt="배너 이미지" onError={() => setFailed(true)} />
+  return failed ? <p className="admin-empty">이미지를 불러오지 못했습니다.</p> : <img src={resolveApiAssetUrl(url)} alt="배너 이미지" onError={() => setFailed(true)} />
 }

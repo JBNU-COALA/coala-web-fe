@@ -1,7 +1,8 @@
 import './auth.css'
 import { AuthForm } from './AuthForm'
+import { AuthInlineError } from './AuthInlineError'
 import { Icon } from '../../shared/ui/Icon'
-import { useState, type FormEvent } from 'react'
+import { useCallback, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { routes } from '../../shared/routes'
@@ -26,8 +27,8 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const { login, signup } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const redirectTo =
-    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/'
+  const from = (location.state as { from?: { pathname?: string; search?: string; hash?: string } } | null)?.from
+  const redirectTo = from?.pathname ? `${from.pathname}${from.search ?? ''}${from.hash ?? ''}` : '/'
 
   const [email, setEmail] = useState(() => {
     try { return localStorage.getItem('coala.savedEmail') || '' } catch { return '' }
@@ -46,6 +47,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
   const [githubId, setGithubId] = useState('')
   const [linkedinUrl, setLinkedinUrl] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const dismissError = useCallback(() => setError(null), [])
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (event: FormEvent) => {
@@ -285,7 +287,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
             </>
           )}
 
-          {error && <p className="auth-error">{error}</p>}
+          {error && <AuthInlineError key={error} message={error} onDismiss={dismissError} />}
 
           {isLogin && <div className="auth-login-options">
             <label className="auth-remember"><input type="checkbox" checked={rememberEmail} onChange={(event) => {

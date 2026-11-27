@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 ﻿import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useScrollReveal } from '../landing/useScrollReveal'
 import { useEffect, useRef, useState, type ChangeEvent } from 'react'
@@ -527,8 +528,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
 
   if (profileMember === emptyProfileMember) return (
     <PageFrame title="프로필" tone="users">
-      <p role={profileError ? 'alert' : 'status'}>{profileError || '프로필을 불러오는 중입니다.'}</p>
-      {profileError && <button type="button" className="ghost-button retry-button" onClick={() => { setProfileError(''); setProfileRevision((value) => value + 1) }}>다시 불러오기</button>}
+      {profileError ? <LoadErrorState message={profileError} onRetry={() => { setProfileError(''); setProfileRevision((value) => value + 1) }} /> : <p role="status">프로필을 불러오는 중입니다.</p>}
     </PageFrame>
   )
 
@@ -868,8 +868,7 @@ function ProfileContent({ profileUserId }: ProfilePageProps) {
         {tab === 'activity' ? (
           <div className="profile-section-grid profile-section-grid--single">
             <ProfileTasks userId={effectiveProfileUserId} ownProfile={isOwnProfile} overview={overview.data} />
-            {overview.error && <div className="profile-overview-error"><p role="alert">{overview.error}</p>
-          <button type="button" className="ghost-button retry-button" onClick={overview.retry}>다시 불러오기</button></div>}
+            {overview.error && <LoadErrorState message={overview.error} onRetry={overview.retry} />}
 
             <ProfileStats points={profileMember.totalPoints} commits={profileMember.githubCommits}
             repositories={profileMember.sharedRepos.length} awards={profileAwards.length}

@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { RecruitRoleFields } from './RecruitRoleFields'
 import { buildRecruitPayload, itemToDraft, type RecruitDraft } from './recruitDraft'
 import { mutationError } from '../../shared/api/mutationError'
@@ -409,8 +410,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
               <Icon name="heart" size={16} />
               {saved ? '관심 공고 저장됨' : '관심 공고 저장'}
             </button>
-            {bookmarks.error && <div className="recruit-load-state"><p role="alert">{bookmarks.error}</p>
-              <button type="button" className="ghost-button retry-button" onClick={bookmarks.retry}>다시 불러오기</button></div>}
+            {bookmarks.error && <LoadErrorState message={bookmarks.error} onRetry={bookmarks.retry} />}
           </section>
 
           <section className="recruit-host-card">

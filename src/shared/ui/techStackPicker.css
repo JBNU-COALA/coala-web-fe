@@ -1,0 +1,18 @@
+.tech-stack-picker { display: flex; flex-wrap: wrap; gap: 6px; }
+.tech-stack-results { display: flex; flex-direction: column; max-height: 180px; overflow-y: auto; border: 1px solid #e2e2e2; border-radius: 7px; background: #fff; }
+.tech-stack-results button { display: flex; align-items: center; gap: 7px; padding: 8px 10px; border: 0; background: #fff; color: #333; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.tech-stack-results button:hover, .tech-stack-results button:focus-visible { background: #f5f5f5; }
+.tech-stack-results img { width: 16px; height: 16px; object-fit: contain; }
+.tech-stack-picker button { display: inline-flex; align-items: center; gap: 5px; padding: 6px 9px; border: 1px solid #e2e2e2; border-radius: 7px; background: #fff; color: #555; font: inherit; font-size: 11px; cursor: pointer; transition: background 160ms, border-color 160ms; }
+.tech-stack-picker button[aria-pressed=true] { border-color: #333; background: #f2f2f2; color: #111; }
+.tech-stack-picker button:hover { border-color: #888; }
+.tech-stack-picker button:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
+.tech-stack-picker img { width: 16px; height: 16px; object-fit: contain; }
+.recruit-role-row { animation: recruit-role-enter 220ms ease-out both; }
+.tech-stack-results, .tech-stack-picker button { animation: recruit-role-enter 180ms ease-out both; }
+.tech-stack-picker button.is-removing, .recruit-role-row.is-removing { animation: recruit-item-exit 180ms ease-in both; pointer-events: none; }
+@keyframes recruit-item-exit { to { opacity: 0; transform: translateY(-4px) scale(.97); } }
+@keyframes recruit-role-enter { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .recruit-role-row { animation: none; } .tech-stack-picker button { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .tech-stack-picker button.is-removing, .recruit-role-row.is-removing { animation-duration: 1ms; } }
+@media (prefers-reduced-motion: reduce) { .tech-stack-results, .tech-stack-picker button:not(.is-removing) { animation: none; } }

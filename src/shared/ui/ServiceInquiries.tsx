@@ -1,5 +1,6 @@
+import { LoadErrorState } from './LoadErrorState'
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react'
-import { Link, useLocation } from 'react-router-dom'
+import { LoginRequiredState } from './LoginRequiredState'
 import { servicesApi, type ServiceInquiry } from '../api/services'
 import { mutationError } from '../api/mutationError'
 import { useAuth } from '../auth/AuthContext'
@@ -30,13 +31,7 @@ function answerDate(value: string) {
 
 export function ServiceInquiries({ kind }: { kind: InquiryKind }) {
   const { isLoggedIn, user } = useAuth()
-  const location = useLocation()
-  if (!isLoggedIn || !user) return <section className="jcloud-login-required">
-    <div className="jcloud-success-icon"><img className="login-koala" src="/coala-mascot-plush.png" alt="" /></div>
-    <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
-    <p className="jcloud-success-desc">{serviceNames[kind]} 문의 내역은 로그인 후 확인할 수 있습니다.</p>
-    <Link className="jcloud-login-link" to="/login" state={{ from: location }}>로그인하기</Link>
-  </section>
+  if (!isLoggedIn || !user) return <LoginRequiredState />
   return <AuthenticatedInquiries key={`${kind}:${user.id}`} kind={kind} />
 }
 
@@ -112,10 +107,9 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
   }
 
   return <section className="service-inquiries" aria-label={`${serviceNames[kind]} 문의사항`}>
-    <header className="service-inquiries-header">
-      <h3>{serviceNames[kind]} 문의사항</h3>
+    <header className="service-inquiries-header service-inquiries-header--untitled">
       <div className="service-inquiries-actions">
-        <button type="button" className="service-inquiries-icon" aria-label="새로고침" data-tooltip="새로고침" onClick={reload} disabled={loading || saving}>
+        <button type="button" className="service-inquiries-icon service-inquiries-refresh" aria-label="새로고침" data-tooltip="새로고침" onClick={reload} disabled={loading || saving}>
           <Icon name="refresh" size={18} />
         </button>
         <button type="button" className="service-inquiries-icon" disabled={saving}
@@ -142,9 +136,7 @@ function AuthenticatedInquiries({ kind }: { kind: InquiryKind }) {
       </fieldset>
     </form>}
     {message && <p className="service-inquiries-feedback" role="status">{message}</p>}
-    {loadError && <div className="service-inquiries-load-error">
-      <p role="alert">{loadError}</p><button className="retry-button" type="button" onClick={reload} disabled={saving}>다시 불러오기</button>
-    </div>}
+    {loadError && <LoadErrorState message={loadError} onRetry={reload} disabled={saving} />}
     {!writing && loading && <LoadingSpinner label="문의 내역을 불러오는 중입니다." />}
     {!writing && !loading && !loadError && items?.length === 0 && <p className="service-inquiries-empty">등록된 문의가 없습니다.</p>}
     {!writing && <ul className="service-inquiries-list" aria-busy={loading}>

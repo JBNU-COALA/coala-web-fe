@@ -3183,7 +3183,7 @@
   gap: 10px;
 }
 
-.board-sort-field span {
+.board-sort-field > span {
   color: #797979;
   font-size: 12px;
   font-weight: 800;

@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
@@ -750,7 +751,7 @@ export function ServicesPage() {
                 </li>
               ))}
               {listLoading ? <li className="empty-post-state"><LoadingSpinner label="서비스를 불러오는 중입니다." /></li> : listError ? (
-                <li className="empty-post-state service-list-error"><img className="login-koala" src="/coala-mascot-crying.png" alt="" /><p role="alert">{listError}</p><button type="button" className="ghost-button retry-button" onClick={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }}>다시 불러오기</button></li>
+                <li><LoadErrorState message={listError} onRetry={() => { setListLoading(true); setListError(null); setListRevision((value) => value + 1) }} /></li>
               ) : visibleServices.length === 0 ? (
                 <li className="empty-post-state">조건에 맞는 서비스가 없습니다.</li>
               ) : null}

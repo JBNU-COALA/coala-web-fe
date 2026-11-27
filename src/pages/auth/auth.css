@@ -246,3 +246,7 @@
   .coala-app .coala-content--auth .auth-login-options { gap: 8px; margin-bottom: 0; font-size: 11px; }
   .coala-app .coala-content--auth .auth-lock-video { width: 88px; height: 88px; margin-bottom: 16px; }
 }
+
+.auth-form .auth-inline-error { margin: -6px 0 0; padding: 0; border: 0; background: transparent; color: #c62828; font-size: 12px; font-weight: 400; line-height: 1.6; animation: auth-error-lifecycle 5s ease both; }
+@keyframes auth-error-lifecycle { 0% { opacity: 0; transform: translateY(-4px); } 5%, 90% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-2px); } }
+@media (prefers-reduced-motion: reduce) { .auth-form .auth-inline-error { animation: none; } }

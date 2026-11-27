@@ -4,6 +4,7 @@ import { siteApi, type SiteBanner } from '../../shared/api/site'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SafeImage } from '../../shared/ui/SafeImage'
+import { resolveApiAssetUrl } from '../../shared/api/client'
 import './HomeCarousel.css'
 
 const defaultBanners: SiteBanner[] = [
@@ -89,7 +90,7 @@ export function HomeCarousel() {
               {banner.imageUrl ? (
                 /* 관리자가 올린 배너는 문구가 이미지에 담겨 있어 화면 전체를 이미지로 채운다. */
                 <Link to={target} className="home-carousel-media">
-                  <SafeImage src={banner.imageUrl} alt="" loading={loading}
+                  <SafeImage src={resolveApiAssetUrl(banner.imageUrl)} alt="" loading={loading}
                     fetchPriority={slideIndex === 0 ? 'high' : undefined}
                     fallback={<span className="home-carousel-media-fallback" aria-hidden="true" />} />
                   <Heading className="home-carousel-media-label">{banner.title}</Heading>

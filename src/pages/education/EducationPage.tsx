@@ -17,13 +17,16 @@ export function EducationPage() {
   const [revision, setRevision] = useState(0)
   const resource = useCtfResource(educationApi.subjects, revision)
   const subject = resource.data?.find((item) => pathname === subjectPath(item.id) || pathname.startsWith(`${subjectPath(item.id)}/`))
+  const bannerFallback = pathname.startsWith(routes.education.hacking.root)
+    ? { title: '해킹', description: 'CTF 문제와 실습으로 보안 지식을 배우고 실력을 키워요.' }
+    : pathname.startsWith(routes.education.algorithms.root)
+      ? { title: '알고리즘', description: '문제를 함께 풀며 알고리즘과 문제 해결 능력을 키워요.' }
+      : { title: '교육', description: '함께 배우고 실습하며 개발 역량을 키워요.' }
   return <section className="coala-content page-frame education-page" aria-labelledby="education-heading">
-    <CommunityBanner title={subject?.name ?? '교육'} description={subject?.topics ?? ''} headingLevel={1} titleId="education-heading" />
+    <CommunityBanner title={subject?.name?.trim() || bannerFallback.title} description={subject?.topics?.trim() || bannerFallback.description} headingLevel={1} titleId="education-heading" />
     <div className="page-container page-frame-body education-body">
-      {pathname !== routes.education.root && <nav className="education-breadcrumb" aria-label="교육 경로"><Link to={routes.education.root}>교육</Link><Icon name="chevron-right" size={12} /><span aria-current="page">{subject?.name ?? '과정'}</span></nav>}
-      <CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
       <Suspense fallback={<LoadingSpinner label="교육 과정을 불러오는 중..." />}><Routes>
-        <Route index element={resource.data && <EducationSubjects subjects={resource.data} />} />
+        <Route index element={<><CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />{resource.data && <EducationSubjects subjects={resource.data} />}</>} />
         <Route path="hacking/*" element={<HackingPage />} />
         <Route path="algorithms" element={<CourseList subjectId="algorithms" />} />
         <Route path="subjects/:subjectId" element={<CourseList />} />

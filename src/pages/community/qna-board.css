@@ -1,0 +1,12 @@
+.qna-board-page .board-shell { container-type: inline-size; }
+.qna-board-page .board-table-head > span { white-space: nowrap; }
+@container (max-width: 760px) {
+  .coala-content--posts .qna-board-page .board-table-head,
+  .coala-content--posts .qna-board-page .board-post-card--list .board-table-meta { display: none; }
+  .coala-content--posts .qna-board-page .board-post-card--list { display: flex; align-items: flex-start; flex-direction: column; gap: 10px; }
+  .coala-content--posts .qna-board-page .board-post-card--list .board-post-main { display: block; width: 100%; }
+  .coala-content--posts .qna-board-page .board-post-card--list .board-post-heading { display: flex; align-items: center; gap: 8px; }
+  .coala-content--posts .qna-board-page .board-post-card--list .board-post-title { flex: 1; min-width: 0; padding: 0; }
+  .coala-content--posts .qna-board-page .board-post-card--list .board-post-meta { display: flex; }
+  .coala-content--posts .qna-board-page .board-post-card--list .board-post-stats { display: flex; }
+}

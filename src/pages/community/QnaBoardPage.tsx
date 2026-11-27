@@ -8,6 +8,8 @@ import { CommunityBanner } from './CommunityBanner'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isAnonymousBoard } from '../../shared/communityBoards'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
+import './qna-board.css'
 import { ListingControls } from '../../shared/ui/ListingControls'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { ViewModeToggle, type ViewMode } from '../../shared/ui/ViewModeToggle'
@@ -47,12 +49,15 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
   const [sortMode, setSortMode] = useState<'latest' | 'popular'>('latest')
   const [viewMode, setViewMode] = useState<ViewMode>('list')
   const [likeError, setLikeError] = useState<string | null>(null)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [revision, setRevision] = useState(0)
 
   useEffect(() => {
     let cancelled = false
 
     const fetchData = async () => {
       setIsLoading(true)
+      setLoadError(null)
       try {
         const boards = await boardsApi.getBoards(true)
         const qnaBoard = boards.find(isAnonymousBoard) ?? null
@@ -67,6 +72,7 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
         }
       } catch {
         if (!cancelled) {
+          setLoadError('질문 목록을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.')
           setBoard(null)
           setPosts([])
         }
@@ -79,7 +85,7 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [revision])
 
   const normalizedQuery = query.trim().toLowerCase()
   const visiblePosts = useMemo(() => {
@@ -118,7 +124,7 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
 
   return (
     <section className="coala-content coala-content--posts">
-      <div className="board-page">
+      <div className="board-page qna-board-page">
         <CommunityBanner title="질문게시판" description={QNA_CAPTION} tone="board" />
 
         <ListingControls search={<SearchField
@@ -147,12 +153,14 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
         </ListingControls>
 
         <article className={`surface-card board-shell board-shell--editorial board-shell--${viewMode}`}>
-          {viewMode === 'list' && <div className="board-table-head" aria-hidden="true">
+          {!isLoading && !loadError && board && visiblePosts.length > 0 && viewMode === 'list' && <div className="board-table-head" aria-hidden="true">
             <span>분류</span><span>제목</span><span>작성자</span><span>작성일</span><span>조회</span><span>댓글</span><span>좋아요</span>
           </div>}
           <ul className={`board-post-list board-post-list--editorial board-post-list--${viewMode}`}>
             {isLoading ? (
               <li><LoadingSpinner label="게시글을 불러오는 중..." /></li>
+            ) : loadError ? (
+              <li><LoadErrorState message={loadError} onRetry={() => setRevision((value) => value + 1)} /></li>
             ) : !board ? (
               <li className="empty-post-state">질문게시판이 아직 준비되지 않았습니다.</li>
             ) : (
@@ -227,7 +235,7 @@ export function QnaBoardPage({ onOpenPost, onWritePost }: QnaBoardPageProps) {
               })
             )}
 
-            {!isLoading && board && visiblePosts.length === 0 && (
+            {!isLoading && !loadError && board && visiblePosts.length === 0 && (
               <li className="empty-post-state">아직 등록된 질문이 없습니다. 첫 질문을 남겨보세요!</li>
             )}
           </ul>

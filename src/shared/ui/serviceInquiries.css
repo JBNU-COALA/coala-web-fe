@@ -2,6 +2,10 @@
 .service-inquiries-header { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 20px; }
 .service-inquiries h3 { margin: 0; font-size: 18px; line-height: 1.5; }
 .service-inquiries-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.coala-app .service-inquiries-header--untitled { padding-top: 8px; justify-content: flex-end; }
+.coala-app .service-inquiries .service-inquiries-icon.service-inquiries-refresh { box-sizing: border-box; flex: 0 0 32px; width: 32px; height: 32px; min-height: 32px; padding: 0; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; }
+.coala-app .service-inquiries .service-inquiries-refresh > svg { width: 15px; height: 15px; }
+.coala-app .service-inquiries .service-inquiries-refresh:hover:not(:disabled) { background: #f5f5f5; border-color: #a3a3a3; }
 .service-inquiries button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 8px 12px; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #404040; font: inherit; cursor: pointer; }
 .service-inquiries button svg { flex-shrink: 0; }
 .service-inquiries button:hover:not(:disabled) { background: #f5f5f5; }
@@ -80,3 +84,22 @@
 .coala-app .service-inquiries-icon[data-tooltip]::after { content: attr(data-tooltip); position: absolute; top: calc(100% + 6px); right: 0; z-index: 10; padding: 6px 10px; border-radius: 6px; background: #262626; color: #f5f5f5; font-size: 11px; font-weight: 400; line-height: 1.5; white-space: nowrap; opacity: 0; visibility: hidden; transform: translateY(-3px); pointer-events: none; transition: opacity 150ms, transform 150ms, visibility 150ms; }
 .coala-app .service-inquiries-icon[data-tooltip]:is(:hover, :focus-visible)::after { opacity: 1; visibility: visible; transform: none; }
 @media (prefers-reduced-motion: reduce) { .coala-app .service-inquiries-feedback { animation: none; } .coala-app .service-inquiries-icon[data-tooltip]::after { transition: none; transform: none; } }
+
+@media (max-width: 640px) {
+  .coala-app .service-inquiries { font-size: 12px; }
+  .coala-app .service-inquiries-header { gap: 8px; padding-bottom: 8px; }
+  .coala-app .service-inquiries h3 { font-size: 13px; font-weight: 600; }
+  .coala-app .service-inquiries-actions { gap: 4px; }
+  .coala-app .service-inquiries .service-inquiries-icon { width: 28px; height: 28px; min-height: 28px; padding: 4px; }
+  .coala-app .service-inquiries-icon > svg { width: 15px; height: 15px; }
+  .coala-app .service-inquiries-form { padding-block: 12px; margin-bottom: 12px; }
+  .coala-app .service-inquiries-form fieldset { gap: 10px; }
+  .coala-app .service-inquiries-form label { gap: 4px; font-size: 11px; }
+  .coala-app .service-inquiries-form :is(input, textarea) { padding: 7px 9px; font-size: 13px; }
+  .coala-app .service-inquiries-form input { height: 36px; }
+  .coala-app .service-inquiries-form textarea { min-height: 88px; }
+  .coala-app .service-inquiries-list > li { padding-block: 14px; }
+  .coala-app .service-inquiries-list h4 { font-size: 13px; margin: 8px 0 6px; }
+  .coala-app .service-inquiries-meta { font-size: 10px; gap: 6px; }
+  .coala-app .service-inquiries-reply { margin-top: 12px; padding-left: 10px; }
+}

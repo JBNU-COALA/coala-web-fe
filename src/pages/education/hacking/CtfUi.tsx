@@ -3,12 +3,12 @@ import { Icon } from '../../../shared/ui/Icon'
 import { LoadingSpinner } from '../../../shared/ui/LoadingSpinner'
 import { ctfInstanceHref } from './api'
 import type { CtfInstance } from './types'
-import { EducationEmptyState } from '../EducationEmptyState'
+import { LoadErrorState } from '../../../shared/ui/LoadErrorState'
 
 export function CtfResourceState({ loading, error, retry }: { loading: boolean; error: string | null; retry: () => void }) {
   if (loading) return <LoadingSpinner label="실습 자료를 불러오는 중..." />
   if (!error) return null
-  return <div role="alert"><EducationEmptyState icon="network" title={error} action={<button type="button" className="education-button" onClick={retry}><Icon name="refresh" size={16} />다시 시도</button>} /></div>
+  return <LoadErrorState message={error} onRetry={retry} />
 }
 
 export function CtfInstancePanel({ instance }: { instance: CtfInstance }) {
