@@ -807,7 +807,7 @@ a.study-person-name:hover {
 .coala-app .study-layout-toggle { display: inline-flex; height: 32px; padding: 0; gap: 0; overflow: hidden; border: 1px solid #ddd; border-radius: 9px; }
 .coala-app .study-layout-toggle button { width: 32px; height: 30px; min-height: 30px; padding: 0; border: 0; border-radius: 0; color: #737373; background: #fff; }
 .coala-app .study-layout-toggle button[aria-pressed='true'] { background: #222; color: #fff; }
-.coala-app .study-feed--card { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 330px)); gap: 16px; }
+.coala-app .study-feed--card { grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 330px)); justify-content: center; gap: 16px; }
 .coala-app .study-feed--card > li { padding: 14px; gap: 8px; transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease; }
 .coala-app .study-feed--card > li:is(:hover, :focus-within) { transform: translateY(-3px); border-color: #bdbdbd; box-shadow: 0 8px 20px #0000000d; }
 .coala-app .study-feed--card h2 { font-size: 17px; color: #222; margin: 10px 0 6px; }
