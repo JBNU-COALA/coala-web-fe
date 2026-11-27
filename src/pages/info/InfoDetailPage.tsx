@@ -136,7 +136,8 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
     (url) => resolveApiAssetUrl(normalizeMarkdownAttachmentUrl(url)),
   )
   const tags = Array.from(new Set([copy.label, item.tag].map((tag) => tag.trim()).filter(Boolean)))
-  const source = splitSource(item.source, item.authorName || item.sourceName, item.sourceDate)
+  const source = splitSource(item.source, item.authorName || item.sourceName,
+    item.publicationYear ? `${item.publicationYear}년` : item.sourceDate)
   const fallbackAttachmentUrl = item.thumbnailAttachmentId
     ? `/media/attachments/${item.thumbnailAttachmentId}/download`
     : ''

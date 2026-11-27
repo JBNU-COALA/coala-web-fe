@@ -232,7 +232,7 @@ export function InfoSharePage({ onWriteInfo, onOpenInfo }: InfoSharePageProps) {
             {pagination.pageItems.map((card) => {
               const [fallbackSourceName, fallbackSourceDate] = card.source.split('|').map((part) => part.trim())
               const sourceName = card.authorName || card.sourceName || fallbackSourceName
-              const sourceDate = card.sourceDate || fallbackSourceDate
+              const sourceDate = card.publicationYear ? `${card.publicationYear}년` : card.sourceDate || fallbackSourceDate
               const summary = previewLines(card.content)
               const imageUrl = getInfoImageUrl(card)
               const categoryLabel = infoLabelByFilter[card.filter]
