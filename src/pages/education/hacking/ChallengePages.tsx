@@ -13,6 +13,8 @@ import { CtfInstancePanel, CtfResourceState } from './CtfUi'
 import { categoryLabels, difficultyLabels } from './labels'
 import { useCtfResource } from './useCtfResource'
 import { EducationEmptyState } from '../EducationEmptyState'
+import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog'
+import { CtfHint } from './CtfHint'
 
 export function ChallengeList({ api, session }: CtfWorkspace) {
   const [params, setParams] = useSearchParams()
@@ -68,17 +70,19 @@ function ChallengeDetailContent({ api, session, id }: CtfWorkspace & { id: strin
   const [flag, setFlag] = useState('')
   const [busy, setBusy] = useState<'submit' | 'launch' | 'stop' | null>(null)
   const [feedback, setFeedback] = useState<{ message: string; correct?: boolean } | null>(null)
+  const [resultOpen, setResultOpen] = useState(false)
   const [solved, setSolved] = useState(false)
   const challenge = resource.data?.challenge
   const instance = resource.data?.instance
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (!session || busy || !flag.trim()) return
-    setBusy('submit'); setFeedback(null)
+    setBusy('submit'); setFeedback(null); setResultOpen(false)
     try {
       const result = await api.submit(id, flag.trim())
-      setFeedback({ correct: result.correct, message: result.already_solved ? '이미 해결한 문제입니다.' : result.correct ? '정답입니다. 문제를 해결했습니다.' : '정답이 아닙니다. 플래그를 다시 확인해 주세요.' })
-      if (result.correct) { setSolved(true); setFlag(''); setRevision((value) => value + 1) }
+      setFeedback({ correct: Boolean(result.correct || result.already_solved), message: result.already_solved ? '이미 해결한 문제입니다.' : result.correct ? '정답입니다. 문제를 해결했습니다.' : '정답이 아닙니다. 플래그를 다시 확인해 주세요.' })
+      setResultOpen(true)
+      if (result.correct || result.already_solved) { setSolved(true); setFlag(''); setRevision((value) => value + 1) }
     } catch (error) { setFeedback({ message: ctfErrorMessage(error) }) }
     finally { setBusy(null) }
   }
@@ -92,16 +96,22 @@ function ChallengeDetailContent({ api, session, id }: CtfWorkspace & { id: strin
   return <>
     <Link className="education-back" to={routes.education.hacking.challenges}><Icon name="chevron-left" size={16} />문제 목록</Link>
     <CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
-    {feedback && <p className={`education-message${feedback.correct ? ' is-success' : ''}`} role="status">{feedback.message}</p>}
+    {feedback && feedback.correct === undefined && !resultOpen && <p className="education-message" role="status">{feedback.message}</p>}
+    <ConfirmDialog open={resultOpen} title={feedback?.correct ? '플래그 해독 성공!' : '다시 도전해 보세요'}
+      description={feedback?.message ?? ''} confirmLabel="확인" cancelLabel="닫기" hideCancel
+      className={`ctf-result-dialog ${feedback?.correct ? 'is-correct' : 'is-incorrect'}`}
+      onConfirm={() => setResultOpen(false)} onCancel={() => setResultOpen(false)}>
+      <div className="ctf-result-character" aria-hidden="true"><div className="ctf-result-portrait" /><span className="ctf-result-symbol">{feedback?.correct ? '✓' : '?'}</span></div>
+    </ConfirmDialog>
     {challenge && <article className="ctf-challenge-detail">
       <div className="ctf-view-heading"><h2>{challenge.title}</h2><span>{challenge.solved || solved ? '해결 완료' : `${challenge.points}점`}</span></div>
       <dl className="ctf-metadata"><div><dt>분야</dt><dd>{categoryLabels[challenge.category] ?? challenge.category}</dd></div><div><dt>난이도</dt><dd>{difficultyLabels[challenge.difficulty] ?? challenge.difficulty}</dd></div><div><dt>출제</dt><dd>{challenge.author}</dd></div><div><dt>해결</dt><dd>{challenge.solve_count}명</dd></div></dl>
       <section className="ctf-detail-section"><h3>문제</h3><div className="ctf-description">{challenge.description}</div></section>
       {challenge.files.length > 0 && <section className="ctf-detail-section"><h3>첨부 파일</h3><ul className="ctf-file-list">{challenge.files.map((file) => {
         const href = ctfFileUrl(file.url)
-        return <li key={file.name}>{href ? <a href={href} download rel="noreferrer"><Icon name="file" size={16} />{file.name}</a> : <span>{file.name} · 다운로드 경로 확인 필요</span>}<span>{(file.size / 1024).toFixed(1)} KB</span></li>
+        return <li key={file.name}>{href ? <a href={href} download rel="noreferrer"><Icon name="file-color" size={16} />{file.name}</a> : <span>{file.name} · 다운로드 경로 확인 필요</span>}<span>{(file.size / 1024).toFixed(1)} KB</span></li>
       })}</ul></section>}
-      {challenge.hints.length > 0 && <section className="ctf-detail-section"><h3>힌트</h3>{challenge.hints.map((hint, index) => <details className="ctf-hint" key={index}><summary>힌트 {index + 1}</summary><p>{hint}</p></details>)}</section>}
+      {challenge.hints.length > 0 && <section className="ctf-detail-section"><h3>힌트</h3>{challenge.hints.map((hint, index) => <CtfHint key={index} hint={hint} number={index + 1} />)}</section>}
       {challenge.instance.required && <section className="ctf-detail-section"><h3>실습 환경</h3>
         {instance ? <CtfInstancePanel instance={instance} /> : <p className="education-muted">실행 중인 환경이 없습니다.{challenge.instance.ttl_minutes ? ` · 사용 시간 ${challenge.instance.ttl_minutes}분` : ''}</p>}
         <div className="ctf-actions"><button className="education-button is-primary" type="button" disabled={!session || !!busy} onClick={() => controlInstance('launch')}><Icon name="play" size={16} />{busy === 'launch' ? '시작 중...' : instance ? '환경 확인 / 재시작' : '환경 시작'}</button>
