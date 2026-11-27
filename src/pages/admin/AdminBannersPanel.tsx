@@ -50,17 +50,18 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
     targetPath: banner.targetPath, actionLabel: banner.actionLabel, tone: banner.tone, sortOrder: banner.sortOrder, enabled: banner.enabled,
   } : emptyBanner)
   const [saving, setSaving] = useState(false)
+  const [mode, setMode] = useState<'template' | 'image'>(() => banner?.imageUrl ? 'image' : 'template')
   const [uploading, setUploading] = useState(false)
   const [message, setMessage] = useState('')
   const editorRef = useAdminEditorFocus(active ? banner?.id ?? 'new' : null)
   const validPath = isInternalPath(draft.targetPath.trim())
   const validImage = isImageUrl(draft.imageUrl.trim())
-  const valid = draft.title.trim() && draft.actionLabel.trim() && validPath && validImage && Number.isSafeInteger(draft.sortOrder) && draft.sortOrder >= 0 && draft.sortOrder <= 2147483647
+  const valid = (mode === 'image' ? Boolean(draft.imageUrl.trim()) && validImage : Boolean(draft.title.trim() && draft.actionLabel.trim())) && validPath && Number.isSafeInteger(draft.sortOrder) && draft.sortOrder >= 0 && draft.sortOrder <= 2147483647
   async function save(event: FormEvent) {
     event.preventDefault()
     if (!valid || saving || uploading) return
     setSaving(true); onBusy(true); setMessage('')
-    const payload = { ...draft, title: draft.title.trim(), eyebrow: draft.eyebrow.trim(), description: draft.description.trim(), imageUrl: draft.imageUrl.trim(), targetPath: draft.targetPath.trim(), actionLabel: draft.actionLabel.trim() }
+    const payload = { ...draft, title: draft.title.trim() || '이미지 배너', eyebrow: mode === 'image' ? '' : draft.eyebrow.trim(), description: mode === 'image' ? '' : draft.description.trim(), imageUrl: mode === 'image' ? draft.imageUrl.trim() : '', targetPath: draft.targetPath.trim(), actionLabel: mode === 'image' ? '배너 보기' : draft.actionLabel.trim() }
     try {
       const saved = banner ? await adminApi.updateBanner(banner.id, payload) : await adminApi.createBanner(payload)
       setDraft(payload); onSave(saved)
@@ -87,31 +88,41 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
     <form className="admin-panel admin-form" onSubmit={(event) => void save(event)}>
       <div className="admin-panel-header"><h3>{banner ? '배너 수정' : '배너 추가'}</h3>{banner && <button type="button" className="admin-danger-button" disabled={saving || uploading} onClick={() => void remove()} aria-label="삭제" title="삭제"><Icon name="trash-color" size={18} /></button>}</div>
       <fieldset className="admin-fieldset" disabled={saving || uploading}>
+        <div className="admin-field"><span>배너 방식</span><div className="admin-row-actions" role="group" aria-label="배너 방식">
+          <button type="button" className={mode === 'template' ? 'admin-primary-button' : 'admin-ghost-button'} aria-pressed={mode === 'template'} onClick={() => setMode('template')}><Icon name="pencil-color" size={15} />템플릿에 글 작성</button>
+          <button type="button" className={mode === 'image' ? 'admin-primary-button' : 'admin-ghost-button'} aria-pressed={mode === 'image'} onClick={() => setMode('image')}><Icon name="image" size={15} />이미지만 사용</button>
+        </div></div>
+        {mode === 'template' && <>
         <Field label="제목"><input required maxLength={150} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></Field>
         <Field label="상단 문구"><input maxLength={80} value={draft.eyebrow} onChange={(e) => setDraft({ ...draft, eyebrow: e.target.value })} /></Field>
         <Field label="설명"><textarea rows={3} maxLength={2000} value={draft.description} onChange={(e) => setDraft({ ...draft, description: e.target.value })} /></Field>
+        </>}
+        {mode === 'image' && <>
+        <p className="admin-hint">직접 만든 배너 이미지만 표시합니다. 제목·설명·버튼 문구는 입력하지 않아도 됩니다.</p>
         <Field label="이미지 URL"><input maxLength={2000} value={draft.imageUrl} placeholder="https:// 또는 /images/..." onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })} /></Field>
-        <div className="admin-row-actions"><label className="admin-file-command"><Icon name="image" size={15} />이미지 업로드<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="배너 이미지 파일" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(file) }} /></label>{draft.imageUrl && <button type="button" className="admin-icon-button" aria-label="배너 이미지 제거" title="이미지 제거" onClick={() => setDraft({ ...draft, imageUrl: '' })}><Icon name="close" size={15} /></button>}</div>
+        <div className="admin-row-actions"><label className="admin-file-command"><Icon name="image" size={15} />이미지 업로드<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="배너 이미지 파일" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(file) }} /></label>{draft.imageUrl && <button type="button" className="admin-icon-button" aria-label="배너 이미지 제거" title="이미지 제거" onClick={() => { setDraft({ ...draft, imageUrl: '' }); setMode('template') }}><Icon name="close" size={15} /></button>}</div>
         <p className="admin-hint">JPG, PNG, WebP, GIF · 최대 10MB · 가로형 2400×880 권장</p>
         {uploading && <p role="status">이미지 업로드 중...</p>}
         {!validImage && <p className="admin-error">이미지는 HTTP(S) 주소 또는 사이트 내부 경로를 입력하세요.</p>}
+        </>}
         <Field label="이동 경로"><input required maxLength={500} value={draft.targetPath} placeholder="/community/activity" onChange={(e) => setDraft({ ...draft, targetPath: e.target.value })} /></Field>
         {!validPath && <p className="admin-error">이동 경로는 /로 시작하는 사이트 내부 주소여야 합니다.</p>}
         <div className="admin-field-row">
-          <Field label="버튼 문구"><input required maxLength={40} value={draft.actionLabel} onChange={(e) => setDraft({ ...draft, actionLabel: e.target.value })} /></Field>
+          {mode === 'template' && <Field label="버튼 문구"><input required maxLength={40} value={draft.actionLabel} onChange={(e) => setDraft({ ...draft, actionLabel: e.target.value })} /></Field>}
           <Field label="노출 순서"><input required type="number" min={0} max={2147483647} step={1} value={Number.isNaN(draft.sortOrder) ? '' : draft.sortOrder} onChange={(e) => setDraft({ ...draft, sortOrder: e.target.value === '' ? Number.NaN : Number(e.target.value) })} /></Field>
         </div>
-        <div className="admin-field"><span>색상</span><div className="admin-tone-options" role="group" aria-label="배너 색상">
+        {mode === 'template' && <div className="admin-field"><span>색상</span><div className="admin-tone-options" role="group" aria-label="배너 색상">
           {Object.entries(tones).map(([tone, label]) => <button type="button" key={tone} title={label} aria-label={label} aria-pressed={draft.tone === tone} className={`admin-tone admin-tone--${tone}`} onClick={() => setDraft({ ...draft, tone: tone as SiteBanner['tone'] })} />)}
-        </div></div>
+        </div></div>}
         <label className="admin-toggle"><input type="checkbox" checked={draft.enabled} onChange={(e) => setDraft({ ...draft, enabled: e.target.checked })} />홈에 공개</label>
         <div className="admin-row-actions"><button type="button" className="admin-ghost-button" onClick={onClose}>닫기</button><button type="submit" className="admin-primary-button" disabled={!valid}><Icon name="edit" size={15} />{saving ? '저장 중...' : '배너 저장'}</button></div>
       </fieldset>
       <p className="admin-feedback" role="status">{message}</p>
     </form>
     <section className={`admin-banner-preview admin-banner-preview--${draft.tone}`} aria-label="배너 미리보기">
-      {draft.imageUrl && validImage && <BannerImage key={draft.imageUrl} url={draft.imageUrl.trim()} />}
-      {!draft.imageUrl && <div><small>{draft.eyebrow}</small><h3>{draft.title || '배너 제목'}</h3><p>{draft.description}</p><span>{draft.actionLabel} <Icon name="chevron-right" size={14} /></span></div>}
+      {mode === 'image' && draft.imageUrl && validImage && <BannerImage key={draft.imageUrl} url={draft.imageUrl.trim()} />}
+      {mode === 'image' && !draft.imageUrl && <p className="admin-empty">배너 이미지를 업로드해주세요.</p>}
+      {mode === 'template' && <div><small>{draft.eyebrow}</small><h3>{draft.title || '배너 제목'}</h3><p>{draft.description}</p><span>{draft.actionLabel} <Icon name="chevron-right" size={14} /></span></div>}
     </section>
   </section>
 }
