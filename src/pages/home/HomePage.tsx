@@ -148,7 +148,7 @@ export function HomePage({ onOpenAllPosts, onOpenInfo, onOpenPost, onOpenInfoArt
               <span className="home-service-copy">
                 <span className="home-service-title-row"><strong>{service.title}</strong><small className="home-service-status">{service.status}</small></span>
                 <span>{service.summary}</span>
-                <em>{service.tags.slice(0, 3).map((tag) => `#${tag}`).join(' ')}</em>
+                {service.tags.length > 0 && <span className="home-service-tags">{service.tags.slice(0, 3).map((tag) => <span key={tag}>{tag}</span>)}</span>}
                 <span className="home-service-owner"><CharacterAvatar name={service.owner} size="xs" /><span>{service.owner}</span></span>
               </span>
             </button>
