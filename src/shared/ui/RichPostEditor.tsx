@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Extension } from '@tiptap/core'
+import { Extension, mergeAttributes } from '@tiptap/core'
 import { NodeSelection } from '@tiptap/pm/state'
 import { EditorContent, useEditor, NodeViewWrapper, NodeViewContent, ReactNodeViewRenderer, type NodeViewProps } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
@@ -13,6 +13,7 @@ import { common, createLowlight } from 'lowlight'
 import './richPostEditor.css'
 import { Icon } from './Icon'
 import { ConfirmDialog } from './ConfirmDialog'
+import { resolveApiAssetUrl } from '../api/client'
 
 const lowlight = createLowlight(common)
 const DividerBackspace = Extension.create({
@@ -63,7 +64,15 @@ function TerminalBlock({ node, updateAttributes, editor, getPos }: NodeViewProps
   </NodeViewWrapper>
 }
 const TerminalCodeBlock = CodeBlockLowlight.extend({ addNodeView() { return ReactNodeViewRenderer(TerminalBlock) } })
-export const richPostExtensions = () => [DividerBackspace, StarterKit.configure({ codeBlock: false, trailingNode: false }), Markdown, TerminalCodeBlock.configure({ lowlight, defaultLanguage: 'bash' }), Image, TaskList, TaskItem.configure({ nested: true })]
+const AttachmentImage = Image.extend({
+  renderHTML({ HTMLAttributes }) {
+    // Resolve only the displayed URL; keep the stored attachment URL in Markdown.
+    return ['img', mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, {
+      src: resolveApiAssetUrl(HTMLAttributes.src ?? ''),
+    })]
+  },
+})
+export const richPostExtensions = () => [DividerBackspace, StarterKit.configure({ codeBlock: false, trailingNode: false }), Markdown, TerminalCodeBlock.configure({ lowlight, defaultLanguage: 'bash' }), AttachmentImage, TaskList, TaskItem.configure({ nested: true })]
 type Props = { value: string; onChange: (value: string) => void; disabled: boolean; uploadImage: (file: File) => Promise<string>; onError: (message: string) => void }
 export function RichPostEditor({ value, onChange, disabled, uploadImage, onError }: Props) {
   const [linkOpen, setLinkOpen] = useState(false)

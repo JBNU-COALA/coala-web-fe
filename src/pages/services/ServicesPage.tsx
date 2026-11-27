@@ -544,9 +544,14 @@ export function ServicesPage() {
                           disabled={isUploadingServiceImage}
                         />
                       </label>
-                      {addDraft.imageUrl && <SafeImage key={addDraft.imageUrl}
-                        className="member-service-image-preview" src={toServiceImageUrl(addDraft.imageUrl)} alt="대표 이미지 미리보기" />}
-                      {addDraft.imageUrl && <button type="button" className="ghost-button" onClick={() => setAddDraft({ ...addDraft, imageUrl: '' })}>이미지 제거</button>}
+                      {addDraft.imageUrl && (
+                        <span className="member-service-extra-preview">
+                          <SafeImage key={addDraft.imageUrl} src={toServiceImageUrl(addDraft.imageUrl)} alt="대표 이미지 미리보기" />
+                          <button type="button" aria-label="대표 이미지 제거" onClick={() => setAddDraft({ ...addDraft, imageUrl: '' })}>
+                            <Icon name="close" size={14} />
+                          </button>
+                        </span>
+                      )}
 
                     </div>
                     {serviceImageError ? <p className="auth-error">{serviceImageError}</p> : null}

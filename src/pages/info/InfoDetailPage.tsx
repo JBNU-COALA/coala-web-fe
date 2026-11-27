@@ -254,7 +254,6 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
           <MDEditor.Markdown
             className="post-content post-content--markdown"
             source={renderedMarkdown}
-            style={{ whiteSpace: 'pre-wrap' }}
           />
         </div>
         {canManageInfo && (

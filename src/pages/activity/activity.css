@@ -996,7 +996,7 @@ a.study-person-name:hover {
 .coala-app .study-page .study-editor .participant-search { min-height: 36px; padding-inline: 10px; gap: 8px; }
 .coala-app .study-page .study-editor .participant-search input { padding: 0; }
 .coala-app .study-page .study-editor .study-editor-group.select-control { height: 36px !important; min-height: 36px !important; }
-.coala-app .study-page .study-editor .study-editor-group.select-control > .select-control-trigger { height: 34px !important; min-height: 34px !important; font-size: 13px !important; padding-inline: 10px; }
+.coala-app .study-page .study-editor .study-editor-group.select-control > .select-control-trigger { box-sizing: border-box; height: 30px !important; min-height: 30px !important; font-size: 12px !important; padding-inline: 10px; }
 @media (max-width: 700px) {
   .coala-app .study-page .study-editor > fieldset { gap: 12px; }
   .coala-app .study-page .study-editor :is(fieldset > label, .study-editor-fields > label, .study-editor-field, .participant-picker > label) { font-size: 11px; }

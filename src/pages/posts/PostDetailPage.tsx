@@ -619,7 +619,6 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
             <MDEditor.Markdown
               className="post-content post-content--markdown"
               source={renderedContent}
-              style={{ whiteSpace: 'pre-wrap' }}
             />
           )}
 
