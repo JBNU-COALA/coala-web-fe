@@ -134,3 +134,37 @@
 .home-editorial .home-service-copy > .home-service-owner { display: flex; flex-direction: row; align-items: center; justify-content: flex-start; gap: 6px; margin-top: 3px; font-size: 11px; }
 .home-editorial .home-service-owner .character-avatar { width: 20px; height: 20px; flex: 0 0 20px; }
 
+
+/* Consistent compact density across the home feeds. */
+.home-editorial .home-feed-columns { gap: 24px; padding-block: 24px; }
+.home-editorial .home-editorial-section-head { gap: 10px; margin-bottom: 12px; }
+.home-editorial .home-editorial-section-head h2 { font-size: 17px; font-weight: 600; }
+.home-editorial .home-editorial-section-head > button { font-size: 11px; padding-block: 4px; }
+.home-editorial .home-feed-row { min-height: 94px; padding-block: 12px; gap: 9px; }
+.home-editorial .home-feed-body { gap: 10px; }
+.home-editorial .home-feed-copy { gap: 5px; }
+.home-editorial .home-feed-copy strong { font-size: 13px; }
+.home-editorial .home-feed-copy > span { font-size: 11px; }
+.home-editorial .home-feed-thumb { flex-basis: 56px; width: 56px; height: 44px; }
+.home-editorial .home-feed-meta { gap: 6px; font-size: 10px; }
+.home-editorial .home-feed-meta .home-feed-tag { padding: 2px 5px; }
+.home-editorial .home-feed-column--recruit .home-recruit-list button { min-height: 94px; padding-block: 12px; gap: 6px; }
+.home-editorial .home-recruit-list strong { font-size: 13px; }
+.home-editorial .home-recruit-list button > span:not(.home-recruit-status) { font-size: 11px; }
+.home-editorial .home-recruit-list small { font-size: 10px; }
+.home-editorial .home-feed-column :is(.home-feed-list, .home-recruit-list) > .home-editorial-empty { min-height: 64px; padding-block: 16px; font-size: 11px; }
+.home-editorial .home-services { padding-block: 20px 24px; }
+.home-editorial .home-service-grid { gap: 10px; }
+.home-editorial .home-service-image { height: 72px; }
+.home-editorial .home-service-copy { padding: 8px 10px; gap: 3px; }
+.home-editorial .home-service-copy strong { font-size: 13px; }
+.home-editorial .home-service-copy > span { font-size: 11px; }
+@media (max-width: 700px) {
+  .home-editorial .home-feed-columns { gap: 20px; padding-block: 18px; }
+  .home-editorial .home-editorial-section-head h2 { font-size: 16px; }
+  .home-editorial .home-service-item { padding: 8px; gap: 9px; }
+  .home-editorial .home-service-image { flex-basis: 68px; width: 68px; height: 68px; }
+  .home-editorial .home-service-copy { padding: 0; }
+  .home-editorial .home-service-copy > span:not(.home-service-title-row):not(.home-service-owner) { -webkit-line-clamp: 1; }
+}
+

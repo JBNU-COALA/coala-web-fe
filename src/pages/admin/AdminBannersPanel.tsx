@@ -101,7 +101,7 @@ function BannerEditor({ banner, active, onSave, onDelete, onBusy, onClose }: {
         <p className="admin-hint">직접 만든 배너 이미지만 표시합니다. 제목·설명·버튼 문구는 입력하지 않아도 됩니다.</p>
         <Field label="이미지 URL"><input maxLength={2000} value={draft.imageUrl} placeholder="https:// 또는 /images/..." onChange={(e) => setDraft({ ...draft, imageUrl: e.target.value })} /></Field>
         <div className="admin-row-actions"><label className="admin-file-command"><Icon name="image" size={15} />이미지 업로드<input type="file" accept="image/png,image/jpeg,image/webp,image/gif" aria-label="배너 이미지 파일" onChange={(event) => { const file = event.target.files?.[0]; event.target.value = ''; if (file) void upload(file) }} /></label>{draft.imageUrl && <button type="button" className="admin-icon-button" aria-label="배너 이미지 제거" title="이미지 제거" onClick={() => { setDraft({ ...draft, imageUrl: '' }); setMode('template') }}><Icon name="close" size={15} /></button>}</div>
-        <p className="admin-hint">JPG, PNG, WebP, GIF · 최대 10MB · 가로형 2400×880 권장</p>
+        <p className="admin-hint">JPG, PNG, WebP, GIF · 최대 10MB · 가로형 2400×800 권장</p>
         {uploading && <p role="status">이미지 업로드 중...</p>}
         {!validImage && <p className="admin-error">이미지는 HTTP(S) 주소 또는 사이트 내부 경로를 입력하세요.</p>}
         </>}
@@ -132,7 +132,7 @@ function BannerHelp() {
   return <div className="admin-banner-help" onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }} onKeyDown={event => { if (event.key === 'Escape') setOpen(false) }}>
     <button type="button" className="admin-help-button" aria-label="배너 작성 도움말" aria-expanded={open} aria-controls="admin-banner-help" onClick={() => setOpen(value => !value)}><Icon name="help-circle" size={17} /></button>
     <div id="admin-banner-help" className={`admin-help-popover${open ? ' is-open' : ''}`} role="note" aria-hidden={!open}>
-      이미지를 넣으면 홈 배너가 이미지로만 채워집니다. 문구를 이미지에 포함하고 2400×880(약 2.7:1) 비율을 권장합니다. 비워 두면 제목·설명·버튼이 배너에 표시됩니다.
+      이미지를 넣으면 홈 배너가 이미지로만 채워집니다. 문구를 이미지에 포함하고 2400×800(약 3:1) 비율을 권장합니다. 비워 두면 제목·설명·버튼이 배너에 표시됩니다.
     </div>
   </div>
 }

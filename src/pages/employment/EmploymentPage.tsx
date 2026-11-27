@@ -112,7 +112,7 @@ function EmploymentEditor({ initial }: { initial?: EmploymentReview }) {
   return <><Link className="employment-back" to={root}><Icon name="chevron-left" size={14} />후기 목록</Link><h2 className="employment-editor-title">{initial ? '후기 수정' : '취업 후기 작성'}</h2>
     <CtfResourceState {...options} retry={() => setRevision((value) => value + 1)} />
     {error && <p className="education-message" role="alert">{error}</p>}
-    {options.data && <form className="employment-form" onSubmit={submit}><fieldset disabled={busy}>
+    {options.data && <form id="employment-review-form" className="employment-form" onSubmit={submit}><fieldset disabled={busy}>
       <div className="employment-form-grid">
         <label>회사<input type="text" value={form.company} onChange={(event) => field('company', event.target.value)} list="employment-companies" required maxLength={120} autoComplete="organization" /></label>
         <datalist id="employment-companies">{options.data.companies.map((company) => <option key={company} value={company} />)}</datalist>
@@ -123,7 +123,7 @@ function EmploymentEditor({ initial }: { initial?: EmploymentReview }) {
       </div>
       <label>제목<input required maxLength={150} value={form.title} onChange={(event) => field('title', event.target.value)} /></label>
       <label>후기<textarea required rows={16} maxLength={30000} value={form.content} onChange={(event) => field('content', event.target.value)} /></label>
-      <div className="employment-actions"><Link className="education-button" to={initial ? `${root}/${initial.id}` : root}>취소</Link><button className="education-button is-primary" disabled={busy}><Icon name="edit" size={14} />{busy ? '저장 중...' : '저장'}</button></div>
+      <div className="employment-actions employment-form-actions"><Link className="education-button" to={initial ? `${root}/${initial.id}` : root}>취소</Link><button className="education-button is-primary" disabled={busy}><Icon name="pencil-color" size={14} />{busy ? '저장 중...' : '저장'}</button></div>
     </fieldset></form>}
   </>
 }

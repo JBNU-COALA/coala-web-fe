@@ -314,8 +314,20 @@
 
 .home-carousel-description-line { display: block; word-break: keep-all; overflow-wrap: anywhere; }
 
-/* Uploaded banners use the advertised 2400 by 880 canvas on every viewport. */
-.home-carousel:has(.home-carousel-slide--media.is-active) { aspect-ratio: 2400 / 880; }
-.home-carousel:has(.home-carousel-slide--media.is-active) .home-carousel-track { position: absolute; inset: 0; height: 100%; }
-.home-carousel:has(.home-carousel-slide--media.is-active) .home-carousel-slide { min-height: 0; height: 100%; overflow: hidden; }
-
+/* Image and template slides share one 3:1 canvas. */
+.home-carousel { aspect-ratio: 3 / 1; }
+.home-carousel .home-carousel-track { position: absolute; inset: 0; height: 100%; }
+.home-carousel .home-carousel-slide { min-height: 0; height: 100%; overflow: hidden; }
+.coala-app .home-carousel .home-carousel-inner { min-height: 0; height: 100%; box-sizing: border-box; padding-block: clamp(12px, 2vw, 32px); gap: 20px; }
+.coala-app .home-carousel .home-carousel-art { height: 100%; min-height: 0; max-height: 280px; }
+@media (max-width: 900px) {
+  .coala-app .home-carousel-copy :is(h1, h2) { font-size: clamp(14px, 2.7vw, 24px); line-height: 1.3; }
+  .coala-app .home-carousel-description { font-size: clamp(10px, 1.5vw, 13px); line-height: 1.4; margin-block: 6px; }
+  .coala-app .home-carousel-link { min-height: 24px; font-size: 11px; padding: 0; }
+}
+@media (max-width: 560px) {
+  .coala-app .home-carousel .home-carousel-inner { padding-block: 8px 20px; }
+  .coala-app .home-carousel-eyebrow { font-size: 9px; margin-bottom: 3px; }
+  .coala-app .home-carousel-description { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-block: 4px; }
+  .coala-app .home-carousel-controls { bottom: 4px; }
+}
