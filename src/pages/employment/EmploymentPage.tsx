@@ -53,7 +53,7 @@ function EmploymentListPage() {
   return <>
     <ListingControls label="취업 후기 검색" count={resource.data ? `전체 ${resource.data.totalElements}개` : undefined}
       search={<form className="employment-search-form" onSubmit={(event) => { event.preventDefault(); change('q', search.trim()) }}><SearchField value={search} onChange={setSearch} placeholder="회사명 · 제목으로 검색" /></form>}
-      actions={<Link className="education-button is-primary" to={isLoggedIn ? `${root}/new` : '/login'}><Icon name="edit" size={14} />후기 작성</Link>}
+      actions={<Link className="education-button is-primary" to={isLoggedIn ? `${root}/new` : '/login'}><Icon name="pencil-color" size={16} />후기 작성</Link>}
     >
       <SelectControl label="채용 결과" value={outcome} options={[{ value: 'ACCEPTED', label: '합격' }, { value: 'REJECTED', label: '불합격' }]} onChange={(value) => change('outcome', value)} />
       <SelectControl label="계열" value={industry} options={[{ value: '', label: '전체 계열' }, ...(options.data?.options.filter((item) => item.kind === 'INDUSTRY').map((item) => ({ value: item.id, label: item.label })) ?? [])]} onChange={(value) => change('industry', value)} />

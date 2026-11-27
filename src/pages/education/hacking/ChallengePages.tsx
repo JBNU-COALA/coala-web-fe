@@ -35,6 +35,9 @@ export function ChallengeList({ api, session }: CtfWorkspace) {
   const pagination = usePagination(visible, params.toString(), 20)
   return <>
     <div className="ctf-view-heading"><h2>CTF 문제</h2></div>
+    <div className="ctf-challenge-banner">
+      <img src="/coala-ctf-banner.png" alt="Coala CTF — 코알라 해커룸" width={1672} height={941} />
+    </div>
     <ListingControls label="CTF 문제 검색" count={resource.data ? `${visible.length}문제${session ? ` · ${all.filter((item) => item.solved).length}문제 해결` : ''}` : undefined} search={<SearchField value={query} onChange={(value) => updateFilter('q', value)} placeholder="문제 이름 검색" />}>
       <SelectControl value={category} onChange={(value) => updateFilter('category', value)} label="문제 분야" options={[{ value: 'all', label: '전체 분야' }, ...Object.entries(categoryLabels).map(([value, label]) => ({ value, label }))]} />
       <SelectControl value={difficulty} onChange={(value) => updateFilter('difficulty', value)} label="난이도" options={[{ value: 'all', label: '전체 난이도' }, ...Object.entries(difficultyLabels).map(([value, label]) => ({ value, label }))]} />

@@ -143,7 +143,7 @@ export function ArchivePage() {
     <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
       <ListingControls search={<SearchField className="archive-search" value={query} onChange={setQuery}
             placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />} actions={<><button type="button" className="write-post-button" onClick={startCreate}>
-            <Icon name="plus" size={15} />{actionLabel}
+            <Icon name="pencil-color" size={16} />{actionLabel}
           </button></>} label="자료 분류 및 검색">
 
           <ArchiveFilters key={activeCategory} options={filterOptions} value={selectedMaterial} onChange={setMaterialFilter}
@@ -229,7 +229,7 @@ export function ArchivePage() {
                         <strong>{formatArchiveDay(selectedDate)}</strong>
                       </div>
                       <button type="button" className="ghost-button" onClick={() => startCreateForDate(selectedDate)}>
-                        <Icon name="plus" size={14} />
+                        <Icon name="pencil-color" size={16} />
                         자료 등록
                       </button>
                     </div>

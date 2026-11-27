@@ -7,12 +7,13 @@
 .jungle-site.jungle-site .jungle-header .jungle-logo img.jungle-brand-image, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol) { display: block; width: 108px; height: 36px; object-fit: contain; }
 .jungle-site.jungle-site .jungle-header nav, .recruiting-site.recruiting-site .recruiting-header nav { display: flex; align-items: center; gap: 28px; font-size: 20px; font-weight: 700; line-height: 1; }
 .jungle-site.jungle-site .jungle-header nav a, .recruiting-site.recruiting-site .recruiting-header nav a { display: inline-flex; align-items: center; min-height: 44px; line-height: 1; }
-@media(max-width:600px) {
+@media(max-width:900px) {
  .jungle-site.jungle-site .jungle-header, .recruiting-site.recruiting-site .recruiting-header { box-sizing: border-box; height: 56px; padding: 8px 16px; gap: 12px; }
  .jungle-site.jungle-site .jungle-header .jungle-logo, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand { flex-shrink: 0; }
  .jungle-site.jungle-site .jungle-header img.public-header-symbol, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img.public-header-symbol { width: 24px; height: 24px; }
  .jungle-site.jungle-site .jungle-header .jungle-logo img.jungle-brand-image, .recruiting-site.recruiting-site .recruiting-header .recruiting-brand img:not(.public-header-symbol) { width: 64px; height: 24px; }
- .jungle-site.jungle-site .jungle-header nav, .recruiting-site.recruiting-site .recruiting-header nav { font-size: clamp(10px, 2.6vw, 12px); gap: clamp(8px, 2.5vw, 14px); white-space: nowrap; }
+ .jungle-site.jungle-site .jungle-header nav, .recruiting-site.recruiting-site .recruiting-header nav { min-width: 0; font-size: 12px; font-weight: 600; gap: clamp(10px, 2vw, 20px); white-space: nowrap; }
+ .jungle-site.jungle-site .jungle-header nav a, .recruiting-site.recruiting-site .recruiting-header nav a { min-height: 32px; }
 }
 
 /* Neutral navigation, with readable contrast on each header background. */
@@ -34,9 +35,9 @@
 }
 
 /* Keep every destination visible on narrow phones. */
-@media (max-width: 380px) {
+@media (max-width: 480px) {
   .jungle-site.jungle-site .jungle-header,
-  .recruiting-site.recruiting-site .recruiting-header { height: auto; min-height: 56px; flex-wrap: wrap; gap: 0; }
+  .recruiting-site.recruiting-site .recruiting-header { height: auto; min-height: 56px; flex-wrap: wrap; gap: 2px; padding-block: 6px; }
   .jungle-site.jungle-site .jungle-header nav,
-  .recruiting-site.recruiting-site .recruiting-header nav { width: 100%; justify-content: space-between; }
+  .recruiting-site.recruiting-site .recruiting-header nav { width: 100%; justify-content: space-between; gap: 8px; font-size: 11px; }
 }

@@ -147,7 +147,7 @@ export function AllPostsPage({
           <div className="community-board-main">
             <ListingControls search={<SearchField value={query} onChange={setQuery} placeholder="제목, 내용, 작성자로 검색" />} label="게시글 검색 및 필터" actions={<button type="button" className="community-board-write" disabled={!canWriteCurrentBoard}
                   title={!canWriteCurrentBoard ? '공지는 운영진만 작성할 수 있습니다.' : undefined}
-                  onClick={canWriteCurrentBoard ? onWritePost : undefined}><svg className="community-board-pencil" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><g transform="rotate(40 12 12)"><path d="M9 6h6v12H9z" fill="#f5bc45" /><path d="M12 6h3v12h-3z" fill="#e49b29" /><path d="M9 18l3 5 3-5z" fill="#ead2aa" /><path d="M10.8 21l1.2 2 1.2-2z" fill="#343434" /><path d="M9 3a3 3 0 0 1 6 0v2H9z" fill="#ef929e" /><path d="M9 5h6v2H9z" fill="#d8d8d8" /></g></svg>글 작성</button>}>
+                  onClick={canWriteCurrentBoard ? onWritePost : undefined}><Icon name="pencil-color" size={16} />글 작성</button>}>
 
               <SelectControl label="정렬" value={sortMode} options={[{ value: 'latest', label: '최신순' }, { value: 'popular', label: '인기순' }]} onChange={setSortMode} />
             </ListingControls>

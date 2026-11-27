@@ -302,7 +302,7 @@ describe('writer draft and request boundaries', () => {
     await screen.findByRole('button', { name: /게시판 선택: free/ })
     fireEvent.paste(contentInput(), { clipboardData: { files: [new File(['image'], 'image.png', { type: 'image/png' })] } })
     await waitFor(() => expect(attachmentsApi.uploadImage).toHaveBeenCalledTimes(1))
-    expect(screen.getByRole<HTMLButtonElement>('button', { name: '발행하기' }).disabled).toBe(true)
+    expect(screen.getByRole<HTMLButtonElement>('button', { name: '작성하기' }).disabled).toBe(true)
     view.rerender(<PostWriterPage onClose={onClose} writerType="info" />)
     fireEvent.change(contentInput(), { target: { value: 'Fresh body' } })
     await act(async () => uploading.resolve({ attachmentId: 8, url: '/media/attachments/8/download' } as Awaited<ReturnType<typeof attachmentsApi.uploadImage>>))

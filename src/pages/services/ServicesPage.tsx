@@ -552,7 +552,7 @@ export function ServicesPage() {
         ) : (
           <>
             <ListingControls search={<SearchField value={query} onChange={setQuery} placeholder="서비스명, 만든 유저, 태그 검색" />} actions={<><ViewModeToggle value={viewMode} onChange={setViewMode} />
-<button type="button" className="write-post-button" onClick={startCreateService}><Icon name="plus" size={15} />서비스 추가</button></>} className="page-container user-service-controls" label="유저 서비스 필터">
+<button type="button" className="write-post-button" onClick={startCreateService}><Icon name="pencil-color" size={16} />서비스 추가</button></>} className="page-container user-service-controls" label="유저 서비스 필터">
               <SelectControl value={selectedStatus}
                 options={serviceStatusTabs.map((tab) => ({ value: tab.id, label: tab.label }))}
                 onChange={setSelectedStatus} label="운영 상태" />

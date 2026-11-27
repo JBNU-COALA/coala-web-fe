@@ -1,14 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { TagInput } from '../../shared/ui/TagInput'
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
+import { RichPostEditor } from '../../shared/ui/RichPostEditor'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
   ChangeEvent,
-  ClipboardEvent,
-  DragEvent,
   FormEvent,
-  KeyboardEvent,
 } from 'react'
 import { isAxiosError } from 'axios'
-import MDEditor, { commands } from '@uiw/react-md-editor/nohighlight'
-import '@uiw/react-md-editor/markdown-editor.css'
 import '@uiw/react-markdown-preview/markdown.css'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { attachmentsApi } from '../../shared/api/attachments'
@@ -22,12 +20,8 @@ import './postWriter.css'
 import { CommunityBanner } from '../community/CommunityBanner'
 import { extractFirstMarkdownImageUrl, prepareMarkdownForDisplay } from '../../shared/markdown'
 import {
-  createMarkdownImageCommand,
   getMarkdownLengthWithoutInlineImageData,
-  insertMarkdownBlockAtRange,
   prepareMarkdownImageFile,
-  readMarkdownImagesFromClipboard,
-  readMarkdownImagesFromDrop,
 } from '../../shared/markdownImages'
 import {
   isAnonymousBoard,
@@ -138,7 +132,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
   const publishing = useRef(false)
   const pendingUploads = useRef(0)
   const [uploadCount, setUploadCount] = useState(0)
-  const editorRootRef = useRef<HTMLDivElement | null>(null)
   const canWriteNotice = noticeWriterRoles.has(user?.role ?? '')
   const getWritableBoards = useCallback((list: BoardData[]) => (
     writerType === 'community' && !canWriteNotice
@@ -167,6 +160,7 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
   const [loadError, setLoadError] = useState<string | null>(validEditId ? null : '올바르지 않은 게시글 주소입니다.')
   const [isBoardsLoading, setIsBoardsLoading] = useState(writerType !== 'info')
   const [boardError, setBoardError] = useState<string | null>(null)
+  const [boardRevision, setBoardRevision] = useState(0)
 
   useEffect(() => {
     const dirty = Boolean(title.trim()) || Boolean(content.trim())
@@ -182,6 +176,8 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
   useEffect(() => {
     if (writerType === 'info') return
     let active = true
+    setIsBoardsLoading(true)
+    setBoardError(null)
     boardsApi.getBoards(true).then((list) => {
       if (!active) return
       const preferredBoards =
@@ -201,12 +197,12 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
       if (!active) return
       setBoards([])
       setSelectedBoardId(null)
-      setBoardError('게시판 분류를 불러오지 못했습니다.')
+      setBoardError('게시판 정보를 불러오지 못했습니다.')
     }).finally(() => {
       if (active) setIsBoardsLoading(false)
     })
     return () => { active = false }
-  }, [getWritableBoards, isEditMode, writerType])
+  }, [getWritableBoards, isEditMode, writerType, boardRevision])
 
   useEffect(() => {
     if (!editPostId || !validEditId) return
@@ -260,10 +256,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
     }
   }, [captureScope, editPostId, infoAuthorName, validEditId, writerType])
 
-  const tags = useMemo(
-    () => tagsInput.split(',').map((tag) => tag.trim()).filter(Boolean),
-    [tagsInput],
-  )
   const uploadEditorImage = useCallback(async (file: File) => {
     const isCurrent = captureScope()
     if (publishing.current) throw new Error('저장이 끝난 뒤 이미지를 첨부해주세요.')
@@ -284,48 +276,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
       if (isCurrent()) setUploadCount(pendingUploads.current)
     }
   }, [captureScope, writerType])
-  const imageUploadCommand = useMemo(() => ({
-    ...commands.image,
-    name: 'image-upload',
-    keyCommand: 'image-upload',
-    buttonProps: { 'aria-label': '이미지 첨부', title: '이미지 첨부' },
-    icon: <Icon name="image" size={13} />,
-    execute: (...args: Parameters<NonNullable<typeof commands.image.execute>>) => {
-      const isCurrent = captureScope()
-      if (publishing.current) return
-      createMarkdownImageCommand({
-        uploadImage: (file) => {
-          if (!isCurrent()) return Promise.reject(new Error('종료된 편집 화면입니다.'))
-          return uploadEditorImage(file)
-        },
-        onError: (message) => { if (isCurrent()) setImageError(message) },
-        getTextArea: () => editorRootRef.current?.querySelector<HTMLTextAreaElement>('.w-md-editor-text-input') ?? null,
-      }).execute?.(...args)
-    },
-  }), [captureScope, uploadEditorImage])
-  const editorCommands = useMemo(
-    () => [
-      commands.bold,
-      commands.italic,
-      commands.strikethrough,
-      commands.divider,
-      commands.title1,
-      commands.title2,
-      commands.title3,
-      commands.divider,
-      commands.link,
-      imageUploadCommand,
-      commands.quote,
-      commands.code,
-      commands.codeBlock,
-      commands.divider,
-      commands.unorderedListCommand,
-      commands.orderedListCommand,
-      commands.checkedListCommand,
-    ],
-    [imageUploadCommand],
-  )
-
   const handleInfoImageChange = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     event.target.value = ''
@@ -363,66 +313,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
     if (removedAttachmentId) {
       setAttachmentIds((current) => current.filter((id) => id !== removedAttachmentId))
       setThumbnailAttachmentId((current) => (current === removedAttachmentId ? null : current))
-    }
-  }
-
-  const insertImagesIntoEditor = (textarea: HTMLTextAreaElement, markdown: string) => {
-    const isCurrent = captureScope()
-    const result = insertMarkdownBlockAtRange(
-      textarea.value,
-      markdown,
-      textarea.selectionStart,
-      textarea.selectionEnd,
-    )
-    setContent(result.value)
-    window.requestAnimationFrame(() => {
-      if (!isCurrent() || !textarea.isConnected) return
-      textarea.focus()
-      textarea.setSelectionRange(result.cursor, result.cursor)
-    })
-  }
-
-  const handleEditorPaste = async (event: ClipboardEvent<HTMLTextAreaElement>) => {
-    const textarea = event.currentTarget
-    const isCurrent = captureScope()
-    try {
-      const markdown = await readMarkdownImagesFromClipboard(event, {
-        uploadImage: (file) => {
-          if (!isCurrent()) return Promise.reject(new Error('종료된 편집 화면입니다.'))
-          return uploadEditorImage(file)
-        },
-      })
-      if (markdown && isCurrent()) {
-        insertImagesIntoEditor(textarea, markdown)
-        setImageError(null)
-      }
-    } catch (error) {
-      if (isCurrent()) setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
-    }
-  }
-
-  const handleEditorDrop = async (event: DragEvent<HTMLTextAreaElement>) => {
-    const textarea = event.currentTarget
-    const isCurrent = captureScope()
-    try {
-      const markdown = await readMarkdownImagesFromDrop(event, {
-        uploadImage: (file) => {
-          if (!isCurrent()) return Promise.reject(new Error('종료된 편집 화면입니다.'))
-          return uploadEditorImage(file)
-        },
-      })
-      if (markdown && isCurrent()) {
-        insertImagesIntoEditor(textarea, markdown)
-        setImageError(null)
-      }
-    } catch (error) {
-      if (isCurrent()) setImageError(error instanceof Error ? error.message : '이미지를 첨부하지 못했습니다.')
-    }
-  }
-
-  const handleEditorDragOver = (event: DragEvent<HTMLTextAreaElement>) => {
-    if (Array.from(event.dataTransfer.items).some((item) => item.type.startsWith('image/'))) {
-      event.preventDefault()
     }
   }
 
@@ -554,14 +444,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
     }
   }
 
-  const handleEditorKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
-      event.preventDefault()
-      const formEl = event.currentTarget.closest('form') as HTMLFormElement | null
-      formEl?.requestSubmit()
-    }
-  }
-
   return (
     <section className="coala-content coala-content--post-writer coala-content--velog-writer post-writer-has-banner">
       <CommunityBanner
@@ -571,24 +453,9 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
       />
       <form className="post-writer-layout post-writer-layout--velog" onSubmit={handlePublish}>
         <article className="post-writer post-writer--velog">
-          <header className="velog-writer-topbar">
-            <div className="velog-writer-type">
-              <p className="post-writer-label">{copy.title}</p>
-            </div>
-
-            <div className="post-writer-actions velog-writer-actions">
-              {writerType === 'info' ? <WriterCategoryPicker label="정보공유 분류" value={infoEditFilter ?? 'news'}
-                options={Object.entries(infoFilterLabelById).map(([value, label]) => ({ value, label }))}
-                disabled={isPublishing || isEditLoading} onChange={(value) => setInfoEditFilter(value as InfoFilterId)} />
-                : boards.length > 1 && <WriterCategoryPicker label={`${copy.label} 선택`} value={String(selectedBoardId ?? '')}
-                  options={boards.map((board) => ({ value: String(board.boardId), label: board.boardName }))}
-                  disabled={isPublishing || isEditLoading} onChange={(value) => setSelectedBoardId(Number(value))} />}
-            </div>
-          </header>
-
           {isEditLoading && <LoadingSpinner label="게시글을 불러오는 중..." />}
           {loadError && <p className="auth-error" role="alert">{loadError}</p>}
-          {boardError && <p className="auth-error" role="alert">{boardError}</p>}
+          {boardError && <LoadErrorState message={boardError} onRetry={() => setBoardRevision((value) => value + 1)} />}
           <fieldset className="post-writer-fields velog-writer-fields" disabled={isPublishing || isEditLoading || Boolean(loadError)} style={{ border: 0, margin: 0, minWidth: 0 }}>
             {publishError && <p className="auth-error">{publishError}</p>}
             {imageError && <p className="auth-error">{imageError}</p>}
@@ -604,34 +471,31 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                 aria-label="게시글 제목"
                 aria-invalid={titleOverLimit}
               />
-              <span
-                className={`pw-counter${titleOverLimit ? ' pw-counter--over' : ''}`}
-                aria-live="polite"
-              >
-                {title.length} / {TITLE_MAX}
-              </span>
             </label>
 
-            <label className="velog-tag-field">
-              <input
-                className="velog-tag-input"
-                type="text"
-                value={tagsInput}
-                placeholder="태그를 입력하세요. 쉼표로 구분됩니다."
-                onChange={(e) => setTagsInput(e.target.value)}
-              />
-            </label>
+            <div className="info-writer-details">
+              {writerType === 'info' || boards.length > 1 ? <>
+              <div className="info-writer-detail-row"><span className="info-writer-detail-label">분류</span><div className="info-writer-category-field">
+              {writerType === 'info' ? <WriterCategoryPicker label="정보공유 분류" value={infoEditFilter ?? 'news'}
+                options={Object.entries(infoFilterLabelById).map(([value, label]) => ({ value, label }))}
+                disabled={isPublishing || isEditLoading} onChange={(value) => setInfoEditFilter(value as InfoFilterId)} /> : <WriterCategoryPicker label={`${copy.label} 선택`} value={String(selectedBoardId ?? '')} options={boards.map((board) => ({ value: String(board.boardId), label: board.boardName }))} disabled={isPublishing || isEditLoading || isBoardsLoading || boards.length < 2} onChange={(value) => setSelectedBoardId(Number(value))} />}
+              </div><span className="info-writer-detail-label">작성일</span><span className="info-writer-detail-value">{infoSourceDate}</span></div>
+              <div className="info-writer-detail-row info-writer-detail-row--author"><span className="info-writer-detail-label">작성자</span><span className="info-writer-detail-value">{infoSourceName}</span></div>
+              </> : <div className="info-writer-detail-row">
+                <span className="info-writer-detail-label">작성자</span><span className="info-writer-detail-value">{infoSourceName}</span>
+                <span className="info-writer-detail-label">작성일</span><span className="info-writer-detail-value">{infoSourceDate}</span>
+              </div>}
+              <div className="info-writer-detail-row info-writer-detail-row--author"><span className="info-writer-detail-label">태그</span><TagInput value={tagsInput} onChange={setTagsInput} /></div>
+            </div>
 
-            {tags.length > 0 && (
-              <div className="post-writer-taglist" aria-label="입력된 태그">
-                {tags.map((tag) => (
-                  <span key={tag} className="post-tag">#{tag}</span>
-                ))}
-              </div>
-            )}
-
-            {writerType === 'info' && (
-              <section className="info-writer-image-field" aria-label="정보공유 대표 이미지">
+            <div
+              className="pw-editor-wrap velog-editor-wrap"
+              data-color-mode="light"
+            >
+              <RichPostEditor value={content} onChange={setContent} disabled={isPublishing || isEditLoading || Boolean(loadError)} uploadImage={uploadEditorImage} onError={setImageError} />
+              <div className="writer-body-counter" aria-live="polite"><span className={`pw-counter${contentOverLimit ? ' pw-counter--over' : ''}`}>{contentLength} / {CONTENT_MAX}자</span></div>
+            </div>
+              <section className="info-writer-image-field" aria-label="대표 이미지">
                 <div className="info-writer-image-copy"><strong>대표 이미지</strong><span>목록과 상세 상단에 표시됩니다.</span></div>
                 <div className="info-writer-image-tiles">
                   <label className="info-writer-upload-tile">
@@ -644,39 +508,13 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
                   </div>}
                 </div>
               </section>
-            )}
 
-            <div
-              ref={editorRootRef}
-              className="pw-editor-wrap velog-editor-wrap"
-              data-color-mode="light"
-            >
-              <MDEditor
-                value={content}
-                onChange={(value) => setContent(value ?? '')}
-                height="calc(100vh - 330px)"
-                minHeight={420}
-                preview="edit"
-                visibleDragbar={false}
-                commands={editorCommands}
-                textareaProps={{
-                  placeholder: copy.placeholder,
-                  'aria-label': '게시글 본문 입력',
-                  onKeyDown: handleEditorKeyDown,
-                  onPaste: handleEditorPaste,
-                  onDrop: handleEditorDrop,
-                  onDragOver: handleEditorDragOver,
-                }}
-              />
-              <div className="writer-body-counter" aria-live="polite"><span className={`pw-counter${contentOverLimit ? ' pw-counter--over' : ''}`}>{contentLength} / {CONTENT_MAX}자</span></div>
-            </div>
           </fieldset>
 
           <footer className="velog-writer-footer" aria-live="polite">
             <button type="button" className="ghost-button writer-cancel-button" disabled={isPublishing} onClick={() => onClose()}>취소</button>
             <button type="submit" className="write-post-button velog-publish-button" disabled={isPublishing || isEditLoading || isBoardsLoading || uploadCount > 0 || Boolean(loadError || boardError)}>
-              <Icon name="plus" size={16} />
-              {isPublishing ? (isEditMode ? '저장 중...' : '발행 중...') : (isEditMode ? '저장하기' : '발행하기')}
+              {isPublishing ? (isEditMode ? '저장 중...' : '작성 중...') : (isEditMode ? '저장하기' : '작성하기')}
             </button>
           </footer>
         </article>

@@ -1,4 +1,5 @@
 import { LoadErrorState } from '../../shared/ui/LoadErrorState'
+import { Icon } from '../../shared/ui/Icon'
 import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
@@ -394,7 +395,7 @@ export function RecruitPage({ onSelectRecruit, initialMode = 'list' }: RecruitPa
       {mode !== 'write' && <div className="page-container recruit-page-actions">
         <div className="recruit-mobile-navigation"><SelectControl label="모집 메뉴" value={mode} options={workspaceTabs.map((tab) => ({ value: tab.id, label: tab.label }))} onChange={changeMode} /></div>
         <button type="button" className="recruit-create-button" onClick={() => changeMode('write')}>
-          공고 등록
+          <Icon name="pencil-color" size={16} />공고 등록
         </button>
       </div>}
       <div ref={panelRef}>

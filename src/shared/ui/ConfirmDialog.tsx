@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import './confirmDialog.css'
 
 type Props = {
@@ -9,9 +9,10 @@ type Props = {
   cancelLabel: string
   onConfirm: () => void
   onCancel: () => void
+  children?: ReactNode
 }
 
-export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel, onConfirm, onCancel, children }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const id = useId()
   useEffect(() => {
@@ -35,6 +36,7 @@ export function ConfirmDialog({ open, title, description, confirmLabel, cancelLa
       onCancel={(event) => { event.preventDefault(); onCancel() }}>
       <h2 id={`${id}-title`}>{title}</h2>
       <p id={`${id}-description`}>{description}</p>
+      {children}
       <div className="confirm-dialog-actions">
         <button type="button" disabled={!open} autoFocus onClick={onCancel}>{cancelLabel}</button>
         <button type="button" disabled={!open} className="confirm-dialog-primary" onClick={onConfirm}>{confirmLabel}</button>
