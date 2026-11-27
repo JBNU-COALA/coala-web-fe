@@ -314,8 +314,11 @@
 
 .home-carousel-description-line { display: block; word-break: keep-all; overflow-wrap: anywhere; }
 
-/* Image and template slides share one 3:1 canvas. */
+/* Image and template slides share a canvas, capped on desktop. */
 .home-carousel { aspect-ratio: 3 / 1; }
+@media (min-width: 901px) {
+  .coala-app .home-carousel { aspect-ratio: auto; height: clamp(300px, 24vw, 400px); }
+}
 .home-carousel .home-carousel-track { position: absolute; inset: 0; height: 100%; }
 .home-carousel .home-carousel-slide { min-height: 0; height: 100%; overflow: hidden; }
 .coala-app .home-carousel .home-carousel-inner { min-height: 0; height: 100%; box-sizing: border-box; padding-block: clamp(12px, 2vw, 32px); gap: 20px; }
