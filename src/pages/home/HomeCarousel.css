@@ -107,7 +107,7 @@
   padding-block: 44px 78px;
 }
 .home-carousel-copy { min-width: 0; }
-.home-carousel-eyebrow { margin: 0 0 14px; color: #ffffffb3; font-size: 11px; font-weight: 600; letter-spacing: .12em; }
+.home-carousel-eyebrow { margin: 0 0 12px; color: #525252; font-size: 11px; font-weight: 600; letter-spacing: 0; }
 .home-carousel-copy :is(h1, h2) {
   margin: 0;
   max-width: 660px;
@@ -239,14 +239,14 @@
   pointer-events: none;
   overflow: hidden;
   transition: opacity 950ms ease;
-  --slide-base: #e5e5e5;
-  --slide-deep: #bebebe;
-  --slide-glow: #f7f7f7;
+  --slide-base: #e5f0eb;
+  --slide-deep: #c8ded4;
+  --slide-glow: #f5faf7;
   background: var(--slide-base);
   color: #343434;
 }
-.home-carousel-slide--blue { --slide-base: #dedede; --slide-deep: #b8b8b8; --slide-glow: #e7e7e7; }
-.home-carousel-slide--coral { --slide-base: #dfdfdf; --slide-deep: #c4c4c4; --slide-glow: #f1f1f1; }
+.home-carousel-slide--blue { --slide-base: #e5edf6; --slide-deep: #cbd9ec; --slide-glow: #f7f9fc; }
+.home-carousel-slide--coral { --slide-base: #f8e9e5; --slide-deep: #eccfc7; --slide-glow: #fcf7f5; }
 .home-carousel-slide.is-active { opacity: 1; pointer-events: auto; z-index: 1; }
 .home-carousel-slide:not(.home-carousel-slide--media)::before {
   inset: -40%; width: auto; height: auto; opacity: 1;

@@ -547,6 +547,7 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
           </button>
 
           <div className="post-header-actions">
+            {isLoggedIn && !post.mine && !isSameUserId(user?.id, post.userId) && <button type="button" className="ghost-button post-report-icon" aria-label="신고" title="신고" onClick={() => handleReport('POST', post.postId)}><Icon name="siren-color" size={16} /></button>}
             {canManagePost ? (
               <>
                 <button type="button" className="ghost-button" title="수정" onClick={onEdit}>

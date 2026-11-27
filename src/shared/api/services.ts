@@ -33,6 +33,10 @@ export type MemberServicePayload = {
   imageUrl?: string
   additionalImageUrls?: string[]
   tags: string[]
+  audience?: string
+  description?: string
+  features?: string[]
+  stack?: string[]
 }
 
 export type InstanceApplyPayload = {

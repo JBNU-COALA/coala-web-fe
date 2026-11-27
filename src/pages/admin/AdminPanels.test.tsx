@@ -12,6 +12,7 @@ import { AdminBoardsPanel } from './AdminBoardsPanel'
 import { AdminDomainsPanel } from './AdminDomainsPanel'
 import { AdminServicesPanel } from './AdminServicesPanel'
 import { AdminInquiriesPanel } from './AdminInquiriesPanel'
+import { attachmentsApi } from '../../shared/api/attachments'
 
 afterEach(() => { cleanup(); vi.restoreAllMocks() })
 
@@ -82,6 +83,7 @@ describe('admin management panels', () => {
     expect(create).toHaveBeenCalledWith({ title: '신규 배너', eyebrow: '', description: '', imageUrl: '', targetPath: '/about', actionLabel: '자세히 보기', tone: 'green', sortOrder: 0, enabled: false })
     finish({ id: 1, ...create.mock.calls[0][0] })
     await screen.findByRole('heading', { name: '배너 수정' })
+    expect(screen.getByText('배너를 저장했습니다.')).toBeTruthy()
   })
 
   it('edits order and visibility and deletes only after confirmation', async () => {
@@ -105,19 +107,20 @@ describe('admin management panels', () => {
     expect(remove).toHaveBeenCalledWith(3)
   })
 
-  it('updates board name and description without attempting to change the immutable type', async () => {
+  it('updates board name and classification without changing the immutable type', async () => {
     const update = vi.spyOn(adminApi, 'updateBoard').mockResolvedValue({ boardId: 4, status: 'updated' })
     const onChange = vi.fn()
     render(<AdminBoardsPanel boards={[{ boardId: 4, boardName: '공지', categoryKey: 'notice', description: '기존', boardType: 'NORMAL', isActive: true, createdAt: '', updatedAt: '' }]} onChange={onChange} />)
     fireEvent.click(screen.getByRole('button', { name: /공지.*기존/ }))
     fireEvent.change(screen.getByLabelText('게시판 이름'), { target: { value: '새 이름' } })
     fireEvent.change(screen.getByLabelText('설명'), { target: { value: '새 설명' } })
+    fireEvent.change(screen.getByLabelText('분류'), { target: { value: 'news' } })
     fireEvent.click(screen.getByRole('button', { name: '게시판 저장' }))
     await waitFor(() => expect(onChange).toHaveBeenCalled())
-    expect(update).toHaveBeenCalledWith(4, { boardName: '새 이름', description: '새 설명', isActive: true })
+    expect(update).toHaveBeenCalledWith(4, { boardName: '새 이름', description: '새 설명', isActive: true, categoryKey: 'news' })
     expect((screen.getByLabelText('유형') as HTMLSelectElement).disabled).toBe(true)
-    expect((screen.getByLabelText('분류') as HTMLSelectElement).disabled).toBe(true)
-    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ boardName: '새 이름', categoryKey: 'notice' })])
+    expect((screen.getByLabelText('분류') as HTMLSelectElement).disabled).toBe(false)
+    expect(onChange).toHaveBeenCalledWith([expect.objectContaining({ boardName: '새 이름', categoryKey: 'news' })])
   })
 
   it('creates NORMAL boards with explicit classification', async () => {
@@ -150,9 +153,12 @@ describe('admin management panels', () => {
     render(<AdminServicesPanel services={[service]} onChange={vi.fn()} />)
     fireEvent.click(screen.getByRole('button', { name: /서비스.*운영자/ }))
     fireEvent.change(screen.getByLabelText('요약'), { target: { value: '바뀐 요약' } })
+    fireEvent.change(screen.getByLabelText('상세 설명'), { target: { value: '바뀐 상세 설명' } })
+    fireEvent.change(screen.getByLabelText('주요 기능'), { target: { value: '인증\n\n검색' } })
+    fireEvent.change(screen.getByLabelText('기술 스택'), { target: { value: 'Kotlin, PostgreSQL' } })
     fireEvent.click(screen.getByRole('button', { name: '서비스 저장' }))
     await screen.findByText('서비스를 저장했습니다.')
-    expect(update).toHaveBeenCalledWith('svc-1', expect.objectContaining({ summary: '바뀐 요약', owner: '운영자', status: '운영완료', githubUrl: service.githubUrl, imageUrl: '/service.png', additionalImageUrls: ['/second.png'] }))
+    expect(update).toHaveBeenCalledWith('svc-1', expect.objectContaining({ summary: '바뀐 요약', description: '바뀐 상세 설명', features: ['인증', '검색'], stack: ['Kotlin', 'PostgreSQL'], owner: '운영자', status: '운영완료', githubUrl: service.githubUrl, imageUrl: '/service.png', additionalImageUrls: ['/second.png'] }))
   })
 
   it('requests a bounded activity month and provides group, record and editor links', async () => {
@@ -180,5 +186,39 @@ describe('admin management panels', () => {
     await screen.findByText('신청 처리를 저장했습니다.')
     expect(update).toHaveBeenCalledWith('d-1', { status: 'approved', adminNote: '승인 메모' })
     expect(screen.queryByRole('button', { name: /테스트 도메인/ })).toBeNull()
+  })
+})
+
+describe('banner media management', () => {
+  it('uploads an image, previews only media and persists its backend URL', async () => {
+    vi.spyOn(adminApi, 'getBanners').mockResolvedValue([])
+    const upload = vi.spyOn(attachmentsApi, 'uploadImage').mockResolvedValue({ attachmentId: 8, originalName: 'banner.png', contentType: 'image/png', fileSize: 10, url: '/media/attachments/8/download', status: 'TEMP' })
+    const create = vi.spyOn(adminApi, 'createBanner').mockImplementation(async (payload) => ({ id: 8, ...payload }))
+    render(<AdminBannersPanel refreshKey={0} />)
+    await screen.findByText('등록된 배너가 없습니다.')
+    fireEvent.click(screen.getByRole('button', { name: '배너 추가' }))
+    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '이미지 배너' } })
+    const file = new File(['png'], 'banner.png', { type: 'image/png' })
+    fireEvent.change(screen.getByLabelText('배너 이미지 파일'), { target: { files: [file] } })
+    await screen.findByText('이미지를 연결했습니다.')
+    expect(upload).toHaveBeenCalledWith(file)
+    expect(screen.getByRole('img', { name: '배너 이미지' }).getAttribute('src')).toBe('/media/attachments/8/download')
+    expect(screen.queryByRole('heading', { name: '이미지 배너' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: '배너 저장' }))
+    await screen.findByText('배너를 저장했습니다.')
+    expect(create).toHaveBeenCalledWith(expect.objectContaining({ imageUrl: '/media/attachments/8/download' }))
+    fireEvent.click(screen.getByRole('button', { name: '배너 이미지 제거' }))
+    expect(screen.queryByRole('img', { name: '배너 이미지' })).toBeNull()
+    expect(screen.getByRole('heading', { name: '이미지 배너' })).toBeTruthy()
+  })
+  it('keeps the existing image and draft if upload fails', async () => {
+    const banner: SiteBanner = { id: 3, title: '원본 배너', eyebrow: '', description: '', imageUrl: '/original.png', targetPath: '/about', actionLabel: '보기', tone: 'blue', sortOrder: 0, enabled: true }
+    vi.spyOn(adminApi, 'getBanners').mockResolvedValue([banner])
+    vi.spyOn(attachmentsApi, 'uploadImage').mockRejectedValue(new Error('offline'))
+    render(<AdminBannersPanel refreshKey={0} />)
+    fireEvent.click(await screen.findByRole('button', { name: /원본 배너/ }))
+    fireEvent.change(screen.getByLabelText('배너 이미지 파일'), { target: { files: [new File(['png'], 'banner.png', { type: 'image/png' })] } })
+    await screen.findByText('이미지 업로드에 실패했습니다. 기존 이미지는 유지됩니다.')
+    expect((screen.getByLabelText('이미지 URL') as HTMLInputElement).value).toBe('/original.png')
   })
 })

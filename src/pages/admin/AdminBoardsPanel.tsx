@@ -37,7 +37,7 @@ function BoardEditor({ board, onSave, onBusy }: { board?: BoardData; onSave: (bo
   const [name, setName] = useState(board?.boardName ?? '')
   const [description, setDescription] = useState(board?.description ?? '')
   const [type, setType] = useState<BoardType>(board?.boardType ?? 'NORMAL')
-  const [category, setCategory] = useState<BoardCategoryKey>(board?.categoryKey ?? 'free')
+  const [category, setCategory] = useState<BoardCategoryKey | ''>(board ? board.categoryKey ?? '' : 'free')
   const [active, setActive] = useState(board?.isActive ?? true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState('')
@@ -50,11 +50,11 @@ function BoardEditor({ board, onSave, onBusy }: { board?: BoardData; onSave: (bo
     setMessage('')
     try {
       if (board) {
-        await adminApi.updateBoard(board.boardId, { boardName: name.trim(), description: description.trim(), isActive: active })
-        onSave({ ...board, boardName: name.trim(), description: description.trim(), isActive: active })
+        await adminApi.updateBoard(board.boardId, { boardName: name.trim(), description: description.trim(), isActive: active, ...(type === 'NORMAL' && category ? { categoryKey: category } : {}) })
+        onSave({ ...board, boardName: name.trim(), description: description.trim(), isActive: active, categoryKey: type === 'NORMAL' ? category || board.categoryKey : null })
       } else {
-        const created = await adminApi.createBoard({ boardName: name.trim(), description: description.trim(), boardType: type, ...(type === 'NORMAL' ? { categoryKey: category } : {}) })
-        onSave({ ...created, description: description.trim(), boardType: type, categoryKey: type === 'NORMAL' ? category : null, isActive: true, updatedAt: created.createdAt })
+        const created = await adminApi.createBoard({ boardName: name.trim(), description: description.trim(), boardType: type, ...(type === 'NORMAL' && category ? { categoryKey: category } : {}) })
+        onSave({ ...created, description: description.trim(), boardType: type, categoryKey: type === 'NORMAL' ? category || null : null, isActive: true, updatedAt: created.createdAt })
       }
       setMessage('게시판을 저장했습니다.')
     } catch { setMessage('게시판 저장에 실패했습니다. 입력 내용은 유지됩니다.') }
@@ -66,7 +66,7 @@ function BoardEditor({ board, onSave, onBusy }: { board?: BoardData; onSave: (bo
       <Field label="게시판 이름"><input required maxLength={50} value={name} onChange={(e) => setName(e.target.value)} /></Field>
       <Field label="설명"><textarea maxLength={255} rows={4} value={description} onChange={(e) => setDescription(e.target.value)} /></Field>
       <Field label="유형"><select value={type} disabled={!!board} onChange={(e) => setType(e.target.value as BoardType)}>{Object.entries(boardTypes).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></Field>
-      {type === 'NORMAL' && <Field label="분류"><select value={board && !board.categoryKey ? '' : category} disabled={!!board} onChange={(e) => setCategory(e.target.value as BoardCategoryKey)}>
+      {type === 'NORMAL' && <Field label="분류"><select value={category} onChange={(e) => setCategory(e.target.value as BoardCategoryKey)}>
         {board && !board.categoryKey && <option value="">분류 미확인</option>}
         {Object.entries(boardCategories).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
       </select></Field>}

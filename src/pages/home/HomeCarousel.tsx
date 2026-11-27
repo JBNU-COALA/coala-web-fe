@@ -12,20 +12,6 @@ const defaultBanners: SiteBanner[] = [
   { id: -3, eyebrow: '', title: '프로젝트에 필요한 서비스, 여기서 시작하세요.', description: '인스턴스 대여와 도메인을 신청하고 진행 내역을 확인하세요. 멤버들이 직접 만든 서비스도 둘러볼 수 있습니다.', targetPath: routes.services.root, actionLabel: '서비스 보기', tone: 'coral', imageUrl: '', sortOrder: 2, enabled: true },
 ]
 
-// Refresh the original seed copy while preserving administrator-authored banners.
-function refreshDefaultCopy(banner: SiteBanner): SiteBanner {
-  if (banner.imageUrl) return banner
-  const legacyTitles = [
-    ['COALA Developer Club', '함께 만드는 개발 동아리'],
-    ['배우고, 나누고, 함께.'],
-    ['아이디어에서 서비스로.'],
-  ]
-  const index = legacyTitles.findIndex((titles) => titles.includes(banner.title))
-  if (index < 0) return banner
-  const { title, description } = defaultBanners[index]
-  return { ...banner, title, description }
-}
-
 export function HomeCarousel() {
   const [banners, setBanners] = useState(defaultBanners)
   const [index, setIndex] = useState(0)
@@ -41,7 +27,7 @@ export function HomeCarousel() {
     async function loadBanners() {
       try {
         const items = await siteApi.getBanners()
-        if (active) setBanners(items.filter((item) => item.enabled).map(refreshDefaultCopy).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id))
+        if (active) setBanners(items.filter((item) => item.enabled).sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id))
       } catch {
         // Keep the navigation banners usable when this optional API is unavailable.
       }
@@ -111,6 +97,7 @@ export function HomeCarousel() {
               ) : (
                 <div className="page-container home-carousel-inner">
                   <div className="home-carousel-copy">
+                    {banner.eyebrow && <p className="home-carousel-eyebrow">{banner.eyebrow}</p>}
                     <Heading>{banner.title}</Heading>
                     <p className="home-carousel-description">
                       {banner.description.split(/(?<=[.!?])\s+|\n+/).filter(Boolean).map((sentence, index) => (

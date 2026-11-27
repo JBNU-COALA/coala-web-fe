@@ -31,6 +31,7 @@ import { useAuth } from '../../shared/auth/AuthContext'
 import { AdminEducationPanel } from './AdminEducationPanel'
 import { AdminEmploymentPanel } from './AdminEmploymentPanel'
 import { AdminArchivePanel } from './AdminArchivePanel'
+import { AdminCommentsPanel } from './AdminCommentsPanel'
 import { AdminAuditPanel, AdminOperationsPanel } from './AdminOperationsPanel'
 import { adminDestinations } from './adminSections'
 import { Icon } from '../../shared/ui/Icon'
@@ -727,6 +728,7 @@ export function AdminPage() {
         {activeTab === 'education' && <AdminEducationPanel key={refreshKey} />}
         {activeTab === 'employment' && <AdminEmploymentPanel key={refreshKey} />}
         {activeTab === 'archive' && <AdminArchivePanel key={refreshKey} />}
+        {activeTab === 'comments' && <AdminCommentsPanel key={refreshKey} />}
         {activeTab === 'audit' && <AdminAuditPanel key={refreshKey} />}
         {activeTab === 'analytics' && <AdminAnalyticsPanel />}
         {activeTab === 'about' && <AdminAboutPanel refreshKey={refreshKey} />}

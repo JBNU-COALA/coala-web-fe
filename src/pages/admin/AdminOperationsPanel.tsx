@@ -12,7 +12,7 @@ export function AdminOperationsPanel({ onNavigate }: { onNavigate: (destination:
   const load = useCallback(async (signal: AbortSignal) => (await client.get<{ counts: Record<string, number | null> }>('/api/admin/operations', { signal })).data, [])
   const resource = useApiResource(load, revision)
   const counts = resource.data?.counts
-  const countKeys: Partial<Record<AdminDestination, string>> = { users: 'members', posts: 'posts', boards: 'boards', activity: 'records', archive: 'archives', education: 'challenges', employment: 'reviews' }
+  const countKeys: Partial<Record<AdminDestination, string>> = { users: 'members', posts: 'posts', comments: 'comments', boards: 'boards', activity: 'records', archive: 'archives', education: 'challenges', employment: 'reviews' }
   return <div className="admin-operations"><AdminSeedPanel onInstalled={() => setRevision((value) => value + 1)} />
     <section className="admin-workspace-directory"><div className="admin-section-heading"><h3>관리 영역</h3><button type="button" className="admin-icon-button" title="관리 현황 새로고침" aria-label="관리 현황 새로고침" onClick={() => setRevision((value) => value + 1)}><Icon name="refresh" size={16} /></button></div><AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />
       <div className="admin-directory-list">{adminDestinations.filter((item) => item.id !== 'stats').map((item) => <button type="button" key={item.id} onClick={() => onNavigate(item.id)}><Icon name={item.icon} size={17} /><span>{item.label}</span><small>{counts && countKeys[item.id] ? counts[countKeys[item.id]!] ?? '-' : item.group}</small><Icon name="chevron-right" size={14} /></button>)}</div>

@@ -16,7 +16,7 @@ describe('attendance editor context', () => {
     const date = shiftDate(activityToday(), -7)
     const { container } = render(<MemoryRouter><RecordEditor data={{ groups: [group], records: [] }} initialGroup="3"
       initialDate={date} back="/community/activity" onSave={save} /></MemoryRouter>)
-    expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('3')
+    expect(screen.getByRole('button', { name: '연결할 조 (선택): Study group' })).toBeTruthy()
     expect((screen.getByLabelText('날짜') as HTMLInputElement).value).toBe(date)
     expect(screen.getByRole('radio', { name: '미확인' })).toBeTruthy()
     fireEvent.change(screen.getByLabelText('제목'), { target: { value: 'Weekly notes' } })
@@ -30,7 +30,7 @@ describe('attendance editor context', () => {
   it('does not silently attach a standalone record to the group filter', () => {
     render(<MemoryRouter><RecordEditor data={{ groups: [group], records: [record] }} record={record}
       initialGroup="3" back="/community/activity" onSave={vi.fn()} /></MemoryRouter>)
-    expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('')
+    expect(screen.getByRole('button', { name: '연결할 조 (선택): 연결 안 함' })).toBeTruthy()
     expect(screen.queryByRole('radio')).toBeNull()
   })
   it('uses today instead of preselecting a future attendance date', () => {

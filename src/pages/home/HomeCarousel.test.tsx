@@ -15,6 +15,13 @@ beforeEach(() => { vi.mocked(siteApi.getBanners).mockResolvedValue([makeBanner(1
 afterEach(() => vi.useRealTimers())
 
 describe('home banner carousel', () => {
+  it('never replaces administrator copy based on a legacy banner title', async () => {
+    vi.mocked(siteApi.getBanners).mockResolvedValue([makeBanner(1, { title: 'COALA Developer Club', description: '관리자가 수정한 모집 안내입니다.', eyebrow: '모집 안내' })])
+    mount()
+    await screen.findByRole('heading', { name: 'COALA Developer Club' })
+    expect(screen.getByText('관리자가 수정한 모집 안내입니다.')).toBeTruthy()
+    expect(screen.getByText('모집 안내')).toBeTruthy()
+  })
   it('renders configured banners in order and excludes disabled ones', async () => {
     vi.mocked(siteApi.getBanners).mockResolvedValue([makeBanner(2), makeBanner(3, { enabled: false }), makeBanner(1)])
     const { container } = mount()

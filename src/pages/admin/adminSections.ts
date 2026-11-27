@@ -7,6 +7,7 @@ export const adminDestinations = [
   { id: 'users', label: '회원 관리', icon: 'users', group: '회원 · 커뮤니티' },
   { id: 'boards', label: '게시판 관리', icon: 'layout', group: '회원 · 커뮤니티' },
   { id: 'posts', label: '게시글 관리', icon: 'message', group: '회원 · 커뮤니티' },
+  { id: 'comments', label: '댓글 관리', icon: 'message', group: '회원 · 커뮤니티' },
   { id: 'employment', label: '취업 후기 관리', icon: 'file', group: '회원 · 커뮤니티' },
   { id: 'activity', label: '활동 관리', icon: 'calendar', group: '회원 · 커뮤니티' },
   { id: 'reports', label: '신고 처리', icon: 'bell', group: '회원 · 커뮤니티' },

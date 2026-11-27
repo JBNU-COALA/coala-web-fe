@@ -26,7 +26,7 @@ describe('activity loading and navigation', () => {
     expect(screen.getByRole('status').textContent).toContain('불러오는 중')
     expect(screen.queryByLabelText('제목')).toBeNull()
     await act(async () => complete(data))
-    expect((screen.getByRole('combobox') as HTMLSelectElement).value).toBe('3')
+    expect(screen.getByRole('button', { name: '연결할 조 (선택): Study group' })).toBeTruthy()
     expect(screen.getByRole('radio', { name: '미확인' })).toBeTruthy()
   })
   it('does not silently create standalone attendance for an unavailable group', async () => {
