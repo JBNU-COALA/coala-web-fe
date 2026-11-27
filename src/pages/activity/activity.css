@@ -1039,3 +1039,29 @@ a.study-person-name:hover {
 .coala-app .study-page :is(.study-editor-group, .study-group-select).select-control > .select-control-trigger { height: 30px !important; min-height: 30px !important; font-size: 12px !important; padding-inline: 8px; }
 .coala-app .study-page .study-week strong { font-size: 12px; }
 .coala-app .study-page .study-week span { font-size: 11px; }
+
+/* Bright calendar and aligned attendance controls. */
+.coala-app .study-calendar-weekdays { background: #fff; }
+.coala-app .study-calendar-days button.is-outside { background: #fff; }
+.coala-app .study-calendar-days button.is-selected { background: #fff; }
+.coala-app .study-calendar-days button.is-selected > span:first-child { background: #171717; color: #fff; }
+.coala-app .study-calendar-days button[aria-current=date]:not(.is-selected) > span:first-child { color: #171717; background: #fff; box-shadow: inset 0 0 0 1px #171717; }
+.coala-app .study-page .study-editor .participant-search { height: 36px; min-height: 36px; }
+.coala-app .study-page .study-editor .participant-search input { height: 34px; min-height: 0; font-size: 13px; }
+.coala-app .study-page .study-editor .participant-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+.coala-app .study-page .study-editor .participant-search:focus-within { outline: none; border-color: #aaa; }
+.coala-app .study-page .study-editor input:focus { outline: none; box-shadow: none; border-color: #aaa; }
+@media (max-width: 700px) {
+  .coala-app .study-listing-controls .listing-controls-bar { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: end; }
+  .coala-app .study-listing-controls .listing-visible-filters { display: contents; }
+  .coala-app .study-listing-controls .study-week { grid-column: 1 / -1; display: flex; width: 100%; margin: 0; justify-content: space-between; gap: 8px; }
+  .coala-app .study-listing-controls .study-week > div { min-width: 0; }
+  .coala-app .study-listing-controls .study-group-filter { grid-column: 1; min-width: 0; }
+  .coala-app .study-listing-controls .study-group-filter .select-control { width: 100%; }
+  .coala-app .study-listing-controls .study-view-toolbar { grid-column: 2; grid-row: 2; }
+  .coala-app .study-listing-controls:not(:has(.study-week)) .study-view-toolbar { grid-row: 1; }
+}
+
+.coala-app .study-page .study-editor input:not([type=checkbox]):not([type=radio]) { height: 32px; min-height: 32px; font-size: 12px; }
+.coala-app .study-page .study-editor .participant-search { height: 32px; min-height: 32px; }
+.coala-app .study-page .study-editor .participant-search input { height: 30px; min-height: 0; padding: 0; }

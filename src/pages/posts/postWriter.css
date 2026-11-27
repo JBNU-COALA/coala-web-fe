@@ -139,3 +139,7 @@
 }
 .writer-source-toggle { display: block; margin: 4px 12px 4px auto; padding: 4px 7px; border: 0; background: transparent; color: #777; font-size: 11px; cursor: pointer; }
 .coala-app .post-writer--velog .info-writer-image-field { border-top: 1px solid #e5e5e5; margin-top: 12px; padding-top: 16px; }
+
+.coala-app .writer-board-notice { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 20px; color: #737373; font-size: 12px; }
+.coala-app .writer-board-notice button { flex-shrink: 0; padding: 5px 9px; border: 1px solid #ddd; border-radius: 7px; background: #fff; color: #333; font: inherit; cursor: pointer; }
+

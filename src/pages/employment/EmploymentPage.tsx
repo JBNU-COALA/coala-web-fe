@@ -68,7 +68,7 @@ function EmploymentListPage() {
         <div className="employment-review-author"><span>{review.author}</span><time>{review.createdAt?.slice(0, 10)}</time></div>
       </li>)}</ul>
       <Pagination page={page + 1} pageCount={resource.data.totalPages} onChange={(value) => change('page', String(value - 1))} />
-    </> : <EducationEmptyState icon="file" title="등록된 후기가 없습니다." />)}
+    </> : <EducationEmptyState image="/coala-mascot-plush.png" title="등록된 후기가 없습니다." />)}
   </>
 }
 function EmploymentDetail() {

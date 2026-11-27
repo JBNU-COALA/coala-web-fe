@@ -12,6 +12,7 @@ import { ListingControls } from '../../shared/ui/ListingControls'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { SafeImage } from '../../shared/ui/SafeImage'
+import { CharacterAvatar } from '../../shared/ui/CharacterAvatar'
 import { routes } from '../../shared/routes'
 import { ServicePage } from '../service/ServicePage'
 import { DomainServicePanel } from '../service/DomainServicePanel'
@@ -724,10 +725,10 @@ export function ServicesPage() {
                       </div>
                       <p>{service.summary}</p>
                       <footer className="member-service-card-footer">
-                        <div>
+                        <div className="member-service-owner">
+                          <CharacterAvatar name={service.owner} size="xs" />
                           <span>{service.owner}</span>
                         </div>
-                        <Icon name="chevron-right" size={18} />
                       </footer>
                     </>
                   ) : (
@@ -741,7 +742,7 @@ export function ServicesPage() {
                         </div>
                       </div>
                       <div className="member-service-list-side">
-                        <span>{service.owner}</span>
+                        <span className="member-service-owner"><CharacterAvatar name={service.owner} size="xs" />{service.owner}</span>
                         <strong>{service.url}</strong>
 
                         <span className="member-service-open-hint">안내 보기</span>

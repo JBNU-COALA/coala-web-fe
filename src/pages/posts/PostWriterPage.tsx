@@ -1,5 +1,4 @@
 import { TagInput } from '../../shared/ui/TagInput'
-import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { RichPostEditor } from '../../shared/ui/RichPostEditor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type {
@@ -455,7 +454,6 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
         <article className="post-writer post-writer--velog">
           {isEditLoading && <LoadingSpinner label="게시글을 불러오는 중..." />}
           {loadError && <p className="auth-error" role="alert">{loadError}</p>}
-          {boardError && <LoadErrorState message={boardError} onRetry={() => setBoardRevision((value) => value + 1)} />}
           <fieldset className="post-writer-fields velog-writer-fields" disabled={isPublishing || isEditLoading || Boolean(loadError)} style={{ border: 0, margin: 0, minWidth: 0 }}>
             {publishError && <p className="auth-error">{publishError}</p>}
             {imageError && <p className="auth-error">{imageError}</p>}
@@ -511,6 +509,10 @@ function PostWriterSession({ onClose, writerType = 'community', editPostId }: Po
 
           </fieldset>
 
+          {boardError && <div className="writer-board-notice" role="status">
+            <span>글은 계속 작성할 수 있습니다. 등록하려면 게시판 연결을 다시 확인해주세요.</span>
+            <button type="button" onClick={() => setBoardRevision((value) => value + 1)}>다시 연결</button>
+          </div>}
           <footer className="velog-writer-footer" aria-live="polite">
             <button type="button" className="ghost-button writer-cancel-button" disabled={isPublishing} onClick={() => onClose()}>취소</button>
             <button type="submit" className="write-post-button velog-publish-button" disabled={isPublishing || isEditLoading || isBoardsLoading || uploadCount > 0 || Boolean(loadError || boardError)}>
