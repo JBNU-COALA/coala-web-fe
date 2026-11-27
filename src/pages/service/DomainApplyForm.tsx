@@ -1,9 +1,10 @@
 import { useMemo, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
+import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { Icon } from '../../shared/ui/Icon'
 import { servicesApi } from '../../shared/api/services'
 import { useAuth } from '../../shared/auth/AuthContext'
 import posthog, { isPostHogConfigured } from '../../posthog'
+import './domainAddressHelp.css'
 
 type DomainApplyFormProps = {
   onSubmit?: () => void
@@ -31,6 +32,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
   const [agreed, setAgreed] = useState(false)
   const [submittedDomain, setSubmittedDomain] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [addressHelpOpen, setAddressHelpOpen] = useState(false)
 
   const resolvedApplicantName = applicantName ?? user?.name ?? ''
   const resolvedStudentId = studentId ?? user?.studentId ?? ''
@@ -90,19 +92,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
     )
   }
 
-  if (!isLoggedIn) {
-    return (
-      <div className="jcloud-login-required">
-        <div className="jcloud-success-icon">
-          <img className="login-koala" src="/coala-mascot-plush.png" alt="" />
-        </div>
-        <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
-        <Link className="jcloud-login-link" to="/login">
-          로그인하기
-        </Link>
-      </div>
-    )
-  }
+  if (!isLoggedIn) return <LoginRequiredState />
 
   return (
     <form className="jcloud-apply-form" onSubmit={handleSubmit}>
@@ -168,7 +158,21 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
             />
           </div>
           <div className="jcloud-field">
-            <label className="jcloud-label" htmlFor="domain-desired-address">원하는 주소 이름</label>
+            <div className="domain-address-label">
+              <label className="jcloud-label" htmlFor="domain-desired-address">원하는 주소 이름</label>
+              <div className="domain-address-help" onMouseEnter={() => setAddressHelpOpen(true)} onMouseLeave={() => setAddressHelpOpen(false)}
+                onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setAddressHelpOpen(false) }}
+                onKeyDown={(event) => { if (event.key === 'Escape') setAddressHelpOpen(false) }}>
+                <button type="button" className="domain-address-help-button" aria-label="주소 이름 안내" aria-expanded={addressHelpOpen} aria-controls="domain-address-help"
+                  onClick={() => setAddressHelpOpen((open) => !open)}><Icon name="help-circle" size={15} /></button>
+                <div id="domain-address-help" className={`domain-address-help-panel${addressHelpOpen ? ' is-open' : ''}`} role="note" aria-hidden={!addressHelpOpen}>
+                  <strong>신청 주소 안내</strong>
+                  <p>영문 소문자·숫자·하이픈(-), 3~40자</p>
+                  <p>입력한 이름이 아래 주소 끝에 붙습니다.</p>
+                  <span>{domainPreview}</span>
+                </div>
+              </div>
+            </div>
             <input
               id="domain-desired-address"
               className="jcloud-input"
@@ -179,12 +183,6 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
               maxLength={40}
               required
             />
-          </div>
-          <div className="jcloud-form-section jcloud-form-section--summary">
-            <div className="jcloud-summary-row">
-              <span className="jcloud-summary-label">신청 주소</span>
-              <span className="jcloud-summary-value">{domainPreview}</span>
-            </div>
           </div>
           <div className="jcloud-field">
             <label className="jcloud-label repository-field-label" htmlFor="domain-repository"><Icon name="github" size={16} />공개 저장소</label>
@@ -234,7 +232,7 @@ export function DomainApplyForm({ onSubmit }: DomainApplyFormProps) {
           도메인은 coala.jbnu.ac.kr/services/{'{'}본인이 원하는 주소이름{'}'} 형식으로 신청합니다.
         </p>
         <ul>
-          <li>신청 서비스는 코알라 오픈소스 프로젝트(COSS)에 편입됩니다.</li>
+          <li>신청 서비스는 코알라 오픈소스 프로젝트(COAS)에 편입됩니다.</li>
           <li>저장소는 공개 상태로 관리하고, 서비스 소개와 운영 기록을 확인할 수 있어야 합니다.</li>
           <li>보안 사고, 목적 외 사용, 장기 미운영이 확인되면 도메인 연결이 회수될 수 있습니다.</li>
           <li>인스턴스 대여 서비스와 함께 사용할 경우 연결 대상 URL에 배포 주소를 입력해주세요.</li>

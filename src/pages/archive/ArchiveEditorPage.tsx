@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from 'react'
-import { Link, useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { archiveApi } from '../../shared/api/archive'
 import { attachmentsApi } from '../../shared/api/attachments'
 import { useAuth } from '../../shared/auth/AuthContext'
@@ -99,10 +100,7 @@ export function ArchiveEditorPage() {
   }
 
   return <PageFrame title={formIsLabs ? '연구실 자료' : '에이전트 / 스킬'} tone="archive" className="coala-content--archive" bodyClassName="archive-content">
-    {!isLoggedIn ? <div className="archive-login-required">
-      <img className="archive-login-koala" src="/coala-mascot-plush.png" alt="" />
-      <h3>로그인이 필요합니다.</h3>
-      <Link className="archive-login-button" to="/login" state={{ from: location }}>로그인하기</Link></div>
+    {!isLoggedIn ? <LoginRequiredState />
       : loading ? <LoadingSpinner label="자료를 불러오는 중입니다." />
       : !allowed ? <p role="alert">{archiveError}</p>
       : <form className="archive-form archive-editor" onSubmit={handleSubmit}>

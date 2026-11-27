@@ -2,10 +2,12 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react'
 import { authApi, type UserData, type SignupRequest, type EmailVerificationResponse } from '../api/auth'
 import { AUTH_SESSION_EVENT, clearAuthSession, getAuthSessionVersion, getRefreshToken, getStoredUser, handleAuthStorageEvent, setAuthSession, setStoredUser } from './tokenStorage'
+import { clearDevUser, getDevUser, loginDevUser } from './devAuth'
 
 type AuthState = {
   user: UserData | null
   isLoggedIn: boolean
+  isDevSession: boolean
   login: (email: string, password: string) => Promise<void>
   signup: (data: SignupRequest) => Promise<EmailVerificationResponse>
   updateUser: (patch: Partial<UserData>) => void
@@ -17,6 +19,8 @@ const AuthContext = createContext<AuthState | null>(null)
 export function AuthProvider({ children }: { children: ReactNode }) {
 
   const [user, setUser] = useState<UserData | null>(() => {
+    const devUser = getDevUser()
+    if (devUser) return devUser
     const storedUser = getStoredUser()
     if (!storedUser || !getRefreshToken()) {
       clearAuthSession()
@@ -26,12 +30,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   })
 
   useEffect(() => {
-    const syncSession = () => setUser(getRefreshToken() ? getStoredUser() : null)
+    const syncSession = () => setUser(getDevUser() ?? (getRefreshToken() ? getStoredUser() : null))
     window.addEventListener(AUTH_SESSION_EVENT, syncSession)
     window.addEventListener('storage', handleAuthStorageEvent)
     const refreshToken = getRefreshToken()
     // Bootstrap and expired API calls share one refresh, including StrictMode replays.
-    if (refreshToken) void authApi.refresh(refreshToken).catch(() => {})
+    if (refreshToken && !getDevUser()) void authApi.refresh(refreshToken).catch(() => {})
 
     return () => {
       window.removeEventListener(AUTH_SESSION_EVENT, syncSession)
@@ -41,7 +45,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 
   const login = async (email: string, password: string) => {
+    const devUser = loginDevUser(email, password)
+    if (devUser) {
+      clearAuthSession()
+      setUser(devUser)
+      return
+    }
     const data = await authApi.login({ email, password })
+    clearDevUser()
     setAuthSession(data)
     setUser(data.user)
   }
@@ -55,12 +66,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser((current) => {
       if (!current) return current
       const next = { ...current, ...patch }
-      setStoredUser(next)
+      if (!getDevUser()) setStoredUser(next)
       return next
     })
   }, [])
 
   const logout = async () => {
+    if (getDevUser()) {
+      clearDevUser()
+      clearAuthSession()
+      setUser(null)
+      return
+    }
     const version = getAuthSessionVersion()
     await authApi.logout().catch(() => {})
     if (version !== getAuthSessionVersion()) return
@@ -69,7 +86,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoggedIn: user !== null && Boolean(getRefreshToken()), login, signup, updateUser, logout }}>
+    <AuthContext.Provider value={{ user, isLoggedIn: user !== null && Boolean(getDevUser() || getRefreshToken()), isDevSession: Boolean(getDevUser()), login, signup, updateUser, logout }}>
       {children}
     </AuthContext.Provider>
   )

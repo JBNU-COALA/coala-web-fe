@@ -10,6 +10,8 @@
 .select-control-option.is-highlighted { background: #f5f5f5; color: #111; }
 
 .select-control.custom-select { position: relative; }
+.coala-app .listing-visible-filters .select-control-menu,
+.coala-app .listing-controls-actions > .select-control:first-child .select-control-menu { left: 0; right: auto; }
 .select-control-menu { animation: select-menu-in 120ms ease-out; }
 @keyframes select-menu-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .select-control-menu { animation: none; } }
@@ -23,6 +25,8 @@
 /* Native mobile pickers cannot be clipped by cards or overlap adjacent panels. */
 .select-control-native { display: none; }
 .select-control-trigger > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.select-control.custom-select .select-control-trigger > span { font: inherit; color: inherit; }
+.select-control.custom-select :is(.select-control-trigger, .select-control-option) { font-family: var(--font-sans); }
 .select-control-option > span { white-space: normal; overflow-wrap: anywhere; }
 .select-control.custom-select:has(.select-control-menu) { z-index: 125; }
 @media (max-width: 700px) {
@@ -34,6 +38,10 @@
 }
 
 .select-control-trigger:disabled { cursor: not-allowed; opacity: .6; }
+.coala-app .select-control.custom-select.select-control--icon-only { width: 32px; min-width: 32px; max-width: 32px; flex: 0 0 32px; }
+.coala-app .select-control.custom-select.select-control--icon-only > .select-control-trigger { justify-content: center; padding-inline: 0 !important; }
+.coala-app .select-control--icon-only .select-control-trigger[aria-expanded=true] svg { transform: none; }
+.coala-app .select-control--icon-only .select-control-menu { left: 0; right: auto; }
 @media (max-width: 700px) { .coala-app .select-control.custom-select > .select-control-native { appearance: auto; } }
 
 /* Use the same animated menu on touch and desktop devices. */

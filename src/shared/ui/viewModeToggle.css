@@ -1,0 +1,34 @@
+.view-toggle.view-mode-toggle { position: relative; isolation: isolate; gap: 0; padding: 0; }
+.view-mode-toggle > .view-mode-indicator {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 50%;
+  border-radius: 9px;
+  background: #171717;
+  pointer-events: none;
+  transform: translateX(0);
+  transition: transform 240ms cubic-bezier(.22, 1, .36, 1);
+}
+.view-mode-toggle[data-view="list"] > .view-mode-indicator { transform: translateX(100%); }
+.coala-app.coala-app .coala-content .view-toggle.view-mode-toggle > button {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  border-color: transparent;
+  color: #777;
+  transition: color 180ms ease;
+}
+.coala-app.coala-app .coala-content .view-toggle.view-mode-toggle > button[aria-pressed="true"] { background: transparent; color: #fff; }
+.coala-app.coala-app .coala-content .view-toggle.view-mode-toggle > button:hover:not([aria-pressed="true"]) { background: transparent; color: #222; }
+.coala-app.coala-app .coala-content .view-toggle.view-mode-toggle > button:focus-visible { outline: 2px solid #777; outline-offset: -3px; }
+
+/* Separate names restart the entry motion when the layout changes, without remounting rows. */
+.coala-app :is(.board-post-list--card, .member-service-grid, .activity-directory-grid--card) { animation: view-mode-card-enter 200ms ease-out; }
+.coala-app :is(.board-post-list--list, .member-service-list, .activity-directory-grid--list) { animation: view-mode-list-enter 200ms ease-out; }
+@keyframes view-mode-card-enter { from { opacity: .45; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes view-mode-list-enter { from { opacity: .45; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .view-mode-toggle > .view-mode-indicator,
+  .coala-app.coala-app .coala-content .view-toggle.view-mode-toggle > button { transition: none; }
+  .coala-app :is(.board-post-list--card, .board-post-list--list, .member-service-grid, .member-service-list, .activity-directory-grid--card, .activity-directory-grid--list) { animation: none; }
+}

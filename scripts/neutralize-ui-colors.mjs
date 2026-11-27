@@ -13,6 +13,7 @@ async function visit(dir) {
     if (['hero-art-colors.css', 'portal-badge-colors.css'].includes(entry.name)) continue // Explicitly approved forest and portal badge colors.
     const before = await readFile(file, 'utf8')
     let after = before.replace(/#([\da-f]{8}|[\da-f]{6}|[\da-f]{4}|[\da-f]{3})(?![\w-])/gi, (original, hex) => {
+      if (entry.name === 'auth.css' && original.toLowerCase() === '#c62828') return original // User-approved authentication error text.
       const expanded = hex.length < 5 ? [...hex].map((digit) => digit + digit).join('') : hex
       const [r, g, b] = [0, 2, 4].map((offset) => parseInt(expanded.slice(offset, offset + 2), 16))
       if (r === g && g === b) return original

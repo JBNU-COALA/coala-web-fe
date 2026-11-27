@@ -75,6 +75,7 @@
   .coala-app .coala-sidebar-link { flex: 0 0 auto; min-height: 36px; }
   .coala-app .header-notification-popover,
   .coala-app .header-profile-popover { position: fixed; top: calc(var(--coala-header-height, 64px) + 8px); right: 12px; width: min(340px, calc(100vw - 24px)); max-width: calc(100vw - 24px); max-height: calc(100dvh - var(--coala-header-height, 64px) - 32px); overflow-y: auto; box-sizing: border-box; overscroll-behavior: contain; }
+  .coala-app .header-notification-popover { width: min(280px, calc(100vw - 24px)); }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
   .coala-app .coala-header .main-nav-dropdown { transition: none; }

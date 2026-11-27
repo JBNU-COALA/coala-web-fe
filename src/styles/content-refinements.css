@@ -149,16 +149,22 @@
 .coala-app .header-user-button .header-user-avatar { width: 23px; height: 23px; min-width: 23px; }
 .coala-app .header-icon-button { width: 30px; height: 30px; }
 .coala-app .header-notification-badge { min-width: 15px; height: 15px; padding: 0 3px; font-size: 9px; top: -2px; right: -1px; }
-.coala-app .header-notification-popover { background: #fff; border-color: #e5e5e5; color: #262626; box-shadow: 0 8px 28px #00000014; }
+.coala-app .header-notification-popover { box-sizing: border-box; width: min(300px, calc(100vw - 24px)); padding: 8px; gap: 6px; border-radius: 10px; background: #fff; border-color: #e5e5e5; color: #262626; box-shadow: 0 8px 28px #00000014; }
 .coala-app .header-notification-popover::before { background: #fff; border-color: #e5e5e5; }
-.coala-app .header-notification-head { border-color: #e5e5e5; }
+.coala-app .header-notification-head { min-height: 28px; padding: 0 3px 5px; border-color: #e5e5e5; }
+.coala-app .header-notification-head strong { font-size: 12px; font-weight: 500; }
+.coala-app .header-notification-head button { font-size: 11px; font-weight: 400; padding: 4px; }
 .coala-app .header-notification-head :is(strong, button) { color: #262626; }
-.coala-app .header-notification-item { color: #262626; }
+.coala-app .header-notification-item { color: #262626; padding: 8px; gap: 7px; grid-template-columns: 24px minmax(0, 1fr); }
 .coala-app .header-notification-item.is-unread { background: #f5f5f5; }
 .coala-app .header-notification-item:hover { background: #eee; }
-.coala-app .header-notification-icon { background: #eee; color: #525252; }
-.coala-app .header-notification-copy strong { color: #262626; }
-.coala-app .header-notification-copy span { color: #666; }
+.coala-app .header-notification-icon { width: 24px; height: 24px; background: #eee; color: #525252; }
+.coala-app .header-notification-icon svg { width: 14px; height: 14px; }
+.coala-app .header-notification-copy { gap: 2px; }
+.coala-app .header-notification-copy strong { color: #262626; font-size: 12px; font-weight: 500; }
+.coala-app .header-notification-copy span { color: #666; font-size: 11px; font-weight: 400; }
+.coala-app .header-notification-copy small { font-size: 10px; font-weight: 400; }
+.coala-app .header-notification-empty { min-height: 52px; padding: 8px; box-sizing: border-box; border-radius: 0; background: transparent; font-size: 11px; font-weight: 400; }
 .coala-app .header-notification-copy small, .coala-app .header-notification-empty { color: #888; }
 .coala-app .archive-filter-popover { animation: filter-popover-enter 180ms ease-out; transform-origin: top right; }
 @keyframes filter-popover-enter { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
@@ -228,7 +234,7 @@
 .coala-app .header-profile-popover { width: 186px; padding: 6px; border-radius: 12px; animation: menu-reveal 180ms ease-out; }
 .coala-app .header-profile-menu-item { min-height: 36px; padding: 8px 10px; border-radius: 7px; font-size: 13px; }
 .coala-app .header-profile-menu-item:hover { background: #222; color: #fff; }
-.coala-app .header-profile-logout { margin-top: 4px; padding-top: 8px; }
+.coala-app .header-profile-logout { margin-top: 0; padding-top: 8px; border-top: 0; }
 .main-nav-mega { animation: menu-reveal 220ms ease-out; }
 @keyframes menu-reveal { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 @media (prefers-reduced-motion: reduce) { .main-nav-mega, .coala-app .header-profile-popover { animation: none; } }

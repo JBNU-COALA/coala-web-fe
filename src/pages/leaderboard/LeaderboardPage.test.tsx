@@ -37,6 +37,8 @@ it('distinguishes a failed read from an empty directory and supports retry', asy
   vi.mocked(usersApi.getUsers).mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce([])
   mount()
   await screen.findByRole('alert')
+  expect(screen.queryByText('전체 멤버')).toBeNull()
+  expect(screen.queryByRole('region', { name: '전체 유저 목록' })).toBeNull()
   expect(screen.queryByText('멤버 0명')).toBeNull()
   expect(screen.queryByText('조건에 맞는 유저가 없습니다.')).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))

@@ -16,7 +16,7 @@ import { CourseLinks } from '../CoursePages'
 export function CurriculumPage({ api, session }: CtfWorkspace) {
   const [revision, setRevision] = useState(0)
   const resource = useCtfResource(api.curriculum, revision)
-  const challenges = useCtfResource(api.challenges)
+  const challenges = useCtfResource(api.challenges, revision)
   const loadCourses = useCallback((signal: AbortSignal) => educationApi.courses('hacking', signal), [])
   const courses = useCtfResource(loadCourses, revision)
   const [params, setParams] = useSearchParams()
@@ -25,7 +25,7 @@ export function CurriculumPage({ api, session }: CtfWorkspace) {
   const challengeById = new Map(challenges.data?.challenges.map((item) => [item.id, item]) ?? [])
   return <>
     <div className="ctf-view-heading"><h2>커리큘럼</h2>{track && <span>{track.weeks.length}주</span>}</div>
-    <CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
+    <CtfResourceState loading={resource.loading || courses.loading || challenges.loading} error={resource.error ?? courses.error ?? challenges.error} retry={() => setRevision((value) => value + 1)} />
     {resource.data && <>
       <FilterTabs className="ctf-track-options" ariaLabel="커리큘럼 트랙" value={track?.slug ?? ''} options={tracks.map((item) => ({ id: item.slug, label: item.title, icon: 'book' as const }))} onChange={(slug) => setParams({ track: slug }, { replace: true })} />
       {track && <Link className="education-text-link" to={`/education/courses/${encodeURIComponent(track.id)}`}>과정 문서 · 학습 기록</Link>}
@@ -39,9 +39,7 @@ export function CurriculumPage({ api, session }: CtfWorkspace) {
         </div>
       </details>)}</div> : <EducationEmptyState title="등록된 커리큘럼이 없습니다." />}
     </>}
-    <h2 className="ctf-section-title">교육 · 진로 자료</h2>
-    <CtfResourceState {...courses} retry={() => setRevision((value) => value + 1)} />
-    {courses.data && <CourseLinks courses={courses.data.filter((item) => item.kind === 'GUIDE')} />}
+    {courses.data && <><h2 className="ctf-section-title">교육 · 진로 자료</h2><CourseLinks courses={courses.data.filter((item) => item.kind === 'GUIDE')} /></>}
   </>
 }
 

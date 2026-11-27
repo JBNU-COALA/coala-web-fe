@@ -9,7 +9,7 @@ import { RequireAuth } from '../../shared/auth/RequireAuth'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { ListingControls } from '../../shared/ui/ListingControls'
-import { FilterTabs } from '../../shared/ui/FilterTabs'
+import { SearchField } from '../../shared/ui/SearchField'
 import { SelectControl } from '../../shared/ui/SelectControl'
 import { Pagination } from '../../shared/ui/Pagination'
 import { CommunityBanner } from '../community/CommunityBanner'
@@ -52,16 +52,15 @@ function EmploymentListPage() {
   const change = (key: string, value: string) => { const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); if (key !== 'page') next.delete('page'); setParams(next) }
   return <>
     <ListingControls label="취업 후기 검색" count={resource.data ? `전체 ${resource.data.totalElements}개` : undefined}
-      filters={<FilterTabs ariaLabel="채용 결과" value={outcome} options={[{ id: 'ACCEPTED', label: '합격' }, { id: 'REJECTED', label: '불합격' }]} onChange={(value) => change('outcome', value)} />}
-      search={<form className="employment-search" onSubmit={(event) => { event.preventDefault(); change('q', search.trim()) }}><label className="sr-only" htmlFor="employment-search">회사명 · 제목</label><input id="employment-search" placeholder="회사명 · 제목" maxLength={100} value={search} onChange={(event) => setSearch(event.target.value)} /><button className="education-icon-button" aria-label="검색" title="검색"><Icon name="search" size={16} /></button></form>}
+      search={<form className="employment-search-form" onSubmit={(event) => { event.preventDefault(); change('q', search.trim()) }}><SearchField value={search} onChange={setSearch} placeholder="회사명 · 제목으로 검색" /></form>}
       actions={<Link className="education-button is-primary" to={isLoggedIn ? `${root}/new` : '/login'}><Icon name="edit" size={14} />후기 작성</Link>}
     >
+      <SelectControl label="채용 결과" value={outcome} options={[{ value: 'ACCEPTED', label: '합격' }, { value: 'REJECTED', label: '불합격' }]} onChange={(value) => change('outcome', value)} />
       <SelectControl label="계열" value={industry} options={[{ value: '', label: '전체 계열' }, ...(options.data?.options.filter((item) => item.kind === 'INDUSTRY').map((item) => ({ value: item.id, label: item.label })) ?? [])]} onChange={(value) => change('industry', value)} />
       <SelectControl label="직무" value={role} options={[{ value: '', label: '전체 직무' }, ...(options.data?.options.filter((item) => item.kind === 'ROLE').map((item) => ({ value: item.id, label: item.label })) ?? [])]} onChange={(value) => change('role', value)} />
       <SelectControl label="회사" value={company} options={[{ value: '', label: '전체 회사' }, ...Array.from(new Set([...(options.data?.companies ?? []), ...(company ? [company] : [])])).map((name) => ({ value: name, label: name }))]} onChange={(value) => change('company', value)} />
     </ListingControls>
-    <CtfResourceState {...options} retry={() => setRevision((value) => value + 1)} />
-    <CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
+    <CtfResourceState loading={options.loading || resource.loading} error={resource.error ?? options.error} retry={() => setRevision((value) => value + 1)} />
     {resource.data && (resource.data.reviews.length ? <>
       <ul className="employment-review-list">{resource.data.reviews.map((review) => <li key={review.id}>
         <span className={`employment-outcome ${review.outcome.toLowerCase()}`}>{outcomeLabel(review.outcome)}</span>

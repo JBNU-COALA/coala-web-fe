@@ -1,0 +1,14 @@
+.domain-address-label { position: relative; display: flex; align-items: center; gap: 5px; }
+.domain-address-label .jcloud-label { margin: 0; }
+.domain-address-help { display: flex; align-items: center; }
+.domain-address-help-button { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #777; cursor: pointer; }
+.domain-address-help-button:hover { color: #111; background: #f5f5f5; }
+.domain-address-help-button:focus-visible { outline: 2px solid #555; outline-offset: 2px; }
+.domain-address-help-panel { position: absolute; z-index: 20; top: 100%; left: 0; box-sizing: border-box; width: min(300px, 100%); padding: 12px 14px; border: 1px solid #e5e5e5; border-radius: 10px; background: #fff; box-shadow: 0 6px 22px #00000012; color: #666; font-size: 12px; line-height: 1.6; opacity: 0; visibility: hidden; transform: translateY(-4px); pointer-events: none; transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
+.domain-address-help-panel.is-open { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+.domain-address-help-panel strong { color: #222; font-size: 12px; font-weight: 500; }
+.domain-address-help-panel { width: max-content; max-width: 100%; overflow-x: auto; }
+.domain-address-help-panel p { margin: 6px 0; white-space: nowrap; }
+.domain-address-help-panel > span { display: block; overflow-wrap: anywhere; color: #333; font-size: 11px; }
+@media (max-width: 640px) { .domain-address-help-panel { padding: 10px 12px; font-size: 11px; } }
+@media (prefers-reduced-motion: reduce) { .domain-address-help-panel { transition: none; transform: none; } }

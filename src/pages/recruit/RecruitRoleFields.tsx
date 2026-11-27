@@ -1,17 +1,21 @@
+import { useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
 import type { RecruitRoleDraft } from './recruitDraft'
 import './recruitForm.css'
+import '../../shared/ui/techStackPicker.css'
 
 export function RecruitRoleFields({ roles, onChange }: {
   roles: RecruitRoleDraft[]
   onChange: (roles: RecruitRoleDraft[]) => void
 }) {
+  const [removing, setRemoving] = useState<string[]>([])
   return (
     <fieldset className="recruit-role-fields recruit-write-wide">
       <legend>모집 인원</legend>
       <div className="recruit-role-head" aria-hidden="true"><span>역할</span><span>인원</span><span /></div>
       {roles.map((role, index) => (
-        <div className="recruit-role-row" key={role.key}>
+        <div className={`recruit-role-row${removing.includes(role.key) ? ' is-removing' : ''}`} key={role.key}
+          onAnimationEnd={() => { if (removing.includes(role.key)) { onChange(roles.filter((item) => item.key !== role.key)); setRemoving((items) => items.filter((key) => key !== role.key)) } }}>
           <input aria-label={`모집 역할 ${index + 1}`} required maxLength={80}
             placeholder="스터디원" value={role.label}
             onChange={(event) => onChange(roles.map((item) => item.key === role.key ? { ...item, label: event.target.value } : item))} />
@@ -23,7 +27,7 @@ export function RecruitRoleFields({ roles, onChange }: {
           </div>
           <button type="button" className="recruit-role-remove" disabled={roles.length === 1}
             aria-label={`모집 역할 ${index + 1} 삭제`} title="역할 삭제"
-            onClick={() => onChange(roles.filter((item) => item.key !== role.key))}>×</button>
+            onClick={() => setRemoving((items) => [...items, role.key])}>×</button>
         </div>
       ))}
       <button type="button" className="recruit-role-add" disabled={roles.length >= 20}

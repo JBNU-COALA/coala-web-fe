@@ -93,7 +93,7 @@
 .home-feed-meta time { margin-left: auto; white-space: nowrap; }
 .home-feed-row:hover strong { text-decoration: underline; text-underline-offset: 4px; }
 .home-feed-column--recruit .home-recruit-list { border: 0; border-radius: 0; padding: 0; background: transparent; }
-.home-feed-column--recruit .home-recruit-list .home-editorial-empty { min-height: 144px; box-sizing: border-box; padding: 22px 0; line-height: 1.6; }
+.home-feed-column :is(.home-feed-list, .home-recruit-list) > .home-editorial-empty { min-height: 100px; box-sizing: border-box; margin: 0; padding: 24px 0; border: 0; font-size: 13px; font-weight: 400; line-height: 1.6; }
 .home-feed-column--recruit .home-recruit-list button { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 144px; padding-block: 22px; }
 .home-feed-column--recruit .home-recruit-list strong, .home-feed-column--recruit .home-recruit-list button > span { max-width: 100%; }
 .home-services { border-top: 1px solid var(--home-line); }

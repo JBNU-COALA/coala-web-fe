@@ -1,5 +1,5 @@
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { servicesApi, type ServiceInquiry } from '../api/services'
 import { useAuth } from '../auth/AuthContext'
@@ -25,7 +25,7 @@ const inquiry: ServiceInquiry = {
 const reads = { instances: vi.mocked(servicesApi.getInquiries), domains: vi.mocked(servicesApi.getDomainInquiries) }
 const writes = { instances: vi.mocked(servicesApi.createInquiry), domains: vi.mocked(servicesApi.createDomainInquiry) }
 const auth = vi.mocked(useAuth)
-const view = (kind: Kind) => <MemoryRouter><ServiceInquiries kind={kind} /></MemoryRouter>
+const view = (kind: Kind) => <MemoryRouter><Routes><Route path="/" element={<ServiceInquiries kind={kind} />} /><Route path="/login" element={<p>로그인 화면</p>} /></Routes></MemoryRouter>
 const startDraft = () => {
   fireEvent.click(screen.getByRole('button', { name: '문의 작성' }))
   fireEvent.change(screen.getByLabelText('제목'), { target: { value: '  Draft title  ' } })
@@ -43,7 +43,7 @@ describe('authenticated service inquiries', () => {
   it.each(['instances', 'domains'] as const)('does not read or expose write controls for a logged-out %s visitor', (kind) => {
     auth.mockReturnValue({ isLoggedIn: false, user: null } as ReturnType<typeof useAuth>)
     render(view(kind))
-    expect(screen.getByRole('link', { name: '로그인하기' }).getAttribute('href')).toBe('/login')
+    expect(screen.getByText('로그인 화면')).toBeTruthy()
     expect(screen.queryByRole('button', { name: '문의 작성' })).toBeNull()
     expect(reads.instances).not.toHaveBeenCalled()
     expect(reads.domains).not.toHaveBeenCalled()
@@ -190,7 +190,7 @@ describe('authenticated service inquiries', () => {
     rerender(view('instances'))
     expect(screen.queryByText(inquiry.title)).toBeNull()
     expect(screen.queryByLabelText('내용')).toBeNull()
-    expect(screen.getByRole('link', { name: '로그인하기' })).toBeTruthy()
+    expect(screen.getByText('로그인 화면')).toBeTruthy()
     expect(reads.instances).toHaveBeenCalledTimes(1)
     expect(writes.instances).not.toHaveBeenCalled()
   })
@@ -207,14 +207,14 @@ describe('authenticated service inquiries', () => {
 
   it('wires the instance inquiry tab to the common panel', async () => {
     render(<MemoryRouter initialEntries={['/services/official/instance?instanceTab=inquiry']}><ServicePage /></MemoryRouter>)
-    await screen.findByRole('heading', { name: /인스턴스 문의사항/ })
+    await screen.findByRole('region', { name: /인스턴스 문의사항/ })
     await waitFor(() => expect(reads.instances).toHaveBeenCalledTimes(1))
   })
 
   it('wires the domain inquiry tab to the common panel', async () => {
     render(<MemoryRouter><DomainServicePanel /></MemoryRouter>)
     fireEvent.click(screen.getByRole('button', { name: '문의사항' }))
-    await screen.findByRole('heading', { name: /도메인 문의사항/ })
+    await screen.findByRole('region', { name: /도메인 문의사항/ })
     await waitFor(() => expect(reads.domains).toHaveBeenCalledTimes(1))
   })
 })

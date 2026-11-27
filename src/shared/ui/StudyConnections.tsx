@@ -1,3 +1,4 @@
+import { LoadErrorState } from './LoadErrorState'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
@@ -69,9 +70,7 @@ function StudyConnectionsContent({
         </h3>
         {!loading && !error && <small>{groups.length}개</small>}
       </header>
-      {error && <div className="study-connection-error"><p role="alert">{error}</p>
-        <button className="retry-button" type="button" onClick={() => { setError(''); setLoading(true); setRevision((value) => value + 1) }}>다시 불러오기</button>
-      </div>}
+      {error && <LoadErrorState message={error} onRetry={() => { setError(''); setLoading(true); setRevision((value) => value + 1) }} />}
       {loading && <LoadingSpinner label="활동을 불러오는 중입니다." />}
       {groups.map((group) => (
         <div className="study-connection-row" key={group.id}>

@@ -1,3 +1,5 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
+import { ListingControls } from '../../shared/ui/ListingControls'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { ActivityPhotos } from './ActivityPhotos'
 import { useEffect, useState } from 'react'
@@ -150,25 +152,15 @@ function ActivityContent({
   return (
     <PageFrame title="활동" className={`study-frame study-frame--${mode}`} bodyClassName={`study-page study-page--${mode}`}>
       {error ? (
-        <div className="study-empty">
-          <p role="alert">{error}</p>
-          {mode === 'list' && <Link className="study-primary" to={routes.community.activityRecordNew}>출석 체크</Link>}
-          {
-            <button
-              className="study-text-button retry-button"
-              onClick={() => setReload((value) => value + 1)}
-            >
-              다시 불러오기
-            </button>
-          }
+        <div>
+          {mode === 'list' && <ListingControls label="활동 메뉴" actions={<Link className="write-post-button" to={routes.community.activityRecordNew}>출석 체크</Link>} />}
+          <LoadErrorState message={error} onRetry={() => setReload((value) => value + 1)} />
         </div>
       ) : !data ? (
         <div className="study-loading"><LoadingSpinner label="출석 기록을 불러오는 중입니다." /></div>
       ) : mode === 'new' ? (
         <>
-          {data.groupsError ? <p className="study-error" role="alert">{data.groupsError}
-            <button type="button" className="study-text-button retry-button" onClick={() => setReload((value) => value + 1)}>다시 불러오기</button>
-          </p> : selectedGroup !== 'all' && !manageableGroups.some((group) => group.id === selectedGroup) ? (
+          {data.groupsError ? <LoadErrorState message={data.groupsError} onRetry={() => setReload((value) => value + 1)} /> : selectedGroup !== 'all' && !manageableGroups.some((group) => group.id === selectedGroup) ? (
             <div className="study-empty"><p role="alert">선택한 조를 찾을 수 없거나 출석을 등록할 권한이 없습니다.</p>
               <Link to={back}>활동 목록으로 돌아가기</Link>
             </div>

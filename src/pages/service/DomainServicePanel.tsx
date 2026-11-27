@@ -1,6 +1,7 @@
+import { SelectControl } from '../../shared/ui/SelectControl'
 ﻿import './application-motion.css'
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { Icon } from '../../shared/ui/Icon'
 import { servicesApi, type DomainApplication } from '../../shared/api/services'
 import { ServiceWorkspace } from '../../shared/ui/ServiceWorkspace'
@@ -46,7 +47,7 @@ function DomainApplyList() {
   }, [isLoggedIn])
 
   if (!isLoggedIn) {
-    return <DomainLoginRequired message="도메인 신청 내역은 로그인 후 확인할 수 있습니다." />
+    return <LoginRequiredState />
   }
 
   const items = filter === 'all'
@@ -56,19 +57,9 @@ function DomainApplyList() {
   return (
     <div className="jcloud-list-shell">
       <div className="jcloud-list-toolbar">
-        <ul className="jcloud-filter-tabs">
-          {statusFilters.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                className={`jcloud-filter-tab${filter === item.id ? ' is-active' : ''}`}
-                onClick={() => setFilter(item.id)}
-              >
-                {item.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SelectControl iconOnly label="신청 상태" value={filter} onChange={setFilter}
+          className={filter === 'all' ? '' : 'is-filtered'}
+          options={statusFilters.map((item) => ({ value: item.id, label: item.label }))} />
       </div>
 
       {items.length === 0 ? (
@@ -167,20 +158,3 @@ function DomainApplicationItem({
     </li>
   )
 }
-
-
-function DomainLoginRequired({ message }: { message: string }) {
-  return (
-    <div className="jcloud-login-required">
-      <div className="jcloud-success-icon">
-        <img className="login-koala" src="/coala-mascot-plush.png" alt="" />
-      </div>
-      <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
-      <p className="jcloud-success-desc">{message}</p>
-      <Link className="jcloud-login-link" to="/login">
-        로그인하기
-      </Link>
-    </div>
-  )
-}
-

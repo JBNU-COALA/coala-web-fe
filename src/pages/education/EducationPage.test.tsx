@@ -38,6 +38,22 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 describe('database-backed education', () => {
+  it.each([
+    '/education/hacking/challenges',
+    '/education/hacking/curriculum',
+    '/education/hacking/scoreboard',
+    '/education/hacking/instances',
+    '/education/algorithms',
+    '/education/subjects/custom',
+    '/education/courses/hacking-first-year',
+  ])('shows only one failure state on %s when all requests fail', async (path) => {
+    authenticated()
+    vi.mocked(client.get).mockRejectedValue(new Error('offline'))
+    renderAt(path)
+    await screen.findByRole('alert')
+    expect(screen.getAllByRole('alert')).toHaveLength(1)
+    expect(screen.getAllByRole('button', { name: '다시 불러오기' })).toHaveLength(1)
+  })
   it('loads subjects and counts from the backend without CTF-specific requests', async () => {
     renderAt('/education')
     await screen.findByRole('heading', { name: '해킹' })
@@ -54,7 +70,7 @@ describe('database-backed education', () => {
   it('loads challenges publicly and offers the existing Coala login only', async () => {
     renderAt('/education/hacking/challenges')
     await screen.findByRole('link', { name: 'CORS Misconfig' })
-    expect(screen.getByRole('link', { name: '로그인' }).getAttribute('href')).toBe('/login')
+    expect(screen.queryByRole('link', { name: '로그인' })).toBeNull()
     expect(screen.queryByText('별도 CTF 실습 계정')).toBeNull()
   })
   it('uses Coala authentication for submissions and refreshes solved state', async () => {
@@ -80,10 +96,11 @@ describe('database-backed education', () => {
     await waitFor(() => expect((screen.getByRole('checkbox', { name: '학습 완료' }) as HTMLInputElement).checked).toBe(true))
   })
   it('does not fabricate subjects when the backend is unavailable', async () => {
+    authenticated()
     vi.mocked(client.get).mockRejectedValue(new Error('offline'))
     renderAt('/education')
     await screen.findByRole('alert')
     expect(screen.queryByRole('heading', { name: '해킹' })).toBeNull()
-    expect(screen.getByRole('button', { name: '다시 시도' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '다시 불러오기' })).toBeTruthy()
   })
 })

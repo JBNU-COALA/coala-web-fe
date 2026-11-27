@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { ListingControls } from '../../shared/ui/ListingControls'
 import { loadRecentAttendanceRecords } from '../../shared/activityRepository'
 import { useEffect, useMemo, useState } from 'react'
@@ -139,8 +140,6 @@ export function LeaderboardPage() {
         <CommunityBanner title="유저" description="함께 만드는 코알라 멤버" tone="users" />
 
         <div className="activity-table-shell">
-          {loadError && <div><p role="alert" className="auth-error">{loadError}</p>
-            <button type="button" className="ghost-button retry-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>}
           <ListingControls search={<SearchField
               className="activity-search"
               value={query}
@@ -163,6 +162,7 @@ export function LeaderboardPage() {
               onChange={setLabFilter}
             />
             </ListingControls>
+          {loadError && <LoadErrorState message={loadError} onRetry={() => setLoadRevision((value) => value + 1)} />}
 
           {!isLoading && !loadError && filteredMembers.length > 0 ? (
             <section className="activity-recent-members" aria-label="출석 우수 멤버">
@@ -185,7 +185,7 @@ export function LeaderboardPage() {
             </section>
           ) : null}
 
-          <header id="all-members" className="activity-directory-section-head activity-directory-section-head--all">
+          {!isLoading && !loadError && <><header id="all-members" className="activity-directory-section-head activity-directory-section-head--all">
             <div><h2><Icon name="profile-color" size={23} /> 전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
             <strong className="activity-member-count">{isLoading || loadError ? '멤버' : `멤버 ${filteredMembers.length}명`}</strong>
           </header>
@@ -197,7 +197,7 @@ export function LeaderboardPage() {
                 profileId={getPublicUserId(member, user?.id)}
               />
             ))}
-          </section>
+          </section></>}
           {isLoading ? <LoadingSpinner label="유저 목록을 불러오는 중입니다." />
             : !loadError && filteredMembers.length === 0 ? <p className="activity-empty">조건에 맞는 유저가 없습니다.</p> : null}
         </div>

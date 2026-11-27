@@ -1,3 +1,4 @@
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { archiveApi, type ArchiveItem } from '../../shared/api/archive'
@@ -276,7 +277,7 @@ export function ArchivePage() {
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
               <div className="archive-resource-grid">
                 {isLoading ? <div className="archive-load-state"><LoadingSpinner label="자료를 불러오는 중입니다." /></div>
-                  : archiveError ? <div className="archive-load-state"><p role="alert">{archiveError}</p><button className="ghost-button retry-button" type="button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></div>
+                  : archiveError ? <LoadErrorState message={archiveError} onRetry={() => setLoadRevision((value) => value + 1)} />
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
                   : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
                     sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}

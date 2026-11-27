@@ -21,10 +21,10 @@ beforeEach(() => {
 })
 afterEach(() => { cleanup(); vi.unstubAllGlobals() })
 describe('employment reviews', () => {
-  it('shows outcome tabs and metadata from backend records', async () => {
+  it('filters outcomes through the dropdown', async () => {
     renderAt(); await screen.findByRole('link', { name: '면접 후기' })
-    expect(screen.getByRole('tab', { name: '합격' }).getAttribute('aria-selected')).toBe('true')
-    fireEvent.click(screen.getByRole('tab', { name: '불합격' }))
+    fireEvent.click(screen.getByRole('button', { name: '채용 결과: 합격' }))
+    fireEvent.click(screen.getByRole('option', { name: '불합격' }))
     await waitFor(() => expect(employmentApi.list).toHaveBeenLastCalledWith(expect.objectContaining({ outcome: 'REJECTED', page: 0 }), expect.any(AbortSignal)))
   })
   it('filters companies through API rather than filtering only the current page', async () => {
@@ -32,6 +32,18 @@ describe('employment reviews', () => {
     fireEvent.click(screen.getByRole('button', { name: '회사: 전체 회사' }))
     fireEvent.click(screen.getByRole('option', { name: 'Example Corp' }))
     await waitFor(() => expect(employmentApi.list).toHaveBeenLastCalledWith(expect.objectContaining({ company: 'Example Corp', page: 0 }), expect.any(AbortSignal)))
+  })
+  it('shows one error and retries both failed requests', async () => {
+    vi.mocked(useAuth).mockReturnValue({ isLoggedIn: true, user: { id: 2 } as UserData } as ReturnType<typeof useAuth>)
+    vi.mocked(employmentApi.options).mockRejectedValueOnce(new Error('offline'))
+    vi.mocked(employmentApi.list).mockRejectedValueOnce(new Error('offline'))
+    renderAt()
+    await screen.findByRole('alert')
+    expect(screen.getAllByRole('alert')).toHaveLength(1)
+    fireEvent.click(screen.getByRole('button', { name: '다시 불러오기' }))
+    await screen.findByRole('link', { name: '면접 후기' })
+    expect(screen.queryByRole('alert')).toBeNull()
+    expect(screen.getByRole('button', { name: '계열: 전체 계열' })).toBeTruthy()
   })
   it('requires the existing login for writing', async () => { renderAt('/community/employment/new'); await screen.findByText('로그인 화면') })
   it('hides edit/delete controls from non-owners', async () => {

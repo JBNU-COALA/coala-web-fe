@@ -1,4 +1,5 @@
 import { ListingControls } from '../../shared/ui/ListingControls'
+import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { useEffect, useMemo, useState } from 'react'
 import { boardsApi, type BoardData } from '../../shared/api/boards'
 import { postsApi, type PostListItem } from '../../shared/api/posts'
@@ -153,7 +154,7 @@ export function AllPostsPage({
             {likeError && <p className="auth-error" role="alert">{likeError}</p>}
             <ul key={activeBoard} className="community-board-posts community-board-posts--reveal" aria-busy={isLoading}>
               {isLoading ? <li className="community-board-empty"><LoadingSpinner label="게시글을 불러오는 중..." /></li>
-                : loadError ? <li className="community-board-empty"><p role="alert">{loadError}</p><button type="button" className="community-board-retry retry-button" onClick={() => setLoadRevision((value) => value + 1)}>다시 불러오기</button></li>
+                : loadError ? <li><LoadErrorState message={loadError} onRetry={() => setLoadRevision((value) => value + 1)} /></li>
                 : pagination.pageItems.map((post) => {
                   const category = post.board ? resolveCommunityBoardFilter(post.board) ?? 'free' : 'free'
                   const imageUrl = getPostImageUrl(post)

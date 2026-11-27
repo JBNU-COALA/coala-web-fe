@@ -55,3 +55,34 @@
 .coala-app .jcloud-tab-shell .jcloud-mail-notice > svg { flex: 0 0 14px; width: 14px; height: 14px; margin-top: 3px; }
 .coala-app .jcloud-tab-shell .jcloud-mail-notice p { color: #737373; }
 .coala-app .jcloud-tab-shell .jcloud-status-badge { color: #525252; background: #f0f0f0; border-color: #dedede; }
+
+@media (max-width: 640px) {
+  .coala-app .coala-content--services .official-service-panel { width: calc(100% - 24px); max-width: calc(100% - 24px); margin-inline: 12px; }
+  .coala-app .services-instance-panel { width: 100%; min-width: 0; gap: 8px; }
+  .coala-app .coala-content .jcloud-provider-heading { flex-wrap: nowrap; align-items: center; gap: 10px; padding: 12px 0; margin: 0; }
+  .coala-app .coala-content .jcloud-provider-heading > div { flex: 1 1 0; min-width: 0; }
+  .coala-app .coala-content .jcloud-provider-heading > img { flex: 0 0 80px; width: 80px; }
+  .coala-app .coala-content .domain-provider-heading > img { flex-basis: 32px; width: 32px; height: 32px; }
+  .coala-app .coala-content .jcloud-provider-heading h2 { font-size: 13px; line-height: 1.4; }
+  .coala-app .coala-content .jcloud-provider-heading p { margin: 3px 0 0; font-size: 11px; line-height: 1.5; overflow-wrap: anywhere; }
+  .coala-app .services-instance-panel .jcloud-tab-shell { width: 100%; min-width: 0; box-sizing: border-box; }
+  .coala-app .jcloud-tab-shell .service-workspace-content { padding: 12px; }
+  .coala-app .jcloud-tab-shell .service-workspace-nav { padding: 4px; gap: 2px; }
+  .coala-app .jcloud-tab-shell .service-workspace-tab { min-height: 34px; padding: 6px; font-size: 11px; gap: 4px; }
+  .coala-app .jcloud-tab-shell .jcloud-apply-form { gap: 18px; }
+  .coala-app .jcloud-tab-shell .jcloud-form-section { gap: 9px; }
+  .coala-app .jcloud-tab-shell .jcloud-form-section-title { font-size: 12px; font-weight: 600; }
+  .coala-app .jcloud-tab-shell .jcloud-field-group { gap: 10px; }
+  .coala-app .jcloud-tab-shell .jcloud-field { min-width: 0; gap: 4px; }
+  .coala-app .jcloud-tab-shell .jcloud-field-row { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .coala-app .jcloud-tab-shell .jcloud-label { font-size: 11px; font-weight: 500; }
+  .coala-app .jcloud-tab-shell .jcloud-label-hint { font-size: 10px; }
+  .coala-app .jcloud-tab-shell :is(.jcloud-input, .jcloud-textarea) { box-sizing: border-box; width: 100%; min-width: 0; padding: 7px 9px; border-radius: 6px; font-size: 13px; line-height: 1.4; }
+  .coala-app .jcloud-tab-shell .jcloud-input { height: 36px; min-height: 36px; }
+  .coala-app .jcloud-tab-shell .jcloud-textarea { min-height: 80px; }
+  .coala-app .jcloud-tab-shell .jcloud-instance-card { padding: 9px; gap: 3px; }
+  .coala-app .jcloud-tab-shell .jcloud-form-section--summary { padding: 10px; }
+}
+@media (max-width: 360px) {
+  .coala-app .jcloud-tab-shell .jcloud-field-row { grid-template-columns: minmax(0, 1fr); }
+}

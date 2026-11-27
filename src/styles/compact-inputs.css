@@ -1,0 +1,30 @@
+/* Shared field density across registration, editing, account and admin forms. */
+.coala-app .coala-header .header-icon-button { width: 28px; height: 28px; min-height: 28px; padding: 4px; }
+.coala-app .coala-header .header-icon-button > svg { width: 18px; height: 18px; }
+.coala-app .coala-header .header-user-button { height: 28px; min-height: 28px; padding: 0 2px; gap: 5px; font-size: 11px; font-weight: 500; }
+.coala-app .coala-header .header-user-button .header-user-avatar { width: 24px; height: 24px; min-width: 24px; }
+.coala-app .coala-header .header-user-name { font-size: 11px; font-weight: 500; }
+.coala-app .coala-header .header-user-button > svg { width: 12px; height: 12px; margin-left: 3px; }
+.coala-app .coala-content .study-page { padding-top: 24px; }
+.coala-sidebar-submenu { display: flex; flex-direction: column; gap: 2px; margin: 5px 0 8px 12px; padding-left: 9px; border-left: 1px solid #e5e5e5; }
+.coala-sidebar-sublink { border: 0; border-radius: 5px; background: transparent; color: #777; padding: 7px 9px; text-align: left; font: inherit; font-size: 12px; cursor: pointer; }
+.coala-sidebar-sublink:hover, .coala-sidebar-sublink.is-active { background: #f3f3f3; color: #111; }
+.coala-sidebar-sublink.is-active { font-weight: 500; }
+.recruit-page-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; padding-top: 24px; margin-bottom: 16px; }
+.recruit-mobile-navigation { display: none; }
+@media (max-width: 900px) { .coala-sidebar-submenu { display: none; } .recruit-mobile-navigation { display: block; margin-right: auto; } }
+.coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) .select-control.custom-select { height: 34px !important; min-height: 34px !important; }
+.coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) .select-control.custom-select > :is(.select-control-trigger, .select-control-native) { height: 32px !important; min-height: 32px !important; padding: 0 10px !important; font-size: 12px !important; line-height: 1.4; }
+.coala-app :is(form, .admin-form, .profile-edit-form) input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]):not([type=submit]):not([type=button]),
+.coala-app :is(form, .admin-form, .profile-edit-form) select {
+  box-sizing: border-box; min-width: 0; height: 34px !important; min-height: 34px !important; padding: 6px 10px !important; font-family: inherit; font-size: 12px !important; font-weight: 400; line-height: 1.4;
+}
+.coala-app :is(form, .admin-form, .profile-edit-form) textarea { box-sizing: border-box; padding: 8px 10px; font-family: inherit; font-size: 12px !important; font-weight: 400; line-height: 1.5; }
+.coala-app :is(form, .admin-form, .profile-edit-form) :is(.jcloud-label, .admin-field > span, .member-field > span) { font-size: 11px !important; font-weight: 500; }
+.coala-app .archive-editor .archive-form-grid { gap: 14px 16px; }
+.coala-app .archive-editor .jcloud-field { gap: 5px; }
+.coala-app .archive-editor .archive-type-select.custom-select { height: 34px !important; min-height: 34px !important; }
+.coala-app .archive-editor .archive-type-select.archive-type-select.custom-select > :is(.select-control-trigger, .select-control-native) { height: 32px !important; min-height: 32px !important; padding: 0 10px !important; font-size: 12px !important; }
+.coala-app .header-notification-popover { opacity: 0; visibility: hidden; transform: translateY(-6px); pointer-events: none; transition: opacity 180ms ease, transform 180ms ease, visibility 180ms; }
+.coala-app .header-notification-popover.is-open { opacity: 1; visibility: visible; transform: translateY(0); pointer-events: auto; }
+@media (prefers-reduced-motion: reduce) { .coala-app .header-notification-popover { transition: none; transform: none; } }

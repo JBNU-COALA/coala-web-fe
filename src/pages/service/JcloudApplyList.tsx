@@ -1,3 +1,4 @@
+import { SelectControl } from '../../shared/ui/SelectControl'
 ﻿import './application-motion.css'
 import { useEffect, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
@@ -8,7 +9,7 @@ import {
   type JcloudApplication,
 } from './serviceData'
 import { servicesApi } from '../../shared/api/services'
-import { Link, useLocation } from 'react-router-dom'
+import { LoginRequiredState } from '../../shared/ui/LoginRequiredState'
 import { useAuth } from '../../shared/auth/AuthContext'
 
 const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
@@ -20,7 +21,6 @@ const statusFilters: { id: 'all' | ApplyStatus; label: string }[] = [
 
 export function JcloudApplyList() {
   const { isLoggedIn } = useAuth()
-  const location = useLocation()
   const [filter, setFilter] = useState<'all' | ApplyStatus>('all')
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [applications, setApplications] = useState<JcloudApplication[]>([])
@@ -40,31 +40,14 @@ export function JcloudApplyList() {
 
   const toggle = (id: string) => setExpandedId(expandedId === id ? null : id)
 
-  if (!isLoggedIn) return (
-    <div className="jcloud-login-required">
-      <div className="jcloud-success-icon"><img className="login-koala" src="/coala-mascot-plush.png" alt="" /></div>
-      <h3 className="jcloud-success-title">로그인이 필요합니다.</h3>
-      <p className="jcloud-success-desc">인스턴스 신청 내역은 로그인 후 확인할 수 있습니다.</p>
-      <Link className="jcloud-login-link" to="/login" state={{ from: location }}>로그인하기</Link>
-    </div>
-  )
+  if (!isLoggedIn) return <LoginRequiredState />
 
   return (
     <div className="jcloud-list-shell">
       <div className="jcloud-list-toolbar">
-        <ul className="jcloud-filter-tabs">
-          {statusFilters.map((f) => (
-            <li key={f.id}>
-              <button
-                type="button"
-                className={`jcloud-filter-tab${filter === f.id ? ' is-active' : ''}`}
-                onClick={() => setFilter(f.id)}
-              >
-                {f.label}
-              </button>
-            </li>
-          ))}
-        </ul>
+        <SelectControl iconOnly label="신청 상태" value={filter} onChange={setFilter}
+          className={filter === 'all' ? '' : 'is-filtered'}
+          options={statusFilters.map((item) => ({ value: item.id, label: item.label }))} />
       </div>
 
       {items.length === 0 ? (

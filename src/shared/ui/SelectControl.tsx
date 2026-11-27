@@ -14,6 +14,7 @@ type SelectControlProps<T extends string> = {
   label: string
   disabled?: boolean
   className?: string
+  iconOnly?: boolean
 }
 
 export function SelectControl<T extends string>({
@@ -23,6 +24,7 @@ export function SelectControl<T extends string>({
   label,
   className = '',
   disabled = false,
+  iconOnly = false,
 }: SelectControlProps<T>) {
   const [open, setOpen] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
@@ -53,18 +55,18 @@ export function SelectControl<T extends string>({
   }, [activeIndex, open])
 
   return (
-    <div ref={rootRef} className={`select-control custom-select ${className}`.trim()}
+    <div ref={rootRef} className={`select-control custom-select ${iconOnly ? 'select-control--icon-only' : ''} ${className}`.trim()}
       onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}>
       <button ref={triggerRef} disabled={disabled} type="button" className="select-control-trigger"
         aria-label={`${label}: ${options[selectedIndex]?.label ?? ''}`}
+        title={iconOnly ? `${label}: ${options[selectedIndex]?.label ?? ''}` : undefined}
         aria-haspopup="listbox" aria-expanded={open} aria-controls={open ? id : undefined}
         onClick={() => open ? setOpen(false) : show()}
         onKeyDown={(event) => {
           if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); show() }
         }}
       >
-        <span>{options[selectedIndex]?.label ?? label}</span>
-        <Icon name="chevron-down" size={14} />
+        {iconOnly ? <Icon name="filter" size={16} /> : <><span>{options[selectedIndex]?.label ?? label}</span><Icon name="chevron-down" size={14} /></>}
       </button>
       <div ref={listRef} id={id} role="listbox" aria-label={label} tabIndex={-1}
         aria-hidden={!open} inert={!open}
