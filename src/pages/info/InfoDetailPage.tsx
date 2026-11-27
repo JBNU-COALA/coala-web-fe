@@ -258,13 +258,11 @@ function InfoDetailContent({ infoId, onBack, onEdit }: InfoDetailPageProps) {
         </div>
         {canManageInfo && (
           <div className="post-header-actions info-detail-footer-actions">
-            <button type="button" className="ghost-button" disabled={mutationPending} title="수정" onClick={onEdit}>
-              <Icon name="pencil-color" size={15} />
-              <span className="sr-only">수정</span>
+            <button type="button" className="ghost-button" disabled={mutationPending} onClick={() => setDeleteConfirmOpen(true)}>
+              삭제하기
             </button>
-            <button type="button" className="ghost-button" disabled={mutationPending} title="삭제" onClick={() => setDeleteConfirmOpen(true)}>
-              <Icon name="trash-color" size={15} />
-              <span className="sr-only">삭제</span>
+            <button type="button" className="ghost-button" disabled={mutationPending} onClick={onEdit}>
+              편집하기
             </button>
           </div>
         )}

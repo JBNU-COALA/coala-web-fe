@@ -259,7 +259,9 @@
 .coala-app .info-detail-load-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 220px; padding: 32px 16px; text-align: center; }
 .coala-app .info-detail-load-state .empty-post-state { margin: 0; padding: 0; color: #171717; font-size: 14px; line-height: 1.7; }
 
-.coala-app .info-detail-page .info-detail-footer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+.coala-app .info-detail-page .info-detail-footer-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+.coala-app .info-detail-page .info-detail-footer-actions > button { width: auto; height: 34px; min-height: 34px; padding: 6px 14px; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #262626; font-size: 12px; }
+.coala-app .info-detail-page .info-detail-footer-actions > button:hover:not(:disabled) { background: #f5f5f5; border-color: #a3a3a3; }
 
 .coala-app .post-detail .post-like-button,
 .coala-app .post-detail .post-like-button:is(:hover, .is-liked) { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0 4px; }
