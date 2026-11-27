@@ -1,0 +1,63 @@
+/* Project gallery cards, with the same compact rhythm on narrow screens. */
+.coala-app .coala-content--services .member-service-grid {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
+  width: 100%; max-width: 1000px; margin: 24px auto; padding: 0; box-sizing: border-box;
+}
+.coala-app .coala-content--services .member-service-grid > li:not(.member-service-card) { grid-column: 1 / -1; }
+.coala-app .coala-content--services .member-service-card.member-service-card--with-media {
+  position: relative; display: flex; flex-direction: column; align-items: stretch;
+  width: 100%; max-width: none; min-height: 0; padding: 0; gap: 0;
+  overflow: hidden; border: 0; border-radius: 16px; background: #f6f6f6; box-shadow: none;
+}
+.coala-app .coala-content--services .member-service-card .member-service-media {
+  flex: none; width: 100%; height: auto; min-height: 0; aspect-ratio: 16 / 9;
+  margin: 0; padding: 0; border-radius: 0; background: #eee;
+}
+.coala-app .coala-content--services .member-service-card .member-service-media img { width: 100%; height: 100%; object-fit: contain; }
+.coala-app .coala-content--services .member-service-card .member-service-card-head { padding: 16px 18px 0; margin: 0; }
+.coala-app .coala-content--services .member-service-card h3 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.4; }
+.coala-app .coala-content--services .member-service-card-head .member-service-status {
+  position: absolute; top: 12px; right: 12px; padding: 4px 7px; border: 1px solid #fff;
+  border-radius: 6px; background: #222c; color: #fff; font-size: 10px; font-weight: 400;
+}
+.coala-app .coala-content--services .member-service-card > p {
+  margin: 7px 18px 12px; padding: 0; font-size: 12px; line-height: 1.6; min-height: 38px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #666;
+}
+.coala-app .coala-content--services .member-service-card-footer { box-sizing: border-box; padding: 0 18px 16px; margin: auto 0 0; font-size: 11px; }
+.coala-app .coala-content--services .member-service-detail {
+  display: grid; grid-template-columns: minmax(0, 1.8fr) minmax(240px, 1fr); gap: 28px 36px;
+  max-width: 1000px; margin: 20px auto 48px; padding: 0; border: 0; border-radius: 0; overflow: visible; align-items: start;
+}
+.coala-app .coala-content--services .member-service-detail-body { display: contents; }
+.project-gallery { grid-column: 1; grid-row: 1 / 4; min-width: 0; }
+.project-gallery-main { aspect-ratio: 16 / 10; background: #f6f6f6; overflow: hidden; border-radius: 8px; }
+.project-gallery-main img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.project-gallery-thumbnails { display: flex; gap: 8px; overflow-x: auto; padding: 8px 0; }
+.project-gallery-thumbnails button { flex: 0 0 80px; height: 52px; padding: 2px; border: 1px solid transparent; border-radius: 4px; background: #f5f5f5; cursor: pointer; opacity: .65; transition: opacity 160ms ease; }
+.project-gallery-thumbnails button[aria-pressed="true"], .project-gallery-thumbnails button:hover { opacity: 1; border-color: #555; }
+.project-gallery-thumbnails img { width: 100%; height: 100%; object-fit: contain; }
+.coala-app .coala-content--services .member-service-detail-header { grid-column: 2; grid-row: 1; margin: 0; }
+.coala-app .coala-content--services .member-service-detail-header h3 { font-size: 26px; line-height: 1.35; }
+.coala-app .coala-content--services .member-service-detail-header .member-service-owner { margin-top: 14px; font-size: 12px; }
+.coala-app .coala-content--services .member-service-detail-actions { grid-column: 2; grid-row: 2; flex-wrap: wrap; gap: 8px; margin: 0; }
+.coala-app .coala-content--services .member-service-detail-meta { grid-column: 2; grid-row: 3; display: grid; grid-template-columns: 1fr; margin: 0; background: transparent; border: 0; }
+.coala-app .coala-content--services .member-service-detail-meta > div { padding: 8px 0; min-width: 0; font-size: 12px; }
+.coala-app .coala-content--services .member-service-detail-meta dd { overflow-wrap: anywhere; }
+.coala-app .coala-content--services .member-service-detail-summary { grid-column: 1; grid-row: 4; margin: 0; white-space: pre-wrap; font-size: 13px; line-height: 1.9; }
+.coala-app .coala-content--services .member-service-detail-grid { grid-column: 1; grid-row: 5; display: grid; grid-template-columns: 1fr; gap: 24px; }
+.coala-app .coala-content--services .member-service-detail-grid section { padding: 0; border: 0; background: transparent; }
+.coala-app .coala-content--services .member-service-detail-grid h4 { font-size: 13px; margin: 0 0 10px; }
+.coala-app .coala-content--services .member-service-detail .auth-error { grid-column: 1 / -1; }
+@media (max-width: 700px) {
+  .coala-app .coala-content--services .member-service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 0 12px; }
+  .coala-app .coala-content--services .member-service-card .member-service-card-head { padding: 10px 10px 0; }
+  .coala-app .coala-content--services .member-service-card h3 { font-size: 13px; }
+  .coala-app .coala-content--services .member-service-card > p { margin: 5px 10px 8px; font-size: 11px; min-height: 35px; }
+  .coala-app .coala-content--services .member-service-card-footer { padding: 0 10px 10px; font-size: 10px; }
+  .coala-app .coala-content--services .member-service-card-head .member-service-status { top: 7px; right: 7px; font-size: 9px; padding: 2px 4px; }
+  .coala-app .coala-content--services .member-service-detail { grid-template-columns: minmax(0, 1fr); gap: 20px; padding: 0 12px; }
+  .coala-app .coala-content--services .member-service-detail :is(.project-gallery, .member-service-detail-header, .member-service-detail-actions, .member-service-detail-meta, .member-service-detail-summary, .member-service-detail-grid) { grid-column: 1; grid-row: auto; }
+  .coala-app .coala-content--services .member-service-detail-header { order: -1; }
+  .coala-app .coala-content--services .member-service-detail-header h3 { font-size: 22px; }
+}

@@ -4,6 +4,8 @@ import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { TechLogo } from '../../shared/ui/TechLogo'
+import { TechStackPicker } from '../../shared/ui/TechStackPicker'
+import { ServiceGallery } from './ServiceGallery'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
@@ -22,6 +24,7 @@ import { attachmentsApi } from '../../shared/api/attachments'
 import { resolveApiAssetUrl } from '../../shared/api/client'
 import { resolveServicesTab, type ServicesTab } from '../../navigation/navigationData'
 import './services-hub.css'
+import './service-projects.css'
 
 export type ServiceCategory = 'productivity' | 'ai' | 'community' | 'learning'
 type UserServiceViewMode = 'card' | 'list'
@@ -82,6 +85,7 @@ const emptyServiceDraft = {
   url: '',
   githubUrl: '',
   tags: '',
+  stack: '',
   imageUrl: '',
   additionalImageUrls: [] as string[],
   summary: '',
@@ -93,6 +97,7 @@ function serviceToDraft(service: MemberService) {
     url: service.url,
     githubUrl: service.githubUrl,
     tags: service.tags.join(', '),
+    stack: (service.stack ?? []).join(', '),
     imageUrl: service.imageUrl,
     additionalImageUrls: service.additionalImageUrls ?? [],
     summary: service.summary,
@@ -218,6 +223,7 @@ export function ServicesPage() {
         imageUrl: addDraft.imageUrl.trim(),
         additionalImageUrls: addDraft.additionalImageUrls.slice(0, 5),
         tags: addDraft.tags.split(',').map((tag) => tag.trim()).filter(Boolean),
+        stack: addDraft.stack.split(',').map((name) => name.trim()).filter(Boolean),
       }
       const saved = editingServiceId
         ? await servicesApi.updateMemberService(editingServiceId, payload)
@@ -427,20 +433,7 @@ export function ServicesPage() {
                       목록으로 돌아가기
                     </button>
               <article className="surface-card member-service-detail">
-                <div
-                  className={
-                    selectedService.imageUrl
-                      ? 'member-service-detail-media'
-                      : 'member-service-detail-media member-service-detail-media--empty'
-                  }
-                >
-                  <SafeImage
-                    src={selectedService.imageUrl ? toServiceImageUrl(selectedService.imageUrl) : '/portal-koala-team.png'}
-                    alt=""
-                    fallback={<img src="/portal-koala-team.png" alt="" />}
-                  />
-                  <span className="member-service-status">{selectedService.status}</span>
-                </div>
+                <ServiceGallery key={selectedService.id} title={selectedService.title} images={[selectedService.imageUrl, ...(selectedService.additionalImageUrls ?? [])]} />
 
                 <div className="member-service-detail-body">
                   <header className="member-service-detail-header">
@@ -455,7 +448,8 @@ export function ServicesPage() {
                           </button>
                         )}
                       </div>
-                      {selectedService.owner && selectedService.owner !== '코알라' && <span>{selectedService.owner}</span>}
+                      <span className="member-service-status">{selectedService.status}</span>
+                      <div className="member-service-owner"><CharacterAvatar name={selectedService.owner} size="xs" /><span>{selectedService.owner}</span></div>
                     </div>
                   </header>
 
@@ -511,6 +505,10 @@ export function ServicesPage() {
 
                   <div className="member-service-detail-grid">
                     <section>
+                      <h4>카테고리</h4>
+                      <div className="member-service-detail-tags">{selectedService.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                    </section>
+                    <section>
                       <h4>주요 기능</h4>
                       <ul>
                         {(selectedServiceDetail?.features ?? [selectedService.summary]).map((feature) => (
@@ -525,17 +523,7 @@ export function ServicesPage() {
                       </div>
                     </section>
                   </div>
-                  {(selectedService.additionalImageUrls ?? []).length > 0 ? (
-                    <section className="member-service-gallery" aria-label="서비스 추가 이미지">
-                      {(selectedService.additionalImageUrls ?? []).slice(0, 5).map((imageUrl) => (
-                        <span
-                          key={imageUrl}
-                          className="member-service-gallery-image"
-                          style={{ backgroundImage: `url(${toServiceImageUrl(imageUrl)})` }}
-                        />
-                      ))}
-                    </section>
-                  ) : null}
+
                 </div>
               </article>
           </>
@@ -615,6 +603,9 @@ export function ServicesPage() {
                       required
                     />
                   </label>
+                  <div className="jcloud-field member-service-form-wide">
+                    <TechStackPicker value={addDraft.stack} onChange={(stack) => setAddDraft({ ...addDraft, stack })} />
+                  </div>
                   <div className="jcloud-field member-service-form-wide">
                     <span className="jcloud-label">이미지</span>
                     <div className="member-service-image-upload">

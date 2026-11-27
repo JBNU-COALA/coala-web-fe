@@ -88,8 +88,10 @@ export function HomeCarousel() {
               role="group" aria-roledescription="슬라이드" aria-label={`${slideIndex + 1} / ${banners.length}`}
               aria-hidden={slideIndex !== activeIndex} inert={slideIndex !== activeIndex}>
               {banner.imageUrl ? (
-                /* 관리자가 올린 배너는 문구가 이미지에 담겨 있어 화면 전체를 이미지로 채운다. */
+                /* 원본 구도를 보존하고 남는 영역은 장식용 배경으로 채운다. */
                 <Link to={target} className="home-carousel-media">
+                  <SafeImage className="home-carousel-media-backdrop" src={resolveApiAssetUrl(banner.imageUrl)} alt="" aria-hidden="true" loading={loading}
+                    fallback={<span aria-hidden="true" />} />
                   <SafeImage src={resolveApiAssetUrl(banner.imageUrl)} alt="" loading={loading}
                     fetchPriority={slideIndex === 0 ? 'high' : undefined}
                     fallback={<span className="home-carousel-media-fallback" aria-hidden="true" />} />
