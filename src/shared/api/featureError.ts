@@ -3,6 +3,7 @@ import axios from 'axios'
 export function featureError(error: unknown): string {
   if (axios.isAxiosError(error)) {
     const status = error.response?.status
+    if (error.response?.data?.errorCode === 'EDUCATION_SEED_UNAVAILABLE') return '기본 교육팩을 사용할 수 없습니다. 서버 설정을 확인해 주세요.'
     if (status === 401) return '로그인이 필요합니다. 다시 로그인해 주세요.'
     if (status === 403) return '권한 또는 이메일 인증 상태를 확인해 주세요.'
     if (status === 404) return '요청한 자료를 찾을 수 없습니다.'

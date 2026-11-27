@@ -1,0 +1,73 @@
+.admin-page .admin-main { grid-template-columns: minmax(0, 1fr); }
+.admin-page .admin-main > * { min-width: 0; }
+.admin-page .admin-nav-search { display: flex; align-items: center; gap: 6px; padding: 8px; border-bottom: 1px solid #e5e5e5; margin-bottom: 10px; color: #888; }
+.admin-page .admin-nav-search input { min-width: 0; width: 100%; padding: 0; border: 0; background: transparent; font: inherit; font-size: 12px; outline: none; }
+.admin-page .admin-section-heading { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+.admin-page .admin-section-heading :is(h3,h4) { margin: 0; font-size: 15px; line-height: 1.6; }
+.admin-page .admin-section-heading h4 { font-size: 13px; }
+.admin-page .admin-section-heading small { font-size: 12px; color: #888; font-weight: 400; }
+.admin-page .admin-eyebrow { display: block; color: #888; font-size: 11px; margin-bottom: 4px; }
+.admin-page .admin-bootstrap { padding: 0 0 24px; border-bottom: 1px solid #ddd; }
+.admin-page .admin-bootstrap .admin-metric-band { margin: 12px 0 18px; padding: 16px 0; border: 0; border-block: 1px solid #eee; border-radius: 0; }
+.admin-page .admin-metric-band small { display: block; margin-top: 5px; font-size: 11px; color: #888; }
+.admin-page .admin-state { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: #777; white-space: nowrap; }
+.admin-page .admin-state::before { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: #aaa; flex-shrink: 0; }
+.admin-page .admin-state.is-ready { color: #3c755d; }
+.admin-page .admin-state.is-ready::before { background: #4c8b6d; }
+.admin-page .admin-state.is-warning { color: #a56a24; }
+.admin-page .admin-state.is-warning::before { background: #bd8b3d; }
+.admin-page .admin-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; padding: 6px; border: 1px solid #ddd; border-radius: 6px; color: #555; background: #fff; cursor: pointer; flex-shrink: 0; }
+.admin-page .admin-icon-button:hover:not(:disabled) { background: #f4f4f4; color: #222; }
+.admin-page .admin-confirm { padding: 16px 0; margin-top: 16px; border-block: 1px solid #e5e5e5; background: #fafafa; }
+.admin-page .admin-confirm :is(h4,p) { margin: 0 12px 12px; font-size: 13px; line-height: 1.7; }
+.admin-page .admin-confirm .admin-row-actions { margin: 0 12px; }
+.admin-page .admin-directory-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 28px; }
+.admin-page .admin-directory-list > button { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 14px 0; border: 0; border-bottom: 1px solid #eee; background: transparent; text-align: left; font: inherit; cursor: pointer; color: #555; }
+.admin-page .admin-directory-list > button:hover { color: #111; }
+.admin-page .admin-directory-list span { min-width: 0; overflow-wrap: anywhere; }
+.admin-page .admin-directory-list small { margin-left: auto; color: #999; font-size: 11px; white-space: nowrap; }
+.admin-page .admin-catalog-layout { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.admin-page .admin-catalog-layout.has-editor { grid-template-columns: minmax(260px, .9fr) minmax(0, 1.1fr); }
+.admin-page .admin-catalog-list { min-width: 0; }
+.admin-page .admin-record-editor { border-left: 1px solid #e5e5e5; padding-left: 24px; min-width: 0; scroll-margin-top: 90px; }
+.admin-page .admin-record-editor > .admin-section-heading { margin-top: 0; }
+.admin-page .admin-record-link { padding: 0; border: 0; background: none; text-align: left; color: #333; font: inherit; font-weight: 500; line-height: 1.6; cursor: pointer; overflow-wrap: anywhere; }
+.admin-page .admin-record-link:hover { text-decoration: underline; }
+.admin-page .admin-record-id { display: block; color: #999; font-size: 10px; line-height: 1.6; overflow-wrap: anywhere; }
+.admin-page .admin-table .is-selected { background: #f3f5f4; }
+.admin-page .admin-form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; min-width: 0; }
+.admin-page .admin-editor-footer { display: flex; align-items: center; gap: 12px; padding-top: 16px; margin-top: 16px; border-top: 1px solid #eee; }
+.admin-page .admin-editor-footer > .admin-primary-button { margin-left: auto; }
+.admin-page .admin-check { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; }
+.admin-page .admin-check input { width: 14px; height: 14px; }
+.admin-page .admin-advanced { margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; color: #777; }
+.admin-page .admin-advanced summary { cursor: pointer; font-size: 12px; margin-bottom: 12px; }
+.admin-page .admin-lesson-row { border-top: 1px solid #e5e5e5; }
+.admin-page .admin-lesson-row > summary { list-style: none; display: flex; align-items: center; gap: 10px; min-height: 48px; cursor: pointer; font-size: 12px; }
+.admin-page .admin-lesson-row > summary > span { color: #999; font-size: 11px; }
+.admin-page .admin-lesson-row > summary > strong { flex: 1; overflow-wrap: anywhere; min-width: 0; }
+.admin-page .admin-lesson-row small { white-space: nowrap; color: #999; }
+.admin-page .admin-lesson-fields { padding-bottom: 16px; }
+.admin-page .admin-chevron-up { transform: rotate(180deg); display: inline-flex; }
+.admin-page .admin-inline-editor { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.admin-page .admin-inline-editor > input { flex: 1; min-width: 0; padding: 8px; font: inherit; border: 1px solid #ddd; border-radius: 6px; }
+.admin-page .admin-file-command { position: relative; display: inline-flex; align-items: center; gap: 6px; padding: 8px 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 12px; cursor: pointer; }
+.admin-page .admin-file-command input { position: absolute; inset: 0; opacity: 0; width: 100%; cursor: pointer; }
+.admin-page .admin-file-list { list-style: none; padding: 0; }
+.admin-page .admin-file-list li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid #eee; }
+.admin-page .admin-file-list span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.admin-page .admin-file-list small { color: #999; font-size: 11px; white-space: nowrap; }
+.admin-page .admin-problem-picker { border-block: 1px solid #eee; padding: 12px 0; margin: 12px 0; }
+.admin-page .admin-problem-picker > summary { cursor: pointer; font-size: 12px; }
+.admin-page .admin-problem-picker > input { width: 100%; padding: 8px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; font: inherit; box-sizing: border-box; }
+.admin-page .admin-problem-picker > div { max-height: 220px; overflow: auto; }
+.admin-page .admin-problem-picker label { display: flex; align-items: center; gap: 8px; padding: 7px 0; font-size: 12px; }
+.admin-page .admin-problem-picker label span { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.admin-page .admin-problem-picker small { color: #999; font-size: 10px; }
+.admin-page .admin-field { margin-bottom: 14px; }
+.admin-page .admin-field textarea { width: 100%; box-sizing: border-box; resize: vertical; }
+.admin-page :is(.admin-panel,.admin-home-preview,.admin-about-preview,.admin-recent-actions) { border-radius: 8px; }
+.admin-page .admin-overview :is(.admin-work-queue,.admin-summary-band,.admin-recent-actions) { border-inline: 0; border-radius: 0; box-shadow: none; padding-inline: 0; }
+@media (max-width: 1200px) { .admin-page .admin-catalog-layout.has-editor { grid-template-columns: minmax(0, 1fr); } .admin-page .admin-record-editor { border-left: 0; border-top: 1px solid #ddd; padding: 20px 0 0; } }
+@media (max-width: 980px) { .admin-page .admin-nav-search { min-width: 140px; margin: 0; } .admin-page .admin-nav-group { flex: 0 0 auto; } .admin-page .admin-nav-group-label { display: none; } }
+@media (max-width: 640px) { .admin-page .admin-directory-list { grid-template-columns: minmax(0, 1fr); } .admin-page .admin-form-grid { grid-template-columns: minmax(0, 1fr); } .admin-page .admin-catalog-layout .admin-table { min-width: 420px; } .admin-page .admin-bootstrap .admin-metric-band { gap: 12px; } .admin-page .admin-section-heading .admin-row-actions { margin-left: 0; } }

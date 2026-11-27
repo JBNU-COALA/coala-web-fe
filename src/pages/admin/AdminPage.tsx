@@ -30,9 +30,13 @@ import { isAdminUser } from '../../shared/auth/adminAccess'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { AdminEducationPanel } from './AdminEducationPanel'
 import { AdminEmploymentPanel } from './AdminEmploymentPanel'
-import { Icon, type IconName } from '../../shared/ui/Icon'
+import { AdminArchivePanel } from './AdminArchivePanel'
+import { AdminAuditPanel, AdminOperationsPanel } from './AdminOperationsPanel'
+import { adminDestinations } from './adminSections'
+import { Icon } from '../../shared/ui/Icon'
 import './admin.css'
 import './admin-design.css'
+import './admin-workspaces.css'
 import { AdminMenuIcon } from './AdminMenuIcon'
 import { AdminAnalyticsPanel } from './AdminAnalyticsPanel'
 import { CommunityBanner } from '../community/CommunityBanner'
@@ -75,22 +79,7 @@ type InstanceDraft = {
   adminNote: string
 }
 
-const adminTabs: { id: AdminTab; label: string; icon: IconName }[] = [
-  { id: 'education', label: '교육 관리', icon: 'book' },
-  { id: 'employment', label: '취업 후기 분류', icon: 'file' },
-  { id: 'stats', label: '운영 현황', icon: 'chart' },
-  { id: 'analytics', label: '사용 분석', icon: 'chart' },
-  { id: 'users', label: '회원 관리', icon: 'users' },
-  { id: 'banners', label: '배너 관리', icon: 'image' },
-  { id: 'about', label: '소개 관리', icon: 'edit' },
-  { id: 'boards', label: '게시판 관리', icon: 'layout' },
-  { id: 'posts', label: '게시글 관리', icon: 'message' },
-  { id: 'activity', label: '활동 관리', icon: 'calendar' },
-  { id: 'reports', label: '신고 처리', icon: 'bell' },
-  { id: 'services', label: '서비스 관리', icon: 'network' },
-  { id: 'instances', label: '인스턴스 관리', icon: 'settings' },
-  { id: 'domains', label: '도메인 관리', icon: 'link' },
-]
+const adminTabs = adminDestinations
 
 const roleOptions: { value: AdminUserRole; label: string }[] = [
   { value: 'USER', label: '일반' },
@@ -313,9 +302,11 @@ export function AdminPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const requestedTab = searchParams.get('tab')
   const activeTab: AdminTab = adminTabs.find((tab) => tab.id === requestedTab)?.id ?? 'stats'
+  const requiresLegacyData = ['stats', 'users', 'boards', 'posts', 'reports', 'services', 'instances'].includes(activeTab)
   const adminContentRef = useAdminReveal(activeTab)
   const setActiveTab = (tab: AdminTab) => setSearchParams({ tab })
   const [refreshKey, setRefreshKey] = useState(0)
+  const [menuQuery, setMenuQuery] = useState('')
   const [postQuery, setPostQuery] = useState('')
   const [contentType, setContentType] = useState('ALL')
   const [userQuery, setUserQuery] = useState('')
@@ -381,6 +372,7 @@ export function AdminPage() {
 
   const loadAdminData = async () => {
     if (!hasAdminAccess) return
+    if (!requiresLegacyData) { setIsLoading(false); setStatusMessage(''); return }
     const sequence = ++loadSequence.current
     setIsLoading(true)
 
@@ -462,7 +454,7 @@ export function AdminPage() {
     void loadAdminData()
     return () => { loadSequence.current += 1 }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasAdminAccess, reportStatus])
+  }, [hasAdminAccess, reportStatus, requiresLegacyData])
 
   useEffect(() => {
     if (selectedInstance) setInstanceDraft(instanceToDraft(selectedInstance))
@@ -695,13 +687,10 @@ export function AdminPage() {
 
         </div>
         <nav className="admin-tab-list" aria-label="관리자 메뉴">
-          {[
-            { label: '운영', ids: ['stats', 'analytics', 'users', 'reports'] },
-            { label: '콘텐츠', ids: ['banners', 'about', 'boards', 'posts', 'activity', 'education', 'employment'] },
-            { label: '서비스 · 신청', ids: ['services', 'instances', 'domains'] },
-          ].map(group => <div className="admin-nav-group" key={group.label}>
-            <span className="admin-nav-group-label">{group.label}</span>
-            {group.ids.map(id => adminTabs.find(tab => tab.id === id)!).map((tab) => (
+          <label className="admin-nav-search"><Icon name="search" size={14} /><input aria-label="관리 메뉴 검색" placeholder="관리 메뉴 검색" value={menuQuery} onChange={(event) => setMenuQuery(event.target.value)} /></label>
+          {Array.from(new Set(adminTabs.map((tab) => tab.group))).map(group => <div className="admin-nav-group" key={group}>
+            <span className="admin-nav-group-label">{group}</span>
+            {adminTabs.filter((tab) => tab.group === group && tab.label.includes(menuQuery.trim())).map((tab) => (
             <button
               key={tab.id}
               type="button"
@@ -737,6 +726,8 @@ export function AdminPage() {
         {activeTab === 'banners' && <AdminBannersPanel refreshKey={refreshKey} />}
         {activeTab === 'education' && <AdminEducationPanel key={refreshKey} />}
         {activeTab === 'employment' && <AdminEmploymentPanel key={refreshKey} />}
+        {activeTab === 'archive' && <AdminArchivePanel key={refreshKey} />}
+        {activeTab === 'audit' && <AdminAuditPanel key={refreshKey} />}
         {activeTab === 'analytics' && <AdminAnalyticsPanel />}
         {activeTab === 'about' && <AdminAboutPanel refreshKey={refreshKey} />}
         {activeTab === 'activity' && <AdminActivityPanel refreshKey={refreshKey} />}
@@ -744,6 +735,7 @@ export function AdminPage() {
         {activeTab === 'boards' && !isLoading && !loadFailures.includes('boards') && <AdminBoardsPanel boards={boards} onChange={setBoards} />}
         {activeTab === 'services' && !isLoading && !loadFailures.includes('services') && <AdminServicesPanel services={memberServices} onChange={setMemberServices} />}
 
+        {activeTab === 'stats' && <AdminOperationsPanel key={refreshKey} onNavigate={setActiveTab} />}
         {activeTab === 'stats' && <AdminOverview counts={{
           users: isLoading || loadFailures.includes('users') ? null : stats.userCount,
           posts: isLoading || loadFailures.includes('posts') ? null : stats.postCount,

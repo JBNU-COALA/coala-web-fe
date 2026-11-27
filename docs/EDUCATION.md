@@ -16,8 +16,9 @@ The supplied CTF YAML/Markdown is an import source, not the live application dat
 - `/education/courses/:courseId`: Markdown documents and persisted lesson completion.
 - `/community/employment`: accepted/rejected reviews with server-side company, industry, role and title filters; 20 rows per page.
 - `/community/employment/new`, `/:reviewId`, `/:reviewId/editor`: verified member writing, public reading, owner/moderator editing and deletion.
-- `/admin?tab=education`: subjects, courses/documents, problems and explicit create-only bulk import.
-- `/admin?tab=employment`: DB-backed industry/job-role taxonomy, including unpublishing options without destroying old reviews.
+- `/admin?tab=education`: subjects, structured courses/documents, problems, attachment uploads, learner history and execution readiness/termination.
+- `/admin?tab=employment`: review search/edit/delete and DB-backed industry/job-role taxonomy, including unpublishing options without destroying old reviews.
+- `/admin?tab=archive`, `/admin?tab=audit`: archive CRUD and searchable audit history. The searchable dashboard directory covers all 16 existing/new management areas.
 
 Subject metadata and course counts are fetched, not hardcoded. `subjects.ts` contains only route/icon mapping. Future subjects are siblings of hacking, not CTF categories. Algorithms supports real courses/documents/progress, but no algorithm judge is fabricated.
 
@@ -27,7 +28,7 @@ Public reads use `/api/education/subjects`, `/subjects/:id/courses`, `/courses/:
 
 Employment uses `/api/employment/options` and `/api/employment/reviews[/:id]`. List query parameters: `outcome=ACCEPTED|REJECTED`, `company`, `industry`, `role`, `q`, zero-based `page`. Companies are normalized names saved with reviews and returned as DB-backed autocomplete suggestions; a first-time company can be typed. Industries and roles are persisted options, not free-text aliases. Reviews additionally record recruitment year and stage. There are no fabricated reviews, likes or comments.
 
-Admin APIs are `/api/admin/education/*` and `/api/admin/employment/options`. Existing records require the returned `version` on updates; 409 preserves drafts for deliberate reload/reconciliation. Import never overwrites existing IDs or learner progress. The challenge editor never receives stored answers/hashes; an empty replacement answer preserves the existing hash. Dynamic challenge images/files must also exist in the execution service: editing metadata does not build Docker targets.
+Admin APIs are `/api/admin/education/*`, `/api/admin/employment/{options,reviews}` and `/api/admin/operations`. Existing education/employment records require the returned `version` on updates; 409 preserves drafts for deliberate reload/reconciliation. Import never overwrites existing IDs or learner progress. The challenge editor never receives stored answers/hashes; an empty replacement answer preserves the existing hash. Attachments are stored in the backend DB and downloaded through the existing declared-file endpoint. Dynamic challenge templates/images must still exist on the private execution host: editing metadata does not build Docker targets.
 
 ## Local And Production
 
@@ -38,12 +39,13 @@ npm run dev -- --host 127.0.0.1 --port 3001 --strictPort
 
 Vite proxies `/api` and `/media` to `API_PROXY_TARGET` (default `http://127.0.0.1:8080`). Only public API URLs enter the client bundle. See the backend `docs/EDUCATION_AND_EMPLOYMENT.md` for migration/import and private runtime setup.
 
-The development preview uses a persistent **local H2 file**, not production PostgreSQL. Its launcher is test-only and excluded from the production jar. Runtime is intentionally disabled there. Production still requires backend deployment, Flyway migrations, an explicit administrator import, private runtime configuration and isolated challenge networking. Pushing main triggers the repository's existing deployment workflow; it does not copy local preview data or the private import bundle into production.
+The development preview uses a persistent **local H2 file**, not production PostgreSQL. Its launcher is test-only and excluded from the production jar. Runtime is intentionally disabled there. Production deployment applies Flyway migrations and imports the encrypted release pack create-only when `APP_EDUCATION_SEED_KEY` is configured. The key is a backend Actions Secret, never frontend configuration. The dashboard's basic-pack button can register missing records later without individual uploads. It contains 120 problems, six tracks, four guide documents and 104 attachments. Local preview DB/session files and plaintext import bundles are never deployed. Actual Docker execution still requires a private runtime and isolated challenge networking.
 
 ## Verification
 
-- Education/employment/admin plus existing route/notification tests: 38 passed (single worker). Production build and changed-file ESLint passed.
-- The full frontend run retains 4 existing failures in unchanged attendance editor/group-selection tests (3) and post-report button test (1); the new feature tests pass. A concurrent-load run also timed out two existing tests; the final single-worker related run passed all 38.
+- Education/employment/admin plus existing route/notification tests: 70 passed (12 files, single worker). Production build and changed-file ESLint passed.
+- The full frontend run retains 4 existing failures in unchanged attendance editor/group-selection tests (3) and post-report button test (1); 220 of 224 tests pass, including all new feature tests.
 - Backend integration tests cover real 120-problem/six-track/four-guide import, ownership, permissions, privacy, progress, create-only reimport, optimistic versions and database constraints. Runtime bridge has separate signature/replay/path/grader tests.
 - User-supplied source has six tracks: first/second/third/fourth year and advanced are 12 weeks; BoB preparation is 16. Guides preserve supplied content; time-sensitive program/admissions claims have not been independently re-researched.
 - Real local-browser checks: review creation/reload/result update, record survival across backend restart, mobile list/editor at 390/360px, six-track curriculum/four guides, lesson completion persistence and administrator catalogs. Temporary QA review removed; no real reviews seeded. Screenshot review used a temporary in-app browser tab, which was closed. Ego screenshot capture timed out; DOM checks and the independent screenshot were used without claiming a successful Ego image.
+- Unified admin QA additionally verified one-click registration of all 104 attachments, structured algorithm-course/lesson creation and stable editing at 360/390/1440px. New admin screenshot capture remained unavailable in Ego; layout was checked using rendered element geometry, not an invented screenshot result.

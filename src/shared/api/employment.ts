@@ -16,8 +16,10 @@ export const employmentApi = {
   options: async (signal?: AbortSignal) => (await client.get<EmploymentOptions>(`${base}/options`, { signal })).data,
   list: async (params: EmploymentFilters, signal?: AbortSignal) => (await client.get<EmploymentList>(`${base}/reviews`, { params, signal })).data,
   detail: async (id: string, signal?: AbortSignal) => (await client.get<EmploymentReview>(`${base}/reviews/${encodeURIComponent(id)}`, { signal })).data,
-  save: async (input: EmploymentReviewInput, id?: number) => (id
-    ? await client.put<EmploymentReview>(`${base}/reviews/${id}`, input)
-    : await client.post<EmploymentReview>(`${base}/reviews`, input)).data,
+  save: async (input: EmploymentReviewInput, id?: number) => {
+    const { company, industryId, roleId, outcome, stage, recruitmentYear, title, content, version } = input
+    const payload = { company, industryId, roleId, outcome, stage, recruitmentYear, title, content, version }
+    return (id ? await client.put<EmploymentReview>(`${base}/reviews/${id}`, payload) : await client.post<EmploymentReview>(`${base}/reviews`, payload)).data
+  },
   delete: async (id: number) => client.delete(`${base}/reviews/${id}`),
 }

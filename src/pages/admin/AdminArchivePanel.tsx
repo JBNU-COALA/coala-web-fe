@@ -1,0 +1,41 @@
+import { useCallback, useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { archiveApi, type ArchiveItem, type ArchiveItemPayload, type ArchiveCategory } from '../../shared/api/archive'
+import { featureError } from '../../shared/api/featureError'
+import { useApiResource } from '../../shared/hooks/useApiResource'
+import { Icon } from '../../shared/ui/Icon'
+import { AdminField, AdminLoadState } from './AdminFields'
+import { routes } from '../../shared/routes'
+import { useAdminEditorFocus } from './useAdminEditorFocus'
+import { attachmentsApi } from '../../shared/api/attachments'
+import { buildUploadedFileContent } from '../archive/archiveModel'
+
+const empty = (): ArchiveItemPayload => ({ category: 'labs', title: '', summary: '', labName: '', eventDate: '', materialType: '', content: '', sourceUrl: '', repositoryUrl: '', tags: [] })
+export function AdminArchivePanel() {
+  const [revision, setRevision] = useState(0)
+  const [category, setCategory] = useState<ArchiveCategory | 'all'>('all')
+  const [query, setQuery] = useState('')
+  const load = useCallback(() => archiveApi.getItems(category, query), [category, query])
+  const resource = useApiResource(load, revision)
+  const [selected, setSelected] = useState<ArchiveItem | null>(null)
+  const [draft, setDraft] = useState<ArchiveItemPayload | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [confirm, setConfirm] = useState(false)
+  const [message, setMessage] = useState('')
+  const editorRef = useAdminEditorFocus(draft ? selected?.id ?? 'new' : null)
+  const choose = (row: ArchiveItem) => { setSelected(row); setDraft({ category: row.category, title: row.title, summary: row.summary, labName: row.labName ?? '', eventDate: row.eventDate ?? '', materialType: row.materialType ?? '', content: row.content, sourceUrl: row.sourceUrl, repositoryUrl: row.repositoryUrl, tags: row.tags }); setConfirm(false); setMessage('') }
+  const field = <K extends keyof ArchiveItemPayload>(key: K, value: ArchiveItemPayload[K]) => setDraft((current) => current ? { ...current, [key]: value } : null)
+  const save = async (event: FormEvent) => { event.preventDefault(); if (!draft || busy) return; setBusy(true); try { const input = { ...draft, eventDate: draft.eventDate || undefined, tags: draft.tags.map((tag) => tag.trim()).filter(Boolean) }; const row = selected ? await archiveApi.updateItem(selected.id, input) : await archiveApi.createItem(input); choose(row); setRevision((value) => value + 1); setMessage('자료를 저장했습니다.') } catch (cause) { setMessage(featureError(cause)) } finally { setBusy(false) } }
+  const upload = async (file: File) => { if (busy) return; setBusy(true); setMessage(''); try { const uploaded = await attachmentsApi.uploadFile(file); setDraft((current) => current ? { ...current, sourceUrl: uploaded.url, content: current.content || buildUploadedFileContent(uploaded) } : null); setMessage('첨부 파일을 연결했습니다.') } catch (cause) { setMessage(featureError(cause)) } finally { setBusy(false) } }
+  const remove = async () => { if (!selected || busy) return; setBusy(true); try { await archiveApi.deleteItem(selected.id); setSelected(null); setDraft(null); setConfirm(false); setRevision((value) => value + 1); setMessage('자료를 삭제했습니다.') } catch (cause) { setMessage(featureError(cause)) } finally { setBusy(false) } }
+  return <section><div className="admin-toolbar"><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="자료 검색" placeholder="제목 · 키워드 검색" value={query} onChange={(event) => setQuery(event.target.value)} /></label><select className="admin-inline-select" aria-label="자료 분류" value={category} onChange={(event) => setCategory(event.target.value as ArchiveCategory | 'all')}><option value="all">전체 자료</option><option value="labs">연구실 자료</option><option value="agents">에이전트 · 스킬</option></select><button className="admin-primary-button" type="button" onClick={() => { setDraft(empty()); setSelected(null); setMessage('') }}><Icon name="plus" size={15} />자료 추가</button></div>
+    <AdminLoadState loading={resource.loading} error={resource.error ?? ''} onRetry={() => setRevision((value) => value + 1)} />{message && <p role="status" className="admin-feedback">{message}</p>}
+    <div className={`admin-catalog-layout${draft ? ' has-editor' : ''}`}><div><div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>자료</th><th>분류</th><th>등록자</th></tr></thead><tbody>{resource.data?.map((row) => <tr key={row.id}><td><button className="admin-record-link" type="button" onClick={() => choose(row)}>{row.title}</button><small className="admin-record-id">{row.summary}</small></td><td>{row.category === 'labs' ? '연구실' : '에이전트 · 스킬'}</td><td>{row.ownerName}</td></tr>)}</tbody></table></div>{resource.data?.length === 0 && <p className="admin-empty">등록된 자료가 없습니다.</p>}</div>
+    {draft && <section ref={editorRef} className="admin-record-editor"><div className="admin-section-heading"><h3>{selected ? '자료 수정' : '새 자료'}</h3><button className="admin-icon-button" type="button" aria-label="자료 편집 닫기" title="닫기" disabled={busy} onClick={() => setDraft(null)}><Icon name="close" size={16} /></button></div><form onSubmit={save}><fieldset className="admin-content-fieldset" disabled={busy}>
+      <AdminField label="제목"><input required maxLength={150} value={draft.title} onChange={(event) => field('title', event.target.value)} /></AdminField><AdminField label="분류"><select value={draft.category} onChange={(event) => field('category', event.target.value as ArchiveCategory)}><option value="labs">연구실 자료</option><option value="agents">에이전트 · 스킬</option></select></AdminField><AdminField label="요약"><textarea required rows={3} maxLength={500} value={draft.summary} onChange={(event) => field('summary', event.target.value)} /></AdminField>
+      <div className="admin-form-grid"><AdminField label="연구실"><input required={draft.category === 'labs'} maxLength={120} value={draft.labName} onChange={(event) => field('labName', event.target.value)} /></AdminField><AdminField label="날짜"><input type="date" required={draft.category === 'labs'} value={draft.eventDate ?? ''} onChange={(event) => field('eventDate', event.target.value)} /></AdminField><AdminField label="자료 유형"><select value={draft.materialType} onChange={(event) => field('materialType', event.target.value)}><option value="">기본</option>{Object.entries({ SEMINAR: '세미나', PAPER: '논문', SKILL: '스킬', AGENT: '에이전트', OTHER: '기타' }).map(([id, label]) => <option key={id} value={id}>{label}</option>)}</select></AdminField></div><AdminField label="본문"><textarea required rows={12} maxLength={20000} value={draft.content} onChange={(event) => field('content', event.target.value)} /></AdminField><AdminField label="원문 URL"><input maxLength={500} value={draft.sourceUrl} onChange={(event) => field('sourceUrl', event.target.value)} /></AdminField><label className="admin-file-command"><Icon name="link" size={15} />파일 연결<input type="file" aria-label="자료 첨부 파일" onChange={(event) => { const file = event.target.files?.[0]; if (file) void upload(file); event.target.value = '' }} /></label><AdminField label="저장소 URL"><input type="url" maxLength={500} value={draft.repositoryUrl} onChange={(event) => field('repositoryUrl', event.target.value)} /></AdminField><AdminField label="태그"><input value={draft.tags.join(', ')} onChange={(event) => field('tags', event.target.value.split(',').map((tag) => tag.trim()))} /></AdminField>
+      <div className="admin-editor-footer">{selected && <><Link className="admin-text-link" to={routes.archive.detail(selected.category, selected.id)}>원문 보기</Link><button className="admin-icon-button" type="button" title="삭제" aria-label="자료 삭제" onClick={() => setConfirm(true)}><Icon name="trash-color" size={16} /></button></>}<button className="admin-primary-button" disabled={busy}>저장</button></div>
+    </fieldset></form>{confirm && <div className="admin-confirm" role="alertdialog" aria-label="자료 삭제 확인"><p>이 자료를 삭제할까요?</p><div className="admin-row-actions"><button type="button" disabled={busy} onClick={() => setConfirm(false)}>취소</button><button className="admin-danger-button" type="button" disabled={busy} onClick={() => void remove()}>삭제</button></div></div>}</section>}
+    </div>
+  </section>
+}
