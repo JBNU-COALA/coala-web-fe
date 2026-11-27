@@ -117,8 +117,12 @@ function ChallengeDetailContent({ api, session, id }: CtfWorkspace & { id: strin
         <div className="ctf-actions"><button className="education-button is-primary" type="button" disabled={!session || !!busy} onClick={() => controlInstance('launch')}><Icon name="play" size={16} />{busy === 'launch' ? '시작 중...' : instance ? '환경 확인 / 재시작' : '환경 시작'}</button>
           {instance && <button type="button" className="education-button" disabled={!session || !!busy} onClick={() => controlInstance('stop')}><Icon name="close" size={16} />{busy === 'stop' ? '종료 중...' : '환경 종료'}</button>}</div>
       </section>}
-      <section className="ctf-detail-section"><h3>플래그 제출</h3>
-        {challenge.solved || solved ? <p className="ctf-solved-message">해결한 문제입니다. 획득 점수 {challenge.points}점</p> : session ? <form className="ctf-submit-form" onSubmit={submit}><label className="sr-only" htmlFor="ctf-flag">플래그</label><input id="ctf-flag" value={flag} onChange={(event) => setFlag(event.target.value)} placeholder="school{...}" autoComplete="off" spellCheck={false} maxLength={4096} required disabled={!!busy} /><button className="education-button is-primary" disabled={!!busy || !flag.trim()}>{busy === 'submit' ? '채점 중...' : '제출'}</button></form> : <p className="education-muted">문제 제출과 실습 환경 실행에는 실습 계정 로그인이 필요합니다.</p>}
+      <section className="ctf-detail-section"><h3>{challenge.solved || solved ? '해결 완료' : '플래그 제출'}</h3>
+        {challenge.solved || solved ? <div className="ctf-solved-card">
+          <span className="ctf-solved-check" aria-hidden="true">✓</span>
+          <div className="ctf-solved-copy"><strong>플래그 해독 완료!</strong><span>문제를 해결했습니다. 다음 도전도 이어가 보세요.</span></div>
+          <span className="ctf-solved-points"><Icon name="award-color" size={24} /><span><small>획득 점수</small><strong>{challenge.points}<span>점</span></strong></span></span>
+        </div> : session ? <form className="ctf-submit-form" onSubmit={submit}><label className="sr-only" htmlFor="ctf-flag">플래그</label><input id="ctf-flag" value={flag} onChange={(event) => setFlag(event.target.value)} placeholder="school{...}" autoComplete="off" spellCheck={false} maxLength={4096} required disabled={!!busy} /><button className="education-button is-primary" disabled={!!busy || !flag.trim()}>{busy === 'submit' ? '채점 중...' : '제출'}</button></form> : <p className="education-muted">문제 제출과 실습 환경 실행에는 실습 계정 로그인이 필요합니다.</p>}
       </section>
     </article>}
   </>
