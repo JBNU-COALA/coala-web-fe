@@ -351,3 +351,14 @@
 @media (hover: hover) { .coala-app .coala-content--services .member-service-list-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px #0000000a; } }
 .coala-app .coala-content--services .member-service-list-item:active { transform: scale(.985); }
 @media (prefers-reduced-motion: reduce) { .coala-app .coala-content--services .member-service-list-item { transition: none; transform: none; } }
+
+@media (max-width: 700px) {
+  .coala-app .coas-hub .member-service-preview-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding-inline: 12px; }
+  .coala-app .coas-hub .member-service-preview-grid > button { min-width: 0; padding: 0; border-radius: 10px; overflow: hidden; text-align: left; color: #222; }
+  .coala-app .coas-hub .member-service-preview-image { height: 96px; min-height: 0; aspect-ratio: auto; }
+  .coala-app .coas-hub .member-service-preview-image img { object-fit: contain; }
+  .coala-app .coas-hub .member-service-preview-copy { padding: 8px; gap: 4px; min-width: 0; }
+  .coala-app .coas-hub .member-service-preview-copy strong { font-size: 12px; font-weight: 600; color: #222; line-height: 1.4; overflow-wrap: anywhere; }
+  .coala-app .coas-hub .member-service-preview-copy small { font-size: 9px; padding: 2px 5px; }
+  .coala-app .coas-hub .member-service-preview-copy > span { font-size: 10px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
