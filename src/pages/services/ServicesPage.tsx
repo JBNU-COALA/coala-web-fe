@@ -3,9 +3,8 @@ import { ConfirmDialog } from '../../shared/ui/ConfirmDialog'
 import { usePageTransition } from '../../shared/ui/usePageTransition'
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent, type KeyboardEvent } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
-import { TechLogo } from '../../shared/ui/TechLogo'
 import { TechStackPicker } from '../../shared/ui/TechStackPicker'
-import { ServiceGallery } from './ServiceGallery'
+import { ServiceProjectDetail } from './ServiceProjectDetail'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
 import { ViewModeToggle } from '../../shared/ui/ViewModeToggle'
@@ -74,14 +73,14 @@ const serviceStatusTabs: FilterTabOption<ServiceStatusFilter>[] = serviceStatusF
   tone: status.id === 'all' ? 'all' : 'status',
 }))
 
-const toExternalUrl = (url: string) => (
-  /^https?:\/\//i.test(url) ? url : `https://${url}`
-)
-
 const toServiceImageUrl = (url?: string | null) => (url ? resolveApiAssetUrl(url) : '')
 
 const emptyServiceDraft = {
   title: '',
+  category: 'productivity',
+  audience: '',
+  description: '',
+  features: '',
   url: '',
   githubUrl: '',
   tags: '',
@@ -94,6 +93,10 @@ const emptyServiceDraft = {
 function serviceToDraft(service: MemberService) {
   return {
     title: service.title,
+    category: service.category,
+    audience: service.audience ?? '',
+    description: service.description ?? '',
+    features: (service.features ?? []).join('\n'),
     url: service.url,
     githubUrl: service.githubUrl,
     tags: service.tags.join(', '),
@@ -150,7 +153,6 @@ export function ServicesPage() {
   const selectedService = activeTab === 'user' && serviceId
     ? memberServices.find((service) => service.id === serviceId)
     : null
-  const selectedServiceDetail = selectedService
   const showServiceForm = showAddForm || editingServiceId !== null
   const formRef = usePageTransition<HTMLFormElement>(String(showServiceForm))
 
@@ -216,7 +218,10 @@ export function ServicesPage() {
     try {
       const payload = {
         title: addDraft.title.trim(),
-        category: 'productivity',
+        category: addDraft.category,
+        audience: addDraft.audience.trim(),
+        description: addDraft.description.trim(),
+        features: addDraft.features.split('\n').map((line) => line.trim()).filter(Boolean),
         summary: addDraft.summary.trim(),
         url: addDraft.url.trim(),
         githubUrl: addDraft.githubUrl.trim(),
@@ -332,16 +337,10 @@ export function ServicesPage() {
     }))
   }
 
-  const renderServiceTags = (tags: string[]) => (
-    tags.length > 0
-      ? tags.map((tag) => <span key={tag}><TechLogo name={tag} />{tag}</span>)
-      : <span className="member-service-tag-empty">태그가 없습니다</span>
-  )
-
   return (
     <section className="coala-content coala-content--services">
       <div className="member-services">
-        <CommunityBanner title={activeBannerTitle} description={activeBannerDescription} tone="service" />
+        {!(activeTab === 'user' && (serviceId || showServiceForm)) && <CommunityBanner title={activeBannerTitle} description={activeBannerDescription} tone="service" />}
 
         {activeTab === 'coas' ? (
           <div className="coas-hub">
@@ -432,100 +431,8 @@ export function ServicesPage() {
                       <Icon name="chevron-left" size={15} />
                       목록으로 돌아가기
                     </button>
-              <article className="surface-card member-service-detail">
-                <ServiceGallery key={selectedService.id} title={selectedService.title} images={[selectedService.imageUrl, ...(selectedService.additionalImageUrls ?? [])]} />
-
-                <div className="member-service-detail-body">
-                  <header className="member-service-detail-header">
-
-                    <div>
-                      <p className="services-hub-eyebrow">유저 서비스</p>
-                      <div className="member-service-title-row">
-                        <h3>{selectedService.title}</h3>
-                        {selectedService.canEdit && (
-                          <button type="button" className="member-service-title-edit" aria-label="서비스 수정" title="서비스 수정" onClick={() => startEditService(selectedService)}>
-                            <Icon name="pencil-color" size={16} />
-                          </button>
-                        )}
-                      </div>
-                      <span className="member-service-status">{selectedService.status}</span>
-                      <div className="member-service-owner"><CharacterAvatar name={selectedService.owner} size="xs" /><span>{selectedService.owner}</span></div>
-                    </div>
-                  </header>
-
-                  <p className="member-service-detail-summary">
-                    {selectedServiceDetail?.description ?? selectedService.summary}
-                  </p>
-
-                  {serviceError && <p className="auth-error" role="alert">{serviceError}</p>}
-                  <div className="member-service-detail-actions">
-                    <a href={toExternalUrl(selectedService.url)} target="_blank" rel="noreferrer">
-                      <Icon name="globe-color" size={15} />
-                      서비스 열기
-                    </a>
-                    {selectedService.githubUrl ? (
-                      <a href={toExternalUrl(selectedService.githubUrl)} target="_blank" rel="noreferrer">
-                        <Icon name="github" size={15} />
-                        GitHub
-                      </a>
-                    ) : null}
-                    {selectedService.canEdit ? (
-                      <>
-                        <button
-                          type="button"
-                          className="member-service-detail-button"
-                          disabled={retiring}
-                          onClick={() => setRetireTarget(selectedService)}
-                        >
-                          <Icon name="stop-color" size={15} />
-                          운영 중지
-                        </button>
-                      </>
-                    ) : null}
-                  </div>
-
-                  <dl className="member-service-detail-meta">
-                    <div>
-                      <dt>대상</dt>
-                      <dd>{selectedServiceDetail?.audience ?? '코알라 부원'}</dd>
-                    </div>
-                    <div>
-                      <dt>도메인</dt>
-                      <dd>{selectedService.url}</dd>
-                    </div>
-                    <div>
-                      <dt>공개</dt>
-                      <dd>{selectedServiceDetail?.visibility ?? 'Public'}</dd>
-                    </div>
-                    <div>
-                      <dt>기간</dt>
-                      <dd>{selectedServiceDetail?.period ?? selectedService.status}</dd>
-                    </div>
-                  </dl>
-
-                  <div className="member-service-detail-grid">
-                    <section>
-                      <h4>카테고리</h4>
-                      <div className="member-service-detail-tags">{selectedService.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
-                    </section>
-                    <section>
-                      <h4>주요 기능</h4>
-                      <ul>
-                        {(selectedServiceDetail?.features ?? [selectedService.summary]).map((feature) => (
-                          <li key={feature}>{feature}</li>
-                        ))}
-                      </ul>
-                    </section>
-                    <section>
-                      <h4>기술 스택</h4>
-                      <div className="member-service-detail-tags">
-                        {renderServiceTags(selectedServiceDetail?.stack ?? selectedService.tags)}
-                      </div>
-                    </section>
-                  </div>
-
-                </div>
-              </article>
+              <ServiceProjectDetail service={selectedService} error={serviceError} retiring={retiring}
+                onEdit={() => startEditService(selectedService)} onRetire={() => setRetireTarget(selectedService)} />
           </>
         ) : serviceId ? (
               <section className="surface-card member-service-detail-empty">
@@ -558,12 +465,13 @@ export function ServicesPage() {
                   <div>
                     <h3>{editingServiceId ? '유저 서비스 수정' : '유저 서비스 추가'}</h3>
                     <p>
-                      서비스 정보와 대표 이미지를 등록하세요.
+                      프로젝트의 소개, 이미지와 사용한 기술을 함께 소개해 주세요.
                     </p>
                   </div>
 
                 </div>
                 <div className="member-service-form-grid">
+                  <h4 className="project-form-section">기본 정보</h4>
                   <label className="jcloud-field">
                     <span className="jcloud-label">서비스명</span>
                     <input
@@ -575,7 +483,17 @@ export function ServicesPage() {
                     />
                   </label>
                   <label className="jcloud-field">
-                    <span className="jcloud-label">URL</span>
+                    <span className="jcloud-label">카테고리</span>
+                    <select className="jcloud-input" value={addDraft.category} onChange={(event) => setAddDraft({ ...addDraft, category: event.target.value })}>
+                      <option value="productivity">생산성</option><option value="ai">AI</option><option value="community">커뮤니티</option><option value="learning">교육</option>
+                    </select>
+                  </label>
+                  <label className="jcloud-field member-service-form-wide">
+                    <span className="jcloud-label">한 줄 소개</span>
+                    <input className="jcloud-input" placeholder="어떤 서비스인지 짧게 소개해 주세요." value={addDraft.summary} onChange={(event) => setAddDraft({ ...addDraft, summary: event.target.value })} required />
+                  </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">서비스 주소</span>
                     <input
                       className="jcloud-input"
                       placeholder="https:// 또는 도메인"
@@ -603,11 +521,17 @@ export function ServicesPage() {
                       required
                     />
                   </label>
+                  <label className="jcloud-field">
+                    <span className="jcloud-label">이용 대상 (선택)</span>
+                    <input className="jcloud-input" placeholder="예: 스터디를 찾는 대학생" value={addDraft.audience} onChange={(event) => setAddDraft({ ...addDraft, audience: event.target.value })} />
+                  </label>
+                  <h4 className="project-form-section">사용 기술</h4>
                   <div className="jcloud-field member-service-form-wide">
                     <TechStackPicker value={addDraft.stack} onChange={(stack) => setAddDraft({ ...addDraft, stack })} />
                   </div>
+                  <h4 className="project-form-section">프로젝트 이미지</h4>
                   <div className="jcloud-field member-service-form-wide">
-                    <span className="jcloud-label">이미지</span>
+                    <span className="jcloud-label">대표 이미지</span>
                     <div className="member-service-image-upload">
                       <label className="member-service-image-upload-button">
                         <Icon name="plus" size={24} />
@@ -622,6 +546,7 @@ export function ServicesPage() {
                       </label>
                       {addDraft.imageUrl && <SafeImage key={addDraft.imageUrl}
                         className="member-service-image-preview" src={toServiceImageUrl(addDraft.imageUrl)} alt="대표 이미지 미리보기" />}
+                      {addDraft.imageUrl && <button type="button" className="ghost-button" onClick={() => setAddDraft({ ...addDraft, imageUrl: '' })}>이미지 제거</button>}
 
                     </div>
                     {serviceImageError ? <p className="auth-error">{serviceImageError}</p> : null}
@@ -662,21 +587,26 @@ export function ServicesPage() {
                       ) : null}
                     </div>
                   </div>
+                  <h4 className="project-form-section">프로젝트 소개</h4>
                   <label className="jcloud-field member-service-form-wide">
-                    <span className="jcloud-label">소개</span>
+                    <span className="jcloud-label">서비스 소개 및 문제 정의</span>
                     <textarea
                       className="jcloud-textarea"
-                      rows={5}
-                      placeholder="서비스가 해결하는 문제와 주요 기능을 적어주세요."
-                      value={addDraft.summary}
-                      onChange={(event) => setAddDraft({ ...addDraft, summary: event.target.value })}
-                      required
+                      rows={10}
+                      placeholder="어떤 문제에서 시작했나요? 서비스의 목적과 해결 방법을 소개해 주세요."
+                      value={addDraft.description}
+                      onChange={(event) => setAddDraft({ ...addDraft, description: event.target.value })}
                     />
+                  </label>
+                  <label className="jcloud-field member-service-form-wide">
+                    <span className="jcloud-label">핵심 기능 및 해결 방식</span>
+                    <textarea className="jcloud-textarea" rows={5} placeholder="주요 기능을 한 줄에 하나씩 입력해 주세요." value={addDraft.features} onChange={(event) => setAddDraft({ ...addDraft, features: event.target.value })} />
                   </label>
                 </div>
                 <div className="recruit-write-footer">
                   <button type="button" className="ghost-button" onClick={closeServiceForm}>닫기</button>
                   <button type="submit" className="jcloud-submit-button">
+                    <Icon name="pencil-color" size={14} />
                     {editingServiceId ? '저장하기' : '추가하기'}
                   </button>
                 </div>
