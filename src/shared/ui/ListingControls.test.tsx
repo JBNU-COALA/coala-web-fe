@@ -8,11 +8,11 @@ import { buildContextPanel, headerSubNavItems } from '../../navigation/navigatio
 
 describe('shared listing navigation', () => {
   it('keeps search and filters collapsed until requested, preserving values on close', () => {
-    const { container } = render(<ListingControls search={<SearchField value="" onChange={vi.fn()} placeholder="게시글 검색" />} label="게시판 필터" count="게시글 8개"
+    const { container } = render(<ListingControls search={<SearchField value="" onChange={vi.fn()} placeholder="게시글 검색" />} label="게시판 필터"
       filters={<FilterTabs value="all" options={[{ id: 'all', label: '전체', icon: 'layout' }, { id: 'free', label: '자유', icon: 'message' }]} onChange={vi.fn()} ariaLabel="게시판 분류" separateFirst />}>
 
     </ListingControls>)
-    expect(screen.getByRole('status').textContent).toBe('게시글 8개')
+    expect(container.querySelector('.listing-controls-summary')).toBeNull()
     expect(screen.queryByRole('searchbox')).toBeNull()
     expect(screen.getByRole('tab', { name: '전체' })).toBeTruthy()
     const trigger = screen.getByRole('button', { name: '게시판 필터 열기' })

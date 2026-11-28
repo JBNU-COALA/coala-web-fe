@@ -38,7 +38,7 @@ export function EducationPage() {
 }
 function EducationSubjects({ subjects }: { subjects: EducationSubject[] }) {
   return <>
-    <div className="education-list-heading"><h2>교육 분야</h2><span>{subjects.length}개 분야</span></div>
+    <div className="education-list-heading"><h2>교육 분야</h2></div>
     <div className="education-subject-list">{subjects.map((subject) => <Link className="education-subject" key={subject.id} to={subjectPath(subject.id)}>
       <div className="education-subject-head"><span className="education-subject-symbol"><Icon name={subjectIcon(subject.id)} size={22} /></span><h3>{subject.name}</h3></div>
       <p>{subject.topics}</p><div className="education-subject-footer"><span>{subject.courseCount}개 과정</span><Icon name="chevron-right" size={16} /></div>

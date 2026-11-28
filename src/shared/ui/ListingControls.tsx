@@ -4,7 +4,6 @@ import './ListingControls.css'
 
 type ListingControlsProps = {
   label: string
-  count?: string
   filters?: ReactNode
   children?: ReactNode
   search?: ReactNode
@@ -14,7 +13,7 @@ type ListingControlsProps = {
   className?: string
 }
 
-export function ListingControls({ label, count, filters, children, search, actions, accessory, message, className = '' }: ListingControlsProps) {
+export function ListingControls({ label, filters, children, search, actions, accessory, message, className = '' }: ListingControlsProps) {
   const [open, setOpen] = useState(false)
   const id = useId()
   const trigger = useRef<HTMLButtonElement>(null)
@@ -32,9 +31,8 @@ export function ListingControls({ label, count, filters, children, search, actio
           <div className="listing-controls-actions">{search}</div>
         </div>
       </div>
-      {count || accessory ? (
+      {accessory ? (
         <div className="listing-controls-summary">
-          {count ? <span role="status">{count}</span> : <span />}
           {accessory}
         </div>
       ) : null}

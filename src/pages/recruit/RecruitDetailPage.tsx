@@ -305,7 +305,7 @@ export function RecruitDetailPage({ recruitId, onBack, onApply }: RecruitDetailP
 
           <article className="recruit-detail-card recruit-detail-section-card recruit-qa-card">
             <h3 className="recruit-content-title">
-              질문과 답변 <span className="recruit-qa-count">{comments.length}</span>
+              질문과 답변
             </h3>
 
             {isLoggedIn ? (

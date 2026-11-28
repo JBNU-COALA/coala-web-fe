@@ -11,6 +11,7 @@ import { ArchiveFilters } from './ArchiveFilters'
 import { ListingControls } from '../../shared/ui/ListingControls'
 import { Pagination } from '../../shared/ui/Pagination'
 import { usePagination } from '../../shared/ui/usePagination'
+import { useScrollReveal } from '../landing/useScrollReveal'
 import { ArchiveResourceCard } from './ArchiveResourceCard'
 import './archive.css'
 
@@ -85,6 +86,10 @@ export function ArchivePage() {
     )
   }, [items, query, selectedMaterial, labFilter, activeCategory])
   const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${labFilter}:${query}`)
+  const revealRef = useScrollReveal(
+    `${activeCategory}:${pagination.page}:${selectedMaterial}:${labFilter}:${query}:${isLoading}:${pagination.pageItems.map(item => item.id).join(',')}`,
+    '.archive-paper',
+  )
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth])
 
@@ -100,18 +105,12 @@ export function ArchivePage() {
     return grouped
   }, [visibleItems])
 
-  const monthLabItems = useMemo(
-    () => visibleItems.filter((item) => item.category === 'labs' && getArchiveItemDate(item).startsWith(calendarMonth)),
-    [calendarMonth, visibleItems],
-  )
-
   const undatedLabItems = useMemo(
     () => visibleItems.filter((item) => item.category === 'labs' && !getArchiveItemDate(item)),
     [visibleItems],
   )
 
   const selectedDateItems = labItemsByDate.get(selectedDate) ?? []
-  const monthLabCount = new Set(monthLabItems.map((item) => item.labName?.trim()).filter(Boolean)).size
 
   const startCreate = () => navigate(routes.archive.new(activeCategory))
   const startCreateForDate = (date: string) => navigate(routes.archive.new('labs') + '?date=' + date)
@@ -127,14 +126,12 @@ export function ArchivePage() {
             hasCalendar={activeCategory === 'labs'} showCalendar={showCalendar} onCalendarChange={setShowCalendar} />
 
       </ListingControls>
-      {activeCategory === 'labs' && !isLoading && !archiveError && <p className="archive-result-count">{visibleItems.length}개 자료</p>}
             {activeCategory === 'labs' && showCalendar ? (
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">
                 <div className="archive-calendar-head">
                   <div>
                     <p>자료 캘린더</p>
                     <strong>{formatArchiveMonth(calendarMonth)}</strong>
-                    <span>{monthLabItems.length}개 자료 · {monthLabCount || 0}개 연구실</span>
                   </div>
                   <div className="archive-calendar-controls">
                     <button type="button" title="이전 달" aria-label="이전 달" onClick={() => setCalendarMonth((current) => shiftMonth(current, -1))}>
@@ -253,7 +250,7 @@ export function ArchivePage() {
             ) : null}
 
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
-              <div key={`${activeCategory}:${pagination.page}`} className="archive-resource-grid archive-page-enter">
+              <div ref={revealRef} key={`${activeCategory}:${pagination.page}`} className="archive-resource-grid archive-page-enter">
                 {isLoading ? <div className="archive-load-state"><LoadingSpinner label="자료를 불러오는 중입니다." /></div>
                   : archiveError ? <LoadErrorState message={archiveError} onRetry={() => setLoadRevision((value) => value + 1)} />
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>

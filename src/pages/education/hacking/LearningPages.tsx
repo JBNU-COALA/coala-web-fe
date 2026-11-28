@@ -72,7 +72,7 @@ export function CtfScoreboard({ api, session }: CtfWorkspace) {
           </article>
         })}
       </div>
-      <div className="ctf-score-toolbar"><span>전체 {entries.length}명</span><SearchField value={query} onChange={setQuery} placeholder="참여자 이름 검색" /></div>
+      <div className="ctf-score-toolbar"><SearchField value={query} onChange={setQuery} placeholder="참여자 이름 검색" /></div>
     </>}
     {resource.data && (entries.length ? <><div className="ctf-table-scroll"><table className="ctf-table ctf-scoreboard"><thead><tr><th>순위</th><th>참여자</th><th>점수</th><th>해결한 문제</th></tr></thead><tbody>{pagination.pageItems.map((entry) => {
       const isSelf = isSameUserId(entry.userId, session?.user.id)

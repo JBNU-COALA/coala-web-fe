@@ -41,7 +41,7 @@ export function AdminActivityPanel({ refreshKey }: { refreshKey: number }) {
           <span>활동 관리 <Icon name="chevron-right" size={16} /></span>
         </Link>)}{!groups.length && <p className="admin-empty">등록된 그룹이 없습니다.</p>}</div>
       </section>
-      <section className="admin-panel"><div className="admin-panel-header"><h3>활동 기록</h3><span>{records.length}건</span></div>
+      <section className="admin-panel"><div className="admin-panel-header"><h3>활동 기록</h3></div>
         <div className="admin-toolbar"><AdminSearch><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="활동 기록 검색" placeholder="활동 기록 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label></AdminSearch>
           <select className="admin-inline-select" aria-label="활동 그룹" value={groupId} onChange={(e) => setGroupId(e.target.value)}><option value="all">전체 그룹</option><option value="individual">개인 활동</option>{groups.map((group) => <option value={group.id} key={group.id}>{group.name}</option>)}</select>
         </div>

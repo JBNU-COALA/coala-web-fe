@@ -24,7 +24,7 @@ export function AdminBannersPanel({ refreshKey }: { refreshKey: number }) {
   const selected = banners.find((item) => item.id === selectedId)
   return <div className={`admin-two-column admin-master-detail${editorOpen ? ' has-selection' : ''}`}>
     <section className="admin-panel">
-      <div className="admin-panel-header"><h3>홈 배너 <small>{banners.length}</small></h3>
+      <div className="admin-panel-header"><h3>홈 배너</h3>
         <div className="admin-row-actions"><BannerHelp /><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => { setSelectedId(null); setGeneration((value) => value + 1); setFeedback(''); setEditorOpen(true) }}><Icon name="plus" size={15} />배너 추가</button></div></div>
       {feedback && <p role="status" className="admin-feedback">{feedback}</p>}
       <div className="admin-list">{banners.map((banner) => <button type="button" key={banner.id} disabled={busy} aria-pressed={selectedId === banner.id}

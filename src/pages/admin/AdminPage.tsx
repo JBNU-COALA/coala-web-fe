@@ -772,7 +772,7 @@ export function AdminPage() {
             <div className="admin-panel">
               <div className="admin-panel-header">
                 <h3>회원 목록</h3>
-                <span>{users.length}명</span>
+
               </div>
               <AdminSearch><label className="admin-member-search"><Icon name="search" size={16} />
                 <input aria-label="회원 검색" placeholder="이름, 이메일, 학번, 학과 검색" value={userQuery} onChange={(event) => setUserQuery(event.target.value)} />
@@ -1151,7 +1151,7 @@ export function AdminPage() {
               <div className="admin-panel">
                 <div className="admin-panel-header">
                   <h3>인스턴스 신청</h3>
-                  <span>{instanceApplications.length}건</span>
+
                 </div>
                 <div className="admin-service-list">
                   {instanceApplications.map((instance) => (

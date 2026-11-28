@@ -623,7 +623,7 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
           )}
 
           <section className="post-comments">
-            <h3>댓글 {totalCommentCount}개</h3>
+            <h3>댓글</h3>
             {commentActionError ? <p className="auth-error">{commentActionError}</p> : null}
 
             {comments.map((comment) => renderComment(comment))}
