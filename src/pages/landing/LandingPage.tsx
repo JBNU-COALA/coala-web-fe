@@ -11,7 +11,19 @@ import { CultureSection } from './CultureSection'
 import { useScrollReveal } from './useScrollReveal'
 import { KoalaPaw } from './KoalaIntro'
 
+type VineNode = { x: number; y: number }
+function vinePath(nodes: VineNode[]) {
+  return nodes.map((node, index) => {
+    if (!index) return `M${node.x} ${node.y}`
+    const previous = nodes[index - 1]
+    const middle = (previous.y + node.y) / 2
+    return `C${previous.x} ${middle} ${node.x} ${middle} ${node.x} ${node.y}`
+  }).join(' ')
+}
+const curtainNodes = Array.from({ length: 9 }, (_, i) => ({ x: 185 + Math.sin(i * .5) * 75, y: i * 128 - 5 }))
+
 function JungleLeaves({ side }: { side: 'left' | 'right' }) {
+  const nodes = Array.from({ length: 14 }, (_, i) => ({ x: 58 + Math.sin(i * .8 + (side === 'right' ? 1 : 0)) * 24, y: i * 82 - 35 }))
   return <div className={`jungle-leaves jungle-leaves--${side}`} aria-hidden="true">
     <svg viewBox="0 0 300 1000" preserveAspectRatio="xMinYMid slice" focusable="false">
       <defs>
@@ -24,9 +36,18 @@ function JungleLeaves({ side }: { side: 'left' | 'right' }) {
           <path d="M43-4 65-33M83-10 113-45M127-19 158-48M169-27 197-46M55-6 84 22M100-14 130 10M148-23 174-13" fill="none" stroke="#7a986e" strokeOpacity=".12" />
         </g>
       </defs>
-      <path d="M-26-30C67 230 8 530 24 740S-8 948-32 1040" fill="none" stroke="#233c2a" strokeWidth="5" />
-      {[{ x: 5, y: 95, angle: 36, scale: .86 }, { x: 22, y: 245, angle: -16, scale: 1 }, { x: 18, y: 402, angle: 25, scale: .76 }, { x: 13, y: 567, angle: -27, scale: .92 }, { x: 22, y: 745, angle: 12, scale: 1.06 }, { x: 13, y: 916, angle: -24, scale: .82 }].map((leaf, index) =>
-        <use key={index} href={`#edge-blade-${side}`} transform={`translate(${leaf.x} ${leaf.y}) rotate(${leaf.angle}) scale(${leaf.scale})`} />)}
+      <path d={vinePath(nodes)} fill="none" stroke="#294a32" strokeWidth="7" />
+      <path d={vinePath(nodes)} fill="none" stroke="#668052" strokeOpacity=".2" strokeWidth="1.5" />
+      {nodes.map((node, index) => <g key={index} transform={`translate(${node.x} ${node.y})`}>
+        <g transform={`rotate(${index % 2 ? -26 : 26}) scale(${.65 + (index % 3) * .13})`}>
+          <path d="M0 0Q12-6 26-8" fill="none" stroke="#34543b" strokeWidth="3" />
+          <use href={`#edge-blade-${side}`} transform="translate(26 -8)" />
+        </g>
+        <g transform={`rotate(${158 + (index % 3) * 15}) scale(${.42 + (index % 2) * .15})`} opacity=".7">
+          <path d="M0 0Q12-6 26-8" fill="none" stroke="#34543b" strokeWidth="3" />
+          <use href={`#edge-blade-${side}`} transform="translate(26 -8)" />
+        </g>
+      </g>)}
     </svg>
   </div>
 }
@@ -59,9 +80,9 @@ export function LandingPage() {
                   {[60, 110, 160, 210, 260, 310].map((x) => <path key={x} d={`M${x} ${-x * .13}q20-32 45-58M${x} ${-x * .13}q35 20 67 12`} fill="none" stroke="#86a86922" />)}
                 </g>
               </defs>
-              <path d="M-80 1100Q360 550 220-120" stroke="#152f1d" strokeWidth="22" fill="none" />
-              <path d="M-76 1100Q366 550 225-120" stroke="#5c774a" strokeOpacity=".4" strokeWidth="4" fill="none" />
-              {Array.from({ length: 9 }, (_, i) => <g key={i} transform={`translate(${185 + Math.sin(i * .5) * 75} ${i * 128 - 5})`}>
+              <path d={vinePath(curtainNodes)} stroke="#152f1d" strokeWidth="22" fill="none" />
+              <path d={vinePath(curtainNodes)} stroke="#5c774a" strokeOpacity=".4" strokeWidth="4" fill="none" />
+              {curtainNodes.map((node, i) => <g key={i} transform={`translate(${node.x} ${node.y})`}>
                 <g transform={`rotate(${35 - i * 7}) scale(${1.25 - i * .025})`}>
                   <use href={`#frond-${side}`} />
                   {i === 5 && <KoalaPaw />}
