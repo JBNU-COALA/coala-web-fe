@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom'
 import { routes } from '../../shared/routes'
 import type { ArchiveItem } from '../../shared/api/archive'
 import { Icon } from '../../shared/ui/Icon'
+import { ArchiveSourceLink } from './ArchiveSourceLink'
 
 function repositoryLabel(value: string) {
   try {
@@ -10,12 +11,9 @@ function repositoryLabel(value: string) {
   } catch { return '' }
 }
 
-export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDelete, ordinal }: {
+export function ArchiveResourceCard({ item, sourceHref, ordinal }: {
   item: ArchiveItem
   sourceHref: string
-  canManage: boolean
-  onEdit: () => void
-  onDelete: () => void
   ordinal?: number
 }) {
   const isSkill = item.category === 'agents'
@@ -41,12 +39,8 @@ export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDel
       {!!paperTags.length && <div className="archive-paper-tags">{paperTags.map(tag => <span key={tag}>{tag}</span>)}</div>}
     </div>
     <div className="archive-paper-actions">
-      {sourceHref && <a href={sourceHref} target="_blank" rel="noreferrer">{item.sourceUrl.startsWith('/media/attachments/') ? 'PDF 다운로드' : '원문 보기'}</a>}
+      {sourceHref && <ArchiveSourceLink href={sourceHref} isPdf={item.sourceUrl.startsWith('/media/attachments/')} />}
       {repository && /^https?:\/\//i.test(item.repositoryUrl) && <a href={item.repositoryUrl} target="_blank" rel="noreferrer">저장소</a>}
-      {canManage && <div aria-label="자료 관리">
-        <button type="button" onClick={onEdit}>수정</button>
-        <button type="button" onClick={onDelete}>삭제</button>
-      </div>}
     </div>
   </article>
   return <article className={`archive-resource${isSkill ? ' archive-resource--skill' : ''}`}>
@@ -69,10 +63,6 @@ export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDel
         {sourceHref && <a href={sourceHref} target="_blank" rel="noreferrer"><Icon name="link" size={15} />{isSkill ? '문서' : item.sourceUrl.startsWith('/media/attachments/') ? 'PDF 다운로드' : '원문 보기'}</a>}
         {repository && /^https?:\/\//i.test(item.repositoryUrl) && <a href={item.repositoryUrl} target="_blank" rel="noreferrer"><Icon name="book" size={15} />저장소</a>}
       </div>
-      {canManage && <div aria-label="자료 관리">
-        <button type="button" onClick={onEdit}>수정</button>
-        <button type="button" className="archive-resource-delete" onClick={onDelete}>삭제</button>
-      </div>}
     </footer>
   </article>
 }

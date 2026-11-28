@@ -2,9 +2,6 @@ import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { archiveApi, type ArchiveItem } from '../../shared/api/archive'
-import { useAuth } from '../../shared/auth/AuthContext'
-import { isAdminUser } from '../../shared/auth/adminAccess'
-import { isSameUserId } from '../../shared/auth/userIdentity'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
@@ -27,8 +24,6 @@ export function ArchivePage() {
   const location = useLocation()
   const navigate = useNavigate()
   const activeCategory = resolveArchiveCategory(location.pathname)
-  const { user } = useAuth()
-  const isAdmin = isAdminUser(user)
   const [items, setItems] = useState<ArchiveItem[]>([])
   const [query, setQuery] = useState('')
   const [labFilter, setLabFilter] = useState('all')
@@ -120,27 +115,6 @@ export function ArchivePage() {
 
   const startCreate = () => navigate(routes.archive.new(activeCategory))
   const startCreateForDate = (date: string) => navigate(routes.archive.new('labs') + '?date=' + date)
-  const startEdit = (item: ArchiveItem) => navigate(routes.archive.editor(item.category, item.id))
-
-  const canManage = (item: ArchiveItem) => {
-    return isAdmin || isSameUserId(item.ownerId, user?.id)
-  }
-
-  const handleDelete = async (item: ArchiveItem) => {
-    if (!canManage(item)) {
-      setArchiveError('자료 삭제 권한이 없습니다.')
-      return
-    }
-
-    if (!window.confirm('이 자료를 삭제할까요?')) return
-    try {
-      await archiveApi.deleteItem(item.id)
-      setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))
-    } catch {
-      setArchiveError('자료 삭제에 실패했습니다.')
-    }
-  }
-
   return (
     <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
       <ListingControls search={<SearchField className="archive-search" value={query} onChange={setQuery}
@@ -284,8 +258,7 @@ export function ArchivePage() {
                   : archiveError ? <LoadErrorState message={archiveError} onRetry={() => setLoadRevision((value) => value + 1)} />
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
                   : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item} ordinal={visibleItems.indexOf(item) + 1}
-                    sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}
-                    onEdit={() => startEdit(item)} onDelete={() => void handleDelete(item)} />)}
+                    sourceHref={getArchiveSourceHref(item.sourceUrl)} />)}
               </div>
               <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
             </section>
