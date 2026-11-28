@@ -13,7 +13,21 @@ import { KoalaPaw } from './KoalaIntro'
 
 function JungleLeaves({ side }: { side: 'left' | 'right' }) {
   return <div className={`jungle-leaves jungle-leaves--${side}`} aria-hidden="true">
-    {Array.from({ length: 7 }, (_, index) => <i key={index} style={{ '--leaf': index } as React.CSSProperties} />)}
+    <svg viewBox="0 0 300 1000" preserveAspectRatio="xMinYMid slice" focusable="false">
+      <defs>
+        <linearGradient id={`edge-leaf-${side}`} x1="0" y1="0" x2="0.7" y2="1">
+          <stop stopColor="#294a34" /><stop offset="1" stopColor="#0b2117" />
+        </linearGradient>
+        <g id={`edge-blade-${side}`}>
+          <path d="M0 0C48-45 137-65 250-40C195-28 143 34 68 27C35 24 11 9 0 0Z" fill={`url(#edge-leaf-${side})`} />
+          <path d="M0 0C72-4 158-24 250-40" fill="none" stroke="#78906a" strokeOpacity=".25" strokeWidth="1.3" />
+          <path d="M43-4 65-33M83-10 113-45M127-19 158-48M169-27 197-46M55-6 84 22M100-14 130 10M148-23 174-13" fill="none" stroke="#7a986e" strokeOpacity=".12" />
+        </g>
+      </defs>
+      <path d="M-26-30C67 230 8 530 24 740S-8 948-32 1040" fill="none" stroke="#233c2a" strokeWidth="5" />
+      {[{ x: 5, y: 95, angle: 36, scale: .86 }, { x: 22, y: 245, angle: -16, scale: 1 }, { x: 18, y: 402, angle: 25, scale: .76 }, { x: 13, y: 567, angle: -27, scale: .92 }, { x: 22, y: 745, angle: 12, scale: 1.06 }, { x: 13, y: 916, angle: -24, scale: .82 }].map((leaf, index) =>
+        <use key={index} href={`#edge-blade-${side}`} transform={`translate(${leaf.x} ${leaf.y}) rotate(${leaf.angle}) scale(${leaf.scale})`} />)}
+    </svg>
   </div>
 }
 
