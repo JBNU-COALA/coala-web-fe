@@ -3,6 +3,7 @@ import type { IconName } from '../../shared/ui/Icon'
 export const adminDestinations = [
   { id: 'stats', label: '운영 현황', icon: 'award-color', group: '운영' },
   { id: 'analytics', label: '사용 분석', icon: 'award-color', group: '운영' },
+  { id: 'ai', label: '에이전트 검수', icon: 'file-color', group: '운영' },
   { id: 'audit', label: '작업 기록', icon: 'file-color', group: '운영' },
   { id: 'users', label: '회원 관리', icon: 'profile-color', group: '회원 · 커뮤니티' },
   { id: 'boards', label: '게시판 관리', icon: 'copy-color', group: '회원 · 커뮤니티' },

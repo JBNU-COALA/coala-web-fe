@@ -1,3 +1,4 @@
+import { AdminAiPanel } from './AdminAiPanel'
 import { AdminSearch } from './AdminSearch'
 import { AdminDetail } from './AdminDetail'
 import { AdminOverview, type AdminDestination } from './AdminOverview'
@@ -746,6 +747,7 @@ export function AdminPage() {
         {activeTab === 'employment' && <AdminEmploymentPanel key={refreshKey} />}
         {activeTab === 'archive' && <AdminArchivePanel key={refreshKey} />}
         {activeTab === 'comments' && <AdminCommentsPanel key={refreshKey} />}
+        {activeTab === 'ai' && <AdminAiPanel key={refreshKey} />}
         {activeTab === 'audit' && <AdminAuditPanel key={refreshKey} />}
         {activeTab === 'analytics' && <AdminAnalyticsPanel />}
         {activeTab === 'about' && <AdminAboutPanel refreshKey={refreshKey} />}
