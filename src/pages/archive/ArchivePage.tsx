@@ -83,12 +83,12 @@ export function ArchivePage() {
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
-    return items.filter(item => labFilter === 'all' || item.labName === labFilter).filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
+    return items.filter(item => activeCategory !== 'labs' || labFilter === 'all' || item.labName === labFilter).filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
       `${item.title} ${item.summary} ${item.content} ${item.labName ?? ''} ${item.repositoryUrl} ${item.ownerName} ${item.tags.join(' ')}`
         .toLowerCase()
         .includes(normalizedQuery),
     )
-  }, [items, query, selectedMaterial, labFilter])
+  }, [items, query, selectedMaterial, labFilter, activeCategory])
   const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${labFilter}:${query}`)
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth])
