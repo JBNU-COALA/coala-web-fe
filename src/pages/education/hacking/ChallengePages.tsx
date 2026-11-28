@@ -15,6 +15,7 @@ import { useCtfResource } from './useCtfResource'
 import { EducationEmptyState } from '../EducationEmptyState'
 import { ConfirmDialog } from '../../../shared/ui/ConfirmDialog'
 import { CtfHint } from './CtfHint'
+import { useScrollReveal } from '../../landing/useScrollReveal'
 
 export function ChallengeList({ api, session }: CtfWorkspace) {
   const [params, setParams] = useSearchParams()
@@ -35,6 +36,7 @@ export function ChallengeList({ api, session }: CtfWorkspace) {
     (!session || solved === 'all' || (solved === 'solved' ? item.solved : !item.solved)) &&
     `${item.title} ${item.id} ${categoryLabels[item.category] ?? item.category}`.toLowerCase().includes(query.trim().toLowerCase()))
   const pagination = usePagination(visible, params.toString(), 20)
+  const revealRef = useScrollReveal(`${pagination.page}:${params.toString()}:${pagination.pageItems.map(item => item.id).join(',')}`, '.ctf-challenge-row')
   return <>
     <div className="ctf-view-heading"><h2>CTF 문제</h2></div>
     <div className="ctf-challenge-banner">
@@ -47,8 +49,8 @@ export function ChallengeList({ api, session }: CtfWorkspace) {
     </ListingControls>
     <CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
     {resource.data && <>
-      {visible.length ? <div className="ctf-table-scroll"><table className="ctf-table"><thead><tr><th>문제</th><th>분야</th><th>난이도</th><th>점수</th><th>유형</th><th>상태</th></tr></thead><tbody>
-        {pagination.pageItems.map((challenge) => <tr key={challenge.id}>
+      {visible.length ? <div ref={revealRef} className="ctf-table-scroll"><table className="ctf-table"><thead><tr><th>문제</th><th>분야</th><th>난이도</th><th>점수</th><th>유형</th><th>상태</th></tr></thead><tbody key={pagination.page} className="ctf-challenge-page">
+        {pagination.pageItems.map((challenge) => <tr key={challenge.id} className="ctf-challenge-row">
           <td><Link to={routes.education.hacking.challenge(challenge.id)}>{challenge.title}</Link></td>
           <td>{categoryLabels[challenge.category] ?? challenge.category}</td><td>{difficultyLabels[challenge.difficulty] ?? challenge.difficulty}</td><td>{challenge.points}</td><td>{challenge.type === 'dynamic' ? '인스턴스' : '정적'}</td><td><span className={challenge.solved ? 'ctf-status is-solved' : 'ctf-status'}>{challenge.solved ? '해결' : session ? '미해결' : '—'}</span></td>
         </tr>)}
@@ -119,9 +121,9 @@ function ChallengeDetailContent({ api, session, id }: CtfWorkspace & { id: strin
       </section>}
       <section className="ctf-detail-section"><h3>{challenge.solved || solved ? '해결 완료' : '플래그 제출'}</h3>
         {challenge.solved || solved ? <div className="ctf-solved-card">
-          <span className="ctf-solved-check" aria-hidden="true">✓</span>
-          <div className="ctf-solved-copy"><strong>플래그 해독 완료!</strong><span>문제를 해결했습니다. 다음 도전도 이어가 보세요.</span></div>
-          <span className="ctf-solved-points"><Icon name="award-color" size={24} /><span><small>획득 점수</small><strong>{challenge.points}<span>점</span></strong></span></span>
+          <div className="ctf-solved-character" role="img" aria-label="어나니머스 가면을 쓴 코알라 해커" />
+          <div className="ctf-solved-copy"><span className="ctf-solved-terminal">coala@ctf:~$ <span>flag verified</span></span><strong>플래그 해독 완료.</strong><span>이 문제의 보안을 돌파했습니다.</span><Link to={routes.education.hacking.challenges}>다른 문제 풀기 <span aria-hidden="true">→</span></Link></div>
+          <div className="ctf-solved-points"><span>획득 점수</span><strong>{challenge.points}<small>PT</small></strong></div>
         </div> : session ? <form className="ctf-submit-form" onSubmit={submit}><label className="sr-only" htmlFor="ctf-flag">플래그</label><input id="ctf-flag" value={flag} onChange={(event) => setFlag(event.target.value)} placeholder="school{...}" autoComplete="off" spellCheck={false} maxLength={4096} required disabled={!!busy} /><button className="education-button is-primary" disabled={!!busy || !flag.trim()}>{busy === 'submit' ? '채점 중...' : '제출'}</button></form> : <p className="education-muted">문제 제출과 실습 환경 실행에는 실습 계정 로그인이 필요합니다.</p>}
       </section>
     </article>}
