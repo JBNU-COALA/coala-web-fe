@@ -125,8 +125,8 @@ jobs:
       - name: Check out manifest repository
         uses: actions/checkout@v4
         with:
-          repository: ${{ vars.MANIFEST_REPO }}
-          ref: main
+          repository: JBNU-COALA/coala-k8s-manifests
+          ref: refs/heads/main
           token: ${{ secrets.MANIFEST_REPO_TOKEN }}
           path: manifests
 
@@ -147,7 +147,15 @@ jobs:
             exit 0
           fi
 
-          manifest=apps/frontend/kustomization.yaml
+                   manifest=apps/frontend/kustomization.yaml
+          printf 'Working directory: %s\n' "$PWD"
+          git log -1 --format='Manifest commit: %h %s'
+          git ls-tree -r --name-only HEAD -- apps/frontend/
+          if [ ! -f "$manifest" ]; then
+            echo "::error file=$manifest::File missing from the checked-out manifest revision"
+            exit 1
+          fi
+
           python3 - "$manifest" <<'PY'
           import os
           import re
