@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
+import { SelectControl } from '../../shared/ui/SelectControl'
 
 type Props = {
   options: { id: string; label: string }[]
@@ -96,12 +97,10 @@ export function ArchiveFilters({ options, value, onChange, hasCalendar, showCale
         }}>
         {options.map((option) => <button key={option.id} type="button" aria-pressed={value === option.id} onClick={() => onChange(option.id)}>{option.label}</button>)}
       </div>
-      {labFilter && <label className="archive-filter-lab"><span>연구실</span>
-        <select value={labFilter.value} onChange={event => labFilter.onChange(event.target.value)}>
-          <option value="all">전체 연구실</option>
-          {labFilter.options.map(lab => <option key={lab} value={lab}>{lab}</option>)}
-        </select>
-      </label>}
+      {labFilter && <div className="archive-filter-lab"><span>연구실</span>
+        <SelectControl label="연구실" value={labFilter.value} onChange={labFilter.onChange}
+          options={[{ value: 'all', label: '전체 연구실' }, ...labFilter.options.map(lab => ({ value: lab, label: lab }))]} />
+      </div>}
       {hasCalendar && <label className="archive-filter-calendar"><span>캘린더 표시</span><input type="checkbox" checked={showCalendar} onChange={(event) => onCalendarChange(event.target.checked)} /></label>}
     </div>
   </div>
