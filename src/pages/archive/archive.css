@@ -187,3 +187,28 @@
 .archive-lab-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
 .archive-lab-filter select { max-width: 100%; padding: 10px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; background: var(--surface-color, white); color: inherit; }
 .archive-lab-filter span { font-size: 13px; color: var(--text-muted, #666); }
+
+/* Research materials use a publication list instead of resource cards. */
+.archive-content--labs .archive-resource-grid { grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid #d8d8d8; }
+.archive-paper { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; align-items: start; gap: 20px; padding: 28px 4px; border-bottom: 1px solid #e5e5e5; }
+.archive-paper-number { padding-top: 2px; color: #aaa; font-size: 20px; line-height: 1.5; font-variant-numeric: tabular-nums; }
+.archive-paper-body { min-width: 0; }
+.archive-paper h2 { margin: 0 0 16px; font-size: 18px; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+.archive-paper h2 a { color: #222; text-decoration: none; }
+.archive-paper h2 a:hover { text-decoration: underline; text-underline-offset: 4px; }
+.archive-paper-meta, .archive-paper-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 0; color: #737373; font-size: 12px; line-height: 1.6; overflow-wrap: anywhere; }
+.archive-paper-meta > :not(:last-child)::after, .archive-paper-tags > :not(:last-child)::after { content: '|'; margin-inline: 10px; color: #d2d2d2; }
+.archive-paper-summary { margin: 8px 0 0; color: #666; font-size: 13px; line-height: 1.7; overflow-wrap: anywhere; }
+.archive-paper-tags { margin-top: 8px; color: #888; }
+.archive-paper-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.archive-paper-actions > div { display: flex; gap: 8px; }
+.archive-paper-actions :is(a, button) { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; padding: 0 8px; background: none; border: 0; color: #666; font: inherit; font-size: 12px; text-decoration: none; white-space: nowrap; cursor: pointer; }
+.archive-paper-actions > a { border: 1px solid #ddd; border-radius: 6px; padding-inline: 12px; }
+.archive-paper-actions :is(a, button):hover { color: #111; background: #f5f5f5; }
+@media (max-width: 700px) {
+  .archive-paper { grid-template-columns: 24px minmax(0, 1fr); gap: 10px; padding: 20px 0; }
+  .archive-paper-number { font-size: 16px; }
+  .archive-paper h2 { margin-bottom: 10px; font-size: 16px; }
+  .archive-paper-actions { grid-column: 2; flex-direction: row; align-items: center; justify-content: space-between; }
+  .archive-paper-meta > :not(:last-child)::after, .archive-paper-tags > :not(:last-child)::after { margin-inline: 6px; }
+}

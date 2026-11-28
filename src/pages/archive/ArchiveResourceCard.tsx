@@ -10,16 +10,39 @@ function repositoryLabel(value: string) {
   } catch { return '' }
 }
 
-export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDelete }: {
+export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDelete, ordinal }: {
   item: ArchiveItem
   sourceHref: string
   canManage: boolean
   onEdit: () => void
   onDelete: () => void
+  ordinal?: number
 }) {
   const isSkill = item.category === 'agents'
   const labels: Record<string, string> = { SKILL: '스킬', AGENT: '에이전트', SEMINAR: '세미나', PAPER: '논문', OTHER: '기타' }
   const repository = repositoryLabel(item.repositoryUrl)
+  if (item.category === 'labs') return <article className="archive-paper">
+    <span className="archive-paper-number" aria-hidden="true">{String(ordinal ?? '').padStart(2, '0')}</span>
+    <div className="archive-paper-body">
+      <h2><Link to={routes.archive.detail(item.category, item.id)}>{item.title}</Link></h2>
+      <div className="archive-paper-meta">
+        <span>{labels[item.materialType ?? ''] ?? '자료'}</span>
+        {(item.labName || item.ownerName) && <span>{item.labName || item.ownerName}</span>}
+        {item.publicationYear && <time dateTime={String(item.publicationYear)}>{item.publicationYear}년</time>}
+        {item.eventDate && <time dateTime={item.eventDate}>{item.eventDate}</time>}
+      </div>
+      {item.summary && <p className="archive-paper-summary">{item.summary}</p>}
+      {!!item.tags.length && <div className="archive-paper-tags">{item.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}
+    </div>
+    <div className="archive-paper-actions">
+      {sourceHref && <a href={sourceHref} target="_blank" rel="noreferrer">{item.sourceUrl.startsWith('/media/attachments/') ? 'PDF 다운로드' : '원문 보기'}</a>}
+      {repository && /^https?:\/\//i.test(item.repositoryUrl) && <a href={item.repositoryUrl} target="_blank" rel="noreferrer">저장소</a>}
+      {canManage && <div aria-label="자료 관리">
+        <button type="button" onClick={onEdit}>수정</button>
+        <button type="button" onClick={onDelete}>삭제</button>
+      </div>}
+    </div>
+  </article>
   return <article className={`archive-resource${isSkill ? ' archive-resource--skill' : ''}`}>
     <header>
       <span className="archive-resource-symbol"><Icon name={isSkill ? 'file' : 'book'} size={22} /></span>

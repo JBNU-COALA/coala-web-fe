@@ -288,7 +288,7 @@ export function ArchivePage() {
                 {isLoading ? <div className="archive-load-state"><LoadingSpinner label="자료를 불러오는 중입니다." /></div>
                   : archiveError ? <LoadErrorState message={archiveError} onRetry={() => setLoadRevision((value) => value + 1)} />
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
-                  : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
+                  : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item} ordinal={visibleItems.indexOf(item) + 1}
                     sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}
                     onEdit={() => startEdit(item)} onDelete={() => void handleDelete(item)} />)}
               </div>
