@@ -149,16 +149,11 @@ export function ArchivePage() {
           </button></>} label="자료 분류 및 검색">
 
           <ArchiveFilters key={activeCategory} options={filterOptions} value={selectedMaterial} onChange={setMaterialFilter}
+            labFilter={activeCategory === 'labs' ? { options: labs, value: labFilter, onChange: setLabFilter } : undefined}
             hasCalendar={activeCategory === 'labs'} showCalendar={showCalendar} onCalendarChange={setShowCalendar} />
 
       </ListingControls>
-      {activeCategory === 'labs' && labs.length > 0 && <div className="archive-lab-filter">
-        <label htmlFor="archive-lab">연구실</label>
-        <select id="archive-lab" value={labFilter} onChange={event => setLabFilter(event.target.value)}>
-          <option value="all">전체 연구실</option>
-          {labs.map(lab => <option key={lab} value={lab}>{lab} ({items.filter(item => item.labName === lab).length})</option>)}
-        </select><span>{visibleItems.length}개 자료</span>
-      </div>}
+      {activeCategory === 'labs' && !isLoading && !archiveError && <p className="archive-result-count">{visibleItems.length}개 자료</p>}
             {activeCategory === 'labs' && showCalendar ? (
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">
                 <div className="archive-calendar-head">
@@ -284,7 +279,7 @@ export function ArchivePage() {
             ) : null}
 
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
-              <div className="archive-resource-grid">
+              <div key={`${activeCategory}:${pagination.page}`} className="archive-resource-grid archive-page-enter">
                 {isLoading ? <div className="archive-load-state"><LoadingSpinner label="자료를 불러오는 중입니다." /></div>
                   : archiveError ? <LoadErrorState message={archiveError} onRetry={() => setLoadRevision((value) => value + 1)} />
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>

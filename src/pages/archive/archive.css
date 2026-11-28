@@ -184,9 +184,13 @@
 .coala-app .coala-content--archive .listing-controls-bar :is(.archive-filter-trigger, .listing-search-toggle) { width: 32px; min-width: 32px; padding: 0; }
 .coala-app .coala-content--archive .listing-controls-bar .write-post-button { width: auto; padding: 0 10px; font-size: 12px; white-space: nowrap; }
 
-.archive-lab-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
-.archive-lab-filter select { max-width: 100%; padding: 10px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; background: var(--surface-color, white); color: inherit; }
-.archive-lab-filter span { font-size: 13px; color: var(--text-muted, #666); }
+.archive-filter-lab { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; min-width: 0; font-size: 12px; color: #737373; }
+.coala-app .archive-filter-lab select { box-sizing: border-box; width: 100%; min-width: 0; max-width: 100%; height: 36px; padding: 0 8px; border: 1px solid #ddd; border-radius: 6px; background: #fff; color: #333; font: inherit; text-overflow: ellipsis; }
+.coala-app .coala-content .archive-filter-popover:has(.archive-filter-lab) { width: min(252px, calc(100vw - 32px)); }
+.archive-result-count { margin: 0 0 12px; font-size: 12px; color: #737373; }
+.archive-page-enter { animation: archive-page-enter 240ms ease-out both; }
+@keyframes archive-page-enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .archive-page-enter { animation: none; } }
 
 /* Research materials use a publication list instead of resource cards. */
 .archive-content--labs .archive-resource-grid { grid-template-columns: minmax(0, 1fr); gap: 0; border-top: 1px solid #d8d8d8; }

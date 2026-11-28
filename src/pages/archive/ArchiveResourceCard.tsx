@@ -21,6 +21,12 @@ export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDel
   const isSkill = item.category === 'agents'
   const labels: Record<string, string> = { SKILL: '스킬', AGENT: '에이전트', SEMINAR: '세미나', PAPER: '논문', OTHER: '기타' }
   const repository = repositoryLabel(item.repositoryUrl)
+  const paperTags = item.tags.filter(tag => {
+    const normalized = tag.trim()
+    return normalized !== labels[item.materialType ?? '']
+      && normalized.toUpperCase() !== item.materialType
+      && (!item.publicationYear || ![String(item.publicationYear), `${item.publicationYear}년`].includes(normalized))
+  })
   if (item.category === 'labs') return <article className="archive-paper">
     <span className="archive-paper-number" aria-hidden="true">{String(ordinal ?? '').padStart(2, '0')}</span>
     <div className="archive-paper-body">
@@ -32,7 +38,7 @@ export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDel
         {item.eventDate && <time dateTime={item.eventDate}>{item.eventDate}</time>}
       </div>
       {item.summary && <p className="archive-paper-summary">{item.summary}</p>}
-      {!!item.tags.length && <div className="archive-paper-tags">{item.tags.map(tag => <span key={tag}>{tag}</span>)}</div>}
+      {!!paperTags.length && <div className="archive-paper-tags">{paperTags.map(tag => <span key={tag}>{tag}</span>)}</div>}
     </div>
     <div className="archive-paper-actions">
       {sourceHref && <a href={sourceHref} target="_blank" rel="noreferrer">{item.sourceUrl.startsWith('/media/attachments/') ? 'PDF 다운로드' : '원문 보기'}</a>}
