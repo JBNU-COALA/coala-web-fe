@@ -1,38 +1,229 @@
-name: Deploy Front Server
+name: Deploy Coala Frontend
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: coala-frontend-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  deploy:
+  codeql:
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      security-events: write
     steps:
-    - name: 우분투 서버 접속 및 빌드
-      uses: appleboy/ssh-action@v1.0.3
-      env:
-        POSTHOG_PROJECT_TOKEN: ${{ secrets.VITE_POSTHOG_PROJECT_TOKEN || vars.VITE_POSTHOG_PROJECT_TOKEN || secrets.VITE_POSTHOG_KEY || vars.VITE_POSTHOG_KEY }}
-        POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST || secrets.VITE_POSTHOG_HOST }}
-        POSTHOG_DASHBOARD_EMBED_URL: ${{ vars.VITE_POSTHOG_DASHBOARD_EMBED_URL }}
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SERVER_PORT }}
-        envs: POSTHOG_PROJECT_TOKEN,POSTHOG_HOST,POSTHOG_DASHBOARD_EMBED_URL
-        script: |
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: github/codeql-action/init@v4
+        with:
+          languages: javascript-typescript
+          build-mode: none
+          queries: security-extended
+
+      - uses: github/codeql-action/analyze@v4
+
+  sbom:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      TRIVY_IMAGE: aquasec/trivy:0.76.1@sha256:790fd66d1697395d8693d1acaa1ea702406a20f109b6fc7bac8db623eca6c06c
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Generate CycloneDX SBOM from npm lockfile
+        run: |
+          test -s package-lock.json
+          docker run --rm --cap-drop ALL --security-opt no-new-privileges \
+            -v "$PWD:/src:ro" "$TRIVY_IMAGE" \
+            fs --format cyclonedx --no-progress /src > frontend-sbom.cdx.json
+          jq -e '.bomFormat == "CycloneDX" and (.components | length > 0)' \
+            frontend-sbom.cdx.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frontend-sbom-${{ github.sha }}
+          path: frontend-sbom.cdx.json
+          if-no-files-found: error
+
+  publish:
+    needs: [codeql, sbom]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      image_name: ${{ steps.image.outputs.name }}
+      image_tag: ${{ steps.image.outputs.tag }}
+      image_digest: ${{ steps.image.outputs.digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: sigstore/cosign-installer@v4
+
+      - name: Build, push and sign frontend image
+        id: image
+        env:
+          GHCR_TOKEN: ${{ github.token }}
+          VITE_POSTHOG_PROJECT_TOKEN: ${{ secrets.VITE_POSTHOG_PROJECT_TOKEN || vars.VITE_POSTHOG_PROJECT_TOKEN || secrets.VITE_POSTHOG_KEY || vars.VITE_POSTHOG_KEY }}
+          VITE_POSTHOG_HOST: ${{ vars.VITE_POSTHOG_HOST || secrets.VITE_POSTHOG_HOST }}
+          VITE_POSTHOG_DASHBOARD_EMBED_URL: ${{ vars.VITE_POSTHOG_DASHBOARD_EMBED_URL }}
+        run: |
           set -euo pipefail
 
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          name="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/coala-frontend"
+          tag="sha-${GITHUB_SHA}"
+          image="${name}:${tag}"
 
-          cd /home/ubuntu/coala-web-fe
-          git fetch origin main
-          git reset --hard origin/main
-          npm ci
-          # Only override server-side .env files when an Actions value is provided.
-          if [ -n "${POSTHOG_PROJECT_TOKEN:-}" ]; then export VITE_POSTHOG_PROJECT_TOKEN="$POSTHOG_PROJECT_TOKEN"; fi
-          if [ -n "${POSTHOG_HOST:-}" ]; then export VITE_POSTHOG_HOST="$POSTHOG_HOST"; fi
-          if [ -n "${POSTHOG_DASHBOARD_EMBED_URL:-}" ]; then export VITE_POSTHOG_DASHBOARD_EMBED_URL="$POSTHOG_DASHBOARD_EMBED_URL"; fi
-          npm run build
+          docker build --target runtime \
+            --build-arg VITE_POSTHOG_PROJECT_TOKEN \
+            --build-arg VITE_POSTHOG_HOST \
+            --build-arg VITE_POSTHOG_DASHBOARD_EMBED_URL \
+            --tag "$image" .
+
+          printf '%s' "$GHCR_TOKEN" |
+            docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io' EXIT
+
+          push_log="$RUNNER_TEMP/frontend-push.log"
+          docker push "$image" | tee "$push_log"
+          digest=$(awk '/digest: sha256:/ {
+            for (i = 1; i < NF; i++) {
+              if ($i == "digest:") print $(i + 1)
+            }
+          }' "$push_log")
+          [[ "$digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+
+          cosign sign --yes "${name}@${digest}"
+
+          printf 'name=%s\ntag=%s\ndigest=%s\n' \
+            "$name" "$tag" "$digest" >> "$GITHUB_OUTPUT"
+
+  update-deployment:
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      status: ${{ steps.update.outputs.status }}
+    steps:
+      - name: Check out manifest repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ vars.MANIFEST_REPO }}
+          ref: main
+          token: ${{ secrets.MANIFEST_REPO_TOKEN }}
+          path: manifests
+
+      - name: Record the signed image version
+        id: update
+        working-directory: manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+          IMAGE_NAME: ${{ needs.publish.outputs.image_name }}
+          IMAGE_TAG: ${{ needs.publish.outputs.image_tag }}
+          IMAGE_DIGEST: ${{ needs.publish.outputs.image_digest }}
+        run: |
+          set -euo pipefail
+
+          main_sha=$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')
+          if [ "$main_sha" != "$GITHUB_SHA" ]; then
+            echo "status=superseded" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          manifest=apps/frontend/kustomization.yaml
+          python3 - "$manifest" <<'PY'
+          import os
+          import re
+          import sys
+          from pathlib import Path
+
+          manifest = Path(sys.argv[1])
+          image_name = re.escape(os.environ["IMAGE_NAME"])
+          pattern = (
+              rf'(?m)^(?P<indent>[ \t]*)newName:[ \t]*{image_name}[ \t]*\n'
+              r'(?P=indent)newTag:[^\n]*'
+              r'(?:\n(?P=indent)digest:[^\n]*)?'
+          )
+
+          def replace(match):
+              indent = match["indent"]
+              return (
+                  f'{indent}newName: {os.environ["IMAGE_NAME"]}\n'
+                  f'{indent}newTag: "{os.environ["IMAGE_TAG"]}"\n'
+                  f'{indent}digest: "{os.environ["IMAGE_DIGEST"]}"'
+              )
+
+          updated, count = re.subn(
+              pattern, replace, manifest.read_text(encoding="utf-8")
+          )
+          if count != 1:
+              raise SystemExit("Expected the frontend newName followed by newTag")
+          manifest.write_text(updated, encoding="utf-8")
+          PY
+
+          git add "$manifest"
+          if git diff --cached --quiet; then
+            echo "status=unchanged" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m "chore: deploy coala frontend ${IMAGE_TAG}"
+          git push origin HEAD:main
+          echo "status=updated" >> "$GITHUB_OUTPUT"
+
+  notify-discord:
+    needs: [codeql, sbom, publish, update-deployment]
+    if: ${{ always() && !cancelled() && github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      - name: Send Discord notification
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          CODEQL_RESULT: ${{ needs.codeql.result }}
+          SBOM_RESULT: ${{ needs.sbom.result }}
+          PUBLISH_RESULT: ${{ needs.publish.result }}
+          MANIFEST_RESULT: ${{ needs.update-deployment.result }}
+          UPDATE_STATUS: ${{ needs.update-deployment.outputs.status }}
+          IMAGE_TAG: ${{ needs.publish.outputs.image_tag }}
+        run: |
+          set -euo pipefail
+
+          case "$MANIFEST_RESULT:$UPDATE_STATUS" in
+            success:updated) title="🐨 코알라 프론트 이미지 서명 및 매니페스트 갱신 완료" ;;
+            success:unchanged) title="🐨 코알라 프론트 매니페스트에 동일한 이미지가 등록되어 있음" ;;
+            success:superseded) title="🐨 더 최신 커밋이 있어 매니페스트 갱신 생략" ;;
+            *) title="🐨❌ 코알라 프론트 워크플로우 실패" ;;
+          esac
+
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          message=$(printf '%s\n- CodeQL: %s\n- CycloneDX SBOM: %s\n- GHCR 푸시 및 Cosign 서명: %s\n- 매니페스트: %s\n- 이미지 태그: `%s`\n- [실행 로그](%s)' \
+            "$title" "$CODEQL_RESULT" "$SBOM_RESULT" "$PUBLISH_RESULT" \
+            "$MANIFEST_RESULT" "${IMAGE_TAG:-없음}" "$run_url")
+
+          jq -n --arg content "$message" \
+            '{content: $content, allowed_mentions: {parse: []}}' |
+            curl --fail --silent --show-error --max-time 15 \
+              --header 'Content-Type: application/json' \
+              --data-binary @- "$DISCORD_WEBHOOK_URL"
