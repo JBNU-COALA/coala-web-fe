@@ -15642,3 +15642,13 @@
     max-width: 180px;
   }
 }
+
+/* Preserve the proportions of the university's official vector wordmark. */
+img[src$="/api/brand/jbnu.svg"] {
+  object-fit: contain;
+  background: #fff;
+}
+.board-post-thumbnail img[src$="/api/brand/jbnu.svg"] {
+  padding: 16px;
+  box-sizing: border-box;
+}
