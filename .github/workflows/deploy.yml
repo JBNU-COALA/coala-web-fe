@@ -76,8 +76,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - uses: sigstore/cosign-installer@v4
-
+      - uses: sigstore/cosign-installer@v4.1.2
       - name: Build, push and sign frontend image
         id: image
         env:
