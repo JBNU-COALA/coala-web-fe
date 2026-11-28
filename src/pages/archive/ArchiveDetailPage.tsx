@@ -6,11 +6,11 @@ import { archiveApi, type ArchiveItem } from '../../shared/api/archive'
 import { useAuth } from '../../shared/auth/AuthContext'
 import { isAdminUser } from '../../shared/auth/adminAccess'
 import { isSameUserId } from '../../shared/auth/userIdentity'
-import { copyMarkdown, prepareMarkdownForDisplay } from '../../shared/markdown'
+import { prepareMarkdownForDisplay } from '../../shared/markdown'
 import { PageFrame } from '../../shared/ui/PageFrame'
 import { Icon } from '../../shared/ui/Icon'
 import { routes } from '../../shared/routes'
-import { getArchiveSourceHref, getMaterialLabel, resolveArchiveCategory } from './archiveModel'
+import { getArchiveSourceHref, getMaterialLabel, isArchiveFileSource, resolveArchiveCategory } from './archiveModel'
 import './archive.css'
 import { LoadingSpinner } from '../../shared/ui/LoadingSpinner'
 import { ArchiveSourceLink } from './ArchiveSourceLink'
@@ -23,7 +23,6 @@ export function ArchiveDetailPage() {
   const { user } = useAuth()
   const [item, setItem] = useState<ArchiveItem | null>(null)
   const [error, setError] = useState('')
-  const [copyState, setCopyState] = useState('')
   const [deleting, setDeleting] = useState(false)
   useEffect(() => {
     let active = true
@@ -45,7 +44,7 @@ export function ArchiveDetailPage() {
     <Link className="archive-back-link" to={routes.archive[category]}><Icon name="chevron-left" size={16} />목록으로 돌아가기</Link>
     {error && <p role="alert" className="auth-error">{error}</p>}
     {!item && !error && <LoadingSpinner label="자료를 불러오는 중입니다." />}
-    {item && <article className="archive-document">
+    {item && <article className="archive-document archive-document--with-tools">
       <header className="archive-document-header">
         <span className="archive-document-type">{getMaterialLabel(item.materialType)}</span>
         <h2>{item.title}</h2><p>{item.summary}</p>
@@ -53,13 +52,15 @@ export function ArchiveDetailPage() {
           {item.labName && <span>{item.labName}</span>}<time>{item.publicationYear ? `${item.publicationYear}년` : item.eventDate || item.createdAt?.slice(0, 10)}</time></div>
         <div className="archive-resource-tags">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
       </header>
-      <div className="archive-document-toolbar">
-        <div>
-          {item.sourceUrl && <ArchiveSourceLink href={getArchiveSourceHref(item.sourceUrl)} isPdf={item.sourceUrl.startsWith('/media/attachments/')} />}
-          {/^https?:\/\//i.test(item.repositoryUrl) && <a href={item.repositoryUrl} target="_blank" rel="noreferrer"><Icon name="book" size={16} />저장소</a>}
-          <button type="button" onClick={async () => setCopyState(await copyMarkdown(item.content) ? '복사됨' : '복사 실패')}><Icon name="copy" size={16} />{copyState || '마크다운 복사'}</button>
-        </div>
-      </div>
+      <aside className="archive-document-tools" aria-label="원문 도구">
+        {getArchiveSourceHref(item.sourceUrl) && <>
+          <ArchiveSourceLink href={getArchiveSourceHref(item.sourceUrl)} isPdf={false} />
+          {isArchiveFileSource(item.sourceUrl) && <ArchiveSourceLink href={getArchiveSourceHref(item.sourceUrl)} isPdf />}
+        </>}
+        {/^https?:\/\//i.test(item.repositoryUrl) && <a className="archive-source-link" href={item.repositoryUrl} target="_blank" rel="noreferrer" aria-label="저장소">
+          <Icon name="link" size={22} /><span className="archive-source-tooltip" aria-hidden="true">저장소</span>
+        </a>}
+      </aside>
       <div className="archive-document-body" data-color-mode="light">
         <MDEditor.Markdown source={prepareMarkdownForDisplay(item.content)} skipHtml />
       </div>

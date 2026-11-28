@@ -171,3 +171,10 @@ export function getArchiveSourceHref(url: string) {
   } catch { return '' }
 }
 
+export function isArchiveFileSource(url: string) {
+  try {
+    const { pathname } = new URL(url, 'https://archive.local')
+    return pathname.startsWith('/media/attachments/') || /\.pdf$/i.test(pathname)
+  } catch { return false }
+}
+
