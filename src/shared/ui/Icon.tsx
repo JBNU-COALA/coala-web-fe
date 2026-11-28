@@ -259,10 +259,13 @@ const iconShape = (name: IconName) => {
       )
     case 'notification':
       return (
-        <>
-          <path d="M12 3a6 6 0 0 0-6 6v3.4c0 1.2-.4 2.3-1.2 3.2L3.5 17h17l-1.3-1.4a4.8 4.8 0 0 1-1.2-3.2V9a6 6 0 0 0-6-6Z" fill="none" />
-          <path d="M9.5 20a2.8 2.8 0 0 0 5 0M12 2v1" />
-        </>
+        <g stroke="none">
+          <circle cx="12" cy="3.5" r="2" fill="#c58b35" />
+          <circle cx="12" cy="19" r="3" fill="#c58b35" />
+          <path d="M6 9a6 6 0 0 1 12 0v4l2 3v2H4v-2l2-3Z" fill="#efb64c" />
+          <path d="M12 4a5 5 0 0 1 5 5v5l2 3h-4l-1-3V9a6 6 0 0 0-2-5Z" fill="#dfa03a" />
+          <path d="M8 10V9a4 4 0 0 1 3-4" fill="none" stroke="#fff0bc" strokeWidth="1.5" />
+        </g>
       )
     case 'bell':
       return (

@@ -117,6 +117,12 @@
 .coala-app .post-detail .post-meta-author { gap: 12px; }
 .coala-app .post-detail .post-body { padding-left: 52px; padding-top: 18px; gap: 22px; }
 .coala-app .post-detail .post-content { font-size: 15px; color: #262626; line-height: 1.8; }
+.coala-app .post-detail .post-content--markdown.wmde-markdown { white-space: normal; }
+.coala-app .post-detail .post-content--markdown.wmde-markdown :is(h1, h2) { border-bottom: 0; padding-bottom: 0; margin: 20px 0 8px; }
+.coala-app .post-detail .post-content--markdown.wmde-markdown :is(p, ul, ol) { margin-top: 0; margin-bottom: 10px; }
+.coala-app .post-detail .post-content--markdown.wmde-markdown li + li { margin-top: 4px; }
+.coala-app .post-detail .post-content--markdown.wmde-markdown li > p { margin: 0; }
+.coala-app .post-detail .post-content--markdown.wmde-markdown li > :is(ul, ol) { margin-bottom: 0; }
 .coala-app .post-detail .post-comments { margin-left: -52px; margin-top: 24px; }
 .coala-app .post-detail .post-comment-item { padding-block: 22px; }
 .coala-app .post-detail .post-comment-author-block { display: flex; align-items: center; gap: 12px; }
@@ -253,7 +259,9 @@
 .coala-app .info-detail-load-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; min-height: 220px; padding: 32px 16px; text-align: center; }
 .coala-app .info-detail-load-state .empty-post-state { margin: 0; padding: 0; color: #171717; font-size: 14px; line-height: 1.7; }
 
-.coala-app .info-detail-page .info-detail-footer-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+.coala-app .info-detail-page .info-detail-footer-actions { display: flex; justify-content: space-between; gap: 8px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e5e5e5; }
+.coala-app .info-detail-page .info-detail-footer-actions > button { width: auto; height: 34px; min-height: 34px; padding: 6px 14px; border: 1px solid #d4d4d4; border-radius: 6px; background: #fff; color: #262626; font-size: 12px; }
+.coala-app .info-detail-page .info-detail-footer-actions > button:hover:not(:disabled) { background: #f5f5f5; border-color: #a3a3a3; }
 
 .coala-app .post-detail .post-like-button,
 .coala-app .post-detail .post-like-button:is(:hover, .is-liked) { border: 0; border-radius: 0; background: transparent; box-shadow: none; padding: 0 4px; }

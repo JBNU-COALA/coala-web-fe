@@ -2,9 +2,6 @@ import { LoadErrorState } from '../../shared/ui/LoadErrorState'
 import { useEffect, useMemo, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { archiveApi, type ArchiveItem } from '../../shared/api/archive'
-import { useAuth } from '../../shared/auth/AuthContext'
-import { isAdminUser } from '../../shared/auth/adminAccess'
-import { isSameUserId } from '../../shared/auth/userIdentity'
 import { routes } from '../../shared/routes'
 import { Icon } from '../../shared/ui/Icon'
 import { SearchField } from '../../shared/ui/SearchField'
@@ -14,6 +11,7 @@ import { ArchiveFilters } from './ArchiveFilters'
 import { ListingControls } from '../../shared/ui/ListingControls'
 import { Pagination } from '../../shared/ui/Pagination'
 import { usePagination } from '../../shared/ui/usePagination'
+import { useScrollReveal } from '../landing/useScrollReveal'
 import { ArchiveResourceCard } from './ArchiveResourceCard'
 import './archive.css'
 
@@ -27,10 +25,10 @@ export function ArchivePage() {
   const location = useLocation()
   const navigate = useNavigate()
   const activeCategory = resolveArchiveCategory(location.pathname)
-  const { user } = useAuth()
-  const isAdmin = isAdminUser(user)
   const [items, setItems] = useState<ArchiveItem[]>([])
   const [query, setQuery] = useState('')
+  const [labFilter, setLabFilter] = useState('all')
+  const labs = useMemo(() => [...new Set(items.map(item => item.labName).filter((name): name is string => !!name))].sort(), [items])
   const [materialFilter, setMaterialFilter] = useState('all')
   const [showCalendar, setShowCalendar] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -81,13 +79,17 @@ export function ArchivePage() {
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
-    return items.filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
+    return items.filter(item => activeCategory !== 'labs' || labFilter === 'all' || item.labName === labFilter).filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
       `${item.title} ${item.summary} ${item.content} ${item.labName ?? ''} ${item.repositoryUrl} ${item.ownerName} ${item.tags.join(' ')}`
         .toLowerCase()
         .includes(normalizedQuery),
     )
-  }, [items, query, selectedMaterial])
-  const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${query}`)
+  }, [items, query, selectedMaterial, labFilter, activeCategory])
+  const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${labFilter}:${query}`)
+  const revealRef = useScrollReveal(
+    `${activeCategory}:${pagination.page}:${selectedMaterial}:${labFilter}:${query}:${isLoading}:${pagination.pageItems.map(item => item.id).join(',')}`,
+    '.archive-paper',
+  )
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth])
 
@@ -103,50 +105,24 @@ export function ArchivePage() {
     return grouped
   }, [visibleItems])
 
-  const monthLabItems = useMemo(
-    () => visibleItems.filter((item) => item.category === 'labs' && getArchiveItemDate(item).startsWith(calendarMonth)),
-    [calendarMonth, visibleItems],
-  )
-
   const undatedLabItems = useMemo(
     () => visibleItems.filter((item) => item.category === 'labs' && !getArchiveItemDate(item)),
     [visibleItems],
   )
 
   const selectedDateItems = labItemsByDate.get(selectedDate) ?? []
-  const monthLabCount = new Set(monthLabItems.map((item) => item.labName?.trim()).filter(Boolean)).size
 
   const startCreate = () => navigate(routes.archive.new(activeCategory))
   const startCreateForDate = (date: string) => navigate(routes.archive.new('labs') + '?date=' + date)
-  const startEdit = (item: ArchiveItem) => navigate(routes.archive.editor(item.category, item.id))
-
-  const canManage = (item: ArchiveItem) => {
-    return isAdmin || isSameUserId(item.ownerId, user?.id)
-  }
-
-  const handleDelete = async (item: ArchiveItem) => {
-    if (!canManage(item)) {
-      setArchiveError('자료 삭제 권한이 없습니다.')
-      return
-    }
-
-    if (!window.confirm('이 자료를 삭제할까요?')) return
-    try {
-      await archiveApi.deleteItem(item.id)
-      setItems((current) => current.filter((currentItem) => currentItem.id !== item.id))
-    } catch {
-      setArchiveError('자료 삭제에 실패했습니다.')
-    }
-  }
-
   return (
     <PageFrame title={activeTab.label} tone="archive" className="coala-content--archive" bodyClassName={`archive-content archive-content--${activeCategory}`}>
       <ListingControls search={<SearchField className="archive-search" value={query} onChange={setQuery}
             placeholder={activeCategory === 'labs' ? '논문, 세미나, 연구실 검색' : '스킬, 에이전트, 저장소 검색'} />} actions={<><button type="button" className="write-post-button" onClick={startCreate}>
-            <Icon name="plus" size={15} />{actionLabel}
+            <Icon name="pencil-color" size={16} />{actionLabel}
           </button></>} label="자료 분류 및 검색">
 
           <ArchiveFilters key={activeCategory} options={filterOptions} value={selectedMaterial} onChange={setMaterialFilter}
+            labFilter={activeCategory === 'labs' ? { options: labs, value: labFilter, onChange: setLabFilter } : undefined}
             hasCalendar={activeCategory === 'labs'} showCalendar={showCalendar} onCalendarChange={setShowCalendar} />
 
       </ListingControls>
@@ -156,7 +132,6 @@ export function ArchivePage() {
                   <div>
                     <p>자료 캘린더</p>
                     <strong>{formatArchiveMonth(calendarMonth)}</strong>
-                    <span>{monthLabItems.length}개 자료 · {monthLabCount || 0}개 연구실</span>
                   </div>
                   <div className="archive-calendar-controls">
                     <button type="button" title="이전 달" aria-label="이전 달" onClick={() => setCalendarMonth((current) => shiftMonth(current, -1))}>
@@ -229,7 +204,7 @@ export function ArchivePage() {
                         <strong>{formatArchiveDay(selectedDate)}</strong>
                       </div>
                       <button type="button" className="ghost-button" onClick={() => startCreateForDate(selectedDate)}>
-                        <Icon name="plus" size={14} />
+                        <Icon name="pencil-color" size={16} />
                         자료 등록
                       </button>
                     </div>
@@ -275,13 +250,12 @@ export function ArchivePage() {
             ) : null}
 
             <section className="archive-results" aria-label={`${activeTab.label} 목록`}>
-              <div className="archive-resource-grid">
+              <div ref={revealRef} key={`${activeCategory}:${pagination.page}`} className="archive-resource-grid archive-page-enter">
                 {isLoading ? <div className="archive-load-state"><LoadingSpinner label="자료를 불러오는 중입니다." /></div>
                   : archiveError ? <LoadErrorState message={archiveError} onRetry={() => setLoadRevision((value) => value + 1)} />
                   : visibleItems.length === 0 ? <p className="archive-empty">등록된 자료가 없습니다.</p>
-                  : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item}
-                    sourceHref={getArchiveSourceHref(item.sourceUrl)} canManage={canManage(item)}
-                    onEdit={() => startEdit(item)} onDelete={() => void handleDelete(item)} />)}
+                  : pagination.pageItems.map((item) => <ArchiveResourceCard key={item.id} item={item} ordinal={visibleItems.indexOf(item) + 1}
+                    sourceHref={getArchiveSourceHref(item.sourceUrl)} />)}
               </div>
               <Pagination page={pagination.page} pageCount={pagination.pageCount} onChange={pagination.setPage} />
             </section>

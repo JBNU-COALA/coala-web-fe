@@ -258,7 +258,7 @@ function ActivityContent({
                 className="study-primary"
                 to={`${routes.community.activityRecordNew}${search}`}
               >
-                <Icon name="plus" size={18} />
+                <Icon name="pencil-color" size={14} />
                 출석 체크
               </Link>
             )}

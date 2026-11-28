@@ -18,7 +18,7 @@ export function CourseList({ subjectId: fixed }: { subjectId?: string }) {
   const load = useCallback((signal: AbortSignal) => educationApi.courses(id, signal), [id])
   const [revision, setRevision] = useState(0)
   const resource = useCtfResource(load, revision)
-  return <><div className="education-list-heading"><h2>교육 과정</h2><span>{resource.data?.length ?? 0}개 과정</span></div>
+  return <><div className="education-list-heading"><h2>교육 과정</h2></div>
     <CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
     {resource.data && (resource.data.length ? <CourseLinks courses={resource.data} /> : <EducationEmptyState title="등록된 과정이 없습니다." />)}
   </>

@@ -1,8 +1,7 @@
 import { useMemo } from 'react'
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { routes } from '../../../shared/routes'
 import { useAuth } from '../../../shared/auth/AuthContext'
-import { SelectControl } from '../../../shared/ui/SelectControl'
 import { LoginRequiredState } from '../../../shared/ui/LoginRequiredState'
 import { createCtfApi, type CtfApi } from './api'
 import type { CtfSession } from './types'
@@ -13,19 +12,9 @@ import './hacking.css'
 export type CtfWorkspace = { api: CtfApi; session: CtfSession | null }
 export function HackingPage() {
   const { user, isLoggedIn } = useAuth()
-  const { pathname } = useLocation()
-  const navigate = useNavigate()
   const api = useMemo(() => createCtfApi(), [])
-  const session: CtfSession | null = isLoggedIn && user ? { user: { id: user.id, username: user.nickname || `학습자 ${user.id}`, is_admin: user.role !== 'USER' } } : null
-  const sections = [
-    { id: routes.education.hacking.challenges, label: 'CTF 문제', icon: 'file-color' as const },
-    { id: routes.education.hacking.curriculum, label: '커리큘럼', icon: 'calendar-color' as const },
-    { id: routes.education.hacking.scoreboard, label: '스코어보드', icon: 'award-color' as const },
-    { id: routes.education.hacking.instances, label: '내 실습 환경', icon: 'server-color' as const },
-  ]
-  const active = sections.find((item) => pathname === item.id || pathname.startsWith(`${item.id}/`))?.id ?? sections[0].id
+  const session: CtfSession | null = isLoggedIn && user ? { user: { id: user.id, username: user.nickname?.trim() || user.name, is_admin: user.role !== 'USER' } } : null
   return <section className="ctf-workspace" aria-label="해킹 실습">
-    <div className="recruit-mobile-navigation"><SelectControl label="해킹 교육 메뉴" value={active} options={sections.map((item) => ({ value: item.id, label: item.label }))} onChange={(path) => navigate(path)} /></div>
     <div key={session?.user.id ?? 'guest'}><Routes>
       <Route index element={<Navigate to={routes.education.hacking.challenges} replace />} />
       <Route path="challenges" element={<ChallengeList api={api} session={session} />} />

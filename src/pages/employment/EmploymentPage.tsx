@@ -51,9 +51,9 @@ function EmploymentListPage() {
   const resource = useCtfResource(load, revision + (user?.id ?? 0))
   const change = (key: string, value: string) => { const next = new URLSearchParams(params); if (value) next.set(key, value); else next.delete(key); if (key !== 'page') next.delete('page'); setParams(next) }
   return <>
-    <ListingControls label="취업 후기 검색" count={resource.data ? `전체 ${resource.data.totalElements}개` : undefined}
+    <ListingControls label="취업 후기 검색"
       search={<form className="employment-search-form" onSubmit={(event) => { event.preventDefault(); change('q', search.trim()) }}><SearchField value={search} onChange={setSearch} placeholder="회사명 · 제목으로 검색" /></form>}
-      actions={<Link className="education-button is-primary" to={isLoggedIn ? `${root}/new` : '/login'}><Icon name="edit" size={14} />후기 작성</Link>}
+      actions={<Link className="education-button is-primary" to={isLoggedIn ? `${root}/new` : '/login'}><Icon name="pencil-color" size={16} />후기 작성</Link>}
     >
       <SelectControl label="채용 결과" value={outcome} options={[{ value: 'ACCEPTED', label: '합격' }, { value: 'REJECTED', label: '불합격' }]} onChange={(value) => change('outcome', value)} />
       <SelectControl label="계열" value={industry} options={[{ value: '', label: '전체 계열' }, ...(options.data?.options.filter((item) => item.kind === 'INDUSTRY').map((item) => ({ value: item.id, label: item.label })) ?? [])]} onChange={(value) => change('industry', value)} />
@@ -68,7 +68,7 @@ function EmploymentListPage() {
         <div className="employment-review-author"><span>{review.author}</span><time>{review.createdAt?.slice(0, 10)}</time></div>
       </li>)}</ul>
       <Pagination page={page + 1} pageCount={resource.data.totalPages} onChange={(value) => change('page', String(value - 1))} />
-    </> : <EducationEmptyState icon="file" title="등록된 후기가 없습니다." />)}
+    </> : <EducationEmptyState image="/coala-mascot-plush.png" title="등록된 후기가 없습니다." />)}
   </>
 }
 function EmploymentDetail() {
@@ -83,7 +83,7 @@ function EmploymentDetail() {
   const [error, setError] = useState<string | null>(null)
   const review = resource.data
   const remove = async () => { if (!review || busy) return; setBusy(true); try { await employmentApi.delete(review.id); navigate(root) } catch (cause) { setError(featureError(cause)); setBusy(false) } }
-  return <><Link className="education-text-link" to={root}>후기 목록</Link><CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
+  return <><Link className="employment-back" to={root}><Icon name="chevron-left" size={14} />후기 목록</Link><CtfResourceState {...resource} retry={() => setRevision((value) => value + 1)} />
     {error && <p role="alert" className="education-message">{error}</p>}
     {review && <article className="employment-detail"><header><span className={`employment-outcome ${review.outcome.toLowerCase()}`}>{outcomeLabel(review.outcome)}</span><h2>{review.title}</h2><p className="employment-review-meta">{review.author} · {review.createdAt?.slice(0, 10)}</p></header>
       <dl className="employment-facts">{[['회사', review.company], ['계열', review.industry], ['직무', review.role], ['채용 연도', review.recruitmentYear], ['전형', stages[review.stage]]].map(([key, value]) => <div key={key}><dt>{key}</dt><dd>{value}</dd></div>)}</dl>
@@ -109,12 +109,12 @@ function EmploymentEditor({ initial }: { initial?: EmploymentReview }) {
   const [error, setError] = useState<string | null>(null)
   const field = <K extends keyof EmploymentReviewInput>(key: K, value: EmploymentReviewInput[K]) => setForm((current) => ({ ...current, [key]: value }))
   const submit = async (event: FormEvent) => { event.preventDefault(); if (busy) return; setBusy(true); setError(null); try { const saved = await employmentApi.save(form, initial?.id); navigate(`${root}/${saved.id}`) } catch (cause) { setError(featureError(cause)); setBusy(false) } }
-  return <><Link className="education-text-link" to={root}>후기 목록</Link><h2 className="employment-editor-title">{initial ? '후기 수정' : '취업 후기 작성'}</h2>
+  return <><Link className="employment-back" to={root}><Icon name="chevron-left" size={14} />후기 목록</Link><h2 className="employment-editor-title">{initial ? '후기 수정' : '취업 후기 작성'}</h2>
     <CtfResourceState {...options} retry={() => setRevision((value) => value + 1)} />
     {error && <p className="education-message" role="alert">{error}</p>}
-    {options.data && <form className="employment-form" onSubmit={submit}><fieldset disabled={busy}>
+    {options.data && <form id="employment-review-form" className="employment-form" onSubmit={submit}><fieldset disabled={busy}>
       <div className="employment-form-grid">
-        <label>회사<input value={form.company} onChange={(event) => field('company', event.target.value)} list="employment-companies" required maxLength={120} autoComplete="organization" /></label>
+        <label>회사<input type="text" value={form.company} onChange={(event) => field('company', event.target.value)} list="employment-companies" required maxLength={120} autoComplete="organization" /></label>
         <datalist id="employment-companies">{options.data.companies.map((company) => <option key={company} value={company} />)}</datalist>
         {(['INDUSTRY', 'ROLE'] as const).map((kind) => { const key = kind === 'INDUSTRY' ? 'industryId' : 'roleId'; const current = initial && !options.data!.options.some((item) => item.id === form[key]); return <label key={kind}>{kind === 'INDUSTRY' ? '계열' : '직무'}<select value={form[key]} onChange={(event) => field(key, event.target.value)} required><option value="">선택</option>{current && <option value={initial[key]}>{kind === 'INDUSTRY' ? initial.industry : initial.role}</option>}{options.data!.options.filter((item) => item.kind === kind).map((item) => <option key={item.id} value={item.id}>{item.label}</option>)}</select></label> })}
         <label>결과<select value={form.outcome} onChange={(event) => field('outcome', event.target.value as EmploymentOutcome)}><option value="ACCEPTED">합격</option><option value="REJECTED">불합격</option></select></label>
@@ -123,7 +123,7 @@ function EmploymentEditor({ initial }: { initial?: EmploymentReview }) {
       </div>
       <label>제목<input required maxLength={150} value={form.title} onChange={(event) => field('title', event.target.value)} /></label>
       <label>후기<textarea required rows={16} maxLength={30000} value={form.content} onChange={(event) => field('content', event.target.value)} /></label>
-      <div className="employment-actions"><Link className="education-button" to={initial ? `${root}/${initial.id}` : root}>취소</Link><button className="education-button is-primary" disabled={busy}><Icon name="edit" size={14} />{busy ? '저장 중...' : '저장'}</button></div>
+      <div className="employment-actions employment-form-actions"><Link className="education-button" to={initial ? `${root}/${initial.id}` : root}>취소</Link><button className="education-button is-primary" disabled={busy}><Icon name="pencil-color" size={14} />{busy ? '저장 중...' : '저장'}</button></div>
     </fieldset></form>}
   </>
 }

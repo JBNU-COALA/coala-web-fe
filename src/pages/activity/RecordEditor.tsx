@@ -140,6 +140,7 @@ export function RecordEditor({
               날짜
               <input
                 type="date"
+                className="study-editor-date"
                 required
                 max={activityToday()}
                 value={date}

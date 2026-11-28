@@ -104,3 +104,42 @@
   .coala-app .velog-editor-wrap .w-md-editor-text-pre > code { padding: 0 !important; }
   .coala-app .post-writer--velog .velog-writer-footer { padding: 10px 12px; }
 }
+.coala-app .post-writer--velog .velog-writer-footer { flex-direction: row; flex-wrap: nowrap; align-items: center; }
+.coala-app .post-writer--velog .velog-writer-footer > button { flex: 0 0 auto; width: auto; min-width: 0; }
+.coala-app .post-writer--velog .velog-writer-footer > .writer-cancel-button { height: 34px; min-height: 34px; padding: 0 14px; font-size: 12px; }
+.coala-app .post-writer--velog .velog-writer-footer > .velog-publish-button { margin-left: auto; }
+.coala-app .info-writer-category-field { display: flex; align-items: center; padding: 0; flex: 0 0 100px; }
+.coala-app .info-writer-category-field > span { font-size: 12px; font-weight: 500; color: #555; }
+.coala-app .info-writer-category-field .writer-category-picker.custom-select { width: 100%; max-width: 100%; height: 34px !important; min-height: 34px !important; }
+.coala-app .post-writer--velog .info-writer-meta-row { display: flex; align-items: center; gap: 12px; padding: 10px 28px; border-bottom: 1px solid #e5e5e5; }
+.coala-app .post-writer--velog .info-writer-meta-row .velog-tag-field { flex: 1; min-width: 0; min-height: 34px; padding: 0; border: 0; }
+@media (max-width: 640px) { .coala-app .post-writer--velog .info-writer-meta-row { padding: 8px 12px; gap: 8px; } }
+.coala-app .info-writer-category-field .writer-category-picker > .select-control-trigger { height: 32px !important; min-height: 32px !important; padding: 0 10px !important; font-size: 12px !important; }
+.coala-app .info-writer-details { margin: 20px 28px; border: 1px solid #e5e5e5; border-radius: 6px; overflow: visible; }
+.coala-app .info-writer-detail-row { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px minmax(0, 1fr); align-items: center; min-height: 40px; }
+.coala-app .info-writer-detail-row--author { grid-template-columns: 56px minmax(0, 1fr); border-top: 1px solid #e5e5e5; }
+.coala-app .info-writer-detail-label { align-self: stretch; display: flex; align-items: center; justify-content: center; background: #fafafa; font-size: 11px; font-weight: 500; color: #666; }
+.coala-app .info-writer-detail-value { padding: 6px 10px; font-size: 12px; color: #555; overflow-wrap: anywhere; }
+.coala-app .info-writer-details .info-writer-category-field { padding: 4px 8px; min-width: 0; }
+@media (max-width: 640px) { .coala-app .info-writer-details { margin: 16px 12px; } .coala-app .info-writer-detail-row { grid-template-columns: 42px minmax(0, 1fr) 42px minmax(0, 1fr); } .coala-app .info-writer-detail-row--author { grid-template-columns: 42px minmax(0, 1fr); } }
+.coala-app .writer-tag-input { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; min-width: 0; padding: 5px 8px; }
+.coala-app .writer-tag-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 7px; border-radius: 5px; background: #f1f1f1; color: #444; font-size: 11px; animation: writer-tag-appear 160ms ease-out; }
+.coala-app .writer-tag-chip button { padding: 0 2px; border: 0; background: transparent; color: #777; font: inherit; cursor: pointer; }
+.coala-app .writer-tag-input input { flex: 1 1 130px; width: 130px; min-width: 80px; border: 0; background: transparent; outline: none; }
+.coala-app .info-writer-details .writer-tag-input .writer-tag-text-input { padding: 6px 0 !important; margin: 0; height: 30px; min-height: 30px; box-sizing: border-box; font-family: inherit; font-size: 12px; }
+@keyframes writer-tag-appear { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .coala-app .writer-tag-chip { animation: none; } }
+.coala-app .velog-editor-wrap .wmde-markdown pre { position: relative; padding: 34px 16px 16px; border: 1px solid #333; border-radius: 8px; background: #171717; color: #ededed; font-family: Consolas, 'Courier New', monospace; }
+.coala-app .velog-editor-wrap .wmde-markdown pre::before { content: 'TERMINAL'; position: absolute; top: 10px; left: 16px; color: #aaa; font: 10px/1.2 Consolas, monospace; letter-spacing: 1px; }
+.coala-app .velog-editor-wrap .wmde-markdown pre code { color: #ededed; background: transparent; font-size: 12px; line-height: 1.6; }
+@media (max-width: 640px) {
+  .coala-app .velog-editor-wrap .w-md-editor-show-live .w-md-editor-content { display: flex; flex-direction: column; overflow-y: auto; }
+  .coala-app .velog-editor-wrap .w-md-editor-show-live .w-md-editor-input { width: 100%; min-height: 220px; flex: 1 0 220px; }
+  .coala-app .velog-editor-wrap .w-md-editor-show-live .w-md-editor-preview { position: relative; width: 100%; min-height: 180px; flex: 1 0 180px; border-left: 0; border-top: 1px solid #e5e5e5; box-shadow: none; }
+}
+.writer-source-toggle { display: block; margin: 4px 12px 4px auto; padding: 4px 7px; border: 0; background: transparent; color: #777; font-size: 11px; cursor: pointer; }
+.coala-app .post-writer--velog .info-writer-image-field { border-top: 1px solid #e5e5e5; margin-top: 12px; padding-top: 16px; }
+
+.coala-app .writer-board-notice { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 12px 20px; color: #737373; font-size: 12px; }
+.coala-app .writer-board-notice button { flex-shrink: 0; padding: 5px 9px; border: 1px solid #ddd; border-radius: 7px; background: #fff; color: #333; font: inherit; cursor: pointer; }
+

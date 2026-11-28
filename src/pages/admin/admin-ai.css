@@ -1,0 +1,16 @@
+.admin-ai { padding: 24px; }
+.admin-ai > p { color: var(--text-secondary, #555); line-height: 1.6; }
+.admin-ai-filters { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 20px 0; }
+.admin-ai button { padding: 8px 12px; border: 1px solid #d4d8df; border-radius: 8px; background: #fff; color: #24344a; cursor: pointer; }
+.admin-ai button[aria-pressed="true"] { background: #203c65; color: #fff; border-color: #203c65; }
+.admin-ai button:disabled { opacity: .5; cursor: default; }
+.admin-ai-item { border-top: 1px solid #e1e5eb; padding: 16px 0; }
+.admin-ai-item summary { cursor: pointer; line-height: 1.7; overflow-wrap: anywhere; }
+.admin-ai-item small { display: block; color: #626b78; margin-top: 4px; }
+.admin-ai pre { white-space: pre-wrap; overflow-wrap: anywhere; font: inherit; line-height: 1.7; }
+.admin-ai-compare { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.admin-ai-compare > div { padding: 16px; background: #f4f6f9; border-radius: 8px; }
+.admin-ai-issue blockquote { margin: 12px 0; padding-left: 12px; border-left: 3px solid #bbc9dc; white-space: pre-wrap; }
+.admin-ai-close { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 20px; }
+.admin-ai-close input { flex: 1; min-width: 160px; padding: 9px; border: 1px solid #cdd4dd; border-radius: 6px; }
+@media (max-width: 700px) { .admin-ai-compare { grid-template-columns: 1fr; } .admin-ai { padding: 16px; } }

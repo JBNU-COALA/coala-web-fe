@@ -13,7 +13,7 @@ export function AdminSanctionsPanel({ userId, refreshKey, canRevoke }: { userId:
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const load = useCallback(async(signal: AbortSignal) => (await client.get<Sanction[]>('/api/admin/moderation/sanctions', { params: { targetUserId: userId }, signal })).data, [userId])
-  const resource = useApiResource(load, refreshKey + revision)
+  const resource = useApiResource(load, refreshKey + revision, 10000)
   const revoke = async (event: FormEvent) => {
     event.preventDefault(); if (!selected || busy || !reason.trim()) return; setBusy(true)
     try { await client.post(`/api/admin/moderation/sanctions/${selected.id}/revoke`, { reason: reason.trim() }); setSelected(null); setReason(''); setRevision((value) => value + 1); setMessage('제재를 해제했습니다.') }

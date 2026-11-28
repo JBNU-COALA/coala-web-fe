@@ -619,12 +619,11 @@ function PostDetailSession({ postId, onBack, onEdit }: PostDetailPageProps) {
             <MDEditor.Markdown
               className="post-content post-content--markdown"
               source={renderedContent}
-              style={{ whiteSpace: 'pre-wrap' }}
             />
           )}
 
           <section className="post-comments">
-            <h3>댓글 {totalCommentCount}개</h3>
+            <h3>댓글</h3>
             {commentActionError ? <p className="auth-error">{commentActionError}</p> : null}
 
             {comments.map((comment) => renderComment(comment))}

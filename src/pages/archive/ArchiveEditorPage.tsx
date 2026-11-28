@@ -85,7 +85,7 @@ export function ArchiveEditorPage() {
     event.preventDefault()
     if (saving || isUploadingArchiveFile || !allowed) return
     const payload = toPayload(draft)
-    if (formIsLabs && (!payload.sourceUrl || !payload.labName || !payload.eventDate)) {
+    if (formIsLabs && (!payload.sourceUrl || !payload.labName || (payload.materialType !== 'PAPER' && !payload.eventDate))) {
       setArchiveError('연구실명, 날짜, 자료 파일 또는 링크를 입력해 주세요.')
       return
     }
@@ -147,13 +147,13 @@ export function ArchiveEditorPage() {
 
                       </label>
                       <label className="jcloud-field">
-                        <span className="jcloud-label">세미나/논문 날짜</span>
+                        <span className="jcloud-label">자료 날짜 (논문은 선택)</span>
                         <input
                           className="jcloud-input"
                           type="date"
                           value={draft.eventDate}
                           onChange={(event) => setDraft((current) => ({ ...current, eventDate: event.target.value }))}
-                          required
+                          required={draft.materialType !== 'PAPER'}
                         />
                       </label>
                       <label className="jcloud-field">
@@ -178,7 +178,7 @@ export function ArchiveEditorPage() {
                       value={draft.title}
                       onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
                       required
-                      maxLength={150}
+                      maxLength={500}
                     />
                   </label>
                   <label className="jcloud-field archive-form-wide">

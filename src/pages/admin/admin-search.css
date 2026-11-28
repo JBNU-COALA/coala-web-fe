@@ -1,0 +1,12 @@
+.admin-search-disclosure { flex: 1 1 100%; min-width: 0; }
+.admin-search-disclosure .admin-search-trigger { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; min-height: 32px; padding: 0; margin-left: auto; border: 1px solid #ddd; border-radius: 7px; color: #555; background: #fff; cursor: pointer; }
+.admin-search-reveal { display: grid; grid-template-rows: 0fr; opacity: 0; visibility: hidden; transition: grid-template-rows 200ms ease, opacity 180ms ease, visibility 0s linear 200ms; }
+.admin-search-reveal.is-open { grid-template-rows: 1fr; opacity: 1; visibility: visible; transition-delay: 0s; }
+.admin-search-reveal > div { min-height: 0; overflow: hidden; }
+.admin-search-disclosure .admin-member-search { box-sizing: border-box; width: 100%; margin-top: 10px; border: 0; border-bottom: 1px solid #ddd; border-radius: 0; background: #fff; }
+@media (prefers-reduced-motion: reduce) { .admin-search-reveal { transition: none; } }
+
+.coala-app .admin-archive-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.coala-app .admin-archive-toolbar > .admin-inline-select { flex: 0 0 120px; width: 120px; min-width: 0; height: 32px; font-size: 12px; }
+.coala-app .admin-archive-toolbar > .admin-primary-button { flex: 0 0 auto; width: auto; margin-left: auto; min-height: 32px; height: 32px; font-size: 12px; }
+.coala-app .admin-archive-toolbar > .admin-search-disclosure { order: 3; flex-basis: 100%; }

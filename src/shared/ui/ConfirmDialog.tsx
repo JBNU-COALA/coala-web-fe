@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import './confirmDialog.css'
 
 type Props = {
@@ -9,9 +9,12 @@ type Props = {
   cancelLabel: string
   onConfirm: () => void
   onCancel: () => void
+  children?: ReactNode
+  hideCancel?: boolean
+  className?: string
 }
 
-export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel, onConfirm, onCancel }: Props) {
+export function ConfirmDialog({ open, title, description, confirmLabel, cancelLabel, onConfirm, onCancel, children, hideCancel = false, className = '' }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const id = useId()
   useEffect(() => {
@@ -31,13 +34,14 @@ export function ConfirmDialog({ open, title, description, confirmLabel, cancelLa
     }
   }, [open])
   return (
-    <dialog ref={ref} className="confirm-dialog" aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`}
+    <dialog ref={ref} className={`confirm-dialog ${className}`} aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`}
       onCancel={(event) => { event.preventDefault(); onCancel() }}>
       <h2 id={`${id}-title`}>{title}</h2>
       <p id={`${id}-description`}>{description}</p>
+      {children}
       <div className="confirm-dialog-actions">
-        <button type="button" disabled={!open} autoFocus onClick={onCancel}>{cancelLabel}</button>
-        <button type="button" disabled={!open} className="confirm-dialog-primary" onClick={onConfirm}>{confirmLabel}</button>
+        {!hideCancel && <button type="button" disabled={!open} autoFocus onClick={onCancel}>{cancelLabel}</button>}
+        <button type="button" disabled={!open} autoFocus={hideCancel} className="confirm-dialog-primary" onClick={onConfirm}>{confirmLabel}</button>
       </div>
     </dialog>
   )

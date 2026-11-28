@@ -8,6 +8,7 @@ export type ArchiveItem = {
   title: string
   summary: string
   labName?: string
+  publicationYear?: number | null
   eventDate?: string | null
   materialType?: string
   content: string

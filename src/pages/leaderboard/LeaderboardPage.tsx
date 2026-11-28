@@ -187,7 +187,7 @@ export function LeaderboardPage() {
 
           {!isLoading && !loadError && <><header id="all-members" className="activity-directory-section-head activity-directory-section-head--all">
             <div><h2><Icon name="profile-color" size={23} /> 전체 멤버</h2><p>코알라와 함께하는 멤버를 확인할 수 있습니다.</p></div>
-            <strong className="activity-member-count">{isLoading || loadError ? '멤버' : `멤버 ${filteredMembers.length}명`}</strong>
+            <strong className="activity-member-count">멤버</strong>
           </header>
           <section className={`activity-directory-grid activity-directory-grid--${viewMode}`} aria-label="전체 유저 목록">
             {!isLoading && !loadError && filteredMembers.map((member) => (

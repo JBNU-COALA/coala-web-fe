@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { InfoDetailPage } from './InfoDetailPage'
 import { infoApi, type InfoArticle } from '../../shared/api/info'
@@ -68,9 +68,9 @@ describe('information article interactions', () => {
     const pending = deferred<Awaited<ReturnType<typeof infoApi.deleteArticle>>>()
     vi.mocked(infoApi.deleteArticle).mockReturnValue(pending.promise)
     const { rerender } = render(<InfoDetailPage {...props} />)
-    fireEvent.click(await screen.findByRole('button', { name: '삭제' }))
+    fireEvent.click(await screen.findByRole('button', { name: '삭제하기' }))
     expect(infoApi.deleteArticle).not.toHaveBeenCalled()
-    fireEvent.click(screen.getByRole('button', { name: '삭제하기' }))
+    fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: '삭제하기' }))
     vi.mocked(infoApi.getArticle).mockResolvedValue(article(2))
     rerender(<InfoDetailPage {...props} infoId="2" />)
     await screen.findByRole('heading', { name: 'Article 2' })

@@ -199,7 +199,9 @@ describe('banner media management', () => {
     render(<AdminBannersPanel refreshKey={0} />)
     await screen.findByText('등록된 배너가 없습니다.')
     fireEvent.click(screen.getByRole('button', { name: '배너 추가' }))
-    fireEvent.change(screen.getByLabelText('제목'), { target: { value: '이미지 배너' } })
+    fireEvent.click(screen.getByRole('button', { name: '이미지만 사용' }))
+    expect(screen.queryByLabelText('제목')).toBeNull()
+    expect((screen.getByRole('button', { name: '배너 저장' }) as HTMLButtonElement).disabled).toBe(true)
     const file = new File(['png'], 'banner.png', { type: 'image/png' })
     fireEvent.change(screen.getByLabelText('배너 이미지 파일'), { target: { files: [file] } })
     await screen.findByText('이미지를 연결했습니다.')
@@ -212,6 +214,10 @@ describe('banner media management', () => {
     fireEvent.click(screen.getByRole('button', { name: '배너 이미지 제거' }))
     expect(screen.queryByRole('img', { name: '배너 이미지' })).toBeNull()
     expect(screen.getByRole('heading', { name: '이미지 배너' })).toBeTruthy()
+    expect(screen.getByRole('button', { name: '템플릿에 글 작성' }).getAttribute('aria-pressed')).toBe('true')
+    const update = vi.spyOn(adminApi, 'updateBanner').mockImplementation(async (id, payload) => ({ id, ...payload }))
+    fireEvent.click(screen.getByRole('button', { name: '배너 저장' }))
+    await waitFor(() => expect(update).toHaveBeenCalledWith(8, expect.objectContaining({ imageUrl: '' })))
   })
   it('keeps the existing image and draft if upload fails', async () => {
     const banner: SiteBanner = { id: 3, title: '원본 배너', eyebrow: '', description: '', imageUrl: '/original.png', targetPath: '/about', actionLabel: '보기', tone: 'blue', sortOrder: 0, enabled: true }

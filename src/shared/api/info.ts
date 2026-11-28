@@ -13,6 +13,7 @@ export type InfoArticle = {
   authorId?: number | null
   authorName?: string | null
   sourceDate: string
+  publicationYear?: number | null
   content: string
   imageUrl: string
   attachmentIds?: number[]

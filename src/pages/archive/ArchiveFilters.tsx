@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../shared/ui/Icon'
+import { SelectControl } from '../../shared/ui/SelectControl'
 
 type Props = {
   options: { id: string; label: string }[]
@@ -9,9 +10,10 @@ type Props = {
   showCalendar: boolean
   onCalendarChange: (value: boolean) => void
   inline?: boolean
+  labFilter?: { options: string[]; value: string; onChange: (value: string) => void }
 }
 
-export function ArchiveFilters({ options, value, onChange, hasCalendar, showCalendar, onCalendarChange, inline = false }: Props) {
+export function ArchiveFilters({ options, value, onChange, hasCalendar, showCalendar, onCalendarChange, inline = false, labFilter }: Props) {
   const root = useRef<HTMLDivElement>(null)
   const drag = useRef<{ id: number; x: number; scroll: number; moved: boolean; lastX: number; time: number; velocity: number } | null>(null)
   const animation = useRef(0)
@@ -25,7 +27,7 @@ export function ArchiveFilters({ options, value, onChange, hasCalendar, showCale
     document.addEventListener('pointerdown', outside)
     return () => document.removeEventListener('pointerdown', outside)
   }, [])
-  const active = value !== 'all' || (hasCalendar && showCalendar)
+  const active = value !== 'all' || (hasCalendar && showCalendar) || (!!labFilter && labFilter.value !== 'all')
   return <div className={`archive-filters${inline ? ' archive-filters--inline' : ''}`} ref={root}
     onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setOpen(false) }}
     onKeyDown={(event) => {
@@ -39,7 +41,7 @@ export function ArchiveFilters({ options, value, onChange, hasCalendar, showCale
       <Icon name="filter" size={18} />{active && <span className="archive-filter-dot" />}
     </button>}
     <div className={`archive-filter-popover${open || inline ? ' is-open' : ''}`} inert={!open && !inline} aria-hidden={!open && !inline} role="group" aria-label="자료 필터">
-      <div className="archive-filter-heading"><strong>필터</strong><button type="button" onClick={() => { onChange('all'); onCalendarChange(false) }}>초기화</button></div>
+      <div className="archive-filter-heading"><strong>필터</strong><button type="button" onClick={() => { onChange('all'); onCalendarChange(false); labFilter?.onChange('all') }}>초기화</button></div>
       <div className="archive-filter-options"
         onPointerDown={(event) => {
           cancelAnimationFrame(animation.current)
@@ -95,6 +97,10 @@ export function ArchiveFilters({ options, value, onChange, hasCalendar, showCale
         }}>
         {options.map((option) => <button key={option.id} type="button" aria-pressed={value === option.id} onClick={() => onChange(option.id)}>{option.label}</button>)}
       </div>
+      {labFilter && <div className="archive-filter-lab"><span>연구실</span>
+        <SelectControl label="연구실" value={labFilter.value} onChange={labFilter.onChange}
+          options={[{ value: 'all', label: '전체 연구실' }, ...labFilter.options.map(lab => ({ value: lab, label: lab }))]} />
+      </div>}
       {hasCalendar && <label className="archive-filter-calendar"><span>캘린더 표시</span><input type="checkbox" checked={showCalendar} onChange={(event) => onCalendarChange(event.target.checked)} /></label>}
     </div>
   </div>

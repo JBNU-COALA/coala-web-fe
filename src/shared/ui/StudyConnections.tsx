@@ -68,7 +68,6 @@ function StudyConnectionsContent({
               ? '참여 중인 스터디'
               : '참여 활동'}
         </h3>
-        {!loading && !error && <small>{groups.length}개</small>}
       </header>
       {error && <LoadErrorState message={error} onRetry={() => { setError(''); setLoading(true); setRevision((value) => value + 1) }} />}
       {loading && <LoadingSpinner label="활동을 불러오는 중입니다." />}

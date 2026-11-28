@@ -87,7 +87,7 @@ describe('authenticated service inquiries', () => {
     expect(writes[kind]).toHaveBeenCalledTimes(1)
     expect(writes[kind]).toHaveBeenCalledWith({ title: 'Draft title', content: 'Keep my question' })
     expect(writes[kind === 'instances' ? 'domains' : 'instances']).not.toHaveBeenCalled()
-    expect((screen.getByRole('button', { name: '새로고침' }) as HTMLButtonElement).disabled).toBe(true)
+    expect((screen.getByRole('button', { name: '작성 닫기' }) as HTMLButtonElement).disabled).toBe(true)
     expect((screen.getByLabelText('제목') as HTMLInputElement).value).toBe('  Draft title  ')
     await act(async () => complete({ ...inquiry, title: 'Draft title', status: 'open', reply: '', answeredAt: null }))
     expect(screen.getByText('문의가 등록되었습니다.')).toBeTruthy()
@@ -140,15 +140,18 @@ describe('authenticated service inquiries', () => {
 
   it('refreshes an administrators new reply without replacing an open draft', async () => {
     reads.instances.mockResolvedValueOnce([{ ...inquiry, status: 'open', reply: '', answeredAt: null }]).mockResolvedValueOnce([inquiry])
+    let tick: (() => void) | undefined
+    const interval = vi.spyOn(window, 'setInterval').mockImplementation((callback, delay) => { if (delay === 20000) tick = callback as () => void; return 123 })
     const { container } = render(view('instances'))
     await screen.findByText('검토 중')
     startDraft()
-    fireEvent.click(screen.getByRole('button', { name: '새로고침' }))
-    await waitFor(() => expect((screen.getByRole('button', { name: '새로고침' }) as HTMLButtonElement).disabled).toBe(false))
+    await act(async () => { tick?.() })
+    expect(interval).toHaveBeenCalledWith(expect.any(Function), 20000)
+    interval.mockRestore()
     expect(screen.queryByText('답변 완료')).toBeNull()
     expect((screen.getByLabelText('내용') as HTMLTextAreaElement).value).toBe('  Keep my question  ')
     fireEvent.click(screen.getByRole('button', { name: '취소' }))
-    expect(screen.getByText('답변 완료')).toBeTruthy()
+    expect(await screen.findByText('답변 완료')).toBeTruthy()
     expect(container.querySelector('.service-inquiries-reply p')?.textContent).toBe(inquiry.reply)
   })
 

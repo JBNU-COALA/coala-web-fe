@@ -1,3 +1,4 @@
+import { AdminSearch } from './AdminSearch'
 import { AdminDetail } from './AdminDetail'
 import { useState, type FormEvent } from 'react'
 import { adminApi } from '../../shared/api/admin'
@@ -20,7 +21,7 @@ export function AdminBoardsPanel({ boards, onChange }: { boards: BoardData[]; on
   return <div className="admin-two-column">
     <section className="admin-panel">
       <div className="admin-panel-header"><h3>게시판 목록</h3><button type="button" className="admin-ghost-button" disabled={busy} onClick={() => { setSelectedId(null); setEditorOpen(true) }}><Icon name="plus" size={15} />게시판 추가</button></div>
-      <label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="게시판 검색" placeholder="게시판 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label>
+      <AdminSearch><label className="admin-member-search"><Icon name="search" size={16} /><input aria-label="게시판 검색" placeholder="게시판 검색" value={query} onChange={(e) => setQuery(e.target.value)} /></label></AdminSearch>
       <div className="admin-list">{filtered.map((board) => <button type="button" key={board.boardId} disabled={busy} aria-pressed={selectedId === board.boardId}
         className={`admin-list-row${selectedId === board.boardId ? ' is-active' : ''}`} onClick={() => { setSelectedId(board.boardId); setEditorOpen(true) }}>
         <span>{board.boardName}</span><small>{boardTypes[board.boardType]}{board.categoryKey ? ` · ${boardCategories[board.categoryKey]}` : ''} · {board.description || '설명 없음'}</small><b>{board.isActive ? '공개' : '비활성'}</b>

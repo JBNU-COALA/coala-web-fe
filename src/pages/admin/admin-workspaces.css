@@ -80,3 +80,6 @@
 @media (max-width: 1200px) { .admin-page .admin-catalog-layout.has-editor { grid-template-columns: minmax(0, 1fr); } .admin-page .admin-record-editor { border-left: 0; border-top: 1px solid #ddd; padding: 20px 0 0; } }
 @media (max-width: 980px) { .admin-page .admin-nav-search { min-width: 140px; margin: 0; } .admin-page .admin-nav-group { flex: 0 0 auto; } .admin-page .admin-nav-group-label { display: none; } }
 @media (max-width: 640px) { .admin-page .admin-directory-list { grid-template-columns: minmax(0, 1fr); } .admin-page .admin-form-grid { grid-template-columns: minmax(0, 1fr); } .admin-page .admin-catalog-layout .admin-table { min-width: 420px; } .admin-page .admin-bootstrap .admin-metric-band { gap: 12px; } .admin-page .admin-section-heading .admin-row-actions { margin-left: 0; } }
+
+.coala-app .admin-page .admin-directory-list > button { border: 0; border-radius: 0; box-shadow: none; background: transparent; position: relative; }
+.coala-app .admin-page .admin-directory-list > button::after { content: ''; position: absolute; inset: auto 0 0; height: 1px; background: #eee; }

@@ -57,7 +57,7 @@ export function RecruitParticipants({
   return (
     <section className="study-participants" aria-label="지원자 관리">
       <h3>
-        지원자 <small>{items.length}명</small>
+        지원자
       </h3>
       {error && <p role="alert">{error}</p>}
       {loading ? (

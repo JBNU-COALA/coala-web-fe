@@ -103,3 +103,8 @@
   .coala-app .service-inquiries-meta { font-size: 10px; gap: 6px; }
   .coala-app .service-inquiries-reply { margin-top: 12px; padding-left: 10px; }
 }
+
+.coala-app .service-inquiries-header--untitled { display: flex; justify-content: flex-end; padding: 8px 0 12px; }
+.coala-app .service-inquiries-actions { display: flex; flex-direction: row; flex-wrap: nowrap; width: auto; margin-left: auto; }
+.coala-app .service-inquiries .service-inquiries-write { display: inline-flex; width: auto; min-height: 30px; height: 30px; padding: 0 10px; gap: 5px; font-size: 11px; border-radius: 7px; background: #171717; border-color: #171717; color: #fff; white-space: nowrap; }
+.coala-app .service-inquiries .service-inquiries-write:hover:not(:disabled) { background: #333; }
