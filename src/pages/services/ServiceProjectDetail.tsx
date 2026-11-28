@@ -44,7 +44,7 @@ export function ServiceProjectDetail({ service, error, onEdit }: {
       <p className="service-project-summary">{service.summary}</p>
       {hasPeriod && <p className="service-project-period">{period}</p>}
       <section className="service-project-maker">
-        <h2>만든 사람</h2>
+        <h2><span className="service-project-maker-label">만든 사람</span><span className="service-project-maker-mobile-label">프로젝트 참여 인원 <strong>{makers.length}명</strong></span></h2>
         {makers.map((name) => <div key={name}><CharacterAvatar name={name} size="xs" /><span>{name}</span></div>)}
       </section>
       {service.audience && <section className="service-project-audience"><h2>이용 대상</h2><p>{service.audience}</p></section>}

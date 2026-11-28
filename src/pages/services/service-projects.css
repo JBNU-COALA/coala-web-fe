@@ -10,6 +10,7 @@
 .coala-app .service-project-period { color: #777; font-size: 11px; }
 .coala-app .service-project-sidebar h2 { margin: 0 0 8px; font-size: 11px; font-weight: 500; }
 .coala-app .service-project-maker, .coala-app .service-project-audience { margin: 18px 0; }
+.service-project-maker-mobile-label { display: none; }
 .coala-app .service-project-maker > div { display: inline-flex; align-items: center; gap: 6px; border: 1px solid #e5e5e5; border-radius: 5px; padding: 5px 8px; font-size: 10px; }
 .coala-app .service-project-audience p { font-size: 11px; color: #666; }
 .coala-app .service-project-links { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
@@ -35,15 +36,35 @@
 .coala-app .member-service-form .jcloud-textarea { font-size: 12px; line-height: 1.8; }
 .coala-app .member-service-form .jcloud-textarea::placeholder { font-size: 12px; }
 @media (max-width: 700px) {
-  .coala-app .service-project-detail { grid-template-columns: minmax(0, 1fr); gap: 24px; padding: 0 16px; margin-top: 16px; }
-  .coala-app .service-project-sidebar { position: static; grid-row: 1; }
-  .coala-app .service-project-sidebar h1 { font-size: 21px; margin: 10px 0; }
-  .coala-app .service-project-maker, .coala-app .service-project-audience { margin: 14px 0; }
+  .coala-app .service-project-detail { grid-template-columns: minmax(0, 1fr); gap: 16px; padding: 0 12px; margin: 8px auto 28px; }
+  .coala-app .service-project-content { display: contents; }
+  .coala-app .service-project-content > .project-gallery { grid-column: 1; grid-row: 1; }
+  .coala-app .service-project-detail .project-gallery-main img { max-height: 240px; object-fit: contain; }
+  .coala-app .service-project-detail .project-gallery-thumbnails { justify-content: center; align-items: center; gap: 2px; padding: 4px 0 0; }
+  .coala-app .service-project-detail .project-gallery-thumbnails button { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; min-height: 28px; padding: 0; border: 0; border-radius: 999px; background: transparent; opacity: 1; }
+  .coala-app .service-project-detail .project-gallery-thumbnails button::before { content: ''; width: 7px; height: 7px; border-radius: 999px; background: #d6d6d6; transition: width 180ms ease, background 180ms ease; }
+  .coala-app .service-project-detail .project-gallery-thumbnails button[aria-pressed="true"]::before { width: 20px; background: #404040; }
+  .coala-app .service-project-detail .project-gallery-thumbnails img { display: none; }
+  .coala-app .service-project-detail .project-gallery-arrow { width: 28px; height: 28px; min-height: 28px; }
+  .coala-app .service-project-sidebar { position: static; grid-column: 1; grid-row: 2; }
+  .coala-app .service-project-sidebar h1 { font-size: 20px; margin: 8px 0; }
+  .coala-app .service-project-summary { font-size: 12px; margin-bottom: 12px; }
+  .coala-app .service-project-maker, .coala-app .service-project-audience { margin: 12px 0; }
+  .coala-app .service-project-maker { display: flex; flex-wrap: wrap; gap: 6px; }
+  .coala-app .service-project-maker h2 { flex-basis: 100%; margin-bottom: 2px; font-size: 12px; }
+  .service-project-maker-label { display: none; }
+  .service-project-maker-mobile-label { display: inline; }
+  .service-project-maker-mobile-label strong { margin-left: 4px; color: #537464; font-weight: 600; }
+  .coala-app .service-project-maker > div { padding: 6px 8px; font-size: 11px; }
   .coala-app .service-project-links { flex-direction: row; flex-wrap: wrap; }
   .coala-app .service-project-links a { flex: none; }
-  .coala-app .service-project-prose { margin-top: 26px; }
+  .coala-app .service-project-prose { grid-column: 1; margin-top: 0; padding-top: 14px; border-top: 1px solid #ededed; }
+  .coala-app .service-project-prose h2 { margin-bottom: 8px; }
+  .coala-app .service-project-prose p { margin: 0; line-height: 1.7; }
+  .coala-app .service-project-edit-footer { grid-column: 1; margin-top: 0; padding-top: 12px; }
   .coala-app .coala-content--services .member-service-form { margin-top: 0; padding: 0 16px 16px; }
 }
+@media (max-width: 700px) and (prefers-reduced-motion: reduce) { .coala-app .service-project-detail .project-gallery-thumbnails button::before { transition: none; } }
 .coala-app .coala-content--services .member-service-grid {
   display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px;
   width: 100%; max-width: 1000px; margin: 24px auto; padding: 0; box-sizing: border-box;
