@@ -39,7 +39,7 @@ function JungleLeaves({ side }: { side: 'left' | 'right' }) {
       <path d={vinePath(nodes)} fill="none" stroke="#294a32" strokeWidth="7" />
       <path d={vinePath(nodes)} fill="none" stroke="#668052" strokeOpacity=".2" strokeWidth="1.5" />
       {nodes.map((node, index) => <g key={index} transform={`translate(${node.x} ${node.y})`}>
-        <g transform={`rotate(${index % 2 ? -26 : 26}) scale(${.65 + (index % 3) * .13})`}>
+        <g transform={`rotate(${-12 - (index % 3) * 3}) scale(${.76 + (index % 3) * .06})`}>
           <path d="M0 0Q12-6 26-8" fill="none" stroke="#34543b" strokeWidth="3" />
           <use href={`#edge-blade-${side}`} transform="translate(26 -8)" />
         </g>
