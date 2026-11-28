@@ -31,6 +31,8 @@ export function ArchivePage() {
   const isAdmin = isAdminUser(user)
   const [items, setItems] = useState<ArchiveItem[]>([])
   const [query, setQuery] = useState('')
+  const [labFilter, setLabFilter] = useState('all')
+  const labs = useMemo(() => [...new Set(items.map(item => item.labName).filter((name): name is string => !!name))].sort(), [items])
   const [materialFilter, setMaterialFilter] = useState('all')
   const [showCalendar, setShowCalendar] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -81,13 +83,13 @@ export function ArchivePage() {
 
   const visibleItems = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
-    return items.filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
+    return items.filter(item => labFilter === 'all' || item.labName === labFilter).filter((item) => (selectedMaterial === 'all' || item.materialType === selectedMaterial)).filter((item) =>
       `${item.title} ${item.summary} ${item.content} ${item.labName ?? ''} ${item.repositoryUrl} ${item.ownerName} ${item.tags.join(' ')}`
         .toLowerCase()
         .includes(normalizedQuery),
     )
-  }, [items, query, selectedMaterial])
-  const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${query}`)
+  }, [items, query, selectedMaterial, labFilter])
+  const pagination = usePagination(visibleItems, `${activeCategory}:${selectedMaterial}:${labFilter}:${query}`)
 
   const calendarDays = useMemo(() => buildCalendarDays(calendarMonth), [calendarMonth])
 
@@ -150,6 +152,13 @@ export function ArchivePage() {
             hasCalendar={activeCategory === 'labs'} showCalendar={showCalendar} onCalendarChange={setShowCalendar} />
 
       </ListingControls>
+      {activeCategory === 'labs' && labs.length > 0 && <div className="archive-lab-filter">
+        <label htmlFor="archive-lab">연구실</label>
+        <select id="archive-lab" value={labFilter} onChange={event => setLabFilter(event.target.value)}>
+          <option value="all">전체 연구실</option>
+          {labs.map(lab => <option key={lab} value={lab}>{lab} ({items.filter(item => item.labName === lab).length})</option>)}
+        </select><span>{visibleItems.length}개 자료</span>
+      </div>}
             {activeCategory === 'labs' && showCalendar ? (
               <section className="surface-card archive-calendar" aria-label="연구실 세미나 캘린더">
                 <div className="archive-calendar-head">

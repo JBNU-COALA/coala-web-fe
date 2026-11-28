@@ -183,3 +183,7 @@
 .coala-app .coala-content--archive .listing-controls-bar :is(.archive-filter-trigger, .listing-search-toggle, .write-post-button) { box-sizing: border-box; height: 32px; min-height: 32px; max-height: 32px; margin-block: 0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .coala-app .coala-content--archive .listing-controls-bar :is(.archive-filter-trigger, .listing-search-toggle) { width: 32px; min-width: 32px; padding: 0; }
 .coala-app .coala-content--archive .listing-controls-bar .write-post-button { width: auto; padding: 0 10px; font-size: 12px; white-space: nowrap; }
+
+.archive-lab-filter { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; margin: 0 0 20px; }
+.archive-lab-filter select { max-width: 100%; padding: 10px; border: 1px solid var(--border-color, #ddd); border-radius: 8px; background: var(--surface-color, white); color: inherit; }
+.archive-lab-filter span { font-size: 13px; color: var(--text-muted, #666); }

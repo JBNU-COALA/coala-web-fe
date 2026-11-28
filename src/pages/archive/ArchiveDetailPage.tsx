@@ -49,12 +49,12 @@ export function ArchiveDetailPage() {
         <span className="archive-document-type">{getMaterialLabel(item.materialType)}</span>
         <h2>{item.title}</h2><p>{item.summary}</p>
         <div className="archive-document-meta"><span>{item.ownerName}</span>
-          {item.labName && <span>{item.labName}</span>}<time>{item.eventDate || item.createdAt?.slice(0, 10)}</time></div>
+          {item.labName && <span>{item.labName}</span>}<time>{item.publicationYear ? `${item.publicationYear}년` : item.eventDate || item.createdAt?.slice(0, 10)}</time></div>
         <div className="archive-resource-tags">{item.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
       </header>
       <div className="archive-document-toolbar">
         <div>
-          {item.sourceUrl && <a href={getArchiveSourceHref(item.sourceUrl)} target="_blank" rel="noreferrer"><Icon name="link" size={16} />자료 열기</a>}
+          {item.sourceUrl && <a href={getArchiveSourceHref(item.sourceUrl)} target="_blank" rel="noreferrer"><Icon name="link" size={16} />{item.sourceUrl.startsWith('/media/attachments/') ? 'PDF 다운로드' : '원문 보기'}</a>}
           {/^https?:\/\//i.test(item.repositoryUrl) && <a href={item.repositoryUrl} target="_blank" rel="noreferrer"><Icon name="book" size={16} />저장소</a>}
           <button type="button" onClick={async () => setCopyState(await copyMarkdown(item.content) ? '복사됨' : '복사 실패')}><Icon name="copy" size={16} />{copyState || '마크다운 복사'}</button>
         </div>

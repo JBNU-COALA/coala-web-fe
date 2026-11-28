@@ -30,13 +30,14 @@ export function ArchiveResourceCard({ item, sourceHref, canManage, onEdit, onDel
     <p className="archive-resource-summary">{item.summary}</p>
     <div className="archive-resource-source">
       {repository && isSkill ? <span><Icon name="book" size={14} />{repository}</span> : <span>{item.labName || item.ownerName}</span>}
-      {!item.eventDate && item.createdAt && <time dateTime={item.createdAt}>{item.createdAt.slice(0, 10)}</time>}
+      {!item.publicationYear && !item.eventDate && item.createdAt && <time dateTime={item.createdAt}>{item.createdAt.slice(0, 10)}</time>}
+      {item.publicationYear && <time dateTime={String(item.publicationYear)}>{item.publicationYear}년</time>}
       {item.eventDate && <time dateTime={item.eventDate}>{item.eventDate}</time>}
     </div>
     {!!item.tags.length && <div className="archive-resource-tags">{item.tags.slice(0, 5).map((tag) => <span key={tag}>{tag}</span>)}{item.tags.length > 5 && <span>+{item.tags.length - 5}</span>}</div>}
     <footer>
       <div>
-        {sourceHref && <a href={sourceHref} target="_blank" rel="noreferrer"><Icon name="link" size={15} />{isSkill ? '문서' : '자료 열기'}</a>}
+        {sourceHref && <a href={sourceHref} target="_blank" rel="noreferrer"><Icon name="link" size={15} />{isSkill ? '문서' : item.sourceUrl.startsWith('/media/attachments/') ? 'PDF 다운로드' : '원문 보기'}</a>}
         {repository && /^https?:\/\//i.test(item.repositoryUrl) && <a href={item.repositoryUrl} target="_blank" rel="noreferrer"><Icon name="book" size={15} />저장소</a>}
       </div>
       {canManage && <div aria-label="자료 관리">
