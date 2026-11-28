@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import App from '../../App'
@@ -18,21 +18,22 @@ describe('public landing and member portal', () => {
     expect(screen.getByRole('link', { name: '8기 모집 알림 신청' }).getAttribute('href')).toBe('/recruiting')
     expect(screen.queryByText('동아리 회원을 위한 게시판과 자료를 이용할 수 있습니다.')).toBeNull()
     expect(screen.getByRole('link', { name: 'RECRUITING' }).getAttribute('href')).toBe('/recruiting')
-    expect(screen.getByRole('link', { name: 'HOME', current: 'page' }).getAttribute('href')).toBe('/')
-    expect(screen.getByRole('link', { name: 'COMMUNITY' }).getAttribute('href')).toBe('/portal')
+    expect(screen.getByRole('link', { name: 'HOME' }).getAttribute('href')).toBe('/portal')
+    expect(screen.getByRole('link', { name: 'STAFF' }).getAttribute('href')).toBe('/about/management')
+    expect(within(screen.getByRole('navigation', { name: '동아리 소개 메뉴' })).getAllByRole('link').map((link) => link.textContent)).toEqual(['HOME', 'STAFF', 'RECRUITING'])
     expect(screen.queryByText('Member portal content')).toBeNull()
   })
-  it('opens login with the portal destination when a visitor clicks COMMUNITY from HOME', async () => {
+  it('opens login with the portal destination when a visitor clicks HOME', async () => {
     render(<MemoryRouter><App /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('link', { name: 'COMMUNITY' }))
+    fireEvent.click(screen.getByRole('link', { name: 'HOME' }))
     expect(await screen.findByText('Login destination: /portal')).toBeTruthy()
     expect(screen.queryByText('Member portal content')).toBeNull()
   })
-  it('opens the portal when an authenticated verified member clicks COMMUNITY from HOME', async () => {
+  it('opens the portal when an authenticated verified member clicks HOME', async () => {
     auth.isLoggedIn = true
     auth.user = { id: 1, verified: true }
     render(<MemoryRouter><App /></MemoryRouter>)
-    fireEvent.click(screen.getByRole('link', { name: 'COMMUNITY' }))
+    fireEvent.click(screen.getByRole('link', { name: 'HOME' }))
     expect(await screen.findByText('Member portal content')).toBeTruthy()
   })
   it('redirects visitors opening the member portal to login and preserves the destination', async () => {
@@ -45,6 +46,14 @@ describe('public landing and member portal', () => {
     auth.user = { id: 1, verified: true }
     render(<MemoryRouter initialEntries={['/portal']}><App /></MemoryRouter>)
     expect(await screen.findByText('Member portal content')).toBeTruthy()
+  })
+  it('keeps the same three links on the recruiting page', () => {
+    render(<MemoryRouter initialEntries={['/recruiting']}><App /></MemoryRouter>)
+    const nav = screen.getByRole('navigation', { name: '주요 메뉴' })
+    expect(within(nav).getAllByRole('link').map((link) => [link.textContent, link.getAttribute('href')])).toEqual([
+      ['HOME', '/portal'], ['STAFF', '/about/management'], ['RECRUITING', '/recruiting'],
+    ])
+    expect(within(nav).getByRole('link', { name: 'RECRUITING', current: 'page' })).toBeTruthy()
   })
 })
 

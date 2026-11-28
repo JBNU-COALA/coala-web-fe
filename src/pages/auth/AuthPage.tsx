@@ -1,6 +1,8 @@
 import './auth.css'
 import { AuthForm } from './AuthForm'
 import { AuthInlineError } from './AuthInlineError'
+import { LoginEmailInput } from './LoginEmailInput'
+import { normalizeLoginEmail } from './loginEmail'
 import { Icon } from '../../shared/ui/Icon'
 import { useCallback, useState, type FormEvent } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -54,7 +56,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
     event.preventDefault()
     setError(null)
 
-    const normalizedEmail = email.trim().toLowerCase()
+    const normalizedEmail = isLogin ? normalizeLoginEmail(email) : email.trim().toLowerCase()
 
     if (!isLogin && !jbnuEmailPattern.test(normalizedEmail)) {
       setError('전북대학교 이메일(@jbnu.ac.kr)만 사용할 수 있습니다.')
@@ -148,15 +150,15 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
 
           <label className="auth-label">
             <span>이메일 {!isLogin && <span aria-hidden="true">*</span>}</span>
-            <input
+            {isLogin ? <LoginEmailInput value={email} onChange={setEmail} /> : <input
               className="auth-input"
               type="email"
               autoComplete="email"
-              placeholder={isLogin ? '이메일을 입력해주세요.' : 'name@jbnu.ac.kr'}
+              placeholder="name@jbnu.ac.kr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-            />
+            />}
           </label>
 
           <label className="auth-label">
@@ -296,7 +298,7 @@ export function AuthPage({ mode, onSwitchMode }: AuthPageProps) {
                 try { localStorage.removeItem('coala.savedEmail') } catch { /* Storage is optional. */ }
               }
             }} />이메일 저장</label>
-            <button type="button" className="auth-recovery" onClick={() => navigate(routes.auth.passwordReset, { state: { email: email.trim().toLowerCase() } })}>비밀번호 찾기</button>
+            <button type="button" className="auth-recovery" onClick={() => navigate(routes.auth.passwordReset, { state: { email: normalizeLoginEmail(email) } })}>비밀번호 찾기</button>
           </div>}
 
           <button type="submit" className="auth-submit" disabled={isLoading}>

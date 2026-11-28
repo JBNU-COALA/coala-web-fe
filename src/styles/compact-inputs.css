@@ -17,7 +17,7 @@
 .coala-app .coala-content :is(.recruit-write-panel, .recruit-edit-form) .select-control.custom-select > :is(.select-control-trigger, .select-control-native) { height: 32px !important; min-height: 32px !important; padding: 0 10px !important; font-size: 12px !important; line-height: 1.4; }
 .coala-app :is(form, .admin-form, .profile-edit-form) input:not([type=checkbox]):not([type=radio]):not([type=file]):not([type=hidden]):not([type=range]):not([type=color]):not([type=submit]):not([type=button]),
 .coala-app :is(form, .admin-form, .profile-edit-form) select {
-  box-sizing: border-box; min-width: 0; height: 34px !important; min-height: 34px !important; padding: 6px 10px !important; font-family: inherit; font-size: 12px !important; font-weight: 400; line-height: 1.4;
+  box-sizing: border-box; min-width: 0; height: 34px !important; min-height: 34px !important; padding: 6px var(--field-padding-right, 10px) 6px 10px !important; font-family: inherit; font-size: 12px !important; font-weight: 400; line-height: 1.4;
 }
 .coala-app :is(form, .admin-form, .profile-edit-form) textarea { box-sizing: border-box; padding: 8px 10px; font-family: inherit; font-size: 12px !important; font-weight: 400; line-height: 1.5; }
 .coala-app :is(form, .admin-form, .profile-edit-form) :is(.jcloud-label, .admin-field > span, .member-field > span) { font-size: 11px !important; font-weight: 500; }
